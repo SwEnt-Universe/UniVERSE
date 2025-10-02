@@ -18,13 +18,6 @@ jobs:
     # Execute the CI on the course's runners
     runs-on: ubuntu-latest
 
-    env:
-      BASE_FOLDER: "UniVERSE"
-
-    defaults:
-      run:
-        working-directory: ./${{ env.BASE_FOLDER }}
-
     steps:
       # First step : Checkout the repository on the runner
       - name: Checkout
