@@ -81,7 +81,7 @@ Team's Telegram group
 ### Branch Naming 
 - **Features:** `feature/<feature-name>`  
 - **Bugfixes:** `fix/<issue-number>` (issue number of the GitHub issue previously created)
-- 
+
 ### Figma
 [View the Figma project](https://www.figma.com/files/team/1555155436667817387/project/462527297?fuid=1555684783915773231)
 
