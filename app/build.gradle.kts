@@ -4,14 +4,15 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
     id("jacoco")
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.android.sample"
+    namespace = "com.android.universe"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.android.sample"
+        applicationId = "com.android.universe"
         minSdk = 28
         targetSdk = 34
         versionCode = 1
