@@ -18,6 +18,13 @@ jobs:
     # Execute the CI on the course's runners
     runs-on: ubuntu-latest
 
+    env:
+      BASE_FOLDER: "UniVERSE"
+
+    defaults:
+      run:
+        working-directory: ./${{ env.BASE_FOLDER }}
+
     steps:
       # First step : Checkout the repository on the runner
       - name: Checkout
@@ -80,8 +87,14 @@ jobs:
 
       # Restore google-services.json from secret
       - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
+          if [ -n "$GOOGLE_SERVICES" ]; then
+            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
+          else
+            echo "::error::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
+          fi
 
       # Install NodeJS
       - name: Setup NodeJS
