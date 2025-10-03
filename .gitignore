@@ -9,6 +9,9 @@ local.properties
 *.log
 .DS_Store
 
+# Local output folder for project tree
+dir_tree/
+
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/
