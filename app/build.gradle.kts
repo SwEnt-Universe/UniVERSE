@@ -149,6 +149,11 @@ dependencies {
 
     // ----------       Robolectric     ------------
     testImplementation(libs.robolectric)
+
+    // ---------- TomTom (MAP) ------------
+    implementation(libs.tomtomMap)
+    implementation(libs.tomtomLocation)
+    implementation(libs.tomtomSearch)
 }
 
 tasks.withType<Test> {
