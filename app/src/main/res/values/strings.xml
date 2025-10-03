@@ -2,4 +2,5 @@
     <string name="app_name">SampleApp</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_second">SecondActivity</string>
+    <string name="tomtom_api_key">PVyuwMJsdCJ5Wna3LFKSt4oi3PR7bU47</string>
 </resources>
