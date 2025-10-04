@@ -21,7 +21,7 @@ interface UserRepository {
    * @param username the unique username of the user.
    * @return the UserProfile associated with the given username, or null if not found.
    */
-  suspend fun getUser(username: String): UserProfile?
+  suspend fun getUser(username: String): UserProfile
 
   /**
    * Adds a new user to the repository.
@@ -36,7 +36,7 @@ interface UserRepository {
    * @param username the username of the user to update.
    * @param newUserProfile the updated UserProfile.
    */
-  suspend fun editUser(username: String, newUserProfile: UserProfile)
+  suspend fun updateUser(username: String, newUserProfile: UserProfile)
 
   /**
    * Deletes a user from the repository.

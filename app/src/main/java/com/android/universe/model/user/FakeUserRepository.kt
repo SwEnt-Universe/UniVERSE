@@ -24,10 +24,12 @@ class FakeUserRepository : UserRepository {
    * Retrieves a user by their username.
    *
    * @param username the unique username of the user.
-   * @return the [UserProfile] if found, or null if no user with that username exists.
+   * @return the [UserProfile] associated with the given username.
+   * @throws NoSuchElementException if no user with the given [username] exists.
    */
-  override suspend fun getUser(username: String): UserProfile? {
+  override suspend fun getUser(username: String): UserProfile {
     return users.firstOrNull { it.username == username }
+        ?: throw NoSuchElementException("No user found with username: $username")
   }
 
   /**
@@ -43,24 +45,29 @@ class FakeUserRepository : UserRepository {
    * Updates an existing user profile identified by username.
    *
    * @param username the username of the user to update.
-   * @param newUserProfile the new [UserProfile] to replace the old one. If no such user exists, the
-   *   function does nothing.
+   * @param newUserProfile the new [UserProfile] to replace the old one.
+   * @throws NoSuchElementException if no user with the given [username] exists.
    */
-  override suspend fun editUser(username: String, newUserProfile: UserProfile) {
+  override suspend fun updateUser(username: String, newUserProfile: UserProfile) {
     val index = users.indexOfFirst { it.username == username }
     if (index != -1) {
       users[index] = newUserProfile
+    } else {
+      throw NoSuchElementException("No user found with username: $username")
     }
   }
 
   /**
    * Deletes a user by username.
    *
-   * @param username the username of the user to remove. If no such user exists, the function does
-   *   nothing.
+   * @param username the username of the user to remove. If no such user exists
+   * @throws NoSuchElementException if no user with the given [username] exists.
    */
   override suspend fun deleteUser(username: String) {
-    users.removeIf { it.username == username }
+    val removed = users.removeIf { it.username == username }
+    if (!removed) {
+      throw NoSuchElementException("No user found with username: $username")
+    }
   }
 
   /**
