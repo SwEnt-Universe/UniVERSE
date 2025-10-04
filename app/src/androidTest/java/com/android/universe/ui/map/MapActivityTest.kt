@@ -1,11 +1,10 @@
-// app/src/androidTest/java/com/android/universe/ui/map/MapActivityTest.kt
 package com.android.universe.ui.map
 
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.R
-import com.tomtom.sdk.map.display.ui.MapFragment as TomTomMapFragment
+import com.tomtom.sdk.map.display.ui.MapFragment
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +28,7 @@ class MapActivityTest {
 		// Interact with the fragment and call getMapAsync on the MAIN thread.
 		rule.scenario.onActivity { activity ->
 			val mapFragment = activity.supportFragmentManager
-				.findFragmentById(R.id.map_fragment) as TomTomMapFragment
+				.findFragmentById(R.id.map_fragment) as MapFragment
 
 			mapFragment.getMapAsync { _ ->
 				latch.countDown()

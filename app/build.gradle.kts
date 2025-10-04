@@ -175,9 +175,6 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 
-
-
-
     // --------- Kaspresso test framework ----------
     globalTestImplementation(libs.kaspresso)
     globalTestImplementation(libs.kaspresso.compose)
