@@ -4,12 +4,21 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
     id("jacoco")
-    id("com.google.gms.google-services")
+    // id("com.google.gms.google-services")
 }
+val tomtomApiKey: String by project
 
 android {
     namespace = "com.android.universe"
     compileSdk = 34
+
+    // Required for TomTom API key
+    buildFeatures {
+        buildConfig = true
+    }
+    buildTypes.configureEach {
+        buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"")
+    }
 
     defaultConfig {
         applicationId = "com.android.universe"
@@ -21,6 +30,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+        // Required for TomTom SDK
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
         }
     }
 
@@ -151,9 +164,11 @@ dependencies {
     testImplementation(libs.robolectric)
 
     // ---------- TomTom (MAP) ------------
-    implementation(libs.tomtomMap)
-    implementation(libs.tomtomLocation)
-    implementation(libs.tomtomSearch)
+    // implementation(libs.tomtomMap)
+    // implementation(libs.tomtomLocation)
+    // implementation(libs.tomtomSearch)
+    val version = "1.26.0"
+    implementation("com.tomtom.sdk.maps:map-display:$version")
 }
 
 tasks.withType<Test> {

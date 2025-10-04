@@ -32,6 +32,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!--- TomTom -->
+        <activity
+            android:name=".ui.map.MapActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
