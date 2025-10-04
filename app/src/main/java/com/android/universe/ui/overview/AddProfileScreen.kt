@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -52,7 +52,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
   var hasTouchedDay by remember { mutableStateOf(false) }
   var hasTouchedMonth by remember { mutableStateOf(false) }
   var hasTouchedYear by remember { mutableStateOf(false) }
-    var showDropDown by remember { mutableStateOf(false) }
+  var showDropDown by remember { mutableStateOf(false) }
 
   val context = LocalContext.current
 
@@ -77,13 +77,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               onValueChange = { addProfileViewModel.setUsername(it) },
               placeholder = { Text("Username") },
               modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag("TODO")
-                      .onFocusChanged { focusState ->
-                          if (focusState.isFocused) {
-                              hasTouchedUsername = true
-                          }
-                      },
+                  Modifier.fillMaxWidth().testTag("TODO").onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                      hasTouchedUsername = true
+                    }
+                  },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
           if (hasTouchedUsername && profileUIState.username.isBlank()) {
@@ -101,13 +99,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               onValueChange = { addProfileViewModel.setFirstName(it) },
               placeholder = { Text("First Name") },
               modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag("TODO")
-                      .onFocusChanged { focusState ->
-                          if (focusState.isFocused) {
-                              hasTouchedFirstName = true
-                          }
-                      },
+                  Modifier.fillMaxWidth().testTag("TODO").onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                      hasTouchedFirstName = true
+                    }
+                  },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
           if (hasTouchedFirstName && profileUIState.firstName.isBlank()) {
@@ -125,13 +121,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               onValueChange = { addProfileViewModel.setLastName(it) },
               placeholder = { Text("Last Name") },
               modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag("TODO")
-                      .onFocusChanged { focusState ->
-                          if (focusState.isFocused) {
-                              hasTouchedLastName = true
-                          }
-                      },
+                  Modifier.fillMaxWidth().testTag("TODO").onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                      hasTouchedLastName = true
+                    }
+                  },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
           if (hasTouchedLastName && profileUIState.lastName.isBlank()) {
@@ -152,47 +146,38 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               shape = RoundedCornerShape(12.dp))
 
           // Country part
-            Text(text = "Country", style = MaterialTheme.typography.bodyLarge)
-            ExposedDropdownMenuBox(
-                expanded = showDropDown,
-                onExpandedChange = { showDropDown = it }
-            ) {
+          Text(text = "Country", style = MaterialTheme.typography.bodyLarge)
+          ExposedDropdownMenuBox(
+              expanded = showDropDown, onExpandedChange = { showDropDown = !showDropDown }) {
                 OutlinedTextField(
                     value = profileUIState.country,
                     onValueChange = { addProfileViewModel.setCountry(it) },
+                    readOnly = true,
                     label = { Text(text = "Country") },
                     placeholder = { Text("Country") },
                     modifier = Modifier.menuAnchor().fillMaxWidth().testTag("TODO"),
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+                    singleLine = true)
                 ExposedDropdownMenu(
                     expanded = showDropDown,
-                    onDismissRequest = { showDropDown = false }
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 240.dp)
-                    ) {
-                        items(allCountries) { country ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = country.take(30) + if (country.length > 30) "..." else "",
-                                        maxLines = 1
-                                    )
-                                },
-                                onClick = {
-                                    addProfileViewModel.setCountry(country)
-                                    showDropDown = false
-                                },
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .testTag("TODO")
-                            )
-                        }
+                    onDismissRequest = { showDropDown = false },
+                    modifier =
+                        Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
+                      allCountries.forEach { country ->
+                        DropdownMenuItem(
+                            text = {
+                              Text(
+                                  text = country.take(30) + if (country.length > 30) "..." else "",
+                                  maxLines = 1)
+                            },
+                            onClick = {
+                              addProfileViewModel.setCountry(country)
+                              showDropDown = false
+                            },
+                            modifier = Modifier.padding(8.dp).testTag("TODO"))
+                      }
                     }
-                }
-            }
+              }
 
           // Date of Birth part
           Text(text = "Date of Birth", style = MaterialTheme.typography.bodyLarge)
@@ -208,13 +193,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                           label = { Text(text = "Day") },
                           placeholder = { Text("Day") },
                           modifier =
-                              Modifier.fillMaxWidth()
-                                  .testTag("TODO")
-                                  .onFocusChanged { focusState ->
-                                      if (focusState.isFocused) {
-                                          hasTouchedDay = true
-                                      }
-                                  },
+                              Modifier.fillMaxWidth().testTag("TODO").onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                  hasTouchedDay = true
+                                }
+                              },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
                       if (hasTouchedDay && profileUIState.day.isBlank()) {
@@ -241,13 +224,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                           label = { Text(text = "Month") },
                           placeholder = { Text("Month") },
                           modifier =
-                              Modifier.fillMaxWidth()
-                                  .testTag("TODO")
-                                  .onFocusChanged { focusState ->
-                                      if (focusState.isFocused) {
-                                          hasTouchedMonth = true
-                                      }
-                                  },
+                              Modifier.fillMaxWidth().testTag("TODO").onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                  hasTouchedMonth = true
+                                }
+                              },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
                       if (hasTouchedMonth && profileUIState.month.isBlank()) {
@@ -274,13 +255,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                           label = { Text(text = "Year") },
                           placeholder = { Text("Year") },
                           modifier =
-                              Modifier.fillMaxWidth()
-                                  .testTag("TODO")
-                                  .onFocusChanged { focusState ->
-                                      if (focusState.isFocused) {
-                                          hasTouchedYear = true
-                                      }
-                                  },
+                              Modifier.fillMaxWidth().testTag("TODO").onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                  hasTouchedYear = true
+                                }
+                              },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
                       if (hasTouchedYear && profileUIState.year.isBlank()) {
