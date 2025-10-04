@@ -1,4 +1,4 @@
-package com.android.universe.model
+package com.android.universe.model.user
 
 import java.time.LocalDate
 
