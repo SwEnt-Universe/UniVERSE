@@ -42,7 +42,6 @@ object UserRepositoryProvider {
                 firstName = "Emily",
                 lastName = "Clark",
                 country = "GB",
-                description = "Music lover.",
                 dateOfBirth = LocalDate.of(1995, 3, 21)),
             UserProfile(
                 username = "michael",
@@ -77,7 +76,6 @@ object UserRepositoryProvider {
                 firstName = "Paul",
                 lastName = "Müller",
                 country = "DE",
-                description = "Cycling enthusiast.",
                 dateOfBirth = LocalDate.of(1985, 9, 2)),
             UserProfile(
                 username = "emma",
@@ -112,7 +110,6 @@ object UserRepositoryProvider {
                 firstName = "Chloe",
                 lastName = "Dubois",
                 country = "FR",
-                description = "Yoga practitioner.",
                 dateOfBirth = LocalDate.of(2000, 1, 29)),
             UserProfile(
                 username = "ethan",
