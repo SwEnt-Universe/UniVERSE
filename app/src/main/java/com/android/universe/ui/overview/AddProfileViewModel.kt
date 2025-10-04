@@ -19,9 +19,9 @@ data class AddProfileUIState(
     val lastName: String = "",
     val description: String? = null,
     val country: String = "",
-    val day: Int = 0,
-    val month: Int = 0,
-    val year: Int = 0,
+    val day: String = "",
+    val month: String = "",
+    val year: String = "",
     val errorMsg: String? = null
 )
 
@@ -49,7 +49,25 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (!isValidDate(state.day, state.month, state.year)) {
+      val day = state.day
+      if (day.toIntOrNull() == null) {
+        setErrorMsg("Day is not a number")
+        return@launch
+      }
+
+      val month = state.month
+      if (month.toIntOrNull() == null) {
+        setErrorMsg("Month is not a number")
+        return@launch
+      }
+
+      val year = state.year
+      if (year.toIntOrNull() == null) {
+        setErrorMsg("Year is not a number")
+        return@launch
+      }
+
+      if (!isValidDate(day.toInt(), month.toInt(), year.toInt())) {
         setErrorMsg("Invalid date")
         return@launch
       }
@@ -72,7 +90,7 @@ class AddProfileViewModel(
               lastName = state.lastName,
               description = state.description,
               country = state.country,
-              dateOfBirth = LocalDate.of(state.year, state.month, state.day))
+              dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()))
 
       repository.addUser(userProfile)
     }
@@ -107,15 +125,15 @@ class AddProfileViewModel(
     _uiState.value = _uiState.value.copy(country = country)
   }
 
-  fun setDay(day: Int) {
+  fun setDay(day: String) {
     _uiState.value = _uiState.value.copy(day = day)
   }
 
-  fun setMonth(month: Int) {
+  fun setMonth(month: String) {
     _uiState.value = _uiState.value.copy(month = month)
   }
 
-  fun setYear(year: Int) {
+  fun setYear(year: String) {
     _uiState.value = _uiState.value.copy(year = year)
   }
 

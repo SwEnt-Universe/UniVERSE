@@ -1,16 +1,24 @@
 package com.android.universe.ui.overview
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,19 +26,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Preview(showBackground = true)
 @Composable
-fun AddProfileScreen() {
+fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
+  val profileUIState by addProfileViewModel.uiState.collectAsState()
+  val errorMsg = profileUIState.errorMsg
+
   var hasTouchedUsername by remember { mutableStateOf(false) }
   var hasTouchedFirstName by remember { mutableStateOf(false) }
   var hasTouchedLastName by remember { mutableStateOf(false) }
   var hasTouchedDay by remember { mutableStateOf(false) }
   var hasTouchedMonth by remember { mutableStateOf(false) }
   var hasTouchedYear by remember { mutableStateOf(false) }
+
+  val context = LocalContext.current
+
+  LaunchedEffect(errorMsg) {
+    if (errorMsg != null) {
+      Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+      addProfileViewModel.clearErrorMsg()
+    }
+  }
 
   Scaffold(
       content = { paddingValues ->
@@ -42,8 +64,8 @@ fun AddProfileScreen() {
           // Username part
           Text(text = "Username", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
-              value = "TODO",
-              onValueChange = { "TODO" },
+              value = profileUIState.username,
+              onValueChange = { addProfileViewModel.setUsername(it) },
               placeholder = { Text("Username") },
               modifier =
                   Modifier.fillMaxWidth()
@@ -55,8 +77,8 @@ fun AddProfileScreen() {
                       }),
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          if (hasTouchedUsername) {
-            /* Ajouter une condition et gérer unique */
+          if (hasTouchedUsername && profileUIState.username.isBlank()) {
+            /* gérer unique */
             Text(
                 text = "Username cannot be empty",
                 color = Color.Red,
@@ -67,8 +89,8 @@ fun AddProfileScreen() {
           // First Name part
           Text(text = "First Name", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
-              value = "TODO",
-              onValueChange = { "TODO" },
+              value = profileUIState.firstName,
+              onValueChange = { addProfileViewModel.setFirstName(it) },
               placeholder = { Text("First Name") },
               modifier =
                   Modifier.fillMaxWidth()
@@ -80,8 +102,7 @@ fun AddProfileScreen() {
                       }),
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          if (hasTouchedFirstName) {
-            /* Ajouter une condition */
+          if (hasTouchedFirstName && profileUIState.firstName.isBlank()) {
             Text(
                 text = "First Name cannot be empty",
                 color = Color.Red,
@@ -92,8 +113,8 @@ fun AddProfileScreen() {
           // Last Name part
           Text(text = "Last Name", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
-              value = "TODO",
-              onValueChange = { "TODO" },
+              value = profileUIState.lastName,
+              onValueChange = { addProfileViewModel.setLastName(it) },
               placeholder = { Text("Last Name") },
               modifier =
                   Modifier.fillMaxWidth()
@@ -105,8 +126,7 @@ fun AddProfileScreen() {
                       }),
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          if (hasTouchedLastName) {
-            /* Ajouter une condition */
+          if (hasTouchedLastName && profileUIState.lastName.isBlank()) {
             Text(
                 text = "Last Name cannot be empty",
                 color = Color.Red,
@@ -117,8 +137,8 @@ fun AddProfileScreen() {
           // Description part
           Text(text = "Description", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
-              value = "TODO",
-              onValueChange = { "TODO" },
+              value = profileUIState.description ?: "",
+              onValueChange = { addProfileViewModel.setDescription(it) },
               placeholder = { Text("Description") },
               modifier = Modifier.fillMaxWidth().testTag("TODO"),
               shape = RoundedCornerShape(12.dp))
@@ -134,8 +154,8 @@ fun AddProfileScreen() {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                       OutlinedTextField(
-                          value = "TODO",
-                          onValueChange = { "TODO" },
+                          value = profileUIState.day,
+                          onValueChange = { addProfileViewModel.setDay(it) },
                           label = { Text(text = "Day") },
                           placeholder = { Text("Day") },
                           modifier =
@@ -148,9 +168,15 @@ fun AddProfileScreen() {
                                   }),
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
-                      if (hasTouchedDay) {
+                      if (hasTouchedDay && profileUIState.day.isBlank()) {
                         Text(
                             text = "Day cannot be empty",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.testTag("TODO"))
+                      } else if (hasTouchedDay && profileUIState.day.toIntOrNull() == null) {
+                        Text(
+                            text = "Day need to be a number",
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag("TODO"))
@@ -161,8 +187,8 @@ fun AddProfileScreen() {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                       OutlinedTextField(
-                          value = "TODO",
-                          onValueChange = { "TODO" },
+                          value = profileUIState.month,
+                          onValueChange = { addProfileViewModel.setMonth(it) },
                           label = { Text(text = "Month") },
                           placeholder = { Text("Month") },
                           modifier =
@@ -175,20 +201,27 @@ fun AddProfileScreen() {
                                   }),
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
-                      if (hasTouchedMonth) {
+                      if (hasTouchedMonth && profileUIState.month.isBlank()) {
                         Text(
                             text = "Month cannot be empty",
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag("TODO"))
+                      } else if (hasTouchedMonth && profileUIState.month.toIntOrNull() == null) {
+                        Text(
+                            text = "Month need to be a number",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.testTag("TODO"))
                       }
                     }
+
                 Column(
                     modifier = Modifier.weight(1.5f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                       OutlinedTextField(
-                          value = "TODO",
-                          onValueChange = { "TODO" },
+                          value = profileUIState.year,
+                          onValueChange = { addProfileViewModel.setYear(it) },
                           label = { Text(text = "Year") },
                           placeholder = { Text("Year") },
                           modifier =
@@ -201,14 +234,41 @@ fun AddProfileScreen() {
                                   }),
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
-                      if (hasTouchedYear) {
+                      if (hasTouchedYear && profileUIState.year.isBlank()) {
                         Text(
                             text = "Year cannot be empty",
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag("TODO"))
+                      } else if (hasTouchedYear && profileUIState.year.toIntOrNull() == null) {
+                        Text(
+                            text = "Year need to be a number",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.testTag("TODO"))
                       }
                     }
+              }
+
+          Spacer(modifier = Modifier.size(8.dp))
+          Button(
+              onClick = { addProfileViewModel.addProfile() },
+              modifier = Modifier.height(50.dp).fillMaxWidth().testTag("TODO"),
+              enabled =
+                  profileUIState.username.isNotBlank() &&
+                      profileUIState.firstName.isNotBlank() &&
+                      profileUIState.lastName.isNotBlank() &&
+                      profileUIState.day.isNotBlank() &&
+                      profileUIState.day.toIntOrNull() != null &&
+                      profileUIState.month.isNotBlank() &&
+                      profileUIState.month.toIntOrNull() != null &&
+                      profileUIState.year.isNotBlank() &&
+                      profileUIState.year.toIntOrNull() != null,
+              colors =
+                  ButtonDefaults.buttonColors(
+                      containerColor = Color.Black, contentColor = Color.White),
+              shape = RoundedCornerShape(12.dp)) {
+                Text("Save")
               }
         }
       })
