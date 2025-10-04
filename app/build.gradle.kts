@@ -1,3 +1,6 @@
+import org.gradle.kotlin.dsl.androidTestImplementation
+import org.gradle.kotlin.dsl.testImplementation
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -6,6 +9,10 @@ plugins {
     id("jacoco")
     // id("com.google.gms.google-services")
 }
+jacoco {
+    toolVersion = "0.8.12"
+}
+
 val tomtomApiKey: String by project
 
 android {
@@ -53,7 +60,7 @@ android {
     }
 
     testCoverage {
-        jacocoVersion = "0.8.8"
+        jacocoVersion = "0.8.12"
     }
 
     buildFeatures {
@@ -155,6 +162,21 @@ dependencies {
     // UI Tests
     globalTestImplementation(libs.compose.test.junit)
     debugImplementation(libs.compose.test.manifest)
+    // TomTom Testing
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation ("junit:junit:4.13.2")
+    testImplementation ("org.robolectric:robolectric:4.10")
+    testImplementation ("io.mockk:mockk:1.13.5")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    androidTestImplementation ("androidx.test:core:1.5.0")
+    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+
+
+
 
     // --------- Kaspresso test framework ----------
     globalTestImplementation(libs.kaspresso)
@@ -171,13 +193,18 @@ dependencies {
     implementation("com.tomtom.sdk.maps:map-display:$version")
 }
 
-tasks.withType<Test> {
-    // Configure Jacoco for each tests
-    configure<JacocoTaskExtension> {
+tasks.withType<Test>().configureEach {
+    extensions.configure<JacocoTaskExtension> {
         isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*")
+        excludes = listOf(
+            "jdk.internal.*",
+            "jdk.proxy*",
+            "java.*",
+            "javax.*"
+        )
     }
 }
+
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
     mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest")
