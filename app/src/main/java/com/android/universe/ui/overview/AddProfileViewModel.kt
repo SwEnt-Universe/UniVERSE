@@ -2,6 +2,7 @@ package com.android.universe.ui.overview
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -67,6 +68,12 @@ class AddProfileViewModel(
         return@launch
       }
 
+      val country = state.country
+      if (country.isBlank()) {
+        setErrorMsg("Country cannot be empty")
+        return@launch
+      }
+
       if (!isValidDate(day.toInt(), month.toInt(), year.toInt())) {
         setErrorMsg("Invalid date")
         return@launch
@@ -89,7 +96,7 @@ class AddProfileViewModel(
               firstName = state.firstName,
               lastName = state.lastName,
               description = state.description,
-              country = state.country,
+              country = countryToIsoCode[country] ?: "CH",
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()))
 
       repository.addUser(userProfile)
