@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 
 @Preview(showBackground = true)
 @Composable
-fun AddProfilScreen() {
+fun AddProfileScreen() {
   var hasTouchedUsername by remember { mutableStateOf(false) }
   var hasTouchedFirstName by remember { mutableStateOf(false) }
   var hasTouchedLastName by remember { mutableStateOf(false) }
