@@ -84,6 +84,7 @@ androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayo
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 gms = { id = "com.google.gms.google-services", version.ref = "gms" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 sonar = { id = "org.sonarqube", version.ref = "sonar" }
