@@ -7,22 +7,44 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+object UserProfileScreenTestTags {
+  const val FIRSTNAME = "userProfileFirstName"
+  const val LASTNAME = "userProfileLastName"
+  const val AGE = "userProfileAge"
+  const val COUNTRY = "userProfileCountry"
+  const val DESCRIPTION = "userProfileDescription"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen() {
+fun UserProfileScreen(
+    username: String = "",
+    userProfileViewModel: UserProfileViewModel = UserProfileViewModel(),
+    onEditProfile: () -> Unit = {}
+) {
+
+  LaunchedEffect(username) { userProfileViewModel.loadUser(username) }
+  val userUIState by userProfileViewModel.userState.collectAsState()
+  val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
+  val previousEventsSize = 3
+  val tagsSize = 3
   Scaffold(
       topBar = {
         TopAppBar(
             title = { Text("Profile") },
             actions = {
-              IconButton(onClick = { /* Edit action */}) {
+              IconButton(onClick = { onEditProfile() }) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
               }
             })
@@ -50,14 +72,44 @@ fun UserProfileScreen() {
               Spacer(modifier = Modifier.height(8.dp))
 
               // Name and details
-              Text("Name Surname", fontSize = 20.sp, color = Color.Blue)
-              Text("Age, Country", fontSize = 14.sp, color = Color.Gray)
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.Center) {
+                    Text(
+                        text = userUIState.userProfile.firstName,
+                        fontSize = 20.sp,
+                        color = Color.Blue,
+                        modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = userUIState.userProfile.lastName,
+                        fontSize = 20.sp,
+                        color = Color.Blue,
+                        modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
+                  }
+
+              // Age and country (split for tagging, same line)
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.Center) {
+                    Text(
+                        text = "Age: $userAge",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Country: ${userUIState.userProfile.country}",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
+                  }
 
               Spacer(modifier = Modifier.height(16.dp))
 
               // Tags row placeholder
               Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                repeat(3) {
+                repeat(tagsSize) {
                   AssistChip(
                       onClick = {},
                       label = { Text("TAG") },
@@ -76,7 +128,17 @@ fun UserProfileScreen() {
                             .height(100.dp)
                             .background(Color.LightGray.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center) {
-                      Text("No description available")
+                      if (userUIState.userProfile.description != null) {
+                        Text(
+                            text = userUIState.userProfile.description.toString(),
+                            modifier =
+                                Modifier.padding(16.dp)
+                                    .testTag(UserProfileScreenTestTags.DESCRIPTION))
+                      } else {
+                        Text(
+                            text = "No description",
+                            modifier = Modifier.testTag(UserProfileScreenTestTags.DESCRIPTION))
+                      }
                     }
               }
 
@@ -86,7 +148,7 @@ fun UserProfileScreen() {
               Column(modifier = Modifier.fillMaxWidth()) {
                 Text("Previous Events:", fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                repeat(3) {
+                repeat(previousEventsSize) {
                   Box(
                       modifier =
                           Modifier.fillMaxWidth()
@@ -105,5 +167,5 @@ fun UserProfileScreen() {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UserProfileScreen()
+  UserProfileScreen(username = "emma")
 }
