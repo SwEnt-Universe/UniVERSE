@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -69,7 +70,10 @@ class AddProfileScreenTest {
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER).assertIsNotDisplayed()
 
     // Save button
-    /*composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsDisplayed()*/
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @Test

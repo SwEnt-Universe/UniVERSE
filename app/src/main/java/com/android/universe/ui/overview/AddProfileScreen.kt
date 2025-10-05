@@ -141,7 +141,11 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
   Scaffold(
       content = { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).padding(paddingValues),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+                    .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
 
