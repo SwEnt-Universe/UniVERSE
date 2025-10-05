@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.android.universe"
-        minSdk = 28
+        minSdk = 34
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -115,7 +115,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(platform(libs.compose.bom))
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)

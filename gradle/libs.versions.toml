@@ -9,13 +9,13 @@ ktfmt = "0.20.1"
 #endregion
 
 #region UI & Compose
-composeBom = "2025.06.01"
-composeActivity = "1.10.0"
-composeViewModel = "2.9.4"
-lifecycleRuntimeKtx = "2.9.4"
+composeBom = "2025.04.00"
+composeActivity = "1.9.3"
+composeViewModel = "2.8.7"
+lifecycleRuntimeKtx = "2.8.7"
 navigationCompose = "2.8.9"
 constraintlayout = "2.2.1"
-material3 = "1.4.0"
+material3 = "1.3.2"
 #endregion
 
 #region LEGACY UI
