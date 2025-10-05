@@ -1,155 +1,188 @@
 package com.android.universe.ui
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.android.universe.model.tagsCanton
+import com.android.universe.model.tagsInterest
+import com.android.universe.model.tagsMusic
+import com.android.universe.model.tagsSport
+import com.android.universe.model.tagsTransport
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.getValue
 
-val tagsInterest =
-    listOf<String>(
-        "Reading",
-        "Writing",
-        "Music",
-        "Cinema",
-        "Photography",
-        "Video games",
-        "Programming",
-        "Artificial intelligence",
-        "Astronomy",
-        "Electronics",
-        "Traveling",
-        "Cooking",
-        "Politics",
-        "Philosophy",
-        "Drawing",
-        "Sculpture",
-        "Poetry",
-        "Fashion",
-        "Board games",
-        "Role-playing games",
-        "Car")
-
-val tagsSport =
-    listOf<String>(
-        "Running",
-        "Fitness",
-        "Swimming",
-        "Cycling",
-        "Mountain biking",
-        "Hiking",
-        "Yoga",
-        "Meditation",
-        "Pilates",
-        "Judo",
-        "Karate",
-        "Boxing",
-        "Football",
-        "Basketball",
-        "Volleyball",
-        "Rugby",
-        "Handball",
-        "Tennis",
-        "Badminton",
-        "Table tennis",
-        "Skiing",
-        "Snowboarding",
-        "Skating",
-        "Surfing",
-        "Golf",
-        "Kayaking",
-        "Dancing",
-        "Horseback riding")
-
-val tagsMusic =
-    listOf<String>(
-        "Jazz",
-        "Pop",
-        "Rock",
-        "Rap",
-        "Classical",
-        "Blues",
-        "Metal",
-        "R&B",
-        "Funk",
-        "Reggae",
-        "Electronic",
-        "Country",
-        "Indie",
-        "Punk",
-        "K-pop")
-
-val tagsTransport = listOf<String>("Car", "Train", "Boat", "Bus", "Bicycle", "Foot", "Plane")
-
-val tagsCanton =
-    listOf<String>(
-        "Aargau",
-        "Appenzell Ausserrhoden",
-        "Appenzell Innerrhoden",
-        "Basel-Landschaft",
-        "Basel-Stadt",
-        "Bern",
-        "Fribourg",
-        "Geneva",
-        "Glarus",
-        "Graubünden",
-        "Jura",
-        "Lucerne",
-        "Neuchâtel",
-        "Nidwalden",
-        "Obwalden",
-        "Schaffhausen",
-        "Schwyz",
-        "Solothurn",
-        "St. Gallen",
-        "Thurgau",
-        "Ticino",
-        "Uri",
-        "Valais",
-        "Vaud",
-        "Zug",
-        "Zürich")
-
+/**
+ * Composable that displays a group of selectable tags.
+ *
+ * Each tag can be selected or deselected by the user. Selected tags are displayed differently
+ * (with a check icon and a border) and unselected tags use the group's color.
+ * Tags are displayed in a row and automatically wrap to the next line when needed.
+ *
+ * @param name The name of the tag group.
+ * @param tagList The list of tags to display.
+ * @param selectedTags A mutable state holding the list of currently selected tags.
+ *                     Clicking a tag will update this state.
+ * @param color The color of unselected tags (default is purple).
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun displayTags(
+private fun TagGroup(
     name: String,
-    listTag: List<String>,
-    newtags: MutableState<List<String>>,
-    onClick: (tag: String) -> Unit
+    tagList: List<String>,
+    selectedTags: MutableState<List<String>>,
+    color: Color = Color(0xFF6650a4)
 ) {
-  if (listTag.isNotEmpty()) {
-    Text(name)
-    LazyRow() {
-      items(listTag) { tag ->
-        if (!newtags.value.contains(tag) || listTag == newtags.value) {
-          Button(onClick = { onClick(tag) }) { Text(tag) }
+    if (!tagList.all { tag -> selectedTags.value.contains(tag) }) {
+        Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(15.dp))
+        FlowRow(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+            tagList.forEach { tag ->
+                    val isSelected = selectedTags.value.contains(tag)
+                    val buttonColor by animateColorAsState(
+                        targetValue = if (isSelected) Color.Gray else color
+                    )
+                    Button(onClick = {
+                        if (isSelected) {
+                            selectedTags.value = selectedTags.value - tag
+                        } else {
+                            selectedTags.value = selectedTags.value + tag
+                        }
+                    },
+                    modifier = Modifier.padding(3.dp),
+                    border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
+                    colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(tag)
+                            if (isSelected) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+            }
         }
-      }
     }
-  }
 }
 
+/**
+ * Composable that displays a horizontal line to visually divide sections
+ * on the tag screen.
+ */
 @Composable
-fun SelectTagScreen(modifier: Modifier = Modifier) {
-  val newTags = remember { mutableStateOf(emptyList<String>()) }
-  Box() {
-    Column(modifier = Modifier.padding(10.dp)) {
-      displayTags("Interest", tagsInterest, newTags, { tag -> newTags.value = newTags.value + tag })
-      displayTags("Sport", tagsSport, newTags, { tag -> newTags.value = newTags.value + tag })
-      displayTags("Music", tagsMusic, newTags, { tag -> newTags.value = newTags.value + tag })
-      displayTags(
-          "Transport", tagsTransport, newTags, { tag -> newTags.value = newTags.value + tag })
-      displayTags("Canton", tagsCanton, newTags, { tag -> newTags.value = newTags.value + tag })
-      displayTags(
-          "Selected Tags", newTags.value, newTags, { tag -> newTags.value = newTags.value - tag })
+fun SectionDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 8.dp),
+        thickness = 1.dp,
+        color = Color.Black
+    )
+}
+
+/**
+ * Object holding predefined colors for different tag categories.
+ *
+ * Each property corresponds to a specific tag group and defines
+ * the color used to display tags of that group.
+ */
+object TagColors {
+    val Interest = Color(0xFFB39DDB)
+    val Sport = Color(0xFFA5D6A7)
+    val Music = Color(0xFF90A4AE)
+    val Transport = Color(0xFF80CBC4)
+    val Canton = Color(0xFF546E7A)
+}
+
+/**
+ * Composable screen that displays tags organized by topic and allows the user to select them.
+ *
+ * Tags are grouped into the following topics: Interest, Sport, Music, Transport, and Canton.
+ * Each topic is displayed with a title and a distinct color.
+ *
+ * Users can:
+ *  - Select a tag by clicking on it (selected tags turn grey and show a check icon).
+ *  - Deselect a tag by clicking it again in the main list or by clicking the trash icon
+ *    in the selected tags section at the bottom.
+ *  - Save their selected tags using the "Save Tags" button, which updates their profile.
+ *
+ * Selected tags are displayed in a horizontal row at the bottom of the screen,
+ * allowing scrolling if necessary.
+ */
+@Composable
+fun SelectTagScreen() {
+  val selectedTags = remember { mutableStateOf(emptyList<String>()) }
+    Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+    LazyColumn(modifier = Modifier.weight(1f)) {
+      item {TagGroup("Interest:", tagsInterest, selectedTags, TagColors.Interest)}
+      item {SectionDivider()}
+      item {TagGroup("Sport:", tagsSport, selectedTags, TagColors.Sport)}
+      item {SectionDivider()}
+      item {TagGroup("Music:", tagsMusic, selectedTags, TagColors.Music)}
+      item {SectionDivider()}
+      item {TagGroup("Transport:", tagsTransport, selectedTags, TagColors.Transport)}
+      item {SectionDivider()}
+      item {TagGroup("Canton:", tagsCanton, selectedTags, TagColors.Canton)}
+      item {SectionDivider()}
     }
+      if (selectedTags.value.isNotEmpty()) {
+          LazyRow {
+              items(selectedTags.value) { tag ->
+                  Button(
+                      onClick = {}
+                  ) {
+                      Text(tag)
+                  }
+                  IconButton(
+                      onClick = { selectedTags.value = selectedTags.value - tag },
+                      modifier = Modifier.size(24.dp)
+                  ) {
+                      Icon(
+                          imageVector = Icons.Default.Delete,
+                          contentDescription = "Delete",
+                          tint = Color.Gray,
+                          modifier = Modifier.height(18.dp),
+                      )
+                  }
+              }
+          }
+      }
+          Button(
+              onClick = {},
+              modifier = Modifier.fillMaxWidth().padding(5.dp)
+          ) { Text("Save Tags") }
   }
 }
