@@ -40,50 +40,50 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
 
 object AddProfileScreenTestTags {
-    // Username
-    const val USERNAME_TEXT = "username_text"
-    const val USERNAME_FIELD = "username_field"
-    const val USERNAME_ERROR = "username_error"
+  // Username
+  const val USERNAME_TEXT = "username_text"
+  const val USERNAME_FIELD = "username_field"
+  const val USERNAME_ERROR = "username_error"
 
-    // First Name
-    const val FIRST_NAME_TEXT = "first_name_text"
-    const val FIRST_NAME_FIELD = "first_name_field"
-    const val FIRST_NAME_ERROR = "first_name_error"
+  // First Name
+  const val FIRST_NAME_TEXT = "first_name_text"
+  const val FIRST_NAME_FIELD = "first_name_field"
+  const val FIRST_NAME_ERROR = "first_name_error"
 
-    // Last Name
-    const val LAST_NAME_TEXT = "last_name_text"
-    const val LAST_NAME_FIELD = "last_name_field"
-    const val LAST_NAME_ERROR = "last_name_error"
+  // Last Name
+  const val LAST_NAME_TEXT = "last_name_text"
+  const val LAST_NAME_FIELD = "last_name_field"
+  const val LAST_NAME_ERROR = "last_name_error"
 
-    // Description
-    const val DESCRIPTION_TEXT = "description_text"
-    const val DESCRIPTION_FIELD = "description_field"
+  // Description
+  const val DESCRIPTION_TEXT = "description_text"
+  const val DESCRIPTION_FIELD = "description_field"
 
-    // Country
-    const val COUNTRY_TEXT = "country_text"
-    const val COUNTRY_FIELD = "country_field"
-    const val COUNTRY_DROPDOWN_ITEM_PREFIX = "country_item_"
+  // Country
+  const val COUNTRY_TEXT = "country_text"
+  const val COUNTRY_FIELD = "country_field"
+  const val COUNTRY_DROPDOWN_ITEM_PREFIX = "country_item_"
 
-    // Date of birth
-    const val DATE_OF_BIRTH_TEXT = "date_of_birth_text"
+  // Date of birth
+  const val DATE_OF_BIRTH_TEXT = "date_of_birth_text"
 
-    // Day
-    const val DAY_FIELD = "day_field"
-    const val DAY_ERROR_EMPTY = "day_error_empty"
-    const val DAY_ERROR_NUMBER = "day_error_number"
+  // Day
+  const val DAY_FIELD = "day_field"
+  const val DAY_ERROR_EMPTY = "day_error_empty"
+  const val DAY_ERROR_NUMBER = "day_error_number"
 
-    // Month
-    const val MONTH_FIELD = "month_field"
-    const val MONTH_ERROR_EMPTY = "month_error_empty"
-    const val MONTH_ERROR_NUMBER = "month_error_number"
+  // Month
+  const val MONTH_FIELD = "month_field"
+  const val MONTH_ERROR_EMPTY = "month_error_empty"
+  const val MONTH_ERROR_NUMBER = "month_error_number"
 
-    // Year
-    const val YEAR_FIELD = "year_field"
-    const val YEAR_ERROR_EMPTY = "year_error_empty"
-    const val YEAR_ERROR_NUMBER = "year_error_number"
+  // Year
+  const val YEAR_FIELD = "year_field"
+  const val YEAR_ERROR_EMPTY = "year_error_empty"
+  const val YEAR_ERROR_NUMBER = "year_error_number"
 
-    // Save button
-    const val SAVE_BUTTON = "save_button"
+  // Save button
+  const val SAVE_BUTTON = "save_button"
 }
 
 /**
@@ -146,17 +146,22 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
         ) {
 
           // Username field
-          Text(text = "Username", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_TEXT))
+          Text(
+              text = "Username",
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_TEXT))
           OutlinedTextField(
               value = profileUIState.username,
               onValueChange = { addProfileViewModel.setUsername(it) },
               placeholder = { Text("Username") },
               modifier =
-                  Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.USERNAME_FIELD).onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                      hasTouchedUsername = true
-                    }
-                  },
+                  Modifier.fillMaxWidth()
+                      .testTag(AddProfileScreenTestTags.USERNAME_FIELD)
+                      .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                          hasTouchedUsername = true
+                        }
+                      },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
           if (hasTouchedUsername && profileUIState.username.isBlank()) {
@@ -168,17 +173,22 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
           }
 
           // First name field
-          Text(text = "First Name", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_TEXT))
+          Text(
+              text = "First Name",
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_TEXT))
           OutlinedTextField(
               value = profileUIState.firstName,
               onValueChange = { addProfileViewModel.setFirstName(it) },
               placeholder = { Text("First Name") },
               modifier =
-                  Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                      hasTouchedFirstName = true
-                    }
-                  },
+                  Modifier.fillMaxWidth()
+                      .testTag(AddProfileScreenTestTags.FIRST_NAME_FIELD)
+                      .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                          hasTouchedFirstName = true
+                        }
+                      },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
           if (hasTouchedFirstName && profileUIState.firstName.isBlank()) {
@@ -190,17 +200,22 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
           }
 
           // Last name field
-          Text(text = "Last Name", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_TEXT))
+          Text(
+              text = "Last Name",
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_TEXT))
           OutlinedTextField(
               value = profileUIState.lastName,
               onValueChange = { addProfileViewModel.setLastName(it) },
               placeholder = { Text("Last Name") },
               modifier =
-                  Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.LAST_NAME_FIELD).onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                      hasTouchedLastName = true
-                    }
-                  },
+                  Modifier.fillMaxWidth()
+                      .testTag(AddProfileScreenTestTags.LAST_NAME_FIELD)
+                      .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                          hasTouchedLastName = true
+                        }
+                      },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
           if (hasTouchedLastName && profileUIState.lastName.isBlank()) {
@@ -212,16 +227,23 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
           }
 
           // Description field
-          Text(text = "Description", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_TEXT))
+          Text(
+              text = "Description",
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_TEXT))
           OutlinedTextField(
               value = profileUIState.description ?: "",
               onValueChange = { addProfileViewModel.setDescription(it) },
               placeholder = { Text("Description") },
-              modifier = Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.DESCRIPTION_FIELD),
+              modifier =
+                  Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.DESCRIPTION_FIELD),
               shape = RoundedCornerShape(12.dp))
 
           // Country selector
-          Text(text = "Country", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AddProfileScreenTestTags.COUNTRY_TEXT))
+          Text(
+              text = "Country",
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.testTag(AddProfileScreenTestTags.COUNTRY_TEXT))
           ExposedDropdownMenuBox(
               expanded = showDropDown, onExpandedChange = { showDropDown = !showDropDown }) {
                 OutlinedTextField(
@@ -230,7 +252,10 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                     readOnly = true,
                     label = { Text(text = "Country") },
                     placeholder = { Text("Country") },
-                    modifier = Modifier.menuAnchor().fillMaxWidth().testTag(AddProfileScreenTestTags.COUNTRY_FIELD),
+                    modifier =
+                        Modifier.menuAnchor()
+                            .fillMaxWidth()
+                            .testTag(AddProfileScreenTestTags.COUNTRY_FIELD),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true)
                 ExposedDropdownMenu(
@@ -249,13 +274,18 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                               addProfileViewModel.setCountry(country)
                               showDropDown = false
                             },
-                            modifier = Modifier.padding(8.dp).testTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX))
+                            modifier =
+                                Modifier.padding(8.dp)
+                                    .testTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX))
                       }
                     }
               }
 
           // Date of Birth section
-          Text(text = "Date of Birth", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT))
+          Text(
+              text = "Date of Birth",
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT))
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
               horizontalArrangement = Arrangement.spacedBy(32.dp)) {
@@ -270,11 +300,13 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                           label = { Text(text = "Day") },
                           placeholder = { Text("Day") },
                           modifier =
-                              Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.DAY_FIELD).onFocusChanged { focusState ->
-                                if (focusState.isFocused) {
-                                  hasTouchedDay = true
-                                }
-                              },
+                              Modifier.fillMaxWidth()
+                                  .testTag(AddProfileScreenTestTags.DAY_FIELD)
+                                  .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                      hasTouchedDay = true
+                                    }
+                                  },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
                       if (hasTouchedDay && profileUIState.day.isBlank()) {
@@ -302,11 +334,13 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                           label = { Text(text = "Month") },
                           placeholder = { Text("Month") },
                           modifier =
-                              Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.MONTH_FIELD).onFocusChanged { focusState ->
-                                if (focusState.isFocused) {
-                                  hasTouchedMonth = true
-                                }
-                              },
+                              Modifier.fillMaxWidth()
+                                  .testTag(AddProfileScreenTestTags.MONTH_FIELD)
+                                  .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                      hasTouchedMonth = true
+                                    }
+                                  },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
                       if (hasTouchedMonth && profileUIState.month.isBlank()) {
@@ -320,7 +354,8 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                             text = "Month need to be a number",
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER))
+                            modifier =
+                                Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER))
                       }
                     }
 
@@ -334,11 +369,13 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                           label = { Text(text = "Year") },
                           placeholder = { Text("Year") },
                           modifier =
-                              Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.YEAR_FIELD).onFocusChanged { focusState ->
-                                if (focusState.isFocused) {
-                                  hasTouchedYear = true
-                                }
-                              },
+                              Modifier.fillMaxWidth()
+                                  .testTag(AddProfileScreenTestTags.YEAR_FIELD)
+                                  .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                      hasTouchedYear = true
+                                    }
+                                  },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
                       if (hasTouchedYear && profileUIState.year.isBlank()) {
@@ -362,7 +399,10 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
           // Save Button
           Button(
               onClick = { addProfileViewModel.addProfile() },
-              modifier = Modifier.height(50.dp).fillMaxWidth().testTag(AddProfileScreenTestTags.SAVE_BUTTON),
+              modifier =
+                  Modifier.height(50.dp)
+                      .fillMaxWidth()
+                      .testTag(AddProfileScreenTestTags.SAVE_BUTTON),
               enabled =
                   profileUIState.username.isNotBlank() &&
                       profileUIState.firstName.isNotBlank() &&
