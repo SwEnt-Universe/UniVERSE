@@ -22,9 +22,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -40,7 +37,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
  * Composable that displays a group of selectable tags.
@@ -60,42 +59,42 @@ import androidx.compose.runtime.getValue
 private fun TagGroup(
     name: String,
     tagList: List<String>,
-    selectedTags: MutableState<List<String>>,
-    color: Color = Color(0xFF6650a4)
+    selectedTags: List<String>,
+    color: Color = Color(0xFF6650a4),
+    onTagSelect: (String) -> Unit = {},
+    onTagReSelect: (String) -> Unit = {}
 ) {
-    if (!tagList.all { tag -> selectedTags.value.contains(tag) }) {
-        Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(15.dp))
-        FlowRow(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-            tagList.forEach { tag ->
-                    val isSelected = selectedTags.value.contains(tag)
-                    val buttonColor by animateColorAsState(
-                        targetValue = if (isSelected) Color.Gray else color
-                    )
-                    Button(onClick = {
+    Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(15.dp))
+    FlowRow(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+        tagList.forEach { tag ->
+                val isSelected = selectedTags.contains(tag)
+                val buttonColor by animateColorAsState(
+                    targetValue = if (isSelected) Color.Gray else color
+                )
+                Button(onClick = {
+                    if (isSelected) {
+                        onTagReSelect(tag)
+                    } else {
+                        onTagSelect(tag)
+                    }
+                },
+                modifier = Modifier.padding(3.dp),
+                border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
+                colors = ButtonDefaults.buttonColors(
+                containerColor = buttonColor)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(tag)
                         if (isSelected) {
-                            selectedTags.value = selectedTags.value - tag
-                        } else {
-                            selectedTags.value = selectedTags.value + tag
-                        }
-                    },
-                    modifier = Modifier.padding(3.dp),
-                    border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
-                    colors = ButtonDefaults.buttonColors(
-                    containerColor = buttonColor)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(tag)
-                            if (isSelected) {
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
-            }
+                }
         }
     }
 }
@@ -143,31 +142,36 @@ object TagColors {
  * allowing scrolling if necessary.
  */
 @Composable
-fun SelectTagScreen() {
-  val selectedTags = remember { mutableStateOf(emptyList<String>()) }
+fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel()) {
+    val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
     Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
     LazyColumn(modifier = Modifier.weight(1f)) {
-      item {TagGroup("Interest:", tagsInterest, selectedTags, TagColors.Interest)}
+      item {TagGroup("Interest:", tagsInterest, selectedTags, TagColors.Interest,
+          {tag -> selectedTagOverview.addTag(tag)}, {tag -> selectedTagOverview.deleteTag(tag)})}
       item {SectionDivider()}
-      item {TagGroup("Sport:", tagsSport, selectedTags, TagColors.Sport)}
+      item {TagGroup("Sport:", tagsSport, selectedTags, TagColors.Sport,
+          {tag -> selectedTagOverview.addTag(tag)}, {tag -> selectedTagOverview.deleteTag(tag)})}
       item {SectionDivider()}
-      item {TagGroup("Music:", tagsMusic, selectedTags, TagColors.Music)}
+      item {TagGroup("Music:", tagsMusic, selectedTags, TagColors.Music,
+          {tag -> selectedTagOverview.addTag(tag)}, {tag -> selectedTagOverview.deleteTag(tag)})}
       item {SectionDivider()}
-      item {TagGroup("Transport:", tagsTransport, selectedTags, TagColors.Transport)}
+      item {TagGroup("Transport:", tagsTransport, selectedTags, TagColors.Transport,
+          {tag -> selectedTagOverview.addTag(tag)}, {tag -> selectedTagOverview.deleteTag(tag)})}
       item {SectionDivider()}
-      item {TagGroup("Canton:", tagsCanton, selectedTags, TagColors.Canton)}
+      item {TagGroup("Canton:", tagsCanton, selectedTags, TagColors.Canton,
+          {tag -> selectedTagOverview.addTag(tag)}, {tag -> selectedTagOverview.deleteTag(tag)})}
       item {SectionDivider()}
     }
-      if (selectedTags.value.isNotEmpty()) {
+      if (selectedTags.isNotEmpty()) {
           LazyRow {
-              items(selectedTags.value) { tag ->
+              items(selectedTags) { tag ->
                   Button(
                       onClick = {}
                   ) {
                       Text(tag)
                   }
                   IconButton(
-                      onClick = { selectedTags.value = selectedTags.value - tag },
+                      onClick = { selectedTagOverview.deleteTag(tag)},
                       modifier = Modifier.size(24.dp)
                   ) {
                       Icon(
@@ -181,7 +185,7 @@ fun SelectTagScreen() {
           }
       }
           Button(
-              onClick = {},
+              onClick = {selectedTagOverview.saveTags()},
               modifier = Modifier.fillMaxWidth().padding(5.dp)
           ) { Text("Save Tags") }
   }
