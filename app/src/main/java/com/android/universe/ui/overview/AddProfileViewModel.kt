@@ -8,6 +8,7 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.DateTimeException
 import java.time.LocalDate
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,10 +53,16 @@ data class AddProfileUIState(
  * UI should collet [uiState] to observe changes in real time.
  *
  * @param repository The data source handling user-related operations.
+ * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
+ *   Defaults to [Dispatchers.Default].
+ * @param repositoryDispatcher The [CoroutineDispatcher] used for executing repository operations.
+ *   Defaults to [Dispatchers.IO].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 class AddProfileViewModel(
     private val repository: UserRepository = UserRepositoryProvider.repository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
@@ -81,7 +88,7 @@ class AddProfileViewModel(
    * [UserProfile] is constructed and persisted via [repository]
    */
   fun addProfile() {
-    viewModelScope.launch(Dispatchers.Default) {
+    viewModelScope.launch(dispatcher) {
       val state = _uiState.value
 
       if (state.firstName.isBlank()) {
@@ -149,7 +156,7 @@ class AddProfileViewModel(
               country = isoCode,
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()))
 
-      withContext(Dispatchers.IO) { repository.addUser(userProfile) }
+      withContext(repositoryDispatcher) { repository.addUser(userProfile) }
     }
   }
 
