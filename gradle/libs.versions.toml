@@ -3,7 +3,7 @@
 #region Plugins
 agp = "8.6.1"
 kotlin = "2.0.20"
-coreKtx = "1.17.0"
+coreKtx = "1.15.0"
 gms = "4.4.3"
 ktfmt = "0.20.1"
 #endregion
