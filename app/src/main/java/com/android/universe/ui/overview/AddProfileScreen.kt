@@ -39,6 +39,33 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
 
+/**
+ * Composable screen that allows a user to create a new Profile.
+ *
+ * This screen collects user input for all profile fields (username, name, description, country and
+ * date of birth) and validates the data both locally and through [AddProfileViewModel]. It displays
+ * inline validation messages and shows errors as Toast notifications for asynchronous validation
+ * results.
+ *
+ * The composable is reactive: it observes [AddProfileViewModel.uiState] using [collectAsState] and
+ * automatically updates the UI when state changes.
+ *
+ * Structure
+ * - Username / First name / last name / description fields are implemented using
+ *   [OutlinedTextField] with local touch-tracking for validation messages.
+ * - Country selection uses an [ExposedDropdownMenuBox].
+ * - Date of birth fields (day, month, year) are validated individually.
+ * - A Save button triggers profile creation through [AddProfileViewModel.addProfile].
+ *
+ * Validation
+ * - Inline errors are shown once a field has been focused ("touched").
+ * - Errors from the ViewModel are displayed as Toast messages.
+ *
+ * @param addProfileViewModel The [AddProfileViewModel] that manages the screen's state and business
+ *   logic. Defailts to [ViewModel()] for preview and runtime injection.
+ * @see AddProfileViewModel
+ * @see AddProfileUIState
+ */
 @Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +83,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
 
   val context = LocalContext.current
 
+  // Observe and display asynchronous validation errors as Toast messages.
   LaunchedEffect(errorMsg) {
     if (errorMsg != null) {
       Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
@@ -70,7 +98,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
 
-          // Username part
+          // Username field
           Text(text = "Username", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
               value = profileUIState.username,
@@ -92,7 +120,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                 modifier = Modifier.testTag("TODO"))
           }
 
-          // First Name part
+          // First name field
           Text(text = "First Name", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
               value = profileUIState.firstName,
@@ -114,7 +142,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                 modifier = Modifier.testTag("TODO"))
           }
 
-          // Last Name part
+          // Last name field
           Text(text = "Last Name", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
               value = profileUIState.lastName,
@@ -136,7 +164,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                 modifier = Modifier.testTag("TODO"))
           }
 
-          // Description part
+          // Description field
           Text(text = "Description", style = MaterialTheme.typography.bodyLarge)
           OutlinedTextField(
               value = profileUIState.description ?: "",
@@ -145,7 +173,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               modifier = Modifier.fillMaxWidth().testTag("TODO"),
               shape = RoundedCornerShape(12.dp))
 
-          // Country part
+          // Country selector
           Text(text = "Country", style = MaterialTheme.typography.bodyLarge)
           ExposedDropdownMenuBox(
               expanded = showDropDown, onExpandedChange = { showDropDown = !showDropDown }) {
@@ -179,11 +207,13 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                     }
               }
 
-          // Date of Birth part
+          // Date of Birth section
           Text(text = "Date of Birth", style = MaterialTheme.typography.bodyLarge)
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
               horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+
+                // Day input
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -215,6 +245,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       }
                     }
 
+                // Month input
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -246,6 +277,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       }
                     }
 
+                // Year input
                 Column(
                     modifier = Modifier.weight(1.5f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -279,6 +311,8 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               }
 
           Spacer(modifier = Modifier.size(8.dp))
+
+          // Save Button
           Button(
               onClick = { addProfileViewModel.addProfile() },
               modifier = Modifier.height(50.dp).fillMaxWidth().testTag("TODO"),

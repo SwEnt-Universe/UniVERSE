@@ -1,6 +1,23 @@
 package com.android.universe.model
 
+/**
+ * Provides static data related to countries and their ISO 3166-1 alpha-2 codes.
+ *
+ * This object contains:
+ * - A list of all recognized country names [allCountries].
+ * - A map associating each country name to its ISO 2-letter code [countryToIsoCode].
+ *
+ * It is primarily used to populate dropdowns or selection lists in UI forms, and to convert
+ * user-friendly country names into standard ISO codes when storing user data.
+ */
 object CountryData {
+
+  /**
+   * List of all country names used for display purposes.
+   *
+   * This list is alphabetically ordered and includes most internationally recognized states. It can
+   * be used to populate UI dropdowns menus or autocomplete suggestions.
+   */
   val allCountries =
       listOf(
           "Afghanistan",
@@ -200,6 +217,13 @@ object CountryData {
           "Zambia",
           "Zimbabwe")
 
+  /**
+   * Map linking each country name to its ISO 3166-1 alpha-2 code.
+   *
+   * This map is used for data normalization and backend interoperability.
+   *
+   * The map is case-sensitive and expects the exact name found in [allCountries].
+   */
   val countryToIsoCode =
       mapOf(
           "Afghanistan" to "AF",
