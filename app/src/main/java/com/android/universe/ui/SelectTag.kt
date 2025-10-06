@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -150,7 +151,10 @@ object TagColors {
  * if necessary.
  */
 @Composable
-fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel()) {
+fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel(), username: String) {
+    LaunchedEffect(Unit) {
+        selectedTagOverview.loadTags(username)
+    }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
@@ -228,7 +232,7 @@ fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel()) {
       }
     }
     Button(
-        onClick = { selectedTagOverview.saveTags() },
+        onClick = { selectedTagOverview.saveTags(username) },
         modifier =
             Modifier.testTag(SelectTagsScreenTestTags.SAVEBUTTON).fillMaxWidth().padding(5.dp)) {
           Text("Save Tags")
