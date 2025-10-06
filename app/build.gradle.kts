@@ -39,10 +39,6 @@ android {
         }
     }
 
-    testCoverage {
-        jacocoVersion = "0.8.8"
-    }
-
     buildFeatures {
         compose = true
     }
@@ -149,6 +145,10 @@ dependencies {
 
     // ----------       Robolectric     ------------
     testImplementation(libs.robolectric)
+
+    // ---------- Testing Unit ----------
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 tasks.withType<Test> {
