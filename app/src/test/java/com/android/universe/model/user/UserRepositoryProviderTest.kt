@@ -1,5 +1,7 @@
 package com.android.universe.model.user
 
+import com.android.universe.model.Tag
+import com.android.universe.model.TagType
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
@@ -22,7 +24,14 @@ class UserRepositoryProviderTest {
           override suspend fun getAllUsers() = emptyList<UserProfile>()
 
           override suspend fun getUser(username: String) =
-              UserProfile("", "", "", "", dateOfBirth = LocalDate.now())
+              UserProfile(
+                  "",
+                  "",
+                  "",
+                  "",
+                  dateOfBirth = LocalDate.now(),
+                  tags =
+                      listOf(Tag(name = "Tag", uid = "0", ownerId = "0", type = TagType.PROFILE)))
 
           override suspend fun addUser(userProfile: UserProfile) {}
 

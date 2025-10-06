@@ -1,5 +1,6 @@
 package com.android.universe.model.user
 
+import com.android.universe.model.Tag
 import java.time.LocalDate
 
 /**
@@ -18,5 +19,6 @@ data class UserProfile(
     val lastName: String,
     val country: String,
     val description: String? = null,
-    val dateOfBirth: LocalDate
+    val dateOfBirth: LocalDate,
+    val tags: List<Tag>
 )
