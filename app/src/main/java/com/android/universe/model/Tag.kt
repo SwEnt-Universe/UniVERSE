@@ -5,7 +5,7 @@ enum class TagType {
   EVENT
 }
 
-data class Tag(val name: String, val uid: String, val ownerId: String, val type: TagType)
+data class Tag(val name: String, val type: TagType)
 
 val tagsInterest =
     listOf<String>(
