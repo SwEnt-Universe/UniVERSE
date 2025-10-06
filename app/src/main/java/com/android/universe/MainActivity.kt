@@ -27,17 +27,10 @@ class MainActivity : ComponentActivity() {
     setContent {
       SampleAppTheme {
         Surface(
-          modifier = Modifier
-            .fillMaxSize()
-            .semantics { testTag = "main_screen_container" },
-          color = MaterialTheme.colorScheme.background
-        ) {
-          HomeScreen(
-            onOpenMap = {
-              startActivity(Intent(this, MapActivity::class.java))
+            modifier = Modifier.fillMaxSize().semantics { testTag = "main_screen_container" },
+            color = MaterialTheme.colorScheme.background) {
+              HomeScreen(onOpenMap = { startActivity(Intent(this, MapActivity::class.java)) })
             }
-          )
-        }
       }
     }
   }
@@ -45,27 +38,20 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun HomeScreen(onOpenMap: () -> Unit) {
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .semantics { testTag = "home_screen" }
-  ) {
+  Box(modifier = Modifier.fillMaxSize().semantics { testTag = "home_screen" }) {
     Button(
-      onClick = onOpenMap,
-      modifier = Modifier
-        .align(Alignment.Center)
-        .padding(16.dp)
-        .semantics { testTag = "open_map_button" }
-    ) {
-      Text("Open Map")
-    }
+        onClick = onOpenMap,
+        modifier =
+            Modifier.align(Alignment.Center).padding(16.dp).semantics {
+              testTag = "open_map_button"
+            }) {
+          Text("Open Map")
+        }
   }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
-  SampleAppTheme {
-    HomeScreen(onOpenMap = {})
-  }
+  SampleAppTheme { HomeScreen(onOpenMap = {}) }
 }
