@@ -1,7 +1,6 @@
 package com.android.universe.model.user
 
 import com.android.universe.model.Tag
-import com.android.universe.model.TagType
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
@@ -14,7 +13,7 @@ import org.junit.Test
 class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
-  private val tag = Tag(name = "Tag", type = TagType.PROFILE)
+  private val tag = Tag(name = "Tag")
   private val tags = listOf<Tag>(tag)
 
   @Before

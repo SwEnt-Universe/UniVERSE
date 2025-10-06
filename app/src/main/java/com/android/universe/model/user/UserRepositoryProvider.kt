@@ -1,7 +1,6 @@
 package com.android.universe.model.user
 
 import com.android.universe.model.Tag
-import com.android.universe.model.TagType
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 
@@ -14,7 +13,7 @@ import kotlinx.coroutines.runBlocking
  */
 object UserRepositoryProvider {
   private val _repository: UserRepository = FakeUserRepository()
-  private val tag = Tag(name = "Tag", type = TagType.PROFILE)
+  private val tag = Tag(name = "Tag")
   private val tags = listOf<Tag>(tag)
 
   init {

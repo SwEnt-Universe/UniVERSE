@@ -1,11 +1,6 @@
 package com.android.universe.model
 
-enum class TagType {
-  PROFILE,
-  EVENT
-}
-
-data class Tag(val name: String, val type: TagType)
+data class Tag(val name: String)
 
 val tagsInterest =
     listOf<String>(

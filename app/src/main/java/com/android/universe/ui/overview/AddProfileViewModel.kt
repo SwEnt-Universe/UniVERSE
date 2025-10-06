@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.Tag
-import com.android.universe.model.TagType
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -157,7 +156,7 @@ class AddProfileViewModel(
               description = state.description?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()),
-              tags = listOf(Tag(name = "Tag", type = TagType.PROFILE)))
+              tags = listOf(Tag(name = "Tag")))
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
     }
