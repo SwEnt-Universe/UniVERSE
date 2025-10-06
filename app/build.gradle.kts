@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
     id("jacoco")
-    // id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 jacoco {
     toolVersion = "0.8.12"
@@ -188,6 +188,10 @@ dependencies {
     // implementation(libs.tomtomSearch)
     val version = "1.26.0"
     implementation("com.tomtom.sdk.maps:map-display:$version")
+
+    // ---------- Testing Unit ----------
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 tasks.withType<Test>().configureEach {
