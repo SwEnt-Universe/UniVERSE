@@ -6,13 +6,19 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import com.android.universe.resources.C
+import com.android.universe.ui.navigation.NavigationActions
+import com.android.universe.ui.navigation.NavigationPlaceholderScreen
+import com.android.universe.ui.navigation.NavigationScreens
+import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,7 +30,7 @@ class MainActivity : ComponentActivity() {
         Surface(
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
             color = MaterialTheme.colorScheme.background) {
-              Greeting("Android")
+              UniverseApp()
             }
       }
     }
@@ -32,12 +38,49 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-  Text(text = "Hello $name!", modifier = modifier.semantics { testTag = C.Tag.greeting })
-}
+fun UniverseApp() {
+  val navController = rememberNavController()
+  val navigationActions = NavigationActions(navController)
+  val startDestination = NavigationScreens.Map.route
+  // TODO: verify that user is authenticated once the signIn is done.
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-  SampleAppTheme { Greeting("Android") }
+  val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
+
+  NavHost(navController = navController, startDestination = startDestination) {
+    navigation(
+        startDestination = NavigationScreens.Map.route,
+        route = NavigationScreens.Map.name,
+    ) {
+      composable(NavigationScreens.Map.route) {
+        NavigationPlaceholderScreen(
+            title = NavigationScreens.Map.name,
+            selectedTab = Tab.Map,
+            onTabSelected = onTabSelected)
+      }
+    }
+
+    navigation(
+        startDestination = NavigationScreens.Chat.route,
+        route = NavigationScreens.Chat.name,
+    ) {
+      composable(NavigationScreens.Chat.route) {
+        NavigationPlaceholderScreen(
+            title = NavigationScreens.Chat.name,
+            selectedTab = Tab.Chat,
+            onTabSelected = onTabSelected)
+      }
+    }
+
+    navigation(
+        startDestination = NavigationScreens.Profile.route,
+        route = NavigationScreens.Profile.name,
+    ) {
+      composable(NavigationScreens.Profile.route) {
+        NavigationPlaceholderScreen(
+            title = NavigationScreens.Profile.name,
+            selectedTab = Tab.Profile,
+            onTabSelected = onTabSelected)
+      }
+    }
+  }
 }
