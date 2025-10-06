@@ -31,7 +31,7 @@ class UserRepositoryProviderTest {
                   "",
                   dateOfBirth = LocalDate.now(),
                   tags =
-                      listOf(Tag(name = "Tag", uid = "0", ownerId = "0", type = TagType.PROFILE)))
+                      listOf(Tag(name = "Tag", type = TagType.PROFILE)))
 
           override suspend fun addUser(userProfile: UserProfile) {}
 

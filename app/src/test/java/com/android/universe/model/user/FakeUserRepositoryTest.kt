@@ -14,7 +14,7 @@ import org.junit.Test
 class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
-  private val tag = Tag(name = "Tag", uid = "0", ownerId = "0", type = TagType.PROFILE)
+  private val tag = Tag(name = "Tag", type = TagType.PROFILE)
   private val tags = listOf<Tag>(tag)
 
   @Before

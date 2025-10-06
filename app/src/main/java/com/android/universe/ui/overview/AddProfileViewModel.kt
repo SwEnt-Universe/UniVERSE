@@ -157,7 +157,7 @@ class AddProfileViewModel(
               description = state.description?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()),
-              tags = listOf(Tag(name = "Tag", uid = "0", ownerId = "0", type = TagType.PROFILE)))
+              tags = listOf(Tag(name = "Tag", type = TagType.PROFILE)))
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
     }
