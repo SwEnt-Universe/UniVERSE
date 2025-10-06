@@ -18,6 +18,7 @@ import com.android.universe.resources.C
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationPlaceholderScreen
 import com.android.universe.ui.navigation.NavigationScreens
+import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.SampleAppTheme
 
@@ -37,6 +38,11 @@ class MainActivity : ComponentActivity() {
   }
 }
 
+/**
+ * The main composable for the Universe app.
+ *
+ * This composable sets up the navigation for the app using a [NavHost].
+ */
 @Composable
 fun UniverseApp() {
   val navController = rememberNavController()
@@ -55,7 +61,9 @@ fun UniverseApp() {
         NavigationPlaceholderScreen(
             title = NavigationScreens.Map.name,
             selectedTab = Tab.Map,
-            onTabSelected = onTabSelected)
+            onTabSelected = onTabSelected,
+            testTag = NavigationTestTags.MAP_SCREEN,
+        )
       }
     }
 
@@ -67,7 +75,9 @@ fun UniverseApp() {
         NavigationPlaceholderScreen(
             title = NavigationScreens.Chat.name,
             selectedTab = Tab.Chat,
-            onTabSelected = onTabSelected)
+            onTabSelected = onTabSelected,
+            testTag = NavigationTestTags.CHAT_SCREEN,
+        )
       }
     }
 
@@ -79,7 +89,9 @@ fun UniverseApp() {
         NavigationPlaceholderScreen(
             title = NavigationScreens.Profile.name,
             selectedTab = Tab.Profile,
-            onTabSelected = onTabSelected)
+            onTabSelected = onTabSelected,
+            testTag = NavigationTestTags.PROFILE_SCREEN,
+        )
       }
     }
   }

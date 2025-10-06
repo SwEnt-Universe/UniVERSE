@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -66,7 +67,9 @@ fun NavigationBottomMenu(
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
 ) {
-  NavigationBar {
+  NavigationBar(
+      modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
+  ) {
     tabs.forEach { tab ->
       val selected = tab == selectedTab
       NavigationBarItem(
@@ -78,7 +81,7 @@ fun NavigationBottomMenu(
           },
           selected = false,
           onClick = { onTabSelected(tab) },
-      )
+          modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
     }
   }
 }
