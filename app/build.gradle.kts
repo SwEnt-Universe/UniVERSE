@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -7,6 +9,17 @@ plugins {
     id("jacoco")
     id("com.google.gms.google-services")
 }
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val tomtomApiKey: String = System.getenv("TOMTOM_API_KEY")
+    ?: localProperties.getProperty("TOMTOM_API_KEY")
+    ?: throw GradleException("TOMTOM_API_KEY not found in environment or local.properties")
 
 android {
     namespace = "com.android.universe"
@@ -23,6 +36,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"")
     }
 
     buildTypes {
@@ -42,6 +57,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
