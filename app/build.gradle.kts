@@ -1,28 +1,52 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Imports
+// ─────────────────────────────────────────────────────────────────────────────
 import org.gradle.kotlin.dsl.androidTestImplementation
 import org.gradle.kotlin.dsl.testImplementation
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.api.tasks.testing.Test
+import java.io.File
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Plugins
+// - JaCoCo is a core Gradle plugin: apply with id("jacoco") (no version).
+// ─────────────────────────────────────────────────────────────────────────────
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
     id("jacoco")
-    id("com.google.gms.google-services")
-}
-jacoco {
-    toolVersion = "0.8.12"
+    // id("com.google.gms.google-services")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Versions & constants (from Version Catalog)
+// - Single source of truth for JaCoCo engine version.
+// ─────────────────────────────────────────────────────────────────────────────
+val jacocoVer = libs.versions.jacoco.get()
 val tomtomApiKey: String by project
 
+// Keep the Gradle JaCoCo plugin aligned with the catalog engine version
+jacoco {
+    toolVersion = jacocoVer
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Android configuration
+// ─────────────────────────────────────────────────────────────────────────────
 android {
     namespace = "com.android.universe"
     compileSdk = 34
 
-    // Required for TomTom API key
+    // BuildConfig is required for injecting TOMTOM_API_KEY
     buildFeatures {
         buildConfig = true
+        compose = true
     }
+
+    // Expose TOMTOM_API_KEY as BuildConfig.TOMTOM_API_KEY
     buildTypes.configureEach {
         buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"")
     }
@@ -35,13 +59,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
-        // Required for TomTom SDK
-        ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
-        }
+        vectorDrawables { useSupportLibrary = true }
+
+        // TomTom SDK ABIs
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
     buildTypes {
@@ -52,59 +73,49 @@ android {
                 "proguard-rules.pro"
             )
         }
-
         debug {
+            // Turn coverage on in debug for both unit and connected tests
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
         }
     }
 
+    // Ensure AGP-managed instrumentation (androidTest) uses the same agent
     testCoverage {
-        jacocoVersion = "0.8.12"
+        jacocoVersion = jacocoVer
     }
 
-    buildFeatures {
-        compose = true
-    }
+    composeOptions { kotlinCompilerExtensionVersion = "1.4.2" }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.2"
-    }
-
+    // Bytecode level for the app; host JDK for tests can be newer
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions { jvmTarget = "1.8" }
 
     packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
+        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
 
     testOptions {
         unitTests {
+            // Robolectric
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
     }
 
-    // Robolectric needs to be run only in debug. But its tests are placed in the shared source set (test)
-    // The next lines transfers the src/test/* from shared to the testDebug one
-    //
-    // This prevent errors from occurring during unit tests
+    // ─────────────────────────────────────────────────────────────────────────
+    // Source sets tweak for Robolectric in debug
+    // - Move shared tests into testDebug to avoid duplication issues.
+    // ─────────────────────────────────────────────────────────────────────────
     sourceSets.getByName("testDebug") {
         val test = sourceSets.getByName("test")
-
         java.setSrcDirs(test.java.srcDirs)
         res.setSrcDirs(test.res.srcDirs)
         resources.setSrcDirs(test.resources.srcDirs)
     }
-
     sourceSets.getByName("test") {
         java.setSrcDirs(emptyList<File>())
         res.setSrcDirs(emptyList<File>())
@@ -112,112 +123,141 @@ android {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SonarCloud configuration
+// - Note the corrected path casing: testDebugUnitTest
+// ─────────────────────────────────────────────────────────────────────────────
 sonar {
     properties {
         property("sonar.projectKey", "SwEnt-Universe_UniVERSE")
         property("sonar.projectName", "UniVERSE")
         property("sonar.organization", "swent-universe")
         property("sonar.host.url", "https://sonarcloud.io")
-        // Comma-separated paths to the various directories containing the *.xml JUnit report files. Each path may be absolute or relative to the project base directory.
-        property("sonar.junit.reportPaths", "${project.layout.buildDirectory.get()}/test-results/testDebugunitTest/")
-        // Paths to xml files with Android Lint issues. If the main flavor is changed, this file will have to be changed too.
-        property("sonar.androidLint.reportPaths", "${project.layout.buildDirectory.get()}/reports/lint-results-debug.xml")
-        // Paths to JaCoCo XML coverage report files.
-        property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+
+        property(
+            "sonar.junit.reportPaths",
+            "${project.layout.buildDirectory.get()}/test-results/testDebugUnitTest/"
+        )
+        property(
+            "sonar.androidLint.reportPaths",
+            "${project.layout.buildDirectory.get()}/reports/lint-results-debug.xml"
+        )
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+        )
     }
 }
 
-// When a library is used both by robolectric and connected tests, use this function
+// ─────────────────────────────────────────────────────────────────────────────
+// Dependency sugar: add to both unit & androidTest
+// ─────────────────────────────────────────────────────────────────────────────
 fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
     androidTestImplementation(dep)
     testImplementation(dep)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Dependencies
+// - use /gradle/wrapper/libs.versions.tomtom when available
+// ─────────────────────────────────────────────────────────────────────────────
 dependencies {
+    // Runtime
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(platform(libs.compose.bom))
-    testImplementation(libs.junit)
-    globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
 
-    // ------------- Jetpack Compose ------------------
+    // Compose (BOM + modules)
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     globalTestImplementation(composeBom)
 
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
-    // Material Design 3
     implementation(libs.compose.material3)
-    // Integration with activities
     implementation(libs.compose.activity)
-    // Integration with ViewModels
     implementation(libs.compose.viewmodel)
-    // Android Studio Preview support
     implementation(libs.compose.preview)
     debugImplementation(libs.compose.tooling)
-    // UI Tests
     globalTestImplementation(libs.compose.test.junit)
     debugImplementation(libs.compose.test.manifest)
-    // TomTom Testing
+
+    // Testing
+    testImplementation(libs.junit)
+    globalTestImplementation(libs.androidx.junit)
+    globalTestImplementation(libs.androidx.espresso.core)
+
+    // Coroutines test (pick ONE version; 1.8.1 is current)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    // Turbine for Flow testing
     testImplementation("app.cash.turbine:turbine:1.0.0")
-    testImplementation ("junit:junit:4.13.2")
-    testImplementation ("org.robolectric:robolectric:4.10")
-    testImplementation ("io.mockk:mockk:1.13.5")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    androidTestImplementation ("androidx.test:core:1.5.0")
-    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+    // MockK
+    testImplementation("io.mockk:mockk:1.13.5")
+    // Kotlin test bridge
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 
-    // --------- Kaspresso test framework ----------
+    // AndroidX test core (explicit if needed)
+    androidTestImplementation("androidx.test:core:1.5.0")
+
+    // Kaspresso
     globalTestImplementation(libs.kaspresso)
     globalTestImplementation(libs.kaspresso.compose)
 
-    // ----------       Robolectric     ------------
+    // Robolectric (from catalog)
     testImplementation(libs.robolectric)
 
-    // ---------- TomTom (MAP) ------------
-    // implementation(libs.tomtomMap)
-    // implementation(libs.tomtomLocation)
-    // implementation(libs.tomtomSearch)
-    val version = "1.26.0"
-    implementation("com.tomtom.sdk.maps:map-display:$version")
-
-    // ---------- Testing Unit ----------
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
+    // TomTom SDK
+    implementation(libs.tomtomMap)
+    implementation(libs.tomtomLocation)
+    implementation(libs.tomtomSearch)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// JaCoCo agent tuning for ALL test tasks
+// - include no-location classes
+// - exclude JDK internals to reduce noise
+// ─────────────────────────────────────────────────────────────────────────────
 tasks.withType<Test>().configureEach {
-    extensions.configure<JacocoTaskExtension> {
+    extensions.configure(JacocoTaskExtension::class.java) {
         isIncludeNoLocationClasses = true
-        excludes = listOf(
-            "jdk.internal.*",
-            "jdk.proxy*",
-            "java.*",
-            "javax.*"
-        )
+        excludes = listOf("jdk.internal.*", "jdk.proxy*", "java.*", "javax.*")
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Pin all org.jacoco artifacts to the same engine version (catalog-driven)
+// ─────────────────────────────────────────────────────────────────────────────
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jacoco") {
+            useVersion(jacocoVer)
+        }
+    }
+    resolutionStrategy.force(
+        "org.jacoco:org.jacoco.agent:$jacocoVer",
+        "org.jacoco:org.jacoco.ant:$jacocoVer",
+        "org.jacoco:org.jacoco.core:$jacocoVer",
+        "org.jacoco:org.jacoco.report:$jacocoVer",
+    )
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Coverage report task (unit + connected)
+// - Produces XML for Sonar + HTML for humans
+// - Must run after test tasks
+// ─────────────────────────────────────────────────────────────────────────────
 tasks.register("jacocoTestReport", JacocoReport::class) {
     mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest")
 
     reports {
-        xml.required = true
-        html.required = true
+        xml.required.set(true)   // for Sonar
+        html.required.set(true)  // for humans
     }
 
     val fileFilter = listOf(
-        "**/R.class",
-        "**/R$*.class",
+        "**/R.class", "**/R$*.class",
         "**/BuildConfig.*",
         "**/Manifest*.*",
         "**/*Test*.*",
@@ -228,11 +268,19 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         exclude(fileFilter)
     }
 
-    val mainSrc = "${project.layout.projectDirectory}/src/main/java"
-    sourceDirectories.setFrom(files(mainSrc))
+    val mainSrc = files(
+        "${project.layout.projectDirectory}/src/main/java",
+        "${project.layout.projectDirectory}/src/main/kotlin",
+    )
+
+    sourceDirectories.setFrom(mainSrc)
     classDirectories.setFrom(files(debugTree))
-    executionData.setFrom(fileTree(project.layout.buildDirectory.get()) {
-        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-        include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
-    })
+    executionData.setFrom(
+        fileTree(project.layout.buildDirectory.get()) {
+            include(
+                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+                "outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec"
+            )
+        }
+    )
 }
