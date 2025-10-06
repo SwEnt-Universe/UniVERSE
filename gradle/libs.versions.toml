@@ -43,6 +43,17 @@ espressoCore = "3.7.0"
 robolectric = "4.16"
 junit = "4.13.2"
 junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+appcompat = "1.6.1"
+material = "1.11.0"
+composeBom = "2024.02.02"
+composeActivity = "1.8.2"
+composeViewModel = "2.7.0"
+lifecycleRuntimeKtx = "2.7.0"
+kaspresso = "1.5.5"
+robolectric = "4.11.1"
+sonar = "4.4.1.3373"
+navigationRuntimeAndroid = "2.9.5"
 
 #endregion
 
@@ -72,6 +83,7 @@ kaspresso = { group = "com.kaspersky.android-components", name = "kaspresso", ve
 kaspresso-compose = { group = "com.kaspersky.android-components", name = "kaspresso-compose-support", version.ref = "kaspresso" }
 
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
