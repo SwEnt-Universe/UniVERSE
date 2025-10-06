@@ -1,0 +1,539 @@
+package com.android.universe.ui.overview
+
+import com.android.universe.model.user.FakeUserRepository
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNull
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class AddProfileViewModelTest {
+
+  private lateinit var repository: FakeUserRepository
+  private lateinit var viewModel: AddProfileViewModel
+
+  @Before
+  fun setup() {
+    repository = FakeUserRepository()
+    viewModel = AddProfileViewModel(repository)
+  }
+
+  @Test
+  fun initialStateIsEmpty() = runTest {
+    val state = viewModel.uiState.value
+    assertEquals("", state.username)
+    assertEquals("", state.firstName)
+    assertEquals("", state.lastName)
+    assertNull(state.description)
+    assertEquals("", state.country)
+    assertEquals("", state.day)
+    assertEquals("", state.month)
+    assertEquals("", state.username)
+    assertNull(state.errorMsg)
+  }
+
+  @Test
+  fun setUsernameUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.username)
+
+    viewModel.setUsername("john_doe")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("john_doe", updatedState.username)
+  }
+
+  @Test
+  fun setFirstNameUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.firstName)
+
+    viewModel.setFirstName("John")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("John", updatedState.firstName)
+  }
+
+  @Test
+  fun setLastNameUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.lastName)
+
+    viewModel.setLastName("Doe")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("Doe", updatedState.lastName)
+  }
+
+  @Test
+  fun setDescriptionUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertNull(initialState.description)
+
+    viewModel.setDescription("I'm a default person")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("I'm a default person", updatedState.description)
+  }
+
+  @Test
+  fun setCountryUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.country)
+
+    viewModel.setCountry("United States")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("United States", updatedState.country)
+  }
+
+  @Test
+  fun setDayUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.day)
+
+    viewModel.setDay("12")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("12", updatedState.day)
+  }
+
+  @Test
+  fun setMonthUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.month)
+
+    viewModel.setMonth("8")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("8", updatedState.month)
+  }
+
+  @Test
+  fun setYearUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertEquals("", initialState.year)
+
+    viewModel.setYear("1990")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("1990", updatedState.year)
+  }
+
+  @Test
+  fun setErrorMsgUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertNull(initialState.errorMsg)
+
+    viewModel.setErrorMsg("Error")
+
+    val updatedState = viewModel.uiState.value
+    assertEquals("Error", updatedState.errorMsg)
+  }
+
+  @Test
+  fun clearErrorMsgUpdateTheState() = runTest {
+    val initialState = viewModel.uiState.value
+    assertNull(initialState.errorMsg)
+
+    viewModel.setErrorMsg("Error")
+
+    val updatedState1 = viewModel.uiState.value
+    assertEquals("Error", updatedState1.errorMsg)
+
+    viewModel.clearErrorMsg()
+
+    val updatedState2 = viewModel.uiState.value
+    assertNull(updatedState2.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyFirstName() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("First name cannot be empty", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyLastName() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Last name cannot be empty", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyDay() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Day is not a number", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileNonNumericDay() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("hello")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Day is not a number", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyMonth() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Month is not a number", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileNonNumericMonth() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("hello")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Month is not a number", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyYear() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Year is not a number", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileNonNumericYear() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("hello")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Year is not a number", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyCountry() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Country cannot be empty", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileInvalidCountry() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("Lune")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Invalid country", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileInvalidDate1() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("29")
+    viewModel.setMonth("2")
+    viewModel.setYear("2001")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileInvalidDate2() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("52")
+    viewModel.setMonth("1")
+    viewModel.setYear("2025")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileInvalidDate3() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("13")
+    viewModel.setYear("2025")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileInvalidDate5() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("-2")
+    viewModel.setMonth("1")
+    viewModel.setYear("2025")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileInvalidDate6() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("-1")
+    viewModel.setYear("2025")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileEmptyUsername() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher)
+
+    viewModel.setUsername("")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(0, users.size)
+    assertEquals("Username cannot be empty", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileValid() = runTest {
+    val repository = FakeUserRepository()
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    val testRepositoryDispatcher = StandardTestDispatcher(testScheduler)
+    val viewModel = AddProfileViewModel(repository, testDispatcher, testRepositoryDispatcher)
+
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setCountry("United States")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+
+    viewModel.addProfile()
+
+    advanceUntilIdle()
+
+    val users = repository.getAllUsers()
+    assertEquals(1, users.size)
+
+    val user = users.first()
+    assertEquals("john_doe", user.username)
+    assertEquals("John", user.firstName)
+    assertEquals("Doe", user.lastName)
+    assertEquals("US", user.country)
+    assertEquals(1990, user.dateOfBirth.year)
+    assertEquals(8, user.dateOfBirth.monthValue)
+    assertEquals(12, user.dateOfBirth.dayOfMonth)
+
+    assertNull(viewModel.uiState.value.errorMsg)
+  }
+}
