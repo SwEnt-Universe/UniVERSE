@@ -4,12 +4,18 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.android.universe.model.Tag
+import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.SelectTagScreen
+import com.android.universe.ui.SelectTagViewModel
 import com.android.universe.ui.SelectTagsScreenTestTags
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
 
 class SelectTagScreenTest {
   fun scrollAndClick(scrollName: String, clickName: String) {
@@ -18,14 +24,28 @@ class SelectTagScreenTest {
   }
 
   @get:Rule val composeTestRule = createComposeRule()
+  private lateinit var userRepository: FakeUserRepository
+  private lateinit var viewModel: SelectTagViewModel
 
   @Before
   fun setUp() {
-    composeTestRule.setContent { SelectTagScreen() }
+    userRepository = FakeUserRepository().apply {
+      runBlocking {
+        addUser(UserProfile(username = "bob",
+          firstName = "Bob",
+          lastName = "Jones",
+          country = "FR",
+          description = "Hello, I'm Bob.",
+          dateOfBirth = LocalDate.of(2000, 8, 11),
+          tags = emptyList()))
+      }
+    }
+    viewModel = SelectTagViewModel(userRepository)
+    composeTestRule.setContent { SelectTagScreen(viewModel, username = "bob") }
   }
 
   @Test
-  fun isAllTagDisplayed() {
+  fun allTagGroupsAreDisplayed() {
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.INTERESTTAGS).assertIsDisplayed()
     composeTestRule
         .onNodeWithTag("LazyColumnTags")
@@ -46,53 +66,53 @@ class SelectTagScreenTest {
   }
 
   @Test
-  fun isSaveTagDisplayed() {
+  fun saveButtonIsDisplayed() {
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVEBUTTON).assertIsDisplayed()
   }
 
   @Test
-  fun isSelectedTagsNotDisplayed() {
+  fun selectedTagsSectionIsHiddenInitially() {
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsNotDisplayed()
   }
 
   @Test
-  fun isSelectedTagsDisplayedOnClickInterest() {
+  fun selectedTagsShownWhenInterestTagClicked() {
     composeTestRule.onNodeWithTag("Button_Reading").performClick()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsDisplayed()
   }
 
   @Test
-  fun isSelectedTagsDisplayedOnClickSport() {
+  fun selectedTagsShownWhenSportTagClicked() {
     scrollAndClick("LazyColumnTags", "Button_Handball")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsDisplayed()
   }
 
   @Test
-  fun isSelectedTagsDisplayedOnClickMusic() {
+  fun selectedTagsShownWhenMusicTagClicked() {
     scrollAndClick("LazyColumnTags", "Button_Metal")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsDisplayed()
   }
 
   @Test
-  fun isSelectedTagsDisplayedOnClickTransport() {
+  fun selectedTagsShownWhenTransportTagClicked() {
     scrollAndClick("LazyColumnTags", "Button_Car")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsDisplayed()
   }
 
   @Test
-  fun isSelectedTagsDisplayedOnClickCanton() {
+  fun selectedTagsShownWhenCantonTagClicked() {
     scrollAndClick("LazyColumnTags", "Button_Bern")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsDisplayed()
   }
 
   @Test
-  fun isSelectedTagsDisplayedOnClick2Tags() {
+  fun selectedTagsShownWhenMultipleTagsClicked() {
     scrollAndClick("LazyColumnTags", "Button_Bern")
     scrollAndClick("LazyColumnTags", "Button_Surfing")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
@@ -101,7 +121,7 @@ class SelectTagScreenTest {
   }
 
   @Test
-  fun isSelectedTagsDisplayedWithDelete() {
+  fun selectedTagsHiddenAfterDeleteClicked() {
     scrollAndClick("LazyColumnTags", "Button_Bern")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).performClick()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsNotDisplayed()
@@ -109,7 +129,7 @@ class SelectTagScreenTest {
   }
 
   @Test
-  fun isSelectedTagsDisplayedWithDeselect() {
+  fun selectedTagsHiddenWhenTagDeselected() {
     scrollAndClick("LazyColumnTags", "Button_Bern")
     composeTestRule.onNodeWithTag("Button_Bern").performClick()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsNotDisplayed()
@@ -123,7 +143,7 @@ class SelectTagScreenTest {
   }
 
   @Test
-  fun isSelectedTagsInOrder() {
+  fun selectedTagsDisplayedInCorrectOrder() {
     scrollAndClick("LazyColumnTags", "Button_Bern")
     scrollAndClick("LazyColumnTags", "Button_Handball")
     scrollAndClick("LazyColumnTags", "Button_Metal")
@@ -140,7 +160,44 @@ class SelectTagScreenTest {
   }
 
   @Test
-  fun isTagStillDisplayedIfAllSelected() {
+  fun selectedTagsMaintainOrderAfterDeselection() {
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Handball")
+    scrollAndClick("LazyColumnTags", "Button_Metal")
+    scrollAndClick("LazyColumnTags", "Button_Car")
+    scrollAndClick("LazyColumnTags", "Button_Metal")
+
+    val selectedTagNodes =
+      composeTestRule
+        .onAllNodes(hasParent(hasTestTag(SelectTagsScreenTestTags.SELECTEDTAGS)))
+        .fetchSemanticsNodes()
+    val displayedTags =
+      selectedTagNodes.mapNotNull {
+        it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
+      }
+    assertEquals(listOf("Bern", "Handball", "Car"), displayedTags)
+  }
+
+  @Test
+  fun selectedTagsRemainStableAfterRapidClicks(){
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+    scrollAndClick("LazyColumnTags", "Button_Bern")
+
+    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETEICON).assertIsDisplayed()
+  }
+
+  @Test
+  fun tagStillVisibleWhenAllSelected() {
     scrollAndClick("LazyColumnTags", "Button_Car")
     scrollAndClick("LazyColumnTags", "Button_Train")
     scrollAndClick("LazyColumnTags", "Button_Boat")
@@ -156,7 +213,7 @@ class SelectTagScreenTest {
   }
 
   @Test
-  fun isSelectedTagsScrollable() {
+  fun selectedTagsSectionIsScrollable() {
     scrollAndClick("LazyColumnTags", "Button_Car")
     scrollAndClick("LazyColumnTags", "Button_Train")
     scrollAndClick("LazyColumnTags", "Button_Boat")
@@ -169,5 +226,16 @@ class SelectTagScreenTest {
         .onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS)
         .performScrollToNode(hasTestTag("Button_Selected_Plane"))
         .assertIsDisplayed()
+  }
+
+  @Test
+  fun selectedTagsAreSavedForUser() = runBlocking {
+    scrollAndClick("LazyColumnTags", "Button_Car")
+    scrollAndClick("LazyColumnTags", "Button_Handball")
+    scrollAndClick("LazyColumnTags", "Button_Metal")
+
+    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVEBUTTON).performClick()
+    assertEquals(userRepository.getUser("bob").tags,
+      listOf<Tag>(Tag("Car"), Tag("Handball"), Tag("Metal")))
   }
 }
