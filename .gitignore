@@ -1,3 +1,6 @@
+# Kotlin files
+.kotlin/
+
 # Gradle files
 .gradle/
 build/

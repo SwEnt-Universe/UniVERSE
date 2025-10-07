@@ -15,6 +15,7 @@ import java.io.File
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
     id("jacoco")
@@ -53,7 +54,7 @@ android {
 
     defaultConfig {
         applicationId = "com.android.universe"
-        minSdk = 28
+        minSdk = 34
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -73,6 +74,7 @@ android {
                 "proguard-rules.pro"
             )
         }
+
         debug {
             // Turn coverage on in debug for both unit and connected tests
             enableUnitTestCoverage = true
@@ -133,19 +135,12 @@ sonar {
         property("sonar.projectName", "UniVERSE")
         property("sonar.organization", "swent-universe")
         property("sonar.host.url", "https://sonarcloud.io")
-
-        property(
-            "sonar.junit.reportPaths",
-            "${project.layout.buildDirectory.get()}/test-results/testDebugUnitTest/"
-        )
-        property(
-            "sonar.androidLint.reportPaths",
-            "${project.layout.buildDirectory.get()}/reports/lint-results-debug.xml"
-        )
-        property(
-            "sonar.coverage.jacoco.xmlReportPaths",
-            "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
-        )
+        // Comma-separated paths to the various directories containing the *.xml JUnit report files. Each path may be absolute or relative to the project base directory.
+        property("sonar.junit.reportPaths", "${project.layout.buildDirectory.get()}/test-results/testDebugunitTest/")
+        // Paths to xml files with Android Lint issues. If the main flavor is changed, this file will have to be changed too.
+        property("sonar.androidLint.reportPaths", "${project.layout.buildDirectory.get()}/reports/lint-results-debug.xml")
+        // Paths to JaCoCo XML coverage report files.
+        property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
     }
 }
 
@@ -167,6 +162,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    testImplementation(libs.junit)
+    globalTestImplementation(libs.androidx.junit)
+    globalTestImplementation(libs.androidx.espresso.core)
 
     // Compose (BOM + modules)
     val composeBom = platform(libs.compose.bom)
