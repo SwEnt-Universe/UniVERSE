@@ -45,6 +45,10 @@ junitVersion = "1.1.5"
 jacoco = "0.8.13"
 #endregion
 
+#region TomTom
+tomtom = "1.26.0"
+#endregion
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
