@@ -47,23 +47,20 @@ fun SignInScreen(
 
   Scaffold(modifier = Modifier.testTag(SignInScreenTestTags.SCREEN)) { paddingValues ->
     Column(
-      verticalArrangement = Arrangement.Center,
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-      SignInButton(onClick = {})
-    }
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+          SignInButton(onClick = {})
+        }
   }
 }
 
 @Composable
-fun SignInButton(onClick:() -> Unit) {
+fun SignInButton(onClick: () -> Unit) {
   OutlinedButton(
-      onClick = onClick,
-      modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_BUTTON)
-  ) {
-    Text("Sign In")
-  }
-
+      onClick = onClick, modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
+        Text("Sign In")
+      }
 }
 
 @Preview
