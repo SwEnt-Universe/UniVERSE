@@ -1,4 +1,4 @@
-package com.android.universe.ui
+package com.android.universe.ui.selectTag
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke

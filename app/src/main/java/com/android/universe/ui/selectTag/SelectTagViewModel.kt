@@ -1,4 +1,4 @@
-package com.android.universe.ui
+package com.android.universe.ui.selectTag
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

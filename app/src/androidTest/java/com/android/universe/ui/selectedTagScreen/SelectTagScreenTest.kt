@@ -7,9 +7,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
-import com.android.universe.ui.SelectTagScreen
-import com.android.universe.ui.SelectTagViewModel
-import com.android.universe.ui.SelectTagsScreenTestTags
+import com.android.universe.ui.selectTag.SelectTagScreen
+import com.android.universe.ui.selectTag.SelectTagViewModel
+import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
