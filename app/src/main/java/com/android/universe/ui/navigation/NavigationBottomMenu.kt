@@ -47,7 +47,7 @@ sealed class Tab(
 }
 
 /** A predefined list of [Tab] objects that will be displayed in the bottom navigation bar. */
-private val tabs =
+val tabs =
     listOf(
         Tab.Chat,
         Tab.Map,
