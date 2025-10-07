@@ -35,17 +35,25 @@ class SelectTagViewModel(
     }
   }
 
-  fun loadTags(username: String){
+  fun loadTags(username: String) {
     viewModelScope.launch {
       val userProfil = userRepository.getUser(username)
-      selectedTags.value = userProfil.tags.map {tag -> tag.name}
+      selectedTags.value = userProfil.tags.map { tag -> tag.name }
     }
   }
+
   fun saveTags(username: String) {
     viewModelScope.launch {
       val userProfil = userRepository.getUser(username)
-      val newUserProfil = UserProfile(userProfil.username, userProfil.firstName, userProfil.lastName,
-        userProfil.country, userProfil.description, userProfil.dateOfBirth, selectedTags.value.map { tagName -> Tag(tagName) })
+      val newUserProfil =
+          UserProfile(
+              userProfil.username,
+              userProfil.firstName,
+              userProfil.lastName,
+              userProfil.country,
+              userProfil.description,
+              userProfil.dateOfBirth,
+              selectedTags.value.map { tagName -> Tag(tagName) })
       userRepository.updateUser(username, newUserProfil)
     }
   }

@@ -10,12 +10,12 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.SelectTagScreen
 import com.android.universe.ui.SelectTagViewModel
 import com.android.universe.ui.SelectTagsScreenTestTags
+import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
 
 class SelectTagScreenTest {
   fun scrollAndClick(scrollName: String, clickName: String) {
@@ -29,17 +29,20 @@ class SelectTagScreenTest {
 
   @Before
   fun setUp() {
-    userRepository = FakeUserRepository().apply {
-      runBlocking {
-        addUser(UserProfile(username = "bob",
-          firstName = "Bob",
-          lastName = "Jones",
-          country = "FR",
-          description = "Hello, I'm Bob.",
-          dateOfBirth = LocalDate.of(2000, 8, 11),
-          tags = emptyList()))
-      }
-    }
+    userRepository =
+        FakeUserRepository().apply {
+          runBlocking {
+            addUser(
+                UserProfile(
+                    username = "bob",
+                    firstName = "Bob",
+                    lastName = "Jones",
+                    country = "FR",
+                    description = "Hello, I'm Bob.",
+                    dateOfBirth = LocalDate.of(2000, 8, 11),
+                    tags = emptyList()))
+          }
+        }
     viewModel = SelectTagViewModel(userRepository)
     composeTestRule.setContent { SelectTagScreen(viewModel, username = "bob") }
   }
@@ -168,18 +171,18 @@ class SelectTagScreenTest {
     scrollAndClick("LazyColumnTags", "Button_Metal")
 
     val selectedTagNodes =
-      composeTestRule
-        .onAllNodes(hasParent(hasTestTag(SelectTagsScreenTestTags.SELECTEDTAGS)))
-        .fetchSemanticsNodes()
+        composeTestRule
+            .onAllNodes(hasParent(hasTestTag(SelectTagsScreenTestTags.SELECTEDTAGS)))
+            .fetchSemanticsNodes()
     val displayedTags =
-      selectedTagNodes.mapNotNull {
-        it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
-      }
+        selectedTagNodes.mapNotNull {
+          it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
+        }
     assertEquals(listOf("Bern", "Handball", "Car"), displayedTags)
   }
 
   @Test
-  fun selectedTagsRemainStableAfterRapidClicks(){
+  fun selectedTagsRemainStableAfterRapidClicks() {
     scrollAndClick("LazyColumnTags", "Button_Bern")
     scrollAndClick("LazyColumnTags", "Button_Bern")
     scrollAndClick("LazyColumnTags", "Button_Bern")
@@ -235,7 +238,7 @@ class SelectTagScreenTest {
     scrollAndClick("LazyColumnTags", "Button_Metal")
 
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVEBUTTON).performClick()
-    assertEquals(userRepository.getUser("bob").tags,
-      listOf<Tag>(Tag("Car"), Tag("Handball"), Tag("Metal")))
+    assertEquals(
+        userRepository.getUser("bob").tags, listOf<Tag>(Tag("Car"), Tag("Handball"), Tag("Metal")))
   }
 }

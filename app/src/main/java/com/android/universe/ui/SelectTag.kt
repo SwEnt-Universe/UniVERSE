@@ -152,9 +152,7 @@ object TagColors {
  */
 @Composable
 fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel(), username: String) {
-    LaunchedEffect(Unit) {
-        selectedTagOverview.loadTags(username)
-    }
+  LaunchedEffect(Unit) { selectedTagOverview.loadTags(username) }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
