@@ -1,13 +1,18 @@
 package com.android.universe.ui.signIn
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -16,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 object SignInScreenTestTags {
   const val SCREEN = "signInScreen"
+  const val SIGN_IN_BUTTON = "signInButton"
 }
 
 /**
@@ -40,8 +46,24 @@ fun SignInScreen(
   }
 
   Scaffold(modifier = Modifier.testTag(SignInScreenTestTags.SCREEN)) { paddingValues ->
-    Column(modifier = Modifier.padding(paddingValues)) {}
+    Column(
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally,
+      modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+      SignInButton(onClick = {})
+    }
   }
+}
+
+@Composable
+fun SignInButton(onClick:() -> Unit) {
+  OutlinedButton(
+      onClick = onClick,
+      modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_BUTTON)
+  ) {
+    Text("Sign In")
+  }
+
 }
 
 @Preview
