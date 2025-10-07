@@ -165,6 +165,16 @@ dependencies {
     // ---------- Testing Unit ----------
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // ---------- TomTom Map ----------
+    implementation(libs.tomtom.map.display)
+
+    // ---------- Location Services ----------
+    implementation(libs.tomtom.location.provider)
+    implementation(libs.tomtom.location.provider.api)
+    implementation(libs.tomtom.location.provider.map.matched)
+    implementation(libs.tomtom.location.provider.simulation)
+    implementation(libs.play.services.location)
 }
 
 tasks.withType<Test> {

@@ -43,7 +43,11 @@ espressoCore = "3.7.0"
 robolectric = "4.16"
 junit = "4.13.2"
 junitVersion = "1.1.5"
+#endregion
 
+#region TomTom & Location
+tomtom-sdk = "1.26.0"
+play-services-location = "21.3.0"
 #endregion
 
 [libraries]
@@ -81,6 +85,14 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 maps-compose-utils = { module = "com.google.maps.android:maps-compose-utils", version.ref = "mapsComposeUtils" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+
+tomtom-map-display = { module = "com.tomtom.sdk.maps:map-display", version.ref = "tomtom-sdk" }
+
+tomtom-location-provider = { module = "com.tomtom.sdk.location:provider-default", version.ref = "tomtom-sdk" }
+tomtom-location-provider-map-matched = { module = "com.tomtom.sdk.location:provider-map-matched", version.ref = "tomtom-sdk" }
+tomtom-location-provider-simulation = { module = "com.tomtom.sdk.location:provider-simulation", version.ref = "tomtom-sdk" }
+tomtom-location-provider-api = { module = "com.tomtom.sdk.location:provider-api", version.ref = "tomtom-sdk" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
