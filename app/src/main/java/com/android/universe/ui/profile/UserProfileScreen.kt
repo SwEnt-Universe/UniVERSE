@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
 import kotlin.collections.chunked
 
@@ -42,12 +43,8 @@ object UserProfileScreenTestTags {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen(
-    username: String,
-    userProfileViewModel: UserProfileViewModel = UserProfileViewModel()
-) {
+fun UserProfileScreen(username: String, userProfileViewModel: UserProfileViewModel = viewModel()) {
 
-  // LaunchedEffect(username, ) { userProfileViewModel.loadUser(username) }
   val userUIState by userProfileViewModel.userState.collectAsState()
   val errorMsg = userUIState.errorMsg
   userProfileViewModel.loadUser(username)
