@@ -13,6 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * UI state for user profiles.
+ *
+ * @param userProfile The user's profile to hold the state of.
+ */
 data class UserProfileUIState(
     val userProfile: UserProfile =
         UserProfile(
@@ -20,15 +25,27 @@ data class UserProfileUIState(
             firstName = "",
             lastName = "",
             country = "",
-            dateOfBirth = LocalDate.now())
+            dateOfBirth = LocalDate.now(),
+            tags = emptyList())
 )
 
+/**
+ * ViewModel for managing user profiles. Notably loading a user's profile from the repository.
+ *
+ * @param userRepository The repository to fetch user profiles from.
+ */
 class UserProfileViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
   private val _userState = MutableStateFlow(UserProfileUIState())
   val userState: StateFlow<UserProfileUIState> = _userState.asStateFlow()
 
+  /**
+   * Loads a user's profile from the repository.
+   *
+   * @param username The username of the user to load. Silently fails if the user is not found which
+   *   should never happen.
+   */
   fun loadUser(username: String) {
     viewModelScope.launch {
       val userProfile = userRepository.getUser(username)
@@ -40,6 +57,12 @@ class UserProfileViewModel(
     }
   }
 
+  /**
+   * Calculates the age of a user based on their date of birth.
+   *
+   * @param dateOfBirth The user's date of birth.
+   * @param today The current date to calculate the age.
+   */
   fun calculateAge(dateOfBirth: LocalDate, today: LocalDate = LocalDate.now()): Int {
     // Number of whole years between dob and today
     return Period.between(dateOfBirth, today).years.coerceAtLeast(0)

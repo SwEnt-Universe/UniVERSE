@@ -2,6 +2,8 @@ package com.android.universe.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -17,6 +19,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.universe.model.Tag
+import kotlin.collections.chunked
 
 object UserProfileScreenTestTags {
   const val FIRSTNAME = "userProfileFirstName"
@@ -24,33 +28,39 @@ object UserProfileScreenTestTags {
   const val AGE = "userProfileAge"
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
+
+  const val TAG = "userProfileTag"
 }
 
+/**
+ * Composable for displaying a user's profile.
+ *
+ * @param username The username of the user to display.
+ * @param userProfileViewModel The ViewModel responsible for managing user profile data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
-    username: String = "",
-    userProfileViewModel: UserProfileViewModel = UserProfileViewModel(),
-    onEditProfile: () -> Unit = {}
+    username: String,
+    userProfileViewModel: UserProfileViewModel = UserProfileViewModel()
 ) {
 
   LaunchedEffect(username) { userProfileViewModel.loadUser(username) }
   val userUIState by userProfileViewModel.userState.collectAsState()
   val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
-  val previousEventsSize = 3
-  val tagsSize = 3
+  val nb_tags = userUIState.userProfile.tags.size
   Scaffold(
       topBar = {
         TopAppBar(
             title = { Text("Profile") },
             actions = {
-              IconButton(onClick = { onEditProfile() }) {
+              IconButton(onClick = { /* Handle edit profile action TODO */ }) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
               }
             })
       },
       bottomBar = {
-        // Placeholder for bottom navigation bar
+        // Placeholder for bottom navigation bar TODO
         BottomAppBar {
           Box(
               modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -62,60 +72,77 @@ fun UserProfileScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
-              // Profile picture placeholder
-              Box(
-                  modifier = Modifier.size(80.dp).background(Color.Gray, CircleShape),
-                  contentAlignment = Alignment.Center) {
-                    Text("Img", color = Color.White)
-                  }
-
-              Spacer(modifier = Modifier.height(8.dp))
-
-              // Name and details
               Row(
+                  modifier = Modifier.fillMaxWidth(),
                   verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.Center) {
-                    Text(
-                        text = userUIState.userProfile.firstName,
-                        fontSize = 20.sp,
-                        color = Color.Blue,
-                        modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = userUIState.userProfile.lastName,
-                        fontSize = 20.sp,
-                        color = Color.Blue,
-                        modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
-                  }
+                  horizontalArrangement = Arrangement.SpaceAround) {
+                    // Profile picture placeholder
+                    Box(
+                        modifier = Modifier.size(80.dp).background(Color.Gray, CircleShape),
+                        contentAlignment = Alignment.Center) {
+                          Text("Img", color = Color.White)
+                        }
 
-              // Age and country (split for tagging, same line)
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.Center) {
-                    Text(
-                        text = "Age: $userAge",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Country: ${userUIState.userProfile.country}",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
+                    // Spacer(modifier = Modifier.height(8.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                          // Name and details
+                          Row(
+                              verticalAlignment = Alignment.CenterVertically,
+                              horizontalArrangement = Arrangement.Center) {
+                                Text(
+                                    text = userUIState.userProfile.firstName,
+                                    fontSize = 20.sp,
+                                    color = Color.Blue,
+                                    modifier =
+                                        Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = userUIState.userProfile.lastName,
+                                    fontSize = 20.sp,
+                                    color = Color.Blue,
+                                    modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
+                              }
+
+                          // Age and country (split for tagging, same line)
+                          Row(
+                              verticalAlignment = Alignment.CenterVertically,
+                              horizontalArrangement = Arrangement.Center) {
+                                Text(
+                                    text = "Age: $userAge",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray,
+                                    modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Country: ${userUIState.userProfile.country}",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray,
+                                    modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
+                              }
+                        }
                   }
 
               Spacer(modifier = Modifier.height(16.dp))
-
-              // Tags row placeholder
-              Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                repeat(tagsSize) {
-                  AssistChip(
-                      onClick = {},
-                      label = { Text("TAG") },
-                      modifier = Modifier.padding(horizontal = 4.dp))
-                }
-              }
+              val nb_chunks = 4
+              // Tag chips
+              LazyColumn(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .height(height = if (nb_tags <= nb_chunks) 35.dp else 70.dp)) {
+                    val rows: List<List<Tag>> = userUIState.userProfile.tags.chunked(nb_chunks)
+                    items(rows.size) { index ->
+                      Row(
+                          modifier = Modifier.fillMaxWidth(),
+                          horizontalArrangement = Arrangement.SpaceEvenly,
+                          verticalAlignment = Alignment.CenterVertically) {
+                            rows[index].forEach { tag -> TagChip(tag) }
+                          }
+                      Spacer(modifier = Modifier.height(8.dp))
+                    }
+                  }
 
               Spacer(modifier = Modifier.height(16.dp))
 
@@ -128,7 +155,8 @@ fun UserProfileScreen(
                             .height(100.dp)
                             .background(Color.LightGray.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center) {
-                      if (userUIState.userProfile.description != null) {
+                      if (userUIState.userProfile.description != null &&
+                          userUIState.userProfile.description!!.isNotEmpty()) {
                         Text(
                             text = userUIState.userProfile.description.toString(),
                             modifier =
@@ -141,25 +169,25 @@ fun UserProfileScreen(
                       }
                     }
               }
+            }
+      }
+}
 
-              Spacer(modifier = Modifier.height(16.dp))
-
-              // Previous events placeholder
-              Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Previous Events:", fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                repeat(previousEventsSize) {
-                  Box(
-                      modifier =
-                          Modifier.fillMaxWidth()
-                              .height(60.dp)
-                              .padding(vertical = 4.dp)
-                              .background(Color(0xFFEFEFEF)),
-                      contentAlignment = Alignment.CenterStart) {
-                        Text("Event Placeholder", modifier = Modifier.padding(16.dp))
-                      }
-                }
-              }
+/**
+ * Composable for displaying a tag chip.
+ *
+ * @param tag The tag containing the text to display.
+ */
+@Composable
+private fun TagChip(tag: Tag) {
+  Box(
+      modifier =
+          Modifier.background(Color(0xFF6650a4), shape = CircleShape).height(30.dp).width(80.dp)) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
+              Text(text = tag.name)
             }
       }
 }
