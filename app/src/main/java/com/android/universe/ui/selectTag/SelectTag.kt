@@ -151,7 +151,11 @@ object TagColors {
  * if necessary.
  */
 @Composable
-fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel(), username: String) {
+fun SelectTagScreen(
+    selectedTagOverview: SelectTagViewModel = viewModel(),
+    username: String,
+    navigateOnSave: () -> Unit = {}
+) {
   LaunchedEffect(Unit) { selectedTagOverview.loadTags(username) }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
@@ -230,7 +234,10 @@ fun SelectTagScreen(selectedTagOverview: SelectTagViewModel = viewModel(), usern
       }
     }
     Button(
-        onClick = { selectedTagOverview.saveTags(username) },
+        onClick = {
+          selectedTagOverview.saveTags(username)
+          navigateOnSave()
+        },
         modifier =
             Modifier.testTag(SelectTagsScreenTestTags.SAVEBUTTON).fillMaxWidth().padding(5.dp)) {
           Text("Save Tags")
