@@ -7,7 +7,6 @@ coreKtx = "1.13.1"
 gms = "4.4.3"
 ktfmt = "0.20.1"
 sonar = "5.1.0.4882"
-
 #endregion
 
 #region UI & Compose
@@ -43,7 +42,11 @@ espressoCore = "3.7.0"
 robolectric = "4.16"
 junit = "4.13.2"
 junitVersion = "1.1.5"
+jacoco = "0.8.13"
+#endregion
 
+#region TomTom
+tomtom = "1.26.0"
 #endregion
 
 [libraries]
@@ -55,6 +58,10 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+
+tomtomMap = { module = "com.tomtom.sdk.maps:map-display", version.ref = "tomtom" }
+tomtomLocation = { module = "com.tomtom.sdk.location:provider-default", version.ref = "tomtom" }
+tomtomSearch = { module = "com.tomtom.sdk.search:search-online", version.ref = "tomtom" }
 
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 

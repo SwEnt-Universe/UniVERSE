@@ -16,9 +16,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Required by TomTom SDK
+        maven {
+            url = uri("https://repositories.tomtom.com/artifactory/maven")
+        }
     }
 }
 
 rootProject.name = "UniVERSE"
 include(":app")
- 
