@@ -1,5 +1,6 @@
 package com.android.universe.model.user
 
+import com.android.universe.model.Tag
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
@@ -12,6 +13,8 @@ import org.junit.Test
 class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
+  private val tag = Tag(name = "Metal")
+  private val tags = listOf<Tag>(tag)
 
   @Before
   fun setup() {
@@ -37,7 +40,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.addUser(user)
 
     val result = repository.getUser("alice")
@@ -58,7 +62,8 @@ class FakeUserRepositoryTest {
             firstName = "Bob",
             lastName = "Jones",
             country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11))
+            dateOfBirth = LocalDate.of(2000, 8, 11),
+            tags = tags)
     repository.addUser(user)
 
     val result = repository.getUser("bob")
@@ -79,14 +84,16 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     val user2 =
         UserProfile(
             username = "bob",
             firstName = "Bob",
             lastName = "Jones",
             country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11))
+            dateOfBirth = LocalDate.of(2000, 8, 11),
+            tags = tags)
     repository.addUser(user1)
     repository.addUser(user2)
 
@@ -113,7 +120,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.addUser(user)
 
     val newUser =
@@ -123,7 +131,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "New bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.updateUser("alice", newUser)
 
     val result1 = repository.getAllUsers()
@@ -146,7 +155,8 @@ class FakeUserRepositoryTest {
             firstName = "Bob",
             lastName = "Jones",
             country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11))
+            dateOfBirth = LocalDate.of(2000, 8, 11),
+            tags = tags)
     repository.addUser(user)
 
     val newUser =
@@ -156,7 +166,8 @@ class FakeUserRepositoryTest {
             lastName = "Jones",
             country = "FR",
             description = "Bio",
-            dateOfBirth = LocalDate.of(2000, 8, 11))
+            dateOfBirth = LocalDate.of(2000, 8, 11),
+            tags = tags)
     repository.updateUser("bob", newUser)
 
     val result1 = repository.getAllUsers()
@@ -180,7 +191,8 @@ class FakeUserRepositoryTest {
             lastName = "Doe",
             country = "US",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1800, 10, 30))
+            dateOfBirth = LocalDate.of(1800, 10, 30),
+            tags = tags)
 
     try {
       repository.updateUser("john", newUser)
@@ -199,7 +211,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.addUser(user1)
     val user2 =
         UserProfile(
@@ -208,7 +221,8 @@ class FakeUserRepositoryTest {
             lastName = "Doe",
             country = "US",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1800, 10, 30))
+            dateOfBirth = LocalDate.of(1800, 10, 30),
+            tags = tags)
     repository.addUser(user2)
     val result1 = repository.getAllUsers()
     assertEquals(result1.size, 2)
@@ -232,7 +246,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.addUser(user)
 
     // Verify initial state
@@ -267,7 +282,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.addUser(user)
     val result = repository.isUsernameUnique("john")
     assertEquals(true, result)
@@ -282,7 +298,8 @@ class FakeUserRepositoryTest {
             lastName = "Smith",
             country = "CH",
             description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1))
+            dateOfBirth = LocalDate.of(1990, 1, 1),
+            tags = tags)
     repository.addUser(user)
     val result = repository.isUsernameUnique("alice")
     assertEquals(false, result)
