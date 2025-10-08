@@ -44,15 +44,17 @@ import com.android.universe.model.tagsSport
 import com.android.universe.model.tagsTransport
 
 object SelectTagsScreenTestTags {
-  const val INTERESTTAGS = "InterestTags"
-  const val SPORTTAGS = "SportTags"
-  const val MUSICTAGS = "MusicTags"
-  const val TRANSPORTTAGS = "TransportTags"
-  const val CANTONTAGS = "CantonTags"
-  const val SELECTEDTAGS = "SelectedTags"
-  const val SAVEBUTTON = "SaveButton"
+  const val INTEREST_TAGS = "InterestTags"
+  const val SPORT_TAGS = "SportTags"
+  const val MUSIC_TAGS = "MusicTags"
+  const val TRANSPORT_TAGS = "TransportTags"
+  const val CANTON_TAGS = "CantonTags"
+  const val SELECTED_TAGS = "SelectedTags"
+  const val SAVE_BUTTON = "SaveButton"
   const val DIVIDER = "Divider"
-  const val DELETEICON = "DeleteIcon"
+  const val DELETE_ICON = "DeleteIcon"
+  const val TAG_BUTTON_PREFIX = "Button_"
+  const val SELECTED_TAG_BUTTON_PREFIX = "Button_Selected_"
 }
 
 /**
@@ -93,7 +95,8 @@ private fun TagGroup(
               onTagSelect(tag)
             }
           },
-          modifier = Modifier.testTag("Button_$tag").padding(3.dp),
+          modifier =
+              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}$tag").padding(3.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -168,7 +171,7 @@ fun SelectTagScreen(
             TagColors.Interest,
             { tag -> selectedTagOverview.addTag(tag) },
             { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.INTERESTTAGS))
+            Modifier.testTag(SelectTagsScreenTestTags.INTEREST_TAGS))
       }
       item { SectionDivider() }
       item {
@@ -179,7 +182,7 @@ fun SelectTagScreen(
             TagColors.Sport,
             { tag -> selectedTagOverview.addTag(tag) },
             { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.SPORTTAGS))
+            Modifier.testTag(SelectTagsScreenTestTags.SPORT_TAGS))
       }
       item { SectionDivider() }
       item {
@@ -190,7 +193,7 @@ fun SelectTagScreen(
             TagColors.Music,
             { tag -> selectedTagOverview.addTag(tag) },
             { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.MUSICTAGS))
+            Modifier.testTag(SelectTagsScreenTestTags.MUSIC_TAGS))
       }
       item { SectionDivider() }
       item {
@@ -201,7 +204,7 @@ fun SelectTagScreen(
             TagColors.Transport,
             { tag -> selectedTagOverview.addTag(tag) },
             { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.TRANSPORTTAGS))
+            Modifier.testTag(SelectTagsScreenTestTags.TRANSPORT_TAGS))
       }
       item { SectionDivider() }
       item {
@@ -212,17 +215,22 @@ fun SelectTagScreen(
             TagColors.Canton,
             { tag -> selectedTagOverview.addTag(tag) },
             { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.CANTONTAGS))
+            Modifier.testTag(SelectTagsScreenTestTags.CANTON_TAGS))
       }
       item { SectionDivider() }
     }
     if (selectedTags.isNotEmpty()) {
-      LazyRow(modifier = Modifier.testTag(SelectTagsScreenTestTags.SELECTEDTAGS)) {
+      LazyRow(modifier = Modifier.testTag(SelectTagsScreenTestTags.SELECTED_TAGS)) {
         items(selectedTags) { tag ->
-          Button(onClick = {}, modifier = Modifier.testTag("Button_Selected_$tag")) { Text(tag) }
+          Button(
+              onClick = {},
+              modifier =
+                  Modifier.testTag("${SelectTagsScreenTestTags.SELECTED_TAG_BUTTON_PREFIX}$tag")) {
+                Text(tag)
+              }
           IconButton(
               onClick = { selectedTagOverview.deleteTag(tag) },
-              modifier = Modifier.testTag(SelectTagsScreenTestTags.DELETEICON).size(24.dp)) {
+              modifier = Modifier.testTag(SelectTagsScreenTestTags.DELETE_ICON).size(24.dp)) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
@@ -239,7 +247,7 @@ fun SelectTagScreen(
           navigateOnSave()
         },
         modifier =
-            Modifier.testTag(SelectTagsScreenTestTags.SAVEBUTTON).fillMaxWidth().padding(5.dp)) {
+            Modifier.testTag(SelectTagsScreenTestTags.SAVE_BUTTON).fillMaxWidth().padding(5.dp)) {
           Text("Save Tags")
         }
   }

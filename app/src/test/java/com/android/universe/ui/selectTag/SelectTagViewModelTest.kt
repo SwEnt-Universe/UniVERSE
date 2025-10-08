@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.Test
 
 class SelectTagViewModelTest {
+  // Define the parameters for the tests.
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
   private val testDispatcher = StandardTestDispatcher()
@@ -23,12 +24,14 @@ class SelectTagViewModelTest {
 
   @Test
   fun uiStateTags_initiallyEmpty() = runTest {
+    // Check that the selected tags are initially empty.
     val state = viewModel.uiStateTags.value
     assertEquals(emptyList<String>(), state)
   }
 
   @Test
   fun addTag_addsInterestTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
     val tag = "Music"
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
@@ -37,6 +40,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTag_addsSportTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
     val tag = "Judo"
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
@@ -45,6 +49,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTag_addsMusicTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
     val tag = "Metal"
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
@@ -53,6 +58,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTag_addsTransportTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
     val tag = "Boat"
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
@@ -61,6 +67,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTag_addsCantonTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
     val tag = "Geneva"
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
@@ -69,6 +76,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTag_addsMultipleTagsSuccessfully() {
+    // Check that the uiStateTag changes when we add multiple tags.
     val tags =
         listOf(
             "Geneva",
@@ -90,6 +98,8 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTag_throwsExceptionWhenTagAlreadySelected() = runTest {
+    // Check that the function addTag throws an exception when we select a tag that is already
+    // selected.
     val tag = "Metal"
     viewModel.addTag(tag)
     try {
@@ -104,6 +114,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_removesInterestTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
     val tag = "Music"
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
@@ -113,6 +124,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_removesSportTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
     val tag = "Judo"
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
@@ -122,6 +134,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_removesMusicTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
     val tag = "Metal"
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
@@ -131,6 +144,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_removesTransportTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
     val tag = "Boat"
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
@@ -140,6 +154,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_removesCantonTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
     val tag = "Geneva"
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
@@ -149,6 +164,8 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_throwsExceptionWhenTagNotSelected() = runTest {
+    // Check that the function deleteTag throws an exception when we deselect a tag that is not
+    // already selected.
     val tag = "Metal"
     try {
       viewModel.deleteTag(tag)
@@ -162,6 +179,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun deleteTag_removesMultipleTagsSuccessfully() = runTest {
+    // Check that the uiStateTag change when we remove multiple tag.
     val tags =
         listOf(
             "Geneva",
@@ -186,6 +204,9 @@ class SelectTagViewModelTest {
 
   @Test
   fun addTagAndDeleteTag_maintainsCorrectOrder() = runTest {
+    // Check that if we select tags and deselect them, the selected tags remain in the correct
+    // order, matching the sequence they
+    // were clicked.
     val tags =
         listOf(
             "Geneva",
@@ -213,6 +234,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun loadTags_loadsUserTagsCorrectly() = runTest {
+    // Check that loading user tags, update the uiStateTags value.
     val userProfile =
         UserProfile(
             username = "Jacquie",
@@ -225,12 +247,15 @@ class SelectTagViewModelTest {
     repository.addUser(userProfile)
 
     viewModel.loadTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle()
+    testDispatcher.scheduler.advanceUntilIdle() // Wait for the loading.
     assertEquals(listOf("Metal", "Car"), viewModel.uiStateTags.value)
   }
 
   @Test
   fun deleteTag_maintainsCorrectOrder() = runTest {
+    // Check that if we select tags and deselect them, the selected tags remain in the correct
+    // order, matching the sequence they
+    // were clicked.
     viewModel.addTag("Metal")
     viewModel.addTag("Handball")
     viewModel.addTag("Car")
@@ -241,6 +266,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun saveTags_savesAllSelectedTagsToUserProfile() = runTest {
+    // Check that the saving of the tags, change the tags of the userProfile.
     val userProfile =
         UserProfile(
             username = "Jacquie",
@@ -267,7 +293,7 @@ class SelectTagViewModelTest {
       viewModel.addTag(tag)
     }
     viewModel.saveTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle()
+    testDispatcher.scheduler.advanceUntilIdle() // Wait for the saving.
     val expectedTags =
         listOf(
             Tag("Geneva"),
@@ -294,6 +320,7 @@ class SelectTagViewModelTest {
 
   @Test
   fun loadThenAddThenSave_preservesExistingTagsAndAddsNewTag() = runTest {
+    // Check that if we save, the tags that were already in the userProfile remains.
     val userProfile =
         UserProfile(
             username = "Jacquie",
@@ -305,11 +332,11 @@ class SelectTagViewModelTest {
             tags = listOf(Tag("Metal"), Tag("Car")))
     repository.addUser(userProfile)
     viewModel.loadTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle()
+    testDispatcher.scheduler.advanceUntilIdle() // Wait for the loading.
 
     viewModel.addTag("Handball")
     viewModel.saveTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle()
+    testDispatcher.scheduler.advanceUntilIdle() // Wait for the saving.
 
     val updatedUser = repository.getUser("Jacquie")
     assertEquals(listOf(Tag("Metal"), Tag("Car"), Tag("Handball")), updatedUser.tags)
