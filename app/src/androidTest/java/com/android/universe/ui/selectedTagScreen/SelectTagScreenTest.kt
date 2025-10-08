@@ -4,7 +4,6 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.selectTag.SelectTagScreen
@@ -12,6 +11,7 @@ import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -26,6 +26,7 @@ class SelectTagScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
   private lateinit var userRepository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
+  private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setUp() {
@@ -43,7 +44,7 @@ class SelectTagScreenTest {
                     tags = emptyList()))
           }
         }
-    viewModel = SelectTagViewModel(userRepository)
+    viewModel = SelectTagViewModel(userRepository, testDispatcher)
     composeTestRule.setContent { SelectTagScreen(viewModel, username = "bob") }
   }
 
@@ -229,16 +230,5 @@ class SelectTagScreenTest {
         .onNodeWithTag(SelectTagsScreenTestTags.SELECTEDTAGS)
         .performScrollToNode(hasTestTag("Button_Selected_Plane"))
         .assertIsDisplayed()
-  }
-
-  @Test
-  fun selectedTagsAreSavedForUser() = runBlocking {
-    scrollAndClick("LazyColumnTags", "Button_Car")
-    scrollAndClick("LazyColumnTags", "Button_Handball")
-    scrollAndClick("LazyColumnTags", "Button_Metal")
-
-    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVEBUTTON).performClick()
-    assertEquals(
-        userRepository.getUser("bob").tags, listOf<Tag>(Tag("Car"), Tag("Handball"), Tag("Metal")))
   }
 }

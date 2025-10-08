@@ -7,12 +7,15 @@ import com.android.universe.model.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SelectTagViewModel(
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
   private val selectedTags = MutableStateFlow<List<String>>(emptyList())
   val uiStateTags = selectedTags.asStateFlow()
@@ -36,14 +39,14 @@ class SelectTagViewModel(
   }
 
   fun loadTags(username: String) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       val userProfil = userRepository.getUser(username)
       selectedTags.value = userProfil.tags.map { tag -> tag.name }
     }
   }
 
   fun saveTags(username: String) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       val userProfil = userRepository.getUser(username)
       val newUserProfil =
           UserProfile(
