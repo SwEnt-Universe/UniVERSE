@@ -18,8 +18,8 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
+    alias(libs.plugins.gms)
     id("jacoco")
-    // id("com.google.gms.google-services")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -162,22 +162,35 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
 
-    // Compose (BOM + modules)
+    // --------------------- Auth ---------------------
+    implementation(libs.credentials)
+    implementation(libs.googleid)
+
+    // ------------------- Firebase -------------------
+    val firebaseBom = platform(libs.firebase.bom)
+    implementation(firebaseBom)
+    globalTestImplementation(firebaseBom)
+
+    implementation(libs.firebase.auth)
+
+    // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     globalTestImplementation(composeBom)
 
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
+    // Material Design 3
     implementation(libs.compose.material3)
     implementation(libs.androidx.material.icons.extended)
     // Integration with activities
     implementation(libs.compose.activity)
+    // Integration with ViewModels
     implementation(libs.compose.viewmodel)
+    // Android Studio Preview support
     implementation(libs.compose.preview)
     debugImplementation(libs.compose.tooling)
     // Navigation
