@@ -52,6 +52,7 @@ class FakeUserRepositoryTest {
     assertEquals("CH", result.country)
     assertEquals("Bio", result.description)
     assertEquals(LocalDate.of(1990, 1, 1), result.dateOfBirth)
+    assertEquals(tags, result.tags)
   }
 
   @Test
@@ -73,6 +74,7 @@ class FakeUserRepositoryTest {
     assertEquals("Jones", result.lastName)
     assertNull(result.description)
     assertEquals(LocalDate.of(2000, 8, 11), result.dateOfBirth)
+    assertEquals(tags, result.tags)
   }
 
   @Test
@@ -109,6 +111,8 @@ class FakeUserRepositoryTest {
     assertNull(result[1].description)
     assertEquals(LocalDate.of(1990, 1, 1), result[0].dateOfBirth)
     assertEquals(LocalDate.of(2000, 8, 11), result[1].dateOfBirth)
+    assertEquals(tags, result[0].tags)
+    assertEquals(tags, result[1].tags)
   }
 
   @Test
@@ -145,6 +149,7 @@ class FakeUserRepositoryTest {
     assertEquals("CH", result2.country)
     assertEquals("New bio", result2.description)
     assertEquals(LocalDate.of(1990, 1, 1), result2.dateOfBirth)
+    assertEquals(tags, result2.tags)
   }
 
   @Test
@@ -180,6 +185,7 @@ class FakeUserRepositoryTest {
     assertEquals("FR", result2.country)
     assertEquals("Bio", result2.description)
     assertEquals(LocalDate.of(2000, 8, 11), result2.dateOfBirth)
+    assertEquals(tags, result2.tags)
   }
 
   @Test
@@ -235,6 +241,7 @@ class FakeUserRepositoryTest {
     assertEquals("Smith", result2[0].lastName)
     assertEquals("Bio", result2[0].description)
     assertEquals(LocalDate.of(1990, 1, 1), result2[0].dateOfBirth)
+    assertEquals(tags, result2[0].tags)
   }
 
   @Test
@@ -271,6 +278,7 @@ class FakeUserRepositoryTest {
     assertEquals("Smith", alice.lastName)
     assertEquals("Bio", alice.description)
     assertEquals(LocalDate.of(1990, 1, 1), alice.dateOfBirth)
+    assertEquals(tags, alice.tags)
   }
 
   @Test
