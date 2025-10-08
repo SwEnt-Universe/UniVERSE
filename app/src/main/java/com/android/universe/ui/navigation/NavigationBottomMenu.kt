@@ -80,6 +80,8 @@ fun NavigationBottomMenu(
                 modifier = Modifier.size(36.dp))
           },
           selected = false,
+          // false to hide an highlight around the icon if it's selected, since we visualize the
+          // selected tab with an filled icon
           onClick = { onTabSelected(tab) },
           modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
     }
