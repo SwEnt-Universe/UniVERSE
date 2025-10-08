@@ -1,3 +1,4 @@
+// MapActivity.kt
 package com.android.universe.ui.map
 
 import android.os.Bundle
@@ -14,6 +15,9 @@ import kotlinx.coroutines.launch
  * Dedicated screen for the TomTom map (XML-hosted MapFragment).
  * - XML path `res/layout/activity_map.xml`
  * - Business/UI logic in [MapViewModel]
+ *
+ * The Activity observes and renders state only; it does not trigger logic like initial camera
+ * moves.
  */
 class MapActivity : AppCompatActivity() {
 
@@ -25,18 +29,15 @@ class MapActivity : AppCompatActivity() {
 
     val mapFragment =
         supportFragmentManager.findFragmentById(R.id.map_fragment) as? TomTomMapFragment
+            ?: return // MapFragment not found
 
-    mapFragment?.getMapAsync { tomtomMap ->
-      // React to ViewModel commands (camera moves, etc.)
+    mapFragment.getMapAsync { tomtomMap ->
+      // Observe camera commands from the ViewModel and apply them to the map.
       lifecycleScope.launch {
         repeatOnLifecycle(Lifecycle.State.STARTED) {
           viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
         }
       }
-
-      // Initial camera position
-      // TODO replace with user location, if available
-      viewModel.centerOnLausanne()
     }
   }
 }
