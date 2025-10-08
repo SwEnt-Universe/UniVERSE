@@ -13,8 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
  * Exposes a shared flow of camera commands (`CameraOptions`) that the UI observes to update the map
  * (position, zoom, tilt, rotation).
  *
- * The initial camera position is emitted from init to keep unidirectional flow: ViewModel ->
- * Activity -> UI.
+ * The initial camera position is emitted from init.
  */
 class MapViewModel : ViewModel() {
 
@@ -30,8 +29,13 @@ class MapViewModel : ViewModel() {
   }
 
   /**
-   * Emits a camera command to center the map on the given [point] with the specified [zoom] level.
-   * The camera will have no tilt or rotation.
+   * Centers the map on [point] at the given [zoom].
+   *
+   * Emits a camera command with zero tilt and rotation (top-down, north-up).
+   * - [point] Geographic coordinate (WGS84, decimal degrees). Latitude in [-90, 90], longitude in
+   *   [-180, 180].
+   * - [zoom] Desired zoom level (higher = closer). Default is 10.0. Must be within the SDK’s
+   *   supported range.
    */
   fun centerOn(point: GeoPoint, zoom: Double = 10.0) {
     _cameraCommands.tryEmit(

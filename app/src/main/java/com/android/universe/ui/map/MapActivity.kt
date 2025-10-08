@@ -23,6 +23,21 @@ class MapActivity : AppCompatActivity() {
 
   private val viewModel: MapViewModel by viewModels()
 
+  /**
+   * Initializes the map screen and connects UI to the ViewModel.
+   *
+   * Flow:
+   * 1) Inflate the XML layout (`activity_map`) and look up the TomTom `MapFragment` by ID.
+   * 2) Call `getMapAsync` to obtain the `TomTomMap` when it’s ready (map creation is async).
+   * 3) Once the map is available, launch a lifecycle-aware coroutine:
+   *     - `repeatOnLifecycle(Lifecycle.State.STARTED)` collects `cameraCommands` only while the
+   *       Activity is at least STARTED, and automatically stops collection when the Activity is
+   *       STOPPED or DESTROYED, preventing leaks.
+   *     - Each emitted camera command is applied to the map via `tomtomMap.moveCamera(...)`.
+   *
+   * Responsibility:
+   * - The Activity only observes and renders state.
+   */
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_map)
