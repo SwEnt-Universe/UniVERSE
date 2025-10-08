@@ -4,19 +4,17 @@ import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {
 
-    /** Returns true if location permission is granted */
-    fun hasLocationPermission(): Boolean
+  /** Returns true if location permission is granted */
+  fun hasLocationPermission(): Boolean
 
-    /**
-     * Get the last known location (once) via callbacks
-     * @param onSuccess called with location if available
-     * @param onFailure called if no location is available
-     */
-    fun getLastKnownLocation(
-        onSuccess: (Location) -> Unit,
-        onFailure: () -> Unit
-    )
+  /**
+   * Get the last known location (once) via callbacks
+   *
+   * @param onSuccess called with location if available
+   * @param onFailure called if no location is available
+   */
+  fun getLastKnownLocation(onSuccess: (Location) -> Unit, onFailure: () -> Unit)
 
-    /** Starts continuous location tracking and returns a Flow of Location objects */
-    fun startLocationTracking(): Flow<Location>
+  /** Starts continuous location tracking and returns a Flow of Location objects */
+  fun startLocationTracking(): Flow<Location>
 }
