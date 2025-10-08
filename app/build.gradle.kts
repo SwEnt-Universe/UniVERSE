@@ -4,8 +4,8 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
+    alias(libs.plugins.gms)
     id("jacoco")
-    id("com.google.gms.google-services")
 }
 
 android {
@@ -115,9 +115,19 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
+
+    // --------------------- Auth ---------------------
+    implementation(libs.credentials)
+    implementation(libs.googleid)
+
+    // ------------------- Firebase -------------------
+    val firebaseBom = platform(libs.firebase.bom)
+    implementation(firebaseBom)
+    globalTestImplementation(firebaseBom)
+
+    implementation(libs.firebase.auth)
 
     // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
