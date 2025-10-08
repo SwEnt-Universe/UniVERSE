@@ -26,7 +26,8 @@ data class UserProfileUIState(
             lastName = "",
             country = "",
             dateOfBirth = LocalDate.now(),
-            tags = emptyList())
+            tags = emptyList()),
+    val errorMsg: String? = null
 )
 
 /**
@@ -51,6 +52,7 @@ class UserProfileViewModel(
       val userProfile = userRepository.getUser(username)
       if (userProfile == null) {
         Log.e("UserProfileViewModel", "User $username not found")
+        setErrorMsg("Username not Found")
         return@launch
       }
       _userState.value = UserProfileUIState(userProfile)
@@ -66,5 +68,19 @@ class UserProfileViewModel(
   fun calculateAge(dateOfBirth: LocalDate, today: LocalDate = LocalDate.now()): Int {
     // Number of whole years between dob and today
     return Period.between(dateOfBirth, today).years.coerceAtLeast(0)
+  }
+
+  /** Clears the current error message from the UI state. */
+  fun clearErrorMsg() {
+    _userState.value = _userState.value.copy(errorMsg = null)
+  }
+
+  /**
+   * Updates the current error message in the UI state.
+   *
+   * @param errorMsg The message to display to the user.
+   */
+  fun setErrorMsg(errorMsg: String) {
+    _userState.value = _userState.value.copy(errorMsg = errorMsg)
   }
 }

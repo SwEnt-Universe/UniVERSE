@@ -26,7 +26,7 @@ class UserProfileScreenTest {
   private val allTags = tagsInterest + tagsSport + tagsMusic + tagsTransport + tagsCanton
 
   @Test
-  fun profile_displays_basic_information_correctly() = runTest {
+  fun profileDisplaysBasicInformationCorrectly() = runTest {
     val profile =
         UserProfile(
             username = "emma",
@@ -71,7 +71,7 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun more_than_eight_tags_scrolls_and_shows_partial_content() = runTest {
+  fun moreThanEightTagsScrollsAndShowsPartialContent() = runTest {
     val manyTags = (1..12).map { Tag("Tag$it") }
     val profile =
         UserProfile(
@@ -97,7 +97,7 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun tags_are_unique_and_in_allowed_list() = runTest {
+  fun tagsAreUniqueAndInAllowedList() = runTest {
     val testTags =
         listOf(Tag("Rock"), Tag("Pop"), Tag("Metal"), Tag("Jazz"), Tag("Blues"), Tag("Country"))
     val profile =
@@ -129,7 +129,7 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun description_displays_placeholder_when_null() = runTest {
+  fun descriptionDisplaysPlaceholderWhenNull() = runTest {
     val profile =
         UserProfile(
             username = "tester",
@@ -153,7 +153,7 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun description_displays_full_description_when_not_null() = runTest {
+  fun descriptionDisplaysFullDescriptionWhenNotNull() = runTest {
     val profile =
         UserProfile(
             username = "tester",
@@ -177,7 +177,7 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun description_displays_no_description_message_when_empty() = runTest {
+  fun descriptionDisplaysNoDescriptionMessageWhenEmpty() = runTest {
     val profile =
         UserProfile(
             username = "tester",

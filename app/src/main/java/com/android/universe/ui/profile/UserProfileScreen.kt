@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,8 +47,19 @@ fun UserProfileScreen(
     userProfileViewModel: UserProfileViewModel = UserProfileViewModel()
 ) {
 
-  LaunchedEffect(username) { userProfileViewModel.loadUser(username) }
+  // LaunchedEffect(username, ) { userProfileViewModel.loadUser(username) }
   val userUIState by userProfileViewModel.userState.collectAsState()
+  val errorMsg = userUIState.errorMsg
+  userProfileViewModel.loadUser(username)
+
+  val context = LocalContext.current
+  // Observe and display asynchronous validation errors as Toast messages.
+  LaunchedEffect(errorMsg) {
+    if (errorMsg != null) {
+      Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+      userProfileViewModel.clearErrorMsg()
+    }
+  }
   val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
   val nb_tags = userUIState.userProfile.tags.size
   Scaffold(
@@ -127,11 +140,15 @@ fun UserProfileScreen(
 
               Spacer(modifier = Modifier.height(16.dp))
               val nb_chunks = 4
+              val row_height = 35
               // Tag chips
               LazyColumn(
                   modifier =
                       Modifier.fillMaxWidth()
-                          .height(height = if (nb_tags <= nb_chunks) 35.dp else 70.dp)) {
+                          .height(
+                              height =
+                                  if (nb_tags <= nb_chunks) row_height.dp
+                                  else (2 * row_height).dp)) {
                     val rows: List<List<Tag>> = userUIState.userProfile.tags.chunked(nb_chunks)
                     items(rows.size) { index ->
                       Row(
@@ -145,16 +162,25 @@ fun UserProfileScreen(
                   }
 
               Spacer(modifier = Modifier.height(16.dp))
-
+              val descriptionSize = 100
               // Description box
               Column(modifier = Modifier.fillMaxWidth()) {
                 Text("Description:", fontSize = 16.sp)
                 Box(
                     modifier =
                         Modifier.fillMaxWidth()
-                            .height(100.dp)
+                            .height(descriptionSize.dp)
                             .background(Color.LightGray.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center) {
+                      val descriptionText =
+                          userUIState.userProfile.description.takeUnless { it.isNullOrBlank() }
+                              ?: "No description"
+                      Text(
+                          text = descriptionText,
+                          modifier =
+                              Modifier.padding(16.dp)
+                                  .testTag(UserProfileScreenTestTags.DESCRIPTION))
+                      /*
                       if (userUIState.userProfile.description != null &&
                           userUIState.userProfile.description!!.isNotEmpty()) {
                         Text(
@@ -166,7 +192,7 @@ fun UserProfileScreen(
                         Text(
                             text = "No description",
                             modifier = Modifier.testTag(UserProfileScreenTestTags.DESCRIPTION))
-                      }
+                      }*/
                     }
               }
             }
