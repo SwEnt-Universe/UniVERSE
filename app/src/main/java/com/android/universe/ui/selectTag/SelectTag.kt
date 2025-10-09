@@ -163,7 +163,7 @@ fun SelectTagScreen(
 ) {
   LaunchedEffect(username) { selectedTagOverview.loadTags(username) }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
-  Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+  Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
       item {
         TagGroup(
@@ -237,7 +237,7 @@ fun SelectTagScreen(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
                     tint = Color.Gray,
-                    modifier = Modifier.height(18.dp),
+                    modifier = Modifier.height(16.dp),
                 )
               }
         }
@@ -252,7 +252,7 @@ fun SelectTagScreen(
           }
         },
         modifier =
-            Modifier.testTag(SelectTagsScreenTestTags.SAVE_BUTTON).fillMaxWidth().padding(5.dp)) {
+            Modifier.testTag(SelectTagsScreenTestTags.SAVE_BUTTON).fillMaxWidth().padding(4.dp)) {
           Text("Save Tags")
         }
   }
