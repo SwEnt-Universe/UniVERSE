@@ -159,7 +159,7 @@ fun SelectTagScreen(
     username: String,
     navigateOnSave: () -> Unit = {}
 ) {
-  LaunchedEffect(Unit) { selectedTagOverview.loadTags(username) }
+  LaunchedEffect(username) { selectedTagOverview.loadTags(username) }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
