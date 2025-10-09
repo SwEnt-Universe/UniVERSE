@@ -45,6 +45,7 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
+        viewBinding = true
     }
 
     // Expose TOMTOM_API_KEY as BuildConfig.TOMTOM_API_KEY
@@ -179,6 +180,7 @@ dependencies {
     implementation(libs.compose.activity)
     implementation(libs.compose.viewmodel)
     implementation(libs.compose.preview)
+    implementation(libs.compose.ui.viewbinding)
     debugImplementation(libs.compose.tooling)
     // Navigation
     implementation(libs.androidx.navigation.compose)
