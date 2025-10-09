@@ -20,6 +20,7 @@ import com.android.universe.ui.navigation.NavigationPlaceholderScreen
 import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -85,14 +86,7 @@ fun UniverseApp() {
         startDestination = NavigationScreens.Profile.route,
         route = NavigationScreens.Profile.name,
     ) {
-      composable(NavigationScreens.Profile.route) {
-        NavigationPlaceholderScreen(
-            title = NavigationScreens.Profile.name,
-            selectedTab = Tab.Profile,
-            onTabSelected = onTabSelected,
-            testTag = NavigationTestTags.PROFILE_SCREEN,
-        )
-      }
+      composable(NavigationScreens.Profile.route) { UserProfileScreen("emma", onTabSelected) }
     }
   }
 }
