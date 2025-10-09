@@ -5,7 +5,6 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -14,12 +13,11 @@ class SelectTagViewModelTest {
   // Define the parameters for the tests.
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
-  private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setup() {
     repository = FakeUserRepository()
-    viewModel = SelectTagViewModel(repository, testDispatcher)
+    viewModel = SelectTagViewModel(repository)
   }
 
   @Test
@@ -247,7 +245,6 @@ class SelectTagViewModelTest {
     repository.addUser(userProfile)
 
     viewModel.loadTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle() // Wait for the loading.
     assertEquals(listOf("Metal", "Car"), viewModel.uiStateTags.value)
   }
 
@@ -293,7 +290,6 @@ class SelectTagViewModelTest {
       viewModel.addTag(tag)
     }
     viewModel.saveTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle() // Wait for the saving.
     val expectedTags =
         listOf(
             Tag("Geneva"),
@@ -332,11 +328,9 @@ class SelectTagViewModelTest {
             tags = listOf(Tag("Metal"), Tag("Car")))
     repository.addUser(userProfile)
     viewModel.loadTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle() // Wait for the loading.
 
     viewModel.addTag("Handball")
     viewModel.saveTags("Jacquie")
-    testDispatcher.scheduler.advanceUntilIdle() // Wait for the saving.
 
     val updatedUser = repository.getUser("Jacquie")
     assertEquals(listOf(Tag("Metal"), Tag("Car"), Tag("Handball")), updatedUser.tags)

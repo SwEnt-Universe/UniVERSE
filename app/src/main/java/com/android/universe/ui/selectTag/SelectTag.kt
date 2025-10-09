@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +43,7 @@ import com.android.universe.model.tagsInterest
 import com.android.universe.model.tagsMusic
 import com.android.universe.model.tagsSport
 import com.android.universe.model.tagsTransport
+import kotlinx.coroutines.launch
 
 object SelectTagsScreenTestTags {
   const val INTEREST_TAGS = "InterestTags"
@@ -241,10 +243,13 @@ fun SelectTagScreen(
         }
       }
     }
+    val scope = rememberCoroutineScope()
     Button(
         onClick = {
-          selectedTagOverview.saveTags(username)
-          navigateOnSave()
+          scope.launch {
+            selectedTagOverview.saveTags(username)
+            navigateOnSave()
+          }
         },
         modifier =
             Modifier.testTag(SelectTagsScreenTestTags.SAVE_BUTTON).fillMaxWidth().padding(5.dp)) {

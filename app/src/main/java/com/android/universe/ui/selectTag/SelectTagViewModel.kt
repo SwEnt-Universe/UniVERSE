@@ -2,16 +2,12 @@ package com.android.universe.ui.selectTag
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.android.universe.model.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 /**
  * ViewModel responsible for managing the SelectTag screen.
@@ -23,12 +19,9 @@ import kotlinx.coroutines.launch
  *
  * @param userRepository The data source handling user-related operations. Defaults to
  *   UserRepositoryProvider.repository
- * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
- *   Defaults to [Dispatchers.Default].
  */
 class SelectTagViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
   /** Backing field for [uiStateTags]. Mutable within the ViewModel only. */
   private val selectedTags = MutableStateFlow<List<String>>(emptyList())
@@ -72,11 +65,9 @@ class SelectTagViewModel(
    *
    * @param username the username of the current user.
    */
-  fun loadTags(username: String) {
-    viewModelScope.launch(dispatcher) {
-      val userProfile = userRepository.getUser(username)
-      selectedTags.value = userProfile.tags.map { tag -> tag.name }
-    }
+  suspend fun loadTags(username: String) {
+    val userProfile = userRepository.getUser(username)
+    selectedTags.value = userProfile.tags.map { tag -> tag.name }
   }
 
   /**
@@ -84,19 +75,17 @@ class SelectTagViewModel(
    *
    * @param username the username of the current user.
    */
-  fun saveTags(username: String) {
-    viewModelScope.launch(dispatcher) {
-      val userProfile = userRepository.getUser(username)
-      val newUserProfile =
-          UserProfile(
-              userProfile.username,
-              userProfile.firstName,
-              userProfile.lastName,
-              userProfile.country,
-              userProfile.description,
-              userProfile.dateOfBirth,
-              selectedTags.value.map { tagName -> Tag(tagName) })
-      userRepository.updateUser(username, newUserProfile)
-    }
+  suspend fun saveTags(username: String) {
+    val userProfile = userRepository.getUser(username)
+    val newUserProfile =
+        UserProfile(
+            userProfile.username,
+            userProfile.firstName,
+            userProfile.lastName,
+            userProfile.country,
+            userProfile.description,
+            userProfile.dateOfBirth,
+            selectedTags.value.map { tagName -> Tag(tagName) })
+    userRepository.updateUser(username, newUserProfile)
   }
 }

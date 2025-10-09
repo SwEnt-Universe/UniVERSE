@@ -11,7 +11,6 @@ import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -31,7 +30,6 @@ class SelectTagScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
   private lateinit var userRepository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
-  private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setUp() {
@@ -50,7 +48,7 @@ class SelectTagScreenTest {
                     tags = emptyList()))
           }
         }
-    viewModel = SelectTagViewModel(userRepository, testDispatcher)
+    viewModel = SelectTagViewModel(userRepository)
     composeTestRule.setContent { SelectTagScreen(viewModel, username = "bob") }
   }
 
