@@ -141,7 +141,7 @@ class SelectTagScreenTest {
     scrollAndClick("Button_Surfing")
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     val deleteIcons = composeTestRule.onAllNodesWithTag(SelectTagsScreenTestTags.DELETE_ICON)
-    deleteIcons.assertAny(hasClickAction())
+    deleteIcons.assertAll(hasClickAction())
   }
 
   @Test
