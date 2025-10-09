@@ -84,7 +84,7 @@ private fun TagGroup(
     onTagReSelect: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-  Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(15.dp))
+  Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
@@ -98,7 +98,7 @@ private fun TagGroup(
             }
           },
           modifier =
-              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}$tag").padding(3.dp),
+              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}$tag").padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
