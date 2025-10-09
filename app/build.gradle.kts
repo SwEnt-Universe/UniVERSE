@@ -174,10 +174,17 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.material3)
+    implementation(libs.androidx.material.icons.extended)
+    // Integration with activities
     implementation(libs.compose.activity)
     implementation(libs.compose.viewmodel)
     implementation(libs.compose.preview)
     debugImplementation(libs.compose.tooling)
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    // UI Tests
     globalTestImplementation(libs.compose.test.junit)
     debugImplementation(libs.compose.test.manifest)
 

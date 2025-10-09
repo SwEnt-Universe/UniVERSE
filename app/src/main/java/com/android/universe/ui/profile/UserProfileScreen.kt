@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
+import com.android.universe.ui.navigation.NavigationBottomMenu
+import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.navigation.Tab
 import kotlin.collections.chunked
 
 object UserProfileScreenTestTags {
@@ -43,7 +46,11 @@ object UserProfileScreenTestTags {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen(username: String, userProfileViewModel: UserProfileViewModel = viewModel()) {
+fun UserProfileScreen(
+    username: String,
+    onTabSelected: (Tab) -> Unit = {},
+    userProfileViewModel: UserProfileViewModel = viewModel()
+) {
 
   val userUIState by userProfileViewModel.userState.collectAsState()
   val errorMsg = userUIState.errorMsg
@@ -69,18 +76,13 @@ fun UserProfileScreen(username: String, userProfileViewModel: UserProfileViewMod
               }
             })
       },
-      bottomBar = {
-        // Placeholder for bottom navigation bar TODO
-        BottomAppBar {
-          Box(
-              modifier = Modifier.fillMaxWidth().height(56.dp),
-              contentAlignment = Alignment.Center) {
-                Text("Bottom Navigation Placeholder")
-              }
-        }
-      }) { padding ->
+      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp)
+                    .testTag(NavigationTestTags.PROFILE_SCREEN),
             horizontalAlignment = Alignment.CenterHorizontally) {
               Row(
                   modifier = Modifier.fillMaxWidth(),

@@ -1,24 +1,26 @@
 package com.android.universe
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.android.universe.ui.map.MapActivity
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
+import com.android.universe.resources.C
+import com.android.universe.ui.navigation.NavigationActions
+import com.android.universe.ui.navigation.NavigationPlaceholderScreen
+import com.android.universe.ui.navigation.NavigationScreens
+import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,32 +28,65 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     setContent {
       SampleAppTheme {
+        // A surface container using the 'background' color from the theme
         Surface(
-            modifier = Modifier.fillMaxSize().semantics { testTag = "main_screen_container" },
+            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
             color = MaterialTheme.colorScheme.background) {
-              HomeScreen(onOpenMap = { startActivity(Intent(this, MapActivity::class.java)) })
+              UniverseApp()
             }
       }
     }
   }
 }
 
+/**
+ * The main composable for the Universe app.
+ *
+ * This composable sets up the navigation for the app using a [NavHost].
+ */
 @Composable
-private fun HomeScreen(onOpenMap: () -> Unit) {
-  Box(modifier = Modifier.fillMaxSize().semantics { testTag = "home_screen" }) {
-    Button(
-        onClick = onOpenMap,
-        modifier =
-            Modifier.align(Alignment.Center).padding(16.dp).semantics {
-              testTag = "open_map_button"
-            }) {
-          Text("Open Map")
-        }
-  }
-}
+fun UniverseApp() {
+  val navController = rememberNavController()
+  val navigationActions = NavigationActions(navController)
+  val startDestination = NavigationScreens.Map.route
+  // TODO: verify that user is authenticated once the signIn is done.
 
-@Preview(showBackground = true)
-@Composable
-fun HomePreview() {
-  SampleAppTheme { HomeScreen(onOpenMap = {}) }
+  val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
+
+  NavHost(navController = navController, startDestination = startDestination) {
+    navigation(
+        startDestination = NavigationScreens.Map.route,
+        route = NavigationScreens.Map.name,
+    ) {
+      composable(NavigationScreens.Map.route) {
+        NavigationPlaceholderScreen(
+            title = NavigationScreens.Map.name,
+            selectedTab = Tab.Map,
+            onTabSelected = onTabSelected,
+            testTag = NavigationTestTags.MAP_SCREEN,
+        )
+      }
+    }
+
+    navigation(
+        startDestination = NavigationScreens.Chat.route,
+        route = NavigationScreens.Chat.name,
+    ) {
+      composable(NavigationScreens.Chat.route) {
+        NavigationPlaceholderScreen(
+            title = NavigationScreens.Chat.name,
+            selectedTab = Tab.Chat,
+            onTabSelected = onTabSelected,
+            testTag = NavigationTestTags.CHAT_SCREEN,
+        )
+      }
+    }
+
+    navigation(
+        startDestination = NavigationScreens.Profile.route,
+        route = NavigationScreens.Profile.name,
+    ) {
+      composable(NavigationScreens.Profile.route) { UserProfileScreen("emma", onTabSelected) }
+    }
+  }
 }
