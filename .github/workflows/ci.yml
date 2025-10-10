@@ -17,6 +17,8 @@ jobs:
     name: CI
     # Execute the CI on the course's runners
     runs-on: ubuntu-latest
+    env:
+      TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
 
     steps:
       # First step : Checkout the repository on the runner
@@ -87,6 +89,14 @@ jobs:
             echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
           else
             echo "::error::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
+          fi
+
+      # Validate TOMTOM_API_KEY is set (required for build)
+      - name: Validate TOMTOM_API_KEY
+        run: |
+          if [ -z "$TOMTOM_API_KEY" ]; then
+            echo "::error::TOMTOM_API_KEY secret is not set"
+            exit 1
           fi
 
       # Install NodeJS
