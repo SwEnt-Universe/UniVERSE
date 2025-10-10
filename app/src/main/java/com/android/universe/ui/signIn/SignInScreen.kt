@@ -1,5 +1,6 @@
 package com.android.universe.ui.signIn
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,8 +35,8 @@ object SignInScreenTestTags {
 fun SignInScreen(
     viewModel: SignInViewModel = viewModel(),
     onSignedIn: () -> Unit = {},
+    context: Context = LocalContext.current,
 ) {
-  val context = LocalContext.current
   val uiState by viewModel.uiState.collectAsState()
 
   LaunchedEffect(uiState.errorMsg) {
@@ -55,6 +56,11 @@ fun SignInScreen(
   }
 }
 
+/**
+ * A button composable for signing in.
+ *
+ * @param onClick The callback to be invoked when the button is clicked.
+ */
 @Composable
 fun SignInButton(onClick: () -> Unit) {
   OutlinedButton(
@@ -63,6 +69,7 @@ fun SignInButton(onClick: () -> Unit) {
       }
 }
 
+/** A preview composable for the sign-in screen. */
 @Preview
 @Composable
 fun SignInScreenPreview() {
