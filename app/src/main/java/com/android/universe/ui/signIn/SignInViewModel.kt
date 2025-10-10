@@ -1,45 +1,49 @@
 package com.android.universe.ui.signIn
 
 import android.content.Context
-import android.credentials.Credential
-import android.credentials.CredentialManager
 import android.util.Log
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.firebase.auth.GoogleAuthProvider
+import com.android.universe.R
+import com.android.universe.model.authentication.AuthModel
+import com.android.universe.model.authentication.AuthModelFirebase
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SignInUIState(
-  val errorMsg: String? = null,
-  val isLoading: Boolean = false,
-  val isLoginSuccess: Boolean = false
+    val errorMsg: String? = null,
+    val isLoading: Boolean = false,
+    val user: FirebaseUser? = null,
+    val signedOut: Boolean = false
 )
 
-class SignInViewModel : ViewModel() {
+class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : ViewModel() {
 
   companion object {
-    private const val TAG = "SignIn"
+    private const val TAG = "SignInViewModel"
   }
 
   private val _uiState = MutableStateFlow(SignInUIState())
   val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
 
- val emailRegex: Regex = Regex("^[a-zA-Z0-9._%+-]+@epfl\\.ch$")
-
-
-  /** Sets the loading status in the UI state. */
-  private fun setLoading(isLoading: Boolean) {
-    _uiState.value = _uiState.value.copy(isLoading = isLoading)
-  }
-
-  /** Sets the login success status in the UI state. */
-  private fun setLoginSuccess(isLoginSuccess: Boolean) {
-    _uiState.value = _uiState.value.copy(isLoginSuccess = isLoginSuccess)
+  private fun updateUiState(
+      isLoading: Boolean,
+      user: FirebaseUser?,
+      signedOut: Boolean,
+      errorMsg: String?
+  ) {
+    _uiState.update {
+      it.copy(isLoading = isLoading, user = user, signedOut = signedOut, errorMsg = errorMsg)
+    }
   }
 
   /** Sets an error message in the UI state. */
@@ -52,31 +56,71 @@ class SignInViewModel : ViewModel() {
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
-  private suspend fun fireBaseAuth(idToken: String) {
-    val credential = GoogleAuthProvider.getCredential(idToken, null)
-    //TODO: waiting firebase auth
+  private fun setLoading(isLoading: Boolean) {
+    _uiState.value = _uiState.value.copy(isLoading = isLoading)
   }
 
-  private suspend fun handleSignIn(credential: Credential){
-    if (credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-      val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-      val emailAddress = googleIdTokenCredential.id
-      if(!emailRegex.matches(emailAddress)) {
-        setErrorMsg("Email address is not from EPFL")
-        Log.e(TAG, "Email address is not from EPFL")
-        setLoginSuccess(false)
-        return
+  private fun getGoogleOptions(context: Context) =
+      GetSignInWithGoogleOption.Builder(
+              serverClientId = context.getString(R.string.default_web_client_id))
+          .build()
+
+  private fun googleSignInRequest(signInOptions: GetSignInWithGoogleOption) =
+      GetCredentialRequest.Builder().addCredentialOption(signInOptions).build()
+
+  private suspend fun getCredential(
+      context: Context,
+      request: GetCredentialRequest,
+      credentialManager: CredentialManager
+  ) = credentialManager.getCredential(context, request).credential
+
+  private fun handleCredentialFailure(e: Exception) {
+    val errorMsg =
+        when (e) {
+          is GetCredentialCancellationException -> "Sign in cancelled"
+          is GetCredentialException -> "Failed to get credentials: ${e.localizedMessage}"
+          else -> "Unexpected error: ${e.localizedMessage}"
+        }
+
+    updateUiState(isLoading = false, user = null, signedOut = true, errorMsg = errorMsg)
+  }
+
+  fun signIn(
+      context: Context,
+      credentialManager: CredentialManager,
+      onSuccess: () -> Unit = { Log.d(TAG, "signIn success callback") },
+      onFailure: (Exception) -> Unit = {
+        Log.e(TAG, "signIn failure callback: ${it.localizedMessage}")
       }
-      //TODO: waiting firebase auth
+  ) {
+    if (_uiState.value.isLoading) return
 
-    }
-  }
-
-  fun signIn(context: Context, credentialManager: CredentialManager) {
     viewModelScope.launch {
       setLoading(true)
+      clearErrorMsg()
 
+      val signInOptions = getGoogleOptions(context)
+      val signInRequest = googleSignInRequest(signInOptions)
+
+      try {
+        val credential = getCredential(context, signInRequest, credentialManager)
+
+        authModel.signInWithGoogle(
+            credential,
+            onSuccess = {
+              updateUiState(isLoading = false, user = it, signedOut = false, errorMsg = null)
+              onSuccess()
+            },
+            onFailure = {
+              handleCredentialFailure(it)
+              onFailure(it)
+            })
+
+        // This handle the case where getCredential throw an error
+      } catch (e: Exception) {
+        handleCredentialFailure(e)
+        onFailure(e)
+      }
     }
   }
-
 }
