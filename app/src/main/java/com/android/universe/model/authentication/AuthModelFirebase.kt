@@ -11,6 +11,13 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Firebase implementation of the [AuthModel] interface. Handles authentication with Firebase.
+ *
+ * @property auth The FirebaseAuth instance.
+ * @property helper The helper for Google Sign-In.
+ * @property emailRegex The regex to validate the email address.
+ */
 class AuthModelFirebase(
     private val auth: FirebaseAuth = Firebase.auth,
     private val helper: GoogleSignInHelper = DefaultGoogleSignInHelper(),
@@ -21,6 +28,15 @@ class AuthModelFirebase(
     private const val TAG = "AuthModelFirebase"
   }
 
+  /**
+   * Signs in the user with Google. This function will check if the credential is a Google ID token
+   * and if the email address is from EPFL. If the checks are successful, it will sign in with
+   * Firebase.
+   *
+   * @param credential The credential to sign in with.
+   * @param onSuccess The callback to call when the sign-in is successful.
+   * @param onFailure The callback to call when the sign-in fails.
+   */
   override suspend fun signInWithGoogle(
       credential: Credential,
       onSuccess: (FirebaseUser) -> Unit,
@@ -62,6 +78,13 @@ class AuthModelFirebase(
     }
   }
 
+  /**
+   * Signs out the current user.
+   *
+   * @param onSuccess The callback to call when the sign-out is successful.
+   * @param onFailure The callback to call when the sign-out fails.
+   * @see FirebaseAuth.signOut
+   */
   override suspend fun signOut(onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     try {
       // Firebase sign out
