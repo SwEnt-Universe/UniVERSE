@@ -19,14 +19,6 @@ class SignInScreenTest : TestCase() {
   @Test
   fun signInScreen_is_visible() {
     composeTestRule.setContent { SignInScreen() }
-    signInScreenIsVisible()
-  }
-
-  fun signInScreenIsVisible() {
-    isVisible(NavigationTestTags.SIGN_IN_SCREEN)
-  }
-
-  fun isVisible(testTag: String) {
-    composeTestRule.onNodeWithTag(testTag).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.SIGN_IN_SCREEN).assertIsDisplayed()
   }
 }
