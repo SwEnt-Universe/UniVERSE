@@ -23,6 +23,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Represents the UI state for the Sign In screen.
+ * @param errorMsg An optional error message to be displayed.
+ * @param isLoading A boolean indicating if a loading process is active.
+ * @param user The currently signed-in [FirebaseUser], or null if not signed in.
+ * @param signedOut A boolean indicating if the user has signed out.
+ */
 data class SignInUIState(
     val errorMsg: String? = null,
     val isLoading: Boolean = false,
@@ -30,6 +37,10 @@ data class SignInUIState(
     val signedOut: Boolean = false
 )
 
+/**
+ * ViewModel for the Sign In screen, handling user authentication logic.
+ * @param authModel The authentication model responsible for handling authentication logic.
+ */
 class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : ViewModel() {
 
   companion object {
@@ -37,6 +48,9 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
   }
 
   private val _uiState = MutableStateFlow(SignInUIState())
+  /**
+   * The UI state for the Sign In screen.
+   */
   val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
 
   private fun updateUiState(
@@ -60,24 +74,29 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
+  /** Sets the loading state in the UI. */
   private fun setLoading(isLoading: Boolean) {
     _uiState.value = _uiState.value.copy(isLoading = isLoading)
   }
 
+  /** Creates the sign-in options for Google Sign-In. */
   private fun getGoogleOptions(context: Context) =
       GetSignInWithGoogleOption.Builder(
               serverClientId = context.getString(R.string.default_web_client_id))
           .build()
 
+  /** Creates a credential request for Google Sign-In. */
   private fun googleSignInRequest(signInOptions: GetSignInWithGoogleOption) =
       GetCredentialRequest.Builder().addCredentialOption(signInOptions).build()
 
+  /** Asynchronously retrieves a credential using the [CredentialManager]. */
   private suspend fun getCredential(
       context: Context,
       request: GetCredentialRequest,
       credentialManager: CredentialManager
   ) = credentialManager.getCredential(context, request).credential
 
+  /** Handles failures during the credential retrieval process. */
   private fun handleCredentialFailure(e: Exception) {
     val errorMsg =
         when (e) {
@@ -89,6 +108,13 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
     updateUiState(isLoading = false, user = null, signedOut = true, errorMsg = errorMsg)
   }
 
+    /**
+     * Initiates the Google Sign In flow.
+     * @param context The application context.
+     * @param credentialManager The [CredentialManager] to use for the sign-in process.
+     * @param onSuccess A callback to be invoked upon successful sign-in.
+     * @param onFailure A callback to be invoked upon a failed sign-in attempt.
+     */
   fun signIn(
       context: Context,
       credentialManager: CredentialManager,
