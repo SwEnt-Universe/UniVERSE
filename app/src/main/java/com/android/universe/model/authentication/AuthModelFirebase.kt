@@ -1,5 +1,7 @@
 package com.android.universe.model.authentication
 
+/** Part of the code in this file is copy-pasted from the Bootcamp solution provided by the SwEnt staff. */
+
 import android.util.Log
 import androidx.credentials.Credential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL

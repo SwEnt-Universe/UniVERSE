@@ -1,5 +1,9 @@
 package com.android.universe.ui.signIn
 
+/**
+ * Part of the code in this file is copy-pasted from the Bootcamp solution provided by the SwEnt staff.
+ */
+
 import android.content.Context
 import android.util.Log
 import androidx.credentials.CredentialManager
