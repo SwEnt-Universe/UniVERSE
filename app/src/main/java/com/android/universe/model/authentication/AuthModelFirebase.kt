@@ -1,7 +1,9 @@
 package com.android.universe.model.authentication
 
-/** Part of the code in this file is copy-pasted from the Bootcamp solution provided by the SwEnt staff. */
-
+/**
+ * Part of the code in this file is copy-pasted from the Bootcamp solution provided by the SwEnt
+ * staff.
+ */
 import android.util.Log
 import androidx.credentials.Credential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
@@ -9,7 +11,6 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.tasks.await
 
 /**
  * Firebase implementation of the [AuthModel] interface. Handles authentication with Firebase.
@@ -62,7 +63,7 @@ class AuthModelFirebase(
       // Sign in with Firebase
       val idToken = credential.idToken
       val firebaseCredential = helper.toFirebaseCredential(idToken)
-      val user = auth.signInWithCredential(firebaseCredential).await().user
+      val user = helper.signInWithFirebase(auth, firebaseCredential).user
       if (user == null) {
         Log.w(TAG, "Could not retrieve user information")
         onFailure(IllegalStateException("Could not retrieve user information"))
