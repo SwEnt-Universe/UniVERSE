@@ -4,7 +4,10 @@ package com.android.universe.model.authentication
 import android.os.Bundle
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.tasks.await
 
 /**
  * Interface for extracting Google ID token credentials and converting them to Firebase credentials.
@@ -28,6 +31,8 @@ interface GoogleSignInHelper {
    * @return A [AuthCredential] used to sign in with FirebaseAuth.
    */
   fun toFirebaseCredential(idToken: String): AuthCredential
+
+  suspend fun signInWithFirebase(firebaseAuth: FirebaseAuth, credential: AuthCredential): AuthResult
 }
 
 /** Implementation of [GoogleSignInHelper] that directly calls Google SDK methods. */
@@ -36,4 +41,9 @@ class DefaultGoogleSignInHelper : GoogleSignInHelper {
 
   override fun toFirebaseCredential(idToken: String) =
       GoogleAuthProvider.getCredential(idToken, null)
+
+  override suspend fun signInWithFirebase(
+      firebaseAuth: FirebaseAuth,
+      credential: AuthCredential
+  ): AuthResult = firebaseAuth.signInWithCredential(credential).await()
 }

@@ -1,9 +1,9 @@
 package com.android.universe.ui.signIn
 
 /**
- * Part of the code in this file is copy-pasted from the Bootcamp solution provided by the SwEnt staff.
+ * Part of the code in this file is copy-pasted from the Bootcamp solution provided by the SwEnt
+ * staff.
  */
-
 import android.content.Context
 import android.util.Log
 import androidx.credentials.CredentialManager
@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Represents the UI state for the Sign In screen.
+ *
  * @param errorMsg An optional error message to be displayed.
  * @param isLoading A boolean indicating if a loading process is active.
  * @param user The currently signed-in [FirebaseUser], or null if not signed in.
@@ -39,6 +40,7 @@ data class SignInUIState(
 
 /**
  * ViewModel for the Sign In screen, handling user authentication logic.
+ *
  * @param authModel The authentication model responsible for handling authentication logic.
  */
 class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : ViewModel() {
@@ -48,9 +50,7 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
   }
 
   private val _uiState = MutableStateFlow(SignInUIState())
-  /**
-   * The UI state for the Sign In screen.
-   */
+  /** The UI state for the Sign In screen. */
   val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
 
   private fun updateUiState(
@@ -108,13 +108,14 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
     updateUiState(isLoading = false, user = null, signedOut = true, errorMsg = errorMsg)
   }
 
-    /**
-     * Initiates the Google Sign In flow.
-     * @param context The application context.
-     * @param credentialManager The [CredentialManager] to use for the sign-in process.
-     * @param onSuccess A callback to be invoked upon successful sign-in.
-     * @param onFailure A callback to be invoked upon a failed sign-in attempt.
-     */
+  /**
+   * Initiates the Google Sign In flow.
+   *
+   * @param context The application context.
+   * @param credentialManager The [CredentialManager] to use for the sign-in process.
+   * @param onSuccess A callback to be invoked upon successful sign-in.
+   * @param onFailure A callback to be invoked upon a failed sign-in attempt.
+   */
   fun signIn(
       context: Context,
       credentialManager: CredentialManager,

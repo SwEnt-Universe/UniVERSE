@@ -202,6 +202,7 @@ dependencies {
     debugImplementation(libs.compose.test.manifest)
 
     // Testing
+    testImplementation(libs.logback) // logback for logging mockK
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
@@ -211,7 +212,9 @@ dependencies {
     // Turbine for Flow testing
     testImplementation("app.cash.turbine:turbine:1.0.0")
     // MockK
-    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation(libs.mockk)
+    testImplementation(libs.mockk.agent)
+    testImplementation(libs.mockk.android)
     // Kotlin test bridge
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
