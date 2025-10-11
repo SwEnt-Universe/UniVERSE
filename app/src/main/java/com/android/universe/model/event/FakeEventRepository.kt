@@ -1,5 +1,7 @@
 package com.android.universe.model.event
 
+import java.util.UUID
+
 /**
  * Fake implementation of [EventRepository] for testing and UI development purposes.
  *
@@ -68,5 +70,14 @@ class FakeEventRepository : EventRepository {
     if (!removed) {
       throw NoSuchElementException("No event found with id: $eventId")
     }
+  }
+
+  /**
+   * Generates a new unique ID for an event.
+   *
+   * @return a new unique event ID as a [String].
+   */
+  override suspend fun getNewID(): String {
+    return UUID.randomUUID().toString()
   }
 }

@@ -43,4 +43,11 @@ interface EventRepository {
    * @param eventId the ID of the event to delete.
    */
   suspend fun deleteEvent(eventId: String)
+
+  /**
+   * Generates a new unique ID for an event.
+   *
+   * @return a new unique event ID as a [String].
+   */
+  suspend fun getNewID(): String
 }

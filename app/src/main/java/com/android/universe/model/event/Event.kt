@@ -12,6 +12,7 @@ import java.time.LocalDateTime
  * @property description optional detailed information about the event.
  * @property date date and time when the event is scheduled to occur.
  * @property tags set of tags associated with the event for categorization.
+ * @property creator user profile of the event creator.
  * @property participants set of user profiles participating in the event.
  */
 data class Event(
@@ -20,5 +21,6 @@ data class Event(
     val description: String? = null,
     val date: LocalDateTime,
     val tags: Set<Tag>,
+    val creator: UserProfile,
     val participants: Set<UserProfile> = emptySet()
 )

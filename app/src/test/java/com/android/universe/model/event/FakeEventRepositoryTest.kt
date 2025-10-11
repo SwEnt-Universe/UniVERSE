@@ -57,7 +57,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")),
-            participants = setOf(user1, user2))
+            participants = setOf(user1, user2),
+            creator = user1)
     repository.addEvent(event)
 
     val result = repository.getEvent("event-001")
@@ -72,6 +73,7 @@ class FakeEventRepositoryTest {
     assertEquals(2, result.participants.size)
     assert(result.participants.contains(user1))
     assert(result.participants.contains(user2))
+    assertEquals(result.creator, user1)
   }
 
   @Test
@@ -90,7 +92,8 @@ class FakeEventRepositoryTest {
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")),
-            participants = setOf(user))
+            participants = setOf(user),
+            creator = user)
     repository.addEvent(event)
 
     val result = repository.getEvent("event-002")
@@ -102,10 +105,19 @@ class FakeEventRepositoryTest {
     assertEquals(setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")), result.tags)
     assertEquals(1, result.participants.size)
     assert(result.participants.contains(user))
+    assertEquals(result.creator, user)
   }
 
   @Test
   fun addEvent_storesEventWithNoParticipants_andCanBeRetrieved() = runTest {
+    val user =
+        UserProfile(
+            username = "charlie",
+            firstName = "Charlie",
+            lastName = "Brown",
+            country = "US",
+            dateOfBirth = LocalDate.of(1985, 5, 20),
+            tags = listOf(Tag(name = "Cycling"), Tag(name = "Photography")))
     val event =
         Event(
             id = "event-003",
@@ -113,7 +125,8 @@ class FakeEventRepositoryTest {
             description =
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
-            tags = setOf(Tag(name = "Programming"), Tag(name = "Artificial intelligence")))
+            tags = setOf(Tag(name = "Programming"), Tag(name = "Artificial intelligence")),
+            creator = user)
     repository.addEvent(event)
 
     val result = repository.getEvent("event-003")
@@ -127,6 +140,7 @@ class FakeEventRepositoryTest {
     assertEquals(
         setOf(Tag(name = "Programming"), Tag(name = "Artificial intelligence")), result.tags)
     assertEquals(0, result.participants.size)
+    assertEquals(result.creator, user)
   }
 
   @Test
@@ -155,13 +169,15 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")),
-            participants = setOf(user1, user2))
+            participants = setOf(user1, user2),
+            creator = user1)
     val event2 =
         Event(
             id = "event-002",
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
-            tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")))
+            tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")),
+            creator = user2)
     repository.addEvent(event1)
     repository.addEvent(event2)
 
@@ -183,6 +199,8 @@ class FakeEventRepositoryTest {
     assert(result[0].participants.contains(user1))
     assert(result[0].participants.contains(user2))
     assertEquals(0, result[1].participants.size)
+    assertEquals(result[0].creator, user1)
+    assertEquals(result[1].creator, user2)
   }
 
   @Test
@@ -211,7 +229,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")),
-            participants = setOf(user1, user2))
+            participants = setOf(user1, user2),
+            creator = user1)
     repository.addEvent(event)
 
     val newEvent =
@@ -222,7 +241,8 @@ class FakeEventRepositoryTest {
                 "A casual 5km run around the lake followed by a relaxing yoga session and coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 8, 0),
             tags = setOf(Tag(name = "Running"), Tag(name = "Fitness"), Tag(name = "Yoga")),
-            participants = setOf(user1))
+            participants = setOf(user1),
+            creator = user1)
     repository.updateEvent("event-001", newEvent)
 
     val result1 = repository.getAllEvents()
@@ -239,6 +259,7 @@ class FakeEventRepositoryTest {
         setOf(Tag(name = "Running"), Tag(name = "Fitness"), Tag(name = "Yoga")), result2.tags)
     assertEquals(1, result2.participants.size)
     assert(result2.participants.contains(user1))
+    assertEquals(result2.creator, user1)
   }
 
   @Test
@@ -257,7 +278,8 @@ class FakeEventRepositoryTest {
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")),
-            participants = setOf(user))
+            participants = setOf(user),
+            creator = user)
     repository.addEvent(event)
 
     val newEvent =
@@ -267,7 +289,8 @@ class FakeEventRepositoryTest {
             description = "An evening cycling tour with stops for photography at scenic spots.",
             date = LocalDateTime.of(2025, 11, 5, 18, 30),
             tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors"), Tag(name = "Photography")),
-            participants = setOf(user))
+            participants = setOf(user),
+            creator = user)
     repository.updateEvent("event-002", newEvent)
 
     val result1 = repository.getAllEvents()
@@ -284,10 +307,19 @@ class FakeEventRepositoryTest {
         result2.tags)
     assertEquals(1, result2.participants.size)
     assert(result2.participants.contains(user))
+    assertEquals(result2.creator, user)
   }
 
   @Test
   fun addEvent_storesEventWithNoParticipants_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
+    val user =
+        UserProfile(
+            username = "charlie",
+            firstName = "Charlie",
+            lastName = "Brown",
+            country = "US",
+            dateOfBirth = LocalDate.of(1985, 5, 20),
+            tags = listOf(Tag(name = "Cycling"), Tag(name = "Photography")))
     val event =
         Event(
             id = "event-003",
@@ -295,17 +327,10 @@ class FakeEventRepositoryTest {
             description =
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
-            tags = setOf(Tag(name = "Programming"), Tag(name = "Artificial intelligence")))
+            tags = setOf(Tag(name = "Programming"), Tag(name = "Artificial intelligence")),
+            creator = user)
     repository.addEvent(event)
 
-    val user =
-        UserProfile(
-            username = "dave",
-            firstName = "Dave",
-            lastName = "Wilson",
-            country = "UK",
-            dateOfBirth = LocalDate.of(1995, 3, 15),
-            tags = listOf(Tag(name = "Programming"), Tag(name = "AI")))
     val newEvent =
         Event(
             id = "event-003",
@@ -318,7 +343,8 @@ class FakeEventRepositoryTest {
                     Tag(name = "Programming"),
                     Tag(name = "Artificial intelligence"),
                     Tag(name = "Technology")),
-            participants = setOf(user))
+            participants = setOf(user),
+            creator = user)
     repository.updateEvent("event-003", newEvent)
 
     val result1 = repository.getAllEvents()
@@ -339,17 +365,27 @@ class FakeEventRepositoryTest {
         result2.tags)
     assertEquals(1, result2.participants.size)
     assert(result2.participants.contains(user))
+    assertEquals(result2.creator, user)
   }
 
   @Test
   fun updateEvent_throwsException_forNonExistentEvent() = runTest {
+    val user =
+        UserProfile(
+            username = "charlie",
+            firstName = "Charlie",
+            lastName = "Brown",
+            country = "US",
+            dateOfBirth = LocalDate.of(1985, 5, 20),
+            tags = listOf(Tag(name = "Cycling"), Tag(name = "Photography")))
     val newEvent =
         Event(
             id = "event-001",
             title = "Morning Run at the Lake",
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
-            tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")))
+            tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")),
+            creator = user)
     try {
       repository.updateEvent("nonexistent", newEvent)
       fail("Expected NoSuchElementException to be thrown")
@@ -360,20 +396,30 @@ class FakeEventRepositoryTest {
 
   @Test
   fun deleteEvent_existingEvent_shouldBeRemoved() = runTest {
+    val user =
+        UserProfile(
+            username = "charlie",
+            firstName = "Charlie",
+            lastName = "Brown",
+            country = "US",
+            dateOfBirth = LocalDate.of(1985, 5, 20),
+            tags = listOf(Tag(name = "Cycling"), Tag(name = "Photography")))
     val event1 =
         Event(
             id = "event-001",
             title = "Morning Run at the Lake",
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
-            tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")))
+            tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")),
+            creator = user)
     repository.addEvent(event1)
     val event2 =
         Event(
             id = "event-002",
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
-            tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")))
+            tags = setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")),
+            creator = user)
     repository.addEvent(event2)
     val result1 = repository.getAllEvents()
     assertEquals(result1.size, 2)
@@ -387,17 +433,27 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 11, 5, 18, 0), result2[0].date)
     assertEquals(setOf(Tag(name = "Cycling"), Tag(name = "Outdoors")), result2[0].tags)
     assertEquals(0, result2[0].participants.size)
+    assertEquals(result2[0].creator, user)
   }
 
   @Test
   fun deleteEvent_nonExistingEvent_shouldThrowException() = runTest {
+    val user =
+        UserProfile(
+            username = "charlie",
+            firstName = "Charlie",
+            lastName = "Brown",
+            country = "US",
+            dateOfBirth = LocalDate.of(1985, 5, 20),
+            tags = listOf(Tag(name = "Cycling"), Tag(name = "Photography")))
     val event =
         Event(
             id = "event-001",
             title = "Morning Run at the Lake",
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
-            tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")))
+            tags = setOf(Tag(name = "Running"), Tag(name = "Fitness")),
+            creator = user)
     repository.addEvent(event)
 
     // verify initial state
@@ -423,5 +479,6 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 10, 15, 7, 30), result2[0].date)
     assertEquals(setOf(Tag(name = "Running"), Tag(name = "Fitness")), result2[0].tags)
     assertEquals(0, result2[0].participants.size)
+    assertEquals(result2[0].creator, user)
   }
 }
