@@ -60,11 +60,11 @@ class SignInViewModelTest {
   }
 
   /**
-   * This test verifies the happy path for the `signIn` function.
-   * It checks that when both the Credential Manager and the `AuthModel`'s `signInWithGoogle`
-   * methods complete successfully, the UI state is updated correctly. The test ensures that the
-   * `isLoading` flag is reset to false, the `user` object is set to the authenticated user, the
-   * `errorMsg` is null, and the `onSuccess` callback is invoked as expected.
+   * This test verifies the happy path for the `signIn` function. It checks that when both the
+   * Credential Manager and the `AuthModel`'s `signInWithGoogle` methods complete successfully, the
+   * UI state is updated correctly. The test ensures that the `isLoading` flag is reset to false,
+   * the `user` object is set to the authenticated user, the `errorMsg` is null, and the `onSuccess`
+   * callback is invoked as expected.
    */
   @Test
   fun `signIn when successful updates uiState correctly`() {
@@ -77,7 +77,7 @@ class SignInViewModelTest {
     } coAnswers
         {
           // Simulate success by invoking the onSuccess callback
-          val onSuccess = firstArg<(FirebaseUser) -> Unit>()
+          val onSuccess = secondArg<(FirebaseUser) -> Unit>()
           onSuccess(mockFirebaseUser)
         }
 
@@ -104,8 +104,9 @@ class SignInViewModelTest {
   }
 
   /**
-   * This test simulates a failure during the credential retrieval process where a `GetCredentialException`
-   * is thrown. It verifies that the ViewModel correctly handles this error by:
+   * This test simulates a failure during the credential retrieval process where a
+   * `GetCredentialException` is thrown. It verifies that the ViewModel correctly handles this error
+   * by:
    * - Setting `isLoading` to false.
    * - Ensuring `user` is null and `signedOut` is true.
    * - Populating `errorMsg` with an appropriate error message.
@@ -140,8 +141,8 @@ class SignInViewModelTest {
 
   /**
    * This test case simulates the scenario where the user cancels the sign-in flow. This is
-   * represented by the `CredentialManager` throwing a `GetCredentialCancellationException`. The test
-   * verifies that the ViewModel handles this specific case gracefully by:
+   * represented by the `CredentialManager` throwing a `GetCredentialCancellationException`. The
+   * test verifies that the ViewModel handles this specific case gracefully by:
    * - Setting `isLoading` to false.
    * - Keeping the user state as signed out (`user` is null, `signedOut` is true).
    * - Displaying a user-friendly message "Sign in cancelled" in `errorMsg`.
@@ -174,8 +175,8 @@ class SignInViewModelTest {
 
   /**
    * This test verifies how the ViewModel behaves when the `AuthModel`'s `signInWithGoogle` method
-   * fails after the credential has been successfully retrieved. It ensures that the ViewModel correctly
-   * updates the UI state to reflect the failure by:
+   * fails after the credential has been successfully retrieved. It ensures that the ViewModel
+   * correctly updates the UI state to reflect the failure by:
    * - Setting `isLoading` to false.
    * - Keeping the user state as signed out (`user` is null, `signedOut` is true).
    * - Populating `errorMsg` with an error message.
@@ -193,7 +194,7 @@ class SignInViewModelTest {
     } coAnswers
         {
           // Simulate failure
-          val onFailure = secondArg<(Exception) -> Unit>()
+          val onFailure = thirdArg<(Exception) -> Unit>()
           onFailure(exception)
         }
 
@@ -215,13 +216,13 @@ class SignInViewModelTest {
   }
 
   /**
-   * This test ensures that if a sign-in operation is already in progress (`isLoading` is true),
-   * a subsequent call to `signIn` will not trigger a new sign-in flow. This prevents duplicate
+   * This test ensures that if a sign-in operation is already in progress (`isLoading` is true), a
+   * subsequent call to `signIn` will not trigger a new sign-in flow. This prevents duplicate
    * network requests and potential race conditions.
    *
-   * The test works by initiating a `signIn` call that suspends indefinitely, keeping the `isLoading`
-   * state true. It then calls `signIn` a second time and verifies that the underlying credential
-   * manager method (`getCredential`) was only invoked once.
+   * The test works by initiating a `signIn` call that suspends indefinitely, keeping the
+   * `isLoading` state true. It then calls `signIn` a second time and verifies that the underlying
+   * credential manager method (`getCredential`) was only invoked once.
    */
   @Test
   fun `signIn when already loading does not start new sign in`() {
