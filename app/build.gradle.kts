@@ -163,7 +163,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
 
     // --------------------- Auth ---------------------
     implementation(libs.credentials)
@@ -208,19 +207,19 @@ dependencies {
     globalTestImplementation(libs.androidx.espresso.core)
 
     // Coroutines test (pick ONE version; 1.8.1 is current)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation(libs.jetbrains.kotlinx.coroutines.test)
     // Turbine for Flow testing
-    testImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation(libs.turbine)
     // MockK
     testImplementation(libs.mockk)
     testImplementation(libs.mockk.agent)
     testImplementation(libs.mockk.android)
     // Kotlin test bridge
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
-    androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    testImplementation(libs.kotlin.test.junit)
+    androidTestImplementation(libs.jetbrains.kotlin.test.junit)
 
     // AndroidX test core (explicit if needed)
-    androidTestImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation(libs.androidx.core)
 
     // Kaspresso
     globalTestImplementation(libs.kaspresso)

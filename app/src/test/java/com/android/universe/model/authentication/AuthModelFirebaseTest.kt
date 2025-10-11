@@ -22,14 +22,15 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-  private lateinit var mockAuth: FirebaseAuth
-  private lateinit var mockHelper: GoogleSignInHelper
-  private lateinit var mockCredential: Credential
-  private lateinit var mockGoogleIdTokenCredential: GoogleIdTokenCredential
-  private lateinit var mockFirebaseUser: FirebaseUser
-  private lateinit var authModelFirebase: AuthModelFirebase
-  private lateinit var mockAuthCredential: AuthCredential
-  private lateinit var mockAuthResult: AuthResult
+
+private lateinit var mockAuth: FirebaseAuth
+private lateinit var mockHelper: GoogleSignInHelper
+private lateinit var mockCredential: Credential
+private lateinit var mockGoogleIdTokenCredential: GoogleIdTokenCredential
+private lateinit var mockFirebaseUser: FirebaseUser
+private lateinit var authModelFirebase: AuthModelFirebase
+private lateinit var mockAuthCredential: AuthCredential
+private lateinit var mockAuthResult: AuthResult
 
 @RunWith(RobolectricTestRunner::class)
 class AuthModelFirebaseTest {
@@ -222,9 +223,7 @@ class AuthModelFirebaseTest {
     runTest {
       // Act
       authModelFirebase.signOut(
-        onSuccess = { successCalled = true },
-        onFailure = { failureCalled = true }
-      )
+          onSuccess = { successCalled = true }, onFailure = { failureCalled = true })
 
       // Assert
       assertTrue(successCalled)
@@ -244,17 +243,11 @@ class AuthModelFirebaseTest {
     runTest {
       // Act
       authModelFirebase.signOut(
-        onSuccess = { successCalled = true },
-        onFailure = { e -> capturedException = e }
-      )
+          onSuccess = { successCalled = true }, onFailure = { e -> capturedException = e })
 
       // Assert
       assertFalse(successCalled)
       assertNotNull(capturedException)
     }
   }
-
-
 }
-
-
