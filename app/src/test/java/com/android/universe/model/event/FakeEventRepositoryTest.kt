@@ -481,4 +481,24 @@ class FakeEventRepositoryTest {
     assertEquals(0, result2[0].participants.size)
     assertEquals(result2[0].creator, user)
   }
+
+  @Test
+  fun getNewID_returnsAString() = runTest {
+    val id = repository.getNewID()
+    assertNotNull(id)
+    assert(id.isNotEmpty())
+  }
+
+  @Test
+  fun getNewID_returnsUniqueStrings_onMultipleCalls() = runTest {
+    val ids = mutableSetOf<String>()
+    repeat(100) {
+      val id = repository.getNewID()
+      assertNotNull(id)
+      assert(id.isNotEmpty())
+      assert(!ids.contains(id)) // Ensure uniqueness
+      ids.add(id)
+    }
+    assertEquals(100, ids.size) // Ensure all IDs are unique
+  }
 }
