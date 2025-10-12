@@ -52,8 +52,8 @@ class AuthModelFirebase(
       }
 
       // Check if the email address match the REGEX
-      val credential = helper.extractIdTokenCredential(credential.data)
-      val email = credential.id
+      val googleCredential = helper.extractIdTokenCredential(credential.data)
+      val email = googleCredential.id
       if (!emailRegex.matches(email)) {
         Log.w(TAG, "Email address is not from EPFL: $email")
         onFailure(IllegalStateException("Email address is not from EPFL: $email"))
@@ -61,7 +61,7 @@ class AuthModelFirebase(
       }
 
       // Sign in with Firebase
-      val idToken = credential.idToken
+      val idToken = googleCredential.idToken
       val firebaseCredential = helper.toFirebaseCredential(idToken)
       val user = helper.signInWithFirebase(auth, firebaseCredential).user
       if (user == null) {
