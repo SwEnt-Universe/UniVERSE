@@ -31,6 +31,16 @@ import kotlinx.coroutines.withContext
  * @property month The month of a birth as a string.
  * @property year The year of birth as a string.
  * @property errorMsg Optional error message displayed on validation failure.
+ * @property usernameError Optional error message for the username field. Note that it is
+ *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ *   change if the user didn't enter anything and clicked away from the field.
+ * @property firstNameError Optional error message for the first name field. Note that it is
+ *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ *   change if the user didn't enter anything and clicked away from the field.
+ * @property lastNameError Optional error message for the last name field. Note that it is
+ *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ *   change if the user didn't enter anything and clicked away from the field.
+ * @property descriptionError Optional error message for the description field.
  */
 data class AddProfileUIState(
     val username: String = "",
@@ -243,44 +253,56 @@ class AddProfileViewModel(
   }
 
   /**
-   * Updates the username field. Also truncates the input to more than the specified limit to allow
-   * an error popup to be displayed
+   * Updates the username field and its associated error state if any. Also truncates the input to
+   * more than the specified limit to allow an error popup to be displayed
    */
   fun setUsername(username: String) {
     val trimmed = username.take(InputLimits.USERNAME + 1)
-    validUsername(trimmed)
-    _uiState.value = _uiState.value.copy(username = trimmed)
+
+    val error =
+        when {
+          trimmed.isBlank() -> "Username cannot be empty"
+          trimmed.length > InputLimits.USERNAME -> "Username is too long"
+          !usernameRegex.matches(trimmed) ->
+              "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes"
+          else -> null
+        }
+    _uiState.value = _uiState.value.copy(username = trimmed, usernameError = error)
   }
 
   /**
-   * Updates the first name field. Also truncates the input to more than the specified limit to
-   * allow an error popup to be displayed and removes double spaces
+   * Updates the first name field and its associated error state if any. Also truncates the input to
+   * more than the specified limit to allow an error popup to be displayed and removes double spaces
    */
   fun setFirstName(firstName: String) {
     val cleaned = trimAndCleanInput(firstName, InputLimits.FIRST_NAME + 1)
-    validateName(
-        cleaned, "First name", InputLimits.FIRST_NAME, setError = ::setOrClearFirstNameError)
-    _uiState.value = _uiState.value.copy(firstName = cleaned)
+    val error = validateName(cleaned, "First name", InputLimits.FIRST_NAME)
+    _uiState.value = _uiState.value.copy(firstName = cleaned, firstNameError = error)
   }
 
   /**
-   * Updates the last name field. Also truncates the input to more than the specified limit to allow
-   * an error popup to be displayed and removes double spaces
+   * Updates the last name field and its associated error state if any. Also truncates the input to
+   * more than the specified limit to allow an error popup to be displayed and removes double spaces
    */
   fun setLastName(lastName: String) {
     val cleaned = trimAndCleanInput(lastName, InputLimits.LAST_NAME + 1)
-    validateName(cleaned, "Last name", InputLimits.LAST_NAME, setError = ::setOrClearLastNameError)
-    _uiState.value = _uiState.value.copy(lastName = cleaned)
+    val error = validateName(cleaned, "Last name", InputLimits.LAST_NAME)
+    _uiState.value = _uiState.value.copy(lastName = cleaned, lastNameError = error)
   }
 
   /**
-   * Updates the description field. Also truncates the input to more than the specified limit to
-   * allow an error popup to be displayed and removes double spaces
+   * Updates the description field and its associated error state if any. Also truncates the input
+   * to more than the specified limit to allow an error popup to be displayed and removes double
+   * spaces
    */
   fun setDescription(description: String) {
     val cleaned = trimAndCleanInput(description, InputLimits.DESCRIPTION + 1)
-    validDescription(cleaned)
-    _uiState.value = _uiState.value.copy(description = cleaned)
+    val error =
+        when {
+          cleaned.length > InputLimits.DESCRIPTION -> "Description is too long"
+          else -> null
+        }
+    _uiState.value = _uiState.value.copy(description = cleaned, descriptionError = error)
   }
 
   /** Updates the country field. */
@@ -341,89 +363,20 @@ class AddProfileViewModel(
   }
 
   /**
-   * Sets the error message for a username for the UI.
-   *
-   * @param username The username to set a possible error message for.
-   */
-  private fun validUsername(username: String) {
-    if (username.isBlank()) {
-      setOrClearUsernameError("Username cannot be empty")
-    } else if (username.length > InputLimits.USERNAME) {
-      setOrClearUsernameError("Username is too long")
-    } else if (!usernameRegex.matches(username)) {
-      setOrClearUsernameError(
-          "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
-    } else {
-      setOrClearUsernameError(null)
-    }
-  }
-
-  /**
-   * Sets the error message for a username for the UI.
-   *
-   * @param usernameError The username to set a possible error message for.
-   */
-  private fun setOrClearUsernameError(usernameError: String?) {
-    _uiState.value = _uiState.value.copy(usernameError = usernameError)
-  }
-
-  /**
-   * Validates a name for the UI by setting the possible error message.
+   * Validates a name for the UI by returning the possible error message.
    *
    * @param name The name to validate.
    * @param label The label for the name.
    * @param limit The maximum length of the name.
-   * @param setError A function to set the error message to the appropriate name field.
+   * @return The error message if the name is invalid, null otherwise.
    */
-  private fun validateName(name: String, label: String, limit: Int, setError: (String?) -> Unit) {
-    when {
-      name.isBlank() -> setError("$label cannot be empty")
-      name.length > limit -> setError("$label is too long")
+  private fun validateName(name: String, label: String, limit: Int): String? {
+    return when {
+      name.isBlank() -> "$label cannot be empty"
+      name.length > limit -> "$label is too long"
       !nameRegex.matches(name) ->
-          setError(
-              "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
-      else -> setError(null)
+          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces"
+      else -> null
     }
-  }
-
-  /**
-   * Sets the error message for a first name for the UI.
-   *
-   * @param firstNameError The first name to set a possible error message for.
-   */
-  private fun setOrClearFirstNameError(firstNameError: String?) {
-    _uiState.value = _uiState.value.copy(firstNameError = firstNameError)
-  }
-
-  /**
-   * Sets the error message for a last name for the UI.
-   *
-   * @param lastNameError The last name to set a possible error message for.
-   */
-  private fun setOrClearLastNameError(lastNameError: String?) {
-    _uiState.value = _uiState.value.copy(lastNameError = lastNameError)
-  }
-
-  /**
-   * Sets the error message for a description for the UI.
-   *
-   * @param description The description to set a possible error message for.
-   */
-  private fun validDescription(description: String?) {
-    if (description == null) setOrClearDescriptionError(null)
-    else if (description.length > InputLimits.DESCRIPTION) {
-      setOrClearDescriptionError("Description is too long")
-    } else {
-      setOrClearDescriptionError(null)
-    }
-  }
-
-  /**
-   * Sets the error message for a description for the UI.
-   *
-   * @param descriptionError The description to set a possible error message for.
-   */
-  private fun setOrClearDescriptionError(descriptionError: String?) {
-    _uiState.value = _uiState.value.copy(descriptionError = descriptionError)
   }
 }
