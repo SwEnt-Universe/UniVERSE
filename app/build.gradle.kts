@@ -13,13 +13,13 @@ import java.io.File
 // - JaCoCo is a core Gradle plugin: apply with id("jacoco") (no version).
 // ─────────────────────────────────────────────────────────────────────────────
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ktfmt)
-    alias(libs.plugins.sonar)
-    id("jacoco")
-    // id("com.google.gms.google-services")
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.google.services)
+    jacoco
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -154,69 +154,84 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dependencies
-// - use /gradle/wrapper/libs.versions.tomtom when available
+// - Aliases are defined in /gradle/libs.versions.toml
 // ─────────────────────────────────────────────────────────────────────────────
 dependencies {
-    // Runtime
+    // Import the Bill of Materials (BOMs) to manage library versions.
+    // This removes the need to specify versions for individual Compose and Firebase libraries.
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(platform(libs.firebase.bom))
+    androidTestImplementation(platform(libs.androidx.compose.bom)) // Make BOM available for Android tests
+
+    // --------------------- Core & Runtime ---------------------
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    testImplementation(libs.junit)
-    globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
 
-    // Compose (BOM + modules)
-    val composeBom = platform(libs.compose.bom)
-    implementation(composeBom)
-    globalTestImplementation(composeBom)
+    // --------------------- Auth ---------------------
+    implementation(libs.google.credentials)
+    implementation(libs.google.id)
 
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.graphics)
-    implementation(libs.compose.material3)
-    implementation(libs.androidx.material.icons.extended)
-    // Integration with activities
-    implementation(libs.compose.activity)
-    implementation(libs.compose.viewmodel)
-    implementation(libs.compose.preview)
-    debugImplementation(libs.compose.tooling)
-    // Navigation
+    // ------------------- Firebase -------------------
+    // Version is controlled by the firebase-bom
+    implementation(libs.firebase.auth)
+
+    // ----------------- Jetpack Compose ------------------
+    // Versions are controlled by the androidx-compose-bom
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Android Studio Preview support
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+
+    // ------------------- Navigation -------------------
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-    // UI Tests
-    globalTestImplementation(libs.compose.test.junit)
-    debugImplementation(libs.compose.test.manifest)
 
-    // Testing
-    testImplementation(libs.junit)
-    globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
+    // ----------------- TomTom SDK -----------------
+    implementation(libs.tomtom.maps)
+    implementation(libs.tomtom.location)
+    implementation(libs.tomtom.search)
 
-    // Coroutines test (pick ONE version; 1.8.1 is current)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-    // Turbine for Flow testing
-    testImplementation("app.cash.turbine:turbine:1.0.0")
-    // MockK
-    testImplementation("io.mockk:mockk:1.13.5")
-    // Kotlin test bridge
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
-    androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    // ==========================================================================
+    // TESTING
+    // ==========================================================================
 
-    // AndroidX test core (explicit if needed)
-    androidTestImplementation("androidx.test:core:1.5.0")
-
-    // Kaspresso
-    globalTestImplementation(libs.kaspresso)
-    globalTestImplementation(libs.kaspresso.compose)
-
-    // Robolectric (from catalog)
+    // ----------------- Unit Testing (test/) -----------------
+    globalTestImplementation(libs.kotlin.test)
+    testImplementation(libs.junit4)
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.kotlin.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
+    testImplementation(libs.mockk.agent)
     testImplementation(libs.robolectric)
+    // WARNING: logback can only be used in local tests, not instrumented tests.
+    testImplementation(libs.logback)
 
-    // TomTom SDK
-    implementation(libs.tomtomMap)
-    implementation(libs.tomtomLocation)
-    implementation(libs.tomtomSearch)
+    // ----------------- PlaceHolder -----------------
+    // This fixes import issue in the second screen test, imo the test class should be moved to
+    // a different package (androidTest). If it should not maybe debugImplementation is the way
+    testImplementation(libs.androidx.compose.ui.test)
+    testImplementation(libs.io.github.kakaocup)
+
+    // ----------------- Instrumented Testing (androidTest/) -----------------
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.core)
+    // Compose UI Tests (versions managed by compose-bom)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // ----------------- Kaspresso (UI Automation) -----------------
+    androidTestImplementation(libs.kaspresso)
+    androidTestImplementation(libs.kaspresso.compose)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
