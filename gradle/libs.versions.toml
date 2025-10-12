@@ -1,126 +1,171 @@
+# ==============================================================================
+# Version Catalog
+#
+# This file defines all the dependencies and plugins used in the project.
+#
+# CONVENTIONS:
+# - Version aliases are in [versions] and are camelCase (e.g., androidxCore).
+# - Library aliases are in [libraries] and are kebab-case (e.g., android-core-ktx).
+# - BOMs (Bill of Materials) are used where possible. Libraries managed by a
+#   BOM do NOT specify a version.
+# ==============================================================================
+
 [versions]
-# Plugins
-#region Plugins
-agp = "8.6.1"
-core = "1.5.0"
+# ===== PLUGINS =====
+androidGradlePlugin = "8.6.1"
 kotlin = "2.0.20"
-coreKtx = "1.13.1"
-gms = "4.4.3"
-kotlinxCoroutinesTest = "1.8.1"
+googleServices = "4.4.3"
 ktfmt = "0.20.1"
-sonar = "5.1.0.4882"
-#endregion
+sonarqube = "5.1.0.4882"
+jacoco = "0.8.13"
 
-#region UI & Compose
+# ===== ANDROIDX & CORE =====
+androidxCore = "1.13.1"
+androidxLifecycle = "2.8.7"
+androidxActivity = "1.9.3"
+androidxNavigation = "2.8.9"
+androidxComposeCompiler = "1.5.1" # Often tied to Kotlin version, check compatibility
+
+# ===== UI & COMPOSE =====
+# The Compose BOM controls the versions of all core Compose libraries.
 composeBom = "2025.04.00"
-composeActivity = "1.9.3"
-composeViewModel = "2.8.7"
-lifecycleRuntimeKtx = "2.8.7"
-navigationCompose = "2.8.9"
-constraintlayout = "2.2.1"
-material3 = "1.3.2"
-materialIconsExtended = "1.6.8"
-#endregion
+materialIcons = "1.6.8"
 
-#region LEGACY UI
+# ===== LEGACY UI =====
 appcompat = "1.6.1"
 material = "1.13.0"
-#endregion
+constraintlayout = "2.2.1"
 
-#region Firebase
-firebaseBom = "33.1.2"
-#endregion
+# ===== FIREBASE =====
+# The Firebase BOM controls the versions of all Firebase libraries.
+firebaseBom = "34.3.0"
 
-#region Google & Credentials
-credentials = "1.3.0"
-googleid = "1.1.1"
-playServicesAuth = "21.2.0"
-mapsCompose = "6.12.0"
-mapsComposeUtils = "6.12.0"
-#endregion
+# ===== GOOGLE & AUTHENTICATION =====
+googleCredentials = "1.3.0"
+googleId = "1.1.1"
+googlePlayServicesAuth = "21.2.0"
 
-#region Testing
-kaspresso = "1.5.4"
-espressoCore = "3.7.0"
-robolectric = "4.16"
-junit5 = "5.13.4"
-androidxJunit  = "1.1.5"
-mockK = "1.14.2"
-jacoco = "0.8.13"
-#endregion
-
-#region TomTom SDK
+# ===== MAPS =====
+googleMapsCompose = "6.12.0"
 tomtom = "1.26.0"
-#endregion
 
+# ===== TESTING =====
+junit4 = "4.13.2"
+androidxJunit = "1.1.5"
+androidxEspresso = "3.7.0"
+androidxTestCore = "1.5.0"
+coroutinesTest = "1.8.1"
+mockk = "1.14.2"
+kakaocup = "1.0.0"
+kaspresso = "1.5.4"
+robolectric = "4.16"
 turbine = "1.0.0"
 
-okhttp = "4.12.0"
+# ===== UTILITIES =====
+logback = "1.5.19"
 
 
 [libraries]
-androidx-core = { module = "androidx.test:core", version.ref = "core" }
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-jetbrains-kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit5", version.ref = "kotlin" }
-jetbrains-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
-junit5-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5" }
-junit5-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+# ==============================================================================
+# BILL OF MATERIALS (BOM)
+# These platforms control the versions of their respective libraries.
+# Import these using `platform()` in your build.gradle.kts.
+# ==============================================================================
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+
+# ==============================================================================
+# ANDROIDX CORE & LIFECYCLE
+# ==============================================================================
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+
+# ==============================================================================
+# UI & COMPOSE
+# Versions for these are managed by the `androidx-compose-bom`.
+# ==============================================================================
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIcons" }
+
+# ==============================================================================
+# ANDROIDX NAVIGATION
+# ==============================================================================
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
+androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "androidxNavigation" }
+androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "androidxNavigation" }
+
+# ==============================================================================
+# LEGACY UI TOOLKIT
+# ==============================================================================
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationCompose" }
-androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationCompose" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
-tomtomMap = { module = "com.tomtom.sdk.maps:map-display", version.ref = "tomtom" }
-tomtomLocation = { module = "com.tomtom.sdk.location:provider-default", version.ref = "tomtom" }
-tomtomSearch = { module = "com.tomtom.sdk.search:search-online", version.ref = "tomtom" }
+# ==============================================================================
+# FIREBASE & AUTHENTICATION
+# Versions for firebase libraries are managed by the `firebase-bom`.
+# ==============================================================================
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+google-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "googleCredentials" }
+google-id = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleId" }
+google-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "googlePlayServicesAuth" }
 
-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+# ==============================================================================
+# MAPS
+# ==============================================================================
+tomtom-maps = { group = "com.tomtom.sdk.maps", name = "map-display", version.ref = "tomtom" }
+tomtom-location = { group = "com.tomtom.sdk.location", name = "provider-default", version.ref = "tomtom" }
+tomtom-search = { group = "com.tomtom.sdk.search", name = "search-online", version.ref = "tomtom" }
 
-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3"}
-compose-ui = { group = "androidx.compose.ui", name = "ui" }
-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-compose-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-compose-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "composeActivity" }
-compose-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "composeViewModel" }
-compose-test-junit = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-compose-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+# ==============================================================================
+# TESTING
+# ==============================================================================
+# Core
+junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
+# AndroidX Test
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspresso" }
+
+# Compose Test (version managed by compose-bom)
+androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test"}
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+
+# Other Compose Test
+io-github-kakaocup = { group = "io.github.kakaocup", name = "compose", version.ref = "kakaocup" }
+
+# Mocks & UI Automation
+mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
+mockk-agent = { group = "io.mockk", name = "mockk-agent-jvm", version.ref = "mockk" } # Note: corrected artifact name
 kaspresso = { group = "com.kaspersky.android-components", name = "kaspresso", version.ref = "kaspresso" }
 kaspresso-compose = { group = "com.kaspersky.android-components", name = "kaspresso-compose-support", version.ref = "kaspresso" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+# ==============================================================================
+# UTILITIES
+# ==============================================================================
+logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 
-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockK" }
-mockk-agent = { group = "io.mockk", name = "mockk-agent", version.ref = "mockK" }
-mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockK" }
-
-logback = {group = "ch.qos.logback", name = "logback-classic", version = "1.5.19"}
-
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-firebase-auth = { module = "com.google.firebase:firebase-auth"}
-firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx"}
-firebase-database-ktx = { module = "com.google.firebase:firebase-database-ktx"}
-firebase-firestore = { module = "com.google.firebase:firebase-firestore"}
-
-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
-googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
-play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
-maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
-maps-compose-utils = { module = "com.google.maps.android:maps-compose-utils", version.ref = "mapsComposeUtils" }
-androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-gms = { id = "com.google.gms.google-services", version.ref = "gms" }
+# ==============================================================================
+# GRADLE PLUGINS
+# ==============================================================================
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
-sonar = { id = "org.sonarqube", version.ref = "sonar" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
