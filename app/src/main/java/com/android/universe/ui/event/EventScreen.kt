@@ -36,6 +36,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.model.event.EventRepositoryProvider
 
+/**
+ * Displays a scrollable list of events using a LazyColumn.
+ *
+ * Each event in the ViewModel's [eventsState] is represented by an [EventCard]
+ *
+ * @param viewModel The [EventViewModel] providing the list of events. Defaults to a Compose-managed
+ *   ViewModel instance.
+ */
 @Composable
 fun EventScreen(viewModel: EventViewModel = viewModel()) {
   val events by viewModel.eventsState.collectAsState()
@@ -56,6 +64,23 @@ fun EventScreen(viewModel: EventViewModel = viewModel()) {
       }
 }
 
+/**
+ * Displays an individual event card with image, title, description, date, tags, creator and
+ * participant number.
+ *
+ * The card includes:
+ * - A background image with a floating date overlay.
+ * - A column of floating tags at the top left.
+ * - Event title and description below the image.
+ * - A row at the bottom displaying participant count and creator, along with a "Join In" button.
+ *
+ * @param title The title of the event.
+ * @param description The description of the event.
+ * @param date The formatted date string of the event.
+ * @param tags A list of up to three tag strings associated with the event.
+ * @param creator The full name of the user who created the event.
+ * @param participants The number of participants who joined the event.
+ */
 @Composable
 fun EventCard(
     title: String,
@@ -138,6 +163,13 @@ fun EventCard(
       }
 }
 
+/**
+ * Displays a single tag as a small, rounded box with text.
+ *
+ * Used inside [EventCard] to display event tags.
+ *
+ * @param tag The text of the tag to display.
+ */
 @Composable
 fun TagCard(tag: String) {
   Box(
@@ -152,6 +184,12 @@ fun TagCard(tag: String) {
       }
 }
 
+/**
+ * Preview composable for the EventScreen.
+ *
+ * This preview uses the [EventViewModel] from [EventRepositoryProvider] to display a list of events
+ * for design inspection in Android Studio.
+ */
 @Preview(showBackground = true)
 @Composable
 fun EventCardPreview() {
