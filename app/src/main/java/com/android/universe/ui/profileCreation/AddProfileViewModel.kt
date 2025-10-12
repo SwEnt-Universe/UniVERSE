@@ -332,7 +332,6 @@ class AddProfileViewModel(
    *   handling as trimming user input prevents users from entering spaces.
    *
    * @param input The string to sanitize.
-   * @param maxLength The maximum length of the sanitized string.
    * @return The sanitized string.
    */
   private fun sanitize(input: String): String {
@@ -390,7 +389,7 @@ class AddProfileViewModel(
   /**
    * Sets the error message for a first name for the UI.
    *
-   * @param firstName The first name to set a possible error message for.
+   * @param firstNameError The first name to set a possible error message for.
    */
   private fun setOrClearFirstNameError(firstNameError: String?) {
     _uiState.value = _uiState.value.copy(firstNameError = firstNameError)
@@ -399,7 +398,7 @@ class AddProfileViewModel(
   /**
    * Sets the error message for a last name for the UI.
    *
-   * @param lastName The last name to set a possible error message for.
+   * @param lastNameError The last name to set a possible error message for.
    */
   private fun setOrClearLastNameError(lastNameError: String?) {
     _uiState.value = _uiState.value.copy(lastNameError = lastNameError)
