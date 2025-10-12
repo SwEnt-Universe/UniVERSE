@@ -1,4 +1,4 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed

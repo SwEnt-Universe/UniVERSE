@@ -1,9 +1,8 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.CountryData.countryToIsoCode
-import com.android.universe.model.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -42,7 +41,11 @@ data class AddProfileUIState(
     val day: String = "",
     val month: String = "",
     val year: String = "",
-    val errorMsg: String? = null
+    val errorMsg: String? = null,
+    val usernameError: String? = "Username cannot be empty",
+    val firstNameError: String? = "First name cannot be empty",
+    val lastNameError: String? = "Last name cannot be empty",
+    val descriptionError: String? = null,
 )
 
 /**
@@ -85,9 +88,9 @@ class AddProfileViewModel(
   /** Publicly exposed state of the Add Profile UI. */
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
-  private val NAME_REGEX = "^[\\p{L}\\p{M}' -]*$".toRegex()
+  private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
 
-  private val USERNAME_REGEX = "^[A-Za-z0-9._-]+$".toRegex()
+  private val usernameRegex = "^[A-Za-z0-9._-]+$".toRegex()
 
   /** Clears the current error message from the UI state. */
   fun clearErrorMsg() {
@@ -118,7 +121,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (!NAME_REGEX.matches(firstName)) {
+      if (!nameRegex.matches(firstName)) {
         setErrorMsg("Invalid first name format")
         return@launch
       }
@@ -128,7 +131,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      val cleanedFirstName = sanitize(firstName, InputLimits.FIRST_NAME)
+      val cleanedFirstName = sanitize(firstName)
 
       val lastName = state.lastName
       if (state.lastName.isBlank()) {
@@ -136,7 +139,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (!NAME_REGEX.matches(lastName)) {
+      if (!nameRegex.matches(lastName)) {
         setErrorMsg("Invalid last name format")
         return@launch
       }
@@ -146,7 +149,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      val cleanedLastName = sanitize(lastName, InputLimits.LAST_NAME)
+      val cleanedLastName = sanitize(lastName)
 
       val description = state.description
       if (description != null && description.length > InputLimits.DESCRIPTION) {
@@ -154,7 +157,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      val cleanedDescription = description?.let { sanitize(it, InputLimits.DESCRIPTION) }
+      val cleanedDescription = description?.let { sanitize(it) }
       val day = state.day
       if (day.toIntOrNull() == null) {
         setErrorMsg("Day is not a number")
@@ -196,7 +199,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (!USERNAME_REGEX.matches(username)) {
+      if (!usernameRegex.matches(username)) {
         setErrorMsg("Invalid username format")
         return@launch
       }
@@ -219,7 +222,7 @@ class AddProfileViewModel(
               description = cleanedDescription?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()),
-              tags = emptyList<Tag>())
+              tags = emptyList())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
     }
@@ -245,6 +248,7 @@ class AddProfileViewModel(
    */
   fun setUsername(username: String) {
     val trimmed = username.take(InputLimits.USERNAME + 1)
+    validUsername(trimmed)
     _uiState.value = _uiState.value.copy(username = trimmed)
   }
 
@@ -254,6 +258,8 @@ class AddProfileViewModel(
    */
   fun setFirstName(firstName: String) {
     val cleaned = trimAndCleanInput(firstName, InputLimits.FIRST_NAME + 1)
+    validateName(
+        cleaned, "First name", InputLimits.FIRST_NAME, setError = ::setOrClearFirstNameError)
     _uiState.value = _uiState.value.copy(firstName = cleaned)
   }
 
@@ -263,6 +269,7 @@ class AddProfileViewModel(
    */
   fun setLastName(lastName: String) {
     val cleaned = trimAndCleanInput(lastName, InputLimits.LAST_NAME + 1)
+    validateName(cleaned, "Last name", InputLimits.LAST_NAME, setError = ::setOrClearLastNameError)
     _uiState.value = _uiState.value.copy(lastName = cleaned)
   }
 
@@ -272,6 +279,7 @@ class AddProfileViewModel(
    */
   fun setDescription(description: String) {
     val cleaned = trimAndCleanInput(description, InputLimits.DESCRIPTION + 1)
+    validDescription(cleaned)
     _uiState.value = _uiState.value.copy(description = cleaned)
   }
 
@@ -304,135 +312,119 @@ class AddProfileViewModel(
     _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
   }
 
+  /**
+   * Replaces multiple spaces with a single one and truncates the input if it exceeds the specified
+   * limit.
+   *
+   * @param input The input string.
+   * @param limit The maximum length of the output string.
+   */
   private fun trimAndCleanInput(input: String, limit: Int): String {
-    val trimmed = input.take(limit)
-    val singleSpaced = trimmed.replace(Regex("\\s+"), " ")
-    return singleSpaced
+    val singleSpaced = input.replace(Regex("\\s+"), " ")
+    val trimmed = singleSpaced.take(limit)
+    return trimmed
   }
 
   /**
    * Sanitizes a name string by:
    * - Replacing multiple spaces with a single one
-   * - Trimming leading and trailing spaces
-   * - Enforcing a maximum length
+   * - Trimming leading and trailing spaces Note this function should not be used in live user input
+   *   handling as trimming user input prevents users from entering spaces.
    *
    * @param input The string to sanitize.
    * @param maxLength The maximum length of the sanitized string.
+   * @return The sanitized string.
    */
-  private fun sanitize(input: String, maxLength: Int): String {
+  private fun sanitize(input: String): String {
     val singleSpaced = input.replace(Regex("\\s+"), " ")
     val trimmed = singleSpaced.trim()
-    return trimmed.take(maxLength)
+    return trimmed
   }
 
   /**
-   * Validates a username for the UI.
+   * Sets the error message for a username for the UI.
    *
-   * @param username The username to validate.
-   * @return A pair of a boolean representing the validation result and an error message if any.
+   * @param username The username to set a possible error message for.
    */
-  fun validUsername(username: String): Pair<Boolean, String> {
-    return if (username.isBlank()) {
-      Pair(false, "Username cannot be empty")
+  private fun validUsername(username: String) {
+    if (username.isBlank()) {
+      setOrClearUsernameError("Username cannot be empty")
     } else if (username.length > InputLimits.USERNAME) {
-      Pair(false, "Username is too long")
-    } else if (!USERNAME_REGEX.matches(username)) {
-      Pair(
-          false,
+      setOrClearUsernameError("Username is too long")
+    } else if (!usernameRegex.matches(username)) {
+      setOrClearUsernameError(
           "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
     } else {
-      Pair(true, "")
+      setOrClearUsernameError(null)
     }
   }
 
-  /** Represents the name to validate. */
-  private enum class Name {
-    FIRSTNAME,
-    LASTNAME
-  }
-
   /**
-   * Converts a [Name] to a human-readable string.
+   * Sets the error message for a username for the UI.
    *
-   * @param name The [Name] to convert.
-   * @return The name as a string.
+   * @param usernameError The username to set a possible error message for.
    */
-  private fun enumToName(name: Name): String {
-    return when (name) {
-      Name.FIRSTNAME -> "First name"
-      Name.LASTNAME -> "Last name"
-    }
+  private fun setOrClearUsernameError(usernameError: String?) {
+    _uiState.value = _uiState.value.copy(usernameError = usernameError)
   }
 
   /**
-   * Converts a [Name] to a field size limit.
-   *
-   * @param name The [Name] to convert.
-   * @return The field size limit.
-   */
-  private fun enumToFieldSize(name: Name): Int {
-    return when (name) {
-      Name.FIRSTNAME -> InputLimits.FIRST_NAME
-      Name.LASTNAME -> InputLimits.LAST_NAME
-    }
-  }
-
-  /**
-   * Validates a name for the UI.
+   * Validates a name for the UI by setting the possible error message.
    *
    * @param name The name to validate.
-   * @param nameType The type of name to validate.
-   * @return A pair of a boolean representing the validation result and an error message if any.
+   * @param label The label for the name.
+   * @param limit The maximum length of the name.
+   * @param setError A function to set the error message to the appropriate name field.
    */
-  private fun validName(name: String, nameType: Name): Pair<Boolean, String> {
-    val text = enumToName(nameType)
-    val size = enumToFieldSize(nameType)
-
-    return if (name.isBlank()) {
-      Pair(false, "$text cannot be empty")
-    } else if (name.length > size) {
-      Pair(false, "$text is too long")
-    } else if (!NAME_REGEX.matches(name)) {
-      Pair(
-          false,
-          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
-    } else {
-      Pair(true, "")
+  private fun validateName(name: String, label: String, limit: Int, setError: (String?) -> Unit) {
+    when {
+      name.isBlank() -> setError("$label cannot be empty")
+      name.length > limit -> setError("$label is too long")
+      !nameRegex.matches(name) ->
+          setError(
+              "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+      else -> setError(null)
     }
   }
 
   /**
-   * Validates a first name for the UI.
+   * Sets the error message for a first name for the UI.
    *
-   * @param firstName The first name to validate.
-   * @return A pair of a boolean representing the validation result and an error message if any.
+   * @param firstName The first name to set a possible error message for.
    */
-  fun validFirstName(firstName: String): Pair<Boolean, String> {
-    return validName(firstName, Name.FIRSTNAME)
+  private fun setOrClearFirstNameError(firstNameError: String?) {
+    _uiState.value = _uiState.value.copy(firstNameError = firstNameError)
   }
 
   /**
-   * Validates a last name for the UI.
+   * Sets the error message for a last name for the UI.
    *
-   * @param lastName The last name to validate.
-   * @return A pair of a boolean representing the validation result and an error message if any.
+   * @param lastName The last name to set a possible error message for.
    */
-  fun validLastName(lastName: String): Pair<Boolean, String> {
-    return validName(lastName, Name.LASTNAME)
+  private fun setOrClearLastNameError(lastNameError: String?) {
+    _uiState.value = _uiState.value.copy(lastNameError = lastNameError)
   }
 
   /**
-   * Validates a description for the UI.
+   * Sets the error message for a description for the UI.
    *
-   * @param description The description to validate.
-   * @return A pair of a boolean representing the validation result and an error message if any.
+   * @param description The description to set a possible error message for.
    */
-  fun validDescription(description: String?): Pair<Boolean, String> {
-    if (description == null) return Pair(true, "")
-    return if (description.length > InputLimits.DESCRIPTION) {
-      Pair(false, "Description is too long")
+  private fun validDescription(description: String?) {
+    if (description == null) setOrClearDescriptionError(null)
+    else if (description.length > InputLimits.DESCRIPTION) {
+      setOrClearDescriptionError("Description is too long")
     } else {
-      Pair(true, "")
+      setOrClearDescriptionError(null)
     }
+  }
+
+  /**
+   * Sets the error message for a description for the UI.
+   *
+   * @param descriptionError The description to set a possible error message for.
+   */
+  private fun setOrClearDescriptionError(descriptionError: String?) {
+    _uiState.value = _uiState.value.copy(descriptionError = descriptionError)
   }
 }

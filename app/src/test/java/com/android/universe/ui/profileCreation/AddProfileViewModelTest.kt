@@ -1,4 +1,4 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import com.android.universe.model.user.FakeUserRepository
 import junit.framework.TestCase.assertEquals
@@ -543,8 +543,9 @@ class AddProfileViewModelTest {
   fun usernameAcceptsValidCharacters() = runTest {
     val valid = listOf("john_doe", "Jane.Doe-123", "simpleUser", "A_B-C.123")
     valid.forEach {
-      val result = viewModel.validUsername(it)
-      assertEquals(true, result.first)
+      viewModel.setUsername(it)
+      val result = viewModel.uiState.value.usernameError
+      assertEquals(null, result)
     }
   }
 
@@ -552,11 +553,11 @@ class AddProfileViewModelTest {
   fun usernameRejectsInvalidCharacters() = runTest {
     val invalid = listOf("john doe", "user@", "name!", "john#doe")
     invalid.forEach {
-      val result = viewModel.validUsername(it)
-      assertEquals(false, result.first)
+      viewModel.setUsername(it)
+      val result = viewModel.uiState.value.usernameError
       assertEquals(
           "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes",
-          result.second)
+          result)
     }
   }
 
@@ -570,9 +571,9 @@ class AddProfileViewModelTest {
   @Test
   fun usernameFailsValidationWhenTooLong() = runTest {
     val tooLong = "a".repeat(InputLimits.USERNAME + 1)
-    val result = viewModel.validUsername(tooLong)
-    assertEquals(false, result.first)
-    assertEquals("Username is too long", result.second)
+    viewModel.setUsername(tooLong)
+    val result = viewModel.uiState.value.usernameError
+    assertEquals("Username is too long", result)
   }
 
   // ---------- FIRST NAME TESTS ----------
@@ -594,8 +595,9 @@ class AddProfileViewModelTest {
   fun firstNameValidatesAllowedCharacters() = runTest {
     val validNames = listOf("Élodie", "Anne-Marie", "D'Arcy", "Åke", "Jean Luc")
     validNames.forEach {
-      val result = viewModel.validFirstName(it)
-      assertEquals(true, result.first)
+      viewModel.setFirstName(it)
+      val result = viewModel.uiState.value.firstNameError
+      assertEquals(null, result)
     }
   }
 
@@ -603,11 +605,11 @@ class AddProfileViewModelTest {
   fun firstNameRejectsNumbersOrSymbols() = runTest {
     val invalid = listOf("John1", "Jane@", "Bob!", "Al1en")
     invalid.forEach {
-      val result = viewModel.validFirstName(it)
-      assertEquals(false, result.first)
+      viewModel.setFirstName(it)
+      val result = viewModel.uiState.value.firstNameError
       assertEquals(
           "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces",
-          result.second)
+          result)
     }
   }
 
@@ -623,8 +625,9 @@ class AddProfileViewModelTest {
   fun lastNameAcceptsAccentsAndSpecialLetters() = runTest {
     val valid = listOf("O'Connor", "García-López", "Brân", "L'Écuyer")
     valid.forEach {
-      val result = viewModel.validLastName(it)
-      assertEquals(true, result.first)
+      viewModel.setLastName(it)
+      val result = viewModel.uiState.value.lastNameError
+      assertEquals(null, result)
     }
   }
 
@@ -632,11 +635,11 @@ class AddProfileViewModelTest {
   fun lastNameRejectsInvalidCharacters() = runTest {
     val invalid = listOf("Doe!", "Smith@", "Brown#", "O%Neil")
     invalid.forEach {
-      val result = viewModel.validLastName(it)
-      assertEquals(false, result.first)
+      viewModel.setLastName(it)
+      val result = viewModel.uiState.value.lastNameError
       assertEquals(
           "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces",
-          result.second)
+          result)
     }
   }
 
@@ -657,9 +660,9 @@ class AddProfileViewModelTest {
 
   @Test
   fun descriptionTooLongFailsValidation() = runTest {
-    val result = viewModel.validDescription("A".repeat(InputLimits.DESCRIPTION + 5))
-    assertEquals(false, result.first)
-    assertEquals("Description is too long", result.second)
+    viewModel.setDescription("A".repeat(InputLimits.DESCRIPTION + 5))
+    val result = viewModel.uiState.value.descriptionError
+    assertEquals("Description is too long", result)
   }
 
   // ---------- ADD PROFILE INTEGRATION TESTS ----------

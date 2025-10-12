@@ -1,4 +1,4 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -165,10 +165,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          val usernamePair = addProfileViewModel.validUsername(profileUIState.username)
-          if (hasTouchedUsername && !usernamePair.first) {
+          if (hasTouchedUsername && profileUIState.usernameError != null) {
             Text(
-                text = usernamePair.second,
+                text = profileUIState.usernameError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_ERROR))
@@ -193,10 +192,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          val firstNamePair = addProfileViewModel.validFirstName(profileUIState.firstName)
-          if (hasTouchedFirstName && !firstNamePair.first) {
+          if (hasTouchedFirstName && profileUIState.firstNameError != null) {
             Text(
-                text = firstNamePair.second,
+                text = profileUIState.firstNameError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_ERROR))
@@ -221,10 +219,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          val lastNamePair = addProfileViewModel.validLastName(profileUIState.lastName)
-          if (hasTouchedLastName && !lastNamePair.first) {
+          if (hasTouchedLastName && profileUIState.lastNameError != null) {
             Text(
-                text = lastNamePair.second,
+                text = profileUIState.lastNameError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_ERROR))
@@ -244,10 +241,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               shape = RoundedCornerShape(12.dp),
               maxLines = 3,
               singleLine = false)
-          val descriptionPair = addProfileViewModel.validDescription(profileUIState.description)
-          if (!descriptionPair.first) {
+          if (profileUIState.descriptionError != null) {
             Text(
-                text = descriptionPair.second,
+                text = profileUIState.descriptionError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_ERROR))
