@@ -6,6 +6,7 @@ package com.android.universe.ui.signIn
  */
 import android.content.Context
 import android.util.Log
+import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
@@ -53,8 +54,17 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
   /** The UI state for the Sign In screen. */
   val uiState: StateFlow<SignInUIState> = _uiState.asStateFlow()
 
+  /**
+   * Helper method to set the UI state, this is more useful than setter since you update the whole
+   * UI state and don't have to worry about previous UI state
+   *
+   * @param isLoading A boolean indicating if the signing is in progress.
+   * @param user The currently signed-in [FirebaseUser], or null if not signed in.
+   * @param signedOut A boolean indicating if the user has signed out.
+   * @param errorMsg An optional error message to be displayed.
+   */
   private fun updateUiState(
-      isLoading: Boolean,
+      isLoading: Boolean = false,
       user: FirebaseUser?,
       signedOut: Boolean,
       errorMsg: String?
@@ -64,39 +74,53 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
     }
   }
 
-  /** Sets an error message in the UI state. */
-  private fun setErrorMsg(errorMsg: String) {
-    _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
-  }
-
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
-  /** Sets the loading state in the UI. */
-  private fun setLoading(isLoading: Boolean) {
-    _uiState.value = _uiState.value.copy(isLoading = isLoading)
+  /** Function to call before starting the signing process. */
+  private fun nowLoading() {
+    _uiState.value = _uiState.value.copy(isLoading = true)
   }
 
-  /** Creates the sign-in options for Google Sign-In. */
+  /**
+   * Creates the sign-in options for Google Sign-In.
+   *
+   * @param context The application context.
+   */
   private fun getGoogleOptions(context: Context) =
       GetSignInWithGoogleOption.Builder(
               serverClientId = context.getString(R.string.default_web_client_id))
           .build()
 
-  /** Creates a credential request for Google Sign-In. */
+  /**
+   * Creates a credential request for Google Sign-In.
+   *
+   * @param signInOptions The sign-in options for Google Sign-In.
+   */
   private fun googleSignInRequest(signInOptions: GetSignInWithGoogleOption) =
       GetCredentialRequest.Builder().addCredentialOption(signInOptions).build()
 
-  /** Asynchronously retrieves a credential using the [CredentialManager]. */
+  /**
+   * Asynchronously retrieves a credential using the [CredentialManager].
+   *
+   * @param context The application context.
+   * @param request The credential request.
+   * @param credentialManager The [CredentialManager] to use for the sign-in process.
+   * @return The retrieved [Credential]
+   */
   private suspend fun getCredential(
       context: Context,
       request: GetCredentialRequest,
       credentialManager: CredentialManager
   ) = credentialManager.getCredential(context, request).credential
 
-  /** Handles failures during the credential retrieval process. */
+  /**
+   * Handles failures during the credential retrieval process.
+   *
+   * @param e The [Exception] that occurred during the credential retrieval process.
+   */
   private fun handleCredentialFailure(e: Exception) {
     val errorMsg =
         when (e) {
@@ -127,7 +151,7 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
     if (_uiState.value.isLoading) return
 
     viewModelScope.launch {
-      setLoading(true)
+      nowLoading()
       clearErrorMsg()
 
       val signInOptions = getGoogleOptions(context)
