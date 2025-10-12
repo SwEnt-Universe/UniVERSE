@@ -536,4 +536,289 @@ class AddProfileViewModelTest {
 
     assertNull(viewModel.uiState.value.errorMsg)
   }
+
+  // ---------- USERNAME TESTS ----------
+
+  @Test
+  fun usernameAcceptsValidCharacters() = runTest {
+    val valid = listOf("john_doe", "Jane.Doe-123", "simpleUser", "A_B-C.123")
+    valid.forEach {
+      val result = viewModel.validUsername(it)
+      assertEquals(true, result.first)
+    }
+  }
+
+  @Test
+  fun usernameRejectsInvalidCharacters() = runTest {
+    val invalid = listOf("john doe", "user@", "name!", "john#doe")
+    invalid.forEach {
+      val result = viewModel.validUsername(it)
+      assertEquals(false, result.first)
+      assertEquals(
+          "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes",
+          result.second)
+    }
+  }
+
+  @Test
+  fun usernameTrimsToPlusOneLimit() = runTest {
+    val tooLong = "a".repeat(InputLimits.USERNAME + 5)
+    viewModel.setUsername(tooLong)
+    assertEquals(InputLimits.USERNAME + 1, viewModel.uiState.value.username.length)
+  }
+
+  @Test
+  fun usernameFailsValidationWhenTooLong() = runTest {
+    val tooLong = "a".repeat(InputLimits.USERNAME + 1)
+    val result = viewModel.validUsername(tooLong)
+    assertEquals(false, result.first)
+    assertEquals("Username is too long", result.second)
+  }
+
+  // ---------- FIRST NAME TESTS ----------
+
+  @Test
+  fun firstNameCleansMultipleSpaces() = runTest {
+    viewModel.setFirstName("   John    Michael   Doe   ")
+    assertEquals(" John Michael Doe ", viewModel.uiState.value.firstName)
+  }
+
+  @Test
+  fun firstNameTrimsToPlusOneLimit() = runTest {
+    val longName = "A".repeat(InputLimits.FIRST_NAME + 5)
+    viewModel.setFirstName(longName)
+    assertEquals(InputLimits.FIRST_NAME + 1, viewModel.uiState.value.firstName.length)
+  }
+
+  @Test
+  fun firstNameValidatesAllowedCharacters() = runTest {
+    val validNames = listOf("Élodie", "Anne-Marie", "D'Arcy", "Åke", "Jean Luc")
+    validNames.forEach {
+      val result = viewModel.validFirstName(it)
+      assertEquals(true, result.first)
+    }
+  }
+
+  @Test
+  fun firstNameRejectsNumbersOrSymbols() = runTest {
+    val invalid = listOf("John1", "Jane@", "Bob!", "Al1en")
+    invalid.forEach {
+      val result = viewModel.validFirstName(it)
+      assertEquals(false, result.first)
+      assertEquals(
+          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces",
+          result.second)
+    }
+  }
+
+  // ---------- LAST NAME TESTS ----------
+
+  @Test
+  fun lastNameCleansProperly() = runTest {
+    viewModel.setLastName("   Van   der   Waals   ")
+    assertEquals(" Van der Waals ", viewModel.uiState.value.lastName)
+  }
+
+  @Test
+  fun lastNameAcceptsAccentsAndSpecialLetters() = runTest {
+    val valid = listOf("O'Connor", "García-López", "Brân", "L'Écuyer")
+    valid.forEach {
+      val result = viewModel.validLastName(it)
+      assertEquals(true, result.first)
+    }
+  }
+
+  @Test
+  fun lastNameRejectsInvalidCharacters() = runTest {
+    val invalid = listOf("Doe!", "Smith@", "Brown#", "O%Neil")
+    invalid.forEach {
+      val result = viewModel.validLastName(it)
+      assertEquals(false, result.first)
+      assertEquals(
+          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces",
+          result.second)
+    }
+  }
+
+  // ---------- DESCRIPTION TESTS ----------
+
+  @Test
+  fun descriptionCleansSpaces() = runTest {
+    viewModel.setDescription("   Hello    there   world!   ")
+    assertEquals(" Hello there world! ", viewModel.uiState.value.description)
+  }
+
+  @Test
+  fun descriptionTrimsToPlusOneLimit() = runTest {
+    val longDesc = "A".repeat(InputLimits.DESCRIPTION + 50)
+    viewModel.setDescription(longDesc)
+    assertEquals(InputLimits.DESCRIPTION + 1, viewModel.uiState.value.description?.length)
+  }
+
+  @Test
+  fun descriptionTooLongFailsValidation() = runTest {
+    val result = viewModel.validDescription("A".repeat(InputLimits.DESCRIPTION + 5))
+    assertEquals(false, result.first)
+    assertEquals("Description is too long", result.second)
+  }
+
+  // ---------- ADD PROFILE INTEGRATION TESTS ----------
+
+  @Test
+  fun addProfileRejectsInvalidUsernameCharacters() = runTest {
+    val repository = FakeUserRepository()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher)
+
+    vm.setUsername("invalid@name")
+    vm.setFirstName("John")
+    vm.setLastName("Doe")
+    vm.setCountry("United States")
+    vm.setDay("12")
+    vm.setMonth("8")
+    vm.setYear("1990")
+
+    vm.addProfile()
+    advanceUntilIdle()
+
+    assertEquals(0, repository.getAllUsers().size)
+    assertEquals("Invalid username format", vm.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileRejectsTooLongUsername() = runTest {
+    val repository = FakeUserRepository()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher)
+
+    vm.setUsername("a".repeat(InputLimits.USERNAME + 2))
+    vm.setFirstName("John")
+    vm.setLastName("Doe")
+    vm.setCountry("United States")
+    vm.setDay("12")
+    vm.setMonth("8")
+    vm.setYear("1990")
+
+    vm.addProfile()
+    advanceUntilIdle()
+
+    assertEquals(0, repository.getAllUsers().size)
+    assertEquals("Username is too long", vm.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileRejectsInvalidNameCharacters() = runTest {
+    val repository = FakeUserRepository()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher)
+
+    vm.setUsername("john_doe")
+    vm.setFirstName("John1")
+    vm.setLastName("Doe")
+    vm.setCountry("United States")
+    vm.setDay("12")
+    vm.setMonth("8")
+    vm.setYear("1990")
+
+    vm.addProfile()
+    advanceUntilIdle()
+
+    assertEquals(0, repository.getAllUsers().size)
+    assertEquals("Invalid first name format", vm.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileRejectsTooLongFirstName() = runTest {
+    val repository = FakeUserRepository()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher)
+
+    vm.setUsername("john_doe")
+    vm.setFirstName("A".repeat(InputLimits.FIRST_NAME + 5))
+    vm.setLastName("Doe")
+    vm.setCountry("United States")
+    vm.setDay("12")
+    vm.setMonth("8")
+    vm.setYear("1990")
+
+    vm.addProfile()
+    advanceUntilIdle()
+
+    assertEquals(0, repository.getAllUsers().size)
+    assertEquals("First name is too long", vm.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileRejectsTooLongLastName() = runTest {
+    val repository = FakeUserRepository()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher)
+
+    vm.setUsername("john_doe")
+    vm.setFirstName("John")
+    vm.setLastName("B".repeat(InputLimits.LAST_NAME + 10))
+    vm.setCountry("United States")
+    vm.setDay("12")
+    vm.setMonth("8")
+    vm.setYear("1990")
+
+    vm.addProfile()
+    advanceUntilIdle()
+
+    assertEquals(0, repository.getAllUsers().size)
+    assertEquals("Last name is too long", vm.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileRejectsTooLongDescription() = runTest {
+    val repository = FakeUserRepository()
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher)
+
+    vm.setUsername("john_doe")
+    vm.setFirstName("John")
+    vm.setLastName("Doe")
+    vm.setCountry("United States")
+    vm.setDay("12")
+    vm.setMonth("8")
+    vm.setYear("1990")
+    vm.setDescription("A".repeat(InputLimits.DESCRIPTION + 20))
+
+    vm.addProfile()
+    advanceUntilIdle()
+
+    assertEquals(0, repository.getAllUsers().size)
+    assertEquals("Description is too long", vm.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun addProfileTrimsAndAddsCleanedNames() = runTest {
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val testRepositoryDispatcher = StandardTestDispatcher(testScheduler)
+    val vm = AddProfileViewModel(repository, dispatcher, testRepositoryDispatcher)
+
+    vm.setUsername("john_doe")
+    vm.setFirstName("   Jean   Luc   ")
+    vm.setLastName("  De    Silva ")
+    vm.setCountry("United States")
+    vm.setDay("15")
+    vm.setMonth("5")
+    vm.setYear("1995")
+    vm.setDescription("  asds  ad  ")
+
+    vm.addProfile()
+    advanceUntilIdle()
+    val users = repository.getAllUsers()
+
+    assertEquals(1, users.size)
+    val user = users.first()
+    assertEquals("john_doe", user.username)
+    assertEquals("Jean Luc", user.firstName)
+    assertEquals("De Silva", user.lastName)
+    assertEquals("US", user.country)
+    assertEquals(1995, user.dateOfBirth.year)
+    assertEquals(5, user.dateOfBirth.monthValue)
+    assertEquals(15, user.dateOfBirth.dayOfMonth)
+    assertEquals("asds ad", user.description)
+  }
 }

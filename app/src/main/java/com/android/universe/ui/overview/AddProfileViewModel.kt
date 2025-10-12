@@ -101,6 +101,9 @@ class AddProfileViewModel(
    * - Ensures all required fields are filled.
    * - Validates date components (day, month, year).
    * - Checks for a unique username.
+   * - Checks invalid input formats in the name fields.
+   * - Enforces a maximum length for each field.
+   * - Removes any leading or trailing spaces from the input before adding the profile.
    *
    * If any check fails, [errorMsg] is updated with a user-friendly message. Otherwise, a
    * [UserProfile] is constructed and persisted via [repository]
@@ -120,12 +123,12 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (firstName.length >= InputLimits.FIRST_NAME) {
+      if (firstName.length > InputLimits.FIRST_NAME) {
         setErrorMsg("First name is too long")
         return@launch
       }
 
-      val cleanedFirstName = sanitizeName(firstName, InputLimits.FIRST_NAME)
+      val cleanedFirstName = sanitize(firstName, InputLimits.FIRST_NAME)
 
       val lastName = state.lastName
       if (state.lastName.isBlank()) {
@@ -138,13 +141,20 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (lastName.length >= InputLimits.FIRST_NAME) {
+      if (lastName.length > InputLimits.LAST_NAME) {
         setErrorMsg("Last name is too long")
         return@launch
       }
 
-      val cleanedLastName = sanitizeName(lastName, InputLimits.LAST_NAME)
+      val cleanedLastName = sanitize(lastName, InputLimits.LAST_NAME)
 
+      val description = state.description
+      if (description != null && description.length > InputLimits.DESCRIPTION) {
+        setErrorMsg("Description is too long")
+        return@launch
+      }
+
+      val cleanedDescription = description?.let { sanitize(it, InputLimits.DESCRIPTION) }
       val day = state.day
       if (day.toIntOrNull() == null) {
         setErrorMsg("Day is not a number")
@@ -191,7 +201,7 @@ class AddProfileViewModel(
         return@launch
       }
 
-      if (username.length >= InputLimits.USERNAME) {
+      if (username.length > InputLimits.USERNAME) {
         setErrorMsg("Username is too long")
         return@launch
       }
@@ -206,7 +216,7 @@ class AddProfileViewModel(
               username = username,
               firstName = cleanedFirstName,
               lastName = cleanedLastName,
-              description = state.description?.takeIf { it.isNotBlank() },
+              description = cleanedDescription?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()),
               tags = emptyList<Tag>())
@@ -229,29 +239,39 @@ class AddProfileViewModel(
     }
   }
 
-  /** Updates the username field. */
+  /**
+   * Updates the username field. Also truncates the input to more than the specified limit to allow
+   * an error popup to be displayed
+   */
   fun setUsername(username: String) {
-    val trimmed = username.take(InputLimits.USERNAME)
+    val trimmed = username.take(InputLimits.USERNAME + 1)
     _uiState.value = _uiState.value.copy(username = trimmed)
   }
 
-  /** Updates the first name field. */
+  /**
+   * Updates the first name field. Also truncates the input to more than the specified limit to
+   * allow an error popup to be displayed and removes double spaces
+   */
   fun setFirstName(firstName: String) {
-    val cleaned = trimAndCleanInput(firstName, InputLimits.FIRST_NAME)
-    _uiState.value = _uiState.value.copy(
-      firstName = cleaned
-    )
+    val cleaned = trimAndCleanInput(firstName, InputLimits.FIRST_NAME + 1)
+    _uiState.value = _uiState.value.copy(firstName = cleaned)
   }
 
-  /** Updates the last name field. */
+  /**
+   * Updates the last name field. Also truncates the input to more than the specified limit to allow
+   * an error popup to be displayed and removes double spaces
+   */
   fun setLastName(lastName: String) {
-    val cleaned = trimAndCleanInput(lastName, InputLimits.LAST_NAME)
+    val cleaned = trimAndCleanInput(lastName, InputLimits.LAST_NAME + 1)
     _uiState.value = _uiState.value.copy(lastName = cleaned)
   }
 
-  /** Updates the description field. */
+  /**
+   * Updates the description field. Also truncates the input to more than the specified limit to
+   * allow an error popup to be displayed and removes double spaces
+   */
   fun setDescription(description: String) {
-    val cleaned = trimAndCleanInput(description, InputLimits.DESCRIPTION)
+    val cleaned = trimAndCleanInput(description, InputLimits.DESCRIPTION + 1)
     _uiState.value = _uiState.value.copy(description = cleaned)
   }
 
@@ -293,33 +313,50 @@ class AddProfileViewModel(
   /**
    * Sanitizes a name string by:
    * - Replacing multiple spaces with a single one
-   * - Trimming leading spaces
+   * - Trimming leading and trailing spaces
    * - Enforcing a maximum length
+   *
    * @param input The string to sanitize.
    * @param maxLength The maximum length of the sanitized string.
    */
-  private fun sanitizeName(input: String, maxLength: Int): String {
+  private fun sanitize(input: String, maxLength: Int): String {
     val singleSpaced = input.replace(Regex("\\s+"), " ")
     val trimmed = singleSpaced.trim()
     return trimmed.take(maxLength)
   }
 
+  /**
+   * Validates a username for the UI.
+   *
+   * @param username The username to validate.
+   * @return A pair of a boolean representing the validation result and an error message if any.
+   */
   fun validUsername(username: String): Pair<Boolean, String> {
     return if (username.isBlank()) {
       Pair(false, "Username cannot be empty")
-    } else if (username.length >= InputLimits.USERNAME) {
+    } else if (username.length > InputLimits.USERNAME) {
       Pair(false, "Username is too long")
     } else if (!USERNAME_REGEX.matches(username)) {
-      Pair(false, "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
-    }  else {
+      Pair(
+          false,
+          "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
+    } else {
       Pair(true, "")
     }
   }
+
+  /** Represents the name to validate. */
   private enum class Name {
     FIRSTNAME,
     LASTNAME
   }
 
+  /**
+   * Converts a [Name] to a human-readable string.
+   *
+   * @param name The [Name] to convert.
+   * @return The name as a string.
+   */
   private fun enumToName(name: Name): String {
     return when (name) {
       Name.FIRSTNAME -> "First name"
@@ -327,39 +364,72 @@ class AddProfileViewModel(
     }
   }
 
+  /**
+   * Converts a [Name] to a field size limit.
+   *
+   * @param name The [Name] to convert.
+   * @return The field size limit.
+   */
   private fun enumToFieldSize(name: Name): Int {
     return when (name) {
       Name.FIRSTNAME -> InputLimits.FIRST_NAME
       Name.LASTNAME -> InputLimits.LAST_NAME
     }
   }
+
+  /**
+   * Validates a name for the UI.
+   *
+   * @param name The name to validate.
+   * @param nameType The type of name to validate.
+   * @return A pair of a boolean representing the validation result and an error message if any.
+   */
   private fun validName(name: String, nameType: Name): Pair<Boolean, String> {
     val text = enumToName(nameType)
     val size = enumToFieldSize(nameType)
 
     return if (name.isBlank()) {
       Pair(false, "$text cannot be empty")
-    } else if (name.length >= size) {
+    } else if (name.length > size) {
       Pair(false, "$text is too long")
     } else if (!NAME_REGEX.matches(name)) {
-      Pair(false, "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
-    }  else {
+      Pair(
+          false,
+          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+    } else {
       Pair(true, "")
     }
   }
 
+  /**
+   * Validates a first name for the UI.
+   *
+   * @param firstName The first name to validate.
+   * @return A pair of a boolean representing the validation result and an error message if any.
+   */
   fun validFirstName(firstName: String): Pair<Boolean, String> {
     return validName(firstName, Name.FIRSTNAME)
   }
 
+  /**
+   * Validates a last name for the UI.
+   *
+   * @param lastName The last name to validate.
+   * @return A pair of a boolean representing the validation result and an error message if any.
+   */
   fun validLastName(lastName: String): Pair<Boolean, String> {
     return validName(lastName, Name.LASTNAME)
   }
 
-
+  /**
+   * Validates a description for the UI.
+   *
+   * @param description The description to validate.
+   * @return A pair of a boolean representing the validation result and an error message if any.
+   */
   fun validDescription(description: String?): Pair<Boolean, String> {
-    if(description == null) return Pair(true, "")
-    return if(description.length >= InputLimits.DESCRIPTION){
+    if (description == null) return Pair(true, "")
+    return if (description.length > InputLimits.DESCRIPTION) {
       Pair(false, "Description is too long")
     } else {
       Pair(true, "")
