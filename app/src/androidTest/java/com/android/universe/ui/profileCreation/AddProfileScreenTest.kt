@@ -1,4 +1,4 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -371,5 +372,100 @@ class AddProfileScreenTest {
 
     // After entering valid inputs, the Save button should be enabled
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsEnabled()
+  }
+
+  @Test
+  fun showsUsernameErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD)
+        .performTextInput("A".repeat(InputLimits.USERNAME + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Username is too long")
+  }
+
+  @Test
+  fun showsFirstnameErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD)
+        .performTextInput("A".repeat(InputLimits.FIRST_NAME + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("First name is too long")
+  }
+
+  @Test
+  fun showsLastnameErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD)
+        .performTextInput("A".repeat(InputLimits.LAST_NAME + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Last name is too long")
+  }
+
+  @Test
+  fun showsDescriptionErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_FIELD)
+        .performTextInput("A".repeat(InputLimits.DESCRIPTION + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Description is too long")
+  }
+
+  @Test
+  fun showsUsernameErrorWhenForbiddenCharacters() {
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD).performTextInput("a ")
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals(
+            "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
+  }
+
+  @Test
+  fun showsFirstnameErrorWhenForbiddenCharacters() {
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).performTextInput("10 ")
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals(
+            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+  }
+
+  @Test
+  fun showsLastnameErrorWhenForbiddenCharacters() {
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextInput("10 ")
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals(
+            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
   }
 }
