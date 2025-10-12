@@ -32,6 +32,13 @@ interface GoogleSignInHelper {
    */
   fun toFirebaseCredential(idToken: String): AuthCredential
 
+    /**
+     * Signs in a user with a Firebase [AuthCredential].
+     * This function is useful for mocking behavior and should be called in a coroutine context.
+     *
+     * @param firebaseAuth is the [FirebaseAuth] instance used for authentication.
+     * @param credential is the [AuthCredential] used for authentication.
+     */
   suspend fun signInWithFirebase(firebaseAuth: FirebaseAuth, credential: AuthCredential): AuthResult
 }
 
