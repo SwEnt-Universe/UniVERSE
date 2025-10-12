@@ -46,8 +46,9 @@ class AuthModelFirebase(
     try {
       // Check if the credential is a Google ID token
       if (credential.type != TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-        Log.w(TAG, "Credential type not supported: ${credential.type}")
-        onFailure(IllegalStateException("Credential type not supported: ${credential.type}"))
+        val exception = IllegalStateException("Credential type not supported: ${credential.type}")
+        Log.w(TAG, exception.localizedMessage, exception)
+        onFailure(exception)
         return
       }
 
@@ -55,8 +56,9 @@ class AuthModelFirebase(
       val googleCredential = helper.extractIdTokenCredential(credential.data)
       val email = googleCredential.id
       if (!emailRegex.matches(email)) {
-        Log.w(TAG, "Email address is not from EPFL: $email")
-        onFailure(IllegalStateException("Email address is not from EPFL: $email"))
+        val exception = IllegalStateException("Email address is not from EPFL: $email")
+        Log.w(TAG, exception.localizedMessage, exception)
+        onFailure(exception)
         return
       }
 
@@ -65,8 +67,9 @@ class AuthModelFirebase(
       val firebaseCredential = helper.toFirebaseCredential(idToken)
       val user = helper.signInWithFirebase(auth, firebaseCredential).user
       if (user == null) {
-        Log.w(TAG, "Could not retrieve user information")
-        onFailure(IllegalStateException("Could not retrieve user information"))
+        val exception = IllegalStateException("Could not retrieve user information")
+        Log.w(TAG, exception.localizedMessage, exception)
+        onFailure(exception)
         return
       }
 
