@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +36,38 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.model.event.EventRepositoryProvider
+
+object EventScreenTestTags {
+  // LazyColumn containing all events
+  const val EVENTS_LIST = "events_list"
+
+  // Individual EventCard
+  const val EVENT_CARD = "event_card"
+
+  // Title
+  const val EVENT_TITLE = "event_title"
+
+  // Description
+  const val EVENT_DESCRIPTION = "event_description"
+
+  // Date overlay on image
+  const val EVENT_DATE = "event_date"
+
+  // Image
+  const val EVENT_IMAGE = "event_image"
+
+  // Tags container
+  const val EVENT_TAGS_COLUMN = "event_tags_column"
+
+  // Individual TagCard
+  const val EVENT_TAG = "event_tag"
+
+  // Creator and participants row
+  const val EVENT_CREATOR_PARTICIPANTS = "event_creator_participants"
+
+  // Join In button
+  const val EVENT_JOIN_BUTTON = "event_join_button"
+}
 
 /**
  * Displays a scrollable list of events using a LazyColumn.
@@ -49,7 +82,7 @@ fun EventScreen(viewModel: EventViewModel = viewModel()) {
   val events by viewModel.eventsState.collectAsState()
 
   LazyColumn(
-      modifier = Modifier.fillMaxSize(),
+      modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
       contentPadding = PaddingValues(8.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(events) { event ->
@@ -91,7 +124,7 @@ fun EventCard(
     participants: Int
 ) {
   Card(
-      modifier = Modifier.fillMaxWidth().padding(8.dp),
+      modifier = Modifier.fillMaxWidth().padding(8.dp).testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(12.dp),
       elevation = CardDefaults.cardElevation(50.dp)) {
         Column(modifier = Modifier.background(Color.White)) {
@@ -101,14 +134,15 @@ fun EventCard(
                 painter = painterResource(id = R.drawable.default_event_img),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize())
+                modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENT_IMAGE))
 
             Box(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
                         .background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 6.dp, vertical = 4.dp)) {
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(
                       text = date,
                       color = Color.Black,
@@ -117,9 +151,12 @@ fun EventCard(
                 }
 
             Column(
-                modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
+                modifier =
+                    Modifier.align(Alignment.TopStart)
+                        .padding(8.dp)
+                        .testTag(EventScreenTestTags.EVENT_TAGS_COLUMN),
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                  tags.forEach { tag -> TagCard(tag) }
+                  tags.forEach { tag -> TagCard(tag, EventScreenTestTags.EVENT_TAG) }
                 }
           }
 
@@ -129,7 +166,9 @@ fun EventCard(
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
               color = Color.Black,
-              modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+              modifier =
+                  Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                      .testTag(EventScreenTestTags.EVENT_TITLE),
               maxLines = 1,
               overflow = TextOverflow.Ellipsis)
 
@@ -138,13 +177,18 @@ fun EventCard(
               text = description,
               style = MaterialTheme.typography.bodyMedium,
               color = Color.DarkGray,
-              modifier = Modifier.padding(horizontal = 12.dp),
+              modifier =
+                  Modifier.padding(horizontal = 12.dp)
+                      .testTag(EventScreenTestTags.EVENT_DESCRIPTION),
               maxLines = 3,
               overflow = TextOverflow.Ellipsis)
 
           // Creator & participants
           Row(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(horizontal = 12.dp, vertical = 8.dp)
+                      .testTag(EventScreenTestTags.EVENT_CREATOR_PARTICIPANTS),
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -155,7 +199,8 @@ fun EventCard(
                 Button(
                     onClick = {},
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    modifier = Modifier.testTag(EventScreenTestTags.EVENT_JOIN_BUTTON)) {
                       Text(text = "Join In", color = Color.White)
                     }
               }
@@ -171,11 +216,12 @@ fun EventCard(
  * @param tag The text of the tag to display.
  */
 @Composable
-fun TagCard(tag: String) {
+fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
           Modifier.background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-              .padding(horizontal = 6.dp, vertical = 4.dp)) {
+              .padding(horizontal = 6.dp, vertical = 4.dp)
+              .testTag(testTag)) {
         Text(
             text = tag,
             style = MaterialTheme.typography.labelSmall,
