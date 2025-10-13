@@ -1,16 +1,24 @@
 package com.android.universe.model.map
 
+import com.android.universe.model.location.Location
+
 /** Represents the different UI states for the Map Screen. */
 sealed class MapUiState {
-    data object Idle : MapUiState()
+  /** Default idle state when nothing special is happening. */
+  data object Idle : MapUiState()
 
-    data object PermissionRequired : MapUiState()
+  /** Used when waiting for a location result (initial load or retry). */
+  data object Loading : MapUiState()
 
-    data object LocationUnavailable : MapUiState()
+  /** Shown when the user hasn’t granted location permission. */
+  data object PermissionRequired : MapUiState()
 
-    data object LocationAvailable : MapUiState()
+  /** When tracking user location actively. */
+  data object Tracking : MapUiState()
 
-    data object Tracking : MapUiState()
+  /** A successful state that includes a valid location. */
+  data class Success(val location: Location) : MapUiState()
 
-    data class Error(val message: String) : MapUiState()
+  /** When an error occurs (e.g., location failure). */
+  data class Error(val message: String) : MapUiState()
 }

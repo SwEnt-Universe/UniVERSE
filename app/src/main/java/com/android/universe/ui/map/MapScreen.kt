@@ -6,8 +6,10 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -19,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -29,8 +32,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.android.universe.BuildConfig
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.map.MapUiState
@@ -57,15 +58,7 @@ import kotlinx.coroutines.launch
 fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val context = LocalContext.current
 
-  val viewModel: MapViewModel =
-    viewModel(
-      factory =
-        object : ViewModelProvider.Factory {
-          @Suppress("UNCHECKED_CAST")
-          override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MapViewModel(TomTomLocationRepository(context)) as T
-          }
-        })
+  val viewModel: MapViewModel = viewModel { MapViewModel(TomTomLocationRepository(context)) }
 
   // FragmentManager required to attach TomTomMapFragment
   val fragmentManager = (context as FragmentActivity).supportFragmentManager
@@ -76,21 +69,19 @@ fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val mapOptions = MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)
   val containerId = remember { View.generateViewId() }
 
-  val userLocation by viewModel.userLocation.collectAsState()
   val uiState by viewModel.uiState.collectAsState()
-  val isTracking by viewModel.isTrackingLocation.collectAsState()
 
   var hasPermission by remember {
     mutableStateOf(
-      ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-              PackageManager.PERMISSION_GRANTED)
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED)
   }
 
   // Launcher to request location permission at runtime
   val permissionLauncher =
-    rememberLauncherForActivityResult(
-      contract = ActivityResultContracts.RequestPermission(),
-      onResult = { granted -> hasPermission = granted })
+      rememberLauncherForActivityResult(
+          contract = ActivityResultContracts.RequestPermission(),
+          onResult = { granted -> hasPermission = granted })
 
   LaunchedEffect(Unit) {
     if (!hasPermission) {
@@ -106,56 +97,68 @@ fun MapScreen(onTabSelected: (Tab) -> Unit) {
   }
 
   // Automatically center map when location updates and tracking is active
-  LaunchedEffect(userLocation, isTracking) {
-    if (isTracking && userLocation != null) {
-      viewModel.centerOn(GeoPoint(userLocation!!.latitude, userLocation!!.longitude), zoom = 15.0)
-    }
-  }
-
   LaunchedEffect(uiState) {
-    if (uiState is MapUiState.LocationAvailable && userLocation != null) {
-      viewModel.centerOn(GeoPoint(userLocation!!.latitude, userLocation!!.longitude), zoom = 15.0)
-    } else if (uiState is MapUiState.LocationUnavailable) {
-      viewModel.centerOnLausanne()
+    when (val state = uiState) {
+      is MapUiState.Success -> {
+        viewModel.centerOn(GeoPoint(state.location.latitude, state.location.longitude), zoom = 15.0)
+      }
+      is MapUiState.Error -> {
+        viewModel.centerOnLausanne()
+      }
+      is MapUiState.PermissionRequired -> {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+      }
+      else -> Unit
     }
   }
 
   Scaffold(bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
-    AndroidView(
-      factory = { ctx ->
-        FrameLayout(ctx).apply {
-          id = containerId
-          layoutParams =
-            FrameLayout.LayoutParams(
-              FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+    Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+      AndroidView(
+          factory = { ctx ->
+            FrameLayout(ctx).apply {
+              id = containerId
+              layoutParams =
+                  FrameLayout.LayoutParams(
+                      FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
 
-          post {
-            if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
-              val fragment = TomTomMapFragment.newInstance(mapOptions)
-              fragmentManager.beginTransaction().replace(id, fragment, "TomTomMap").commitNow()
-              mapFragment = fragment
+              post {
+                if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
+                  val fragment = TomTomMapFragment.newInstance(mapOptions)
+                  fragmentManager.beginTransaction().replace(id, fragment, "TomTomMap").commitNow()
+                  mapFragment = fragment
 
-              fragment.getMapAsync { tomtomMap ->
-                tomtomMap.setLocationProvider(viewModel.locationProvider)
+                  fragment.getMapAsync { tomtomMap ->
+                    tomtomMap.setLocationProvider(viewModel.locationProvider)
 
-                val locationMarkerOptions =
-                  LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-                tomtomMap.enableLocationMarker(locationMarkerOptions)
+                    val locationMarkerOptions =
+                        LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
+                    tomtomMap.enableLocationMarker(locationMarkerOptions)
 
-                (ctx as FragmentActivity).lifecycleScope.launch {
-                  ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
+                    (ctx as FragmentActivity).lifecycleScope.launch {
+                      ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
+                      }
+                    }
                   }
                 }
               }
             }
-          }
-        }
-      },
-      modifier = Modifier.fillMaxSize().padding(padding))
+          },
+          modifier = Modifier.matchParentSize())
 
-    if (uiState is MapUiState.Error) {
-      Snackbar(modifier = Modifier.padding(16.dp)) { Text((uiState as MapUiState.Error).message) }
+      when (val state = uiState) {
+        is MapUiState.Loading -> {
+          CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+        is MapUiState.Error -> {
+          Snackbar(modifier = Modifier.padding(16.dp)) { Text(state.message) }
+        }
+        is MapUiState.PermissionRequired -> {
+          Snackbar(modifier = Modifier.padding(16.dp)) { Text("Location permission required") }
+        }
+        else -> Unit
+      }
     }
 
     // Cleanup resources

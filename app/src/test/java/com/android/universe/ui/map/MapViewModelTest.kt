@@ -51,7 +51,7 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadLastKnownLocation emits LocationAvailable on success`() = runTest {
+  fun `loadLastKnownLocation emits Success on success`() = runTest {
     val fakeLocation = Location(latitude = 46.5196, longitude = 6.5685)
     every { repository.hasLocationPermission() } returns true
     every { repository.getLastKnownLocation(any(), any()) } answers
@@ -61,12 +61,28 @@ class MapViewModelTest {
 
     viewModel.loadLastKnownLocation()
 
-    assertEquals(fakeLocation, viewModel.userLocation.value)
-    assertTrue(viewModel.uiState.value is MapUiState.LocationAvailable)
+    val state = viewModel.uiState.value
+    assertTrue(state is MapUiState.Success)
+    assertEquals(fakeLocation, (state).location)
   }
 
   @Test
-  fun `startLocationTracking emits user locations`() = runTest {
+  fun `loadLastKnownLocation emits Error on failure`() = runTest {
+    every { repository.hasLocationPermission() } returns true
+    every { repository.getLastKnownLocation(any(), any()) } answers
+        {
+          secondArg<() -> Unit>().invoke()
+        }
+
+    viewModel.loadLastKnownLocation()
+
+    val state = viewModel.uiState.value
+    assertTrue(state is MapUiState.Error)
+    assertTrue((state).message.contains("Unable"))
+  }
+
+  @Test
+  fun `startLocationTracking emits Tracking and then Success`() = runTest {
     val fakeFlow = flowOf(Location(46.5, 6.5), Location(46.6, 6.6))
     every { repository.hasLocationPermission() } returns true
     every { repository.startLocationTracking() } returns fakeFlow
@@ -75,8 +91,9 @@ class MapViewModelTest {
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    assertEquals(Location(46.6, 6.6), viewModel.userLocation.value)
-    assertTrue(viewModel.uiState.value is MapUiState.Tracking)
+    val state = viewModel.uiState.value
+    assertTrue(state is MapUiState.Success)
+    assertEquals(Location(46.6, 6.6), (state).location)
   }
 
   @Test
@@ -91,7 +108,7 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertTrue(state is MapUiState.Error)
-    assertTrue(state.message.contains("failed"))
+    assertTrue((state).message.contains("failed"))
   }
 
   @Test
