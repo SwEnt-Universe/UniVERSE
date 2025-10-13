@@ -31,6 +31,13 @@ class TomTomLocationRepository(private val context: Context) : LocationRepositor
   }
 
   /**
+   * Gets the underlying [LocationProvider] for direct map integration.
+   *
+   * @return the TomTom [LocationProvider].
+   */
+  override fun getLocationProvider(): LocationProvider = provider
+
+  /**
    * Checks if location permission is granted by the user.
    *
    * @return true if [ACCESS_FINE_LOCATION] permission is granted.

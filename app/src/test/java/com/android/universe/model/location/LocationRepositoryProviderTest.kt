@@ -7,6 +7,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.test.assertNull
 
 @RunWith(RobolectricTestRunner::class)
 class LocationRepositoryProviderTest {
@@ -29,6 +30,13 @@ class LocationRepositoryProviderTest {
     LocationRepositoryProvider.init(useFake = true)
     val repo = LocationRepositoryProvider.repository
     assertTrue(repo is FakeLocationRepository)
+  }
+
+  @Test
+  fun init_withFakeRepository_providerIsNull() {
+    LocationRepositoryProvider.init(useFake = true)
+    val provider = LocationRepositoryProvider.repository.getLocationProvider()
+    assertNull(provider)
   }
 
   @Test

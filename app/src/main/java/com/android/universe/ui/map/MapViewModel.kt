@@ -6,6 +6,7 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.map.MapUiState
 import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,6 +42,10 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
   // UI state for any errors or messages
   private val _uiState = MutableStateFlow<MapUiState>(MapUiState.Idle)
   val uiState = _uiState.asStateFlow()
+
+  // Expose the underlying location provider for the map integration
+  val locationProvider: LocationProvider?
+    get() = locationRepository.getLocationProvider()
 
   init {
     loadLastKnownLocation()

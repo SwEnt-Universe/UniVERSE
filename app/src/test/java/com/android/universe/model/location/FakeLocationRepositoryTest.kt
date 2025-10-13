@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FakeLocationRepositoryTest {
@@ -23,6 +24,12 @@ class FakeLocationRepositoryTest {
   @Test
   fun hasLocationPermission_alwaysReturnsTrue() {
     assertTrue(repository.hasLocationPermission())
+  }
+
+  @Test
+  fun getLocationProvider_returnsNull() {
+    val provider = repository.getLocationProvider()
+    assertNull(provider)
   }
 
   @Test

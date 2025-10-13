@@ -16,6 +16,9 @@ class FakeLocationRepository : LocationRepository {
   private val fakeLocations =
       listOf(Location(47.3769, 8.5417), Location(46.9481, 7.4474), Location(46.2044, 6.1432))
 
+  /** Returns null as location provider is not supported in the fake repository. */
+  override fun getLocationProvider(): Nothing? = null
+
   /** Always returns true for permission in the fake repository. */
   override fun hasLocationPermission(): Boolean = true
 

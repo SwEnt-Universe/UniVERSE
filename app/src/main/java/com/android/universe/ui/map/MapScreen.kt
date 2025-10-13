@@ -8,10 +8,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -30,8 +26,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,6 +36,7 @@ import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.Tab
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
+import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.ui.MapFragment as TomTomMapFragment
 import kotlinx.coroutines.launch
 
@@ -60,15 +55,7 @@ import kotlinx.coroutines.launch
 fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val context = LocalContext.current
 
-  val viewModel: MapViewModel =
-      viewModel(
-          factory =
-              object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                  return MapViewModel(TomTomLocationRepository(context)) as T
-                }
-              })
+  val viewModel: MapViewModel = viewModel { MapViewModel(TomTomLocationRepository(context)) }
 
   // FragmentManager required to attach TomTomMapFragment
   val fragmentManager = (context as FragmentActivity).supportFragmentManager
@@ -93,17 +80,18 @@ fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val permissionLauncher =
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.RequestPermission(),
-          onResult = { granted ->
-            hasPermission = granted
-            if (granted) {
-              viewModel.loadLastKnownLocation()
-              viewModel.startLocationTracking()
-            }
-          })
+          onResult = { granted -> hasPermission = granted })
 
   LaunchedEffect(Unit) {
     if (!hasPermission) {
       permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+  }
+
+  LaunchedEffect(hasPermission) {
+    if (hasPermission) {
+      viewModel.loadLastKnownLocation()
+      viewModel.startLocationTracking()
     }
   }
 
@@ -122,73 +110,52 @@ fun MapScreen(onTabSelected: (Tab) -> Unit) {
     }
   }
 
-  Scaffold(
-      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) },
-      floatingActionButton = {
-        if (hasPermission) {
-          FloatingActionButton(
-              onClick = {
-                if (userLocation != null) {
-                  viewModel.centerOn(
-                      GeoPoint(userLocation!!.latitude, userLocation!!.longitude), zoom = 15.0)
-                } else {
-                  viewModel.loadLastKnownLocation()
-                }
-              },
-              modifier = Modifier) {
-                Icon(
-                    imageVector = Icons.Default.MyLocation,
-                    contentDescription = "Center on my location")
-              }
-        }
-      }) { padding ->
-        AndroidView(
-            factory = { ctx ->
-              FrameLayout(ctx).apply {
-                id = containerId
-                layoutParams =
-                    FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT)
+  Scaffold(bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
+    AndroidView(
+        factory = { ctx ->
+          FrameLayout(ctx).apply {
+            id = containerId
+            layoutParams =
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
 
-                post {
-                  if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
-                    val fragment = TomTomMapFragment.newInstance(mapOptions)
-                    fragmentManager
-                        .beginTransaction()
-                        .replace(id, fragment, "TomTomMap")
-                        .commitNow()
-                    mapFragment = fragment
+            post {
+              if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
+                val fragment = TomTomMapFragment.newInstance(mapOptions)
+                fragmentManager.beginTransaction().replace(id, fragment, "TomTomMap").commitNow()
+                mapFragment = fragment
 
-                    fragment.getMapAsync { tomtomMap ->
-                      (ctx as FragmentActivity).lifecycleScope.launch {
-                        ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                          viewModel.cameraCommands.collect { camera ->
-                            tomtomMap.moveCamera(camera)
-                          }
-                        }
-                      }
+                fragment.getMapAsync { tomtomMap ->
+                  tomtomMap.setLocationProvider(viewModel.locationProvider)
+
+                  val locationMarkerOptions =
+                      LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
+                  tomtomMap.enableLocationMarker(locationMarkerOptions)
+
+                  (ctx as FragmentActivity).lifecycleScope.launch {
+                    ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                      viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
                     }
                   }
                 }
               }
-            },
-            modifier = Modifier.fillMaxSize().padding(padding))
-
-        if (uiState is MapUiState.Error) {
-          Snackbar(modifier = Modifier.padding(16.dp)) {
-            Text((uiState as MapUiState.Error).message)
-          }
-        }
-
-        // Cleanup resources
-        DisposableEffect(Unit) {
-          onDispose {
-            viewModel.stopLocationTracking()
-            mapFragment?.let {
-              fragmentManager.beginTransaction().remove(it).commitNowAllowingStateLoss()
             }
           }
+        },
+        modifier = Modifier.fillMaxSize().padding(padding))
+
+    if (uiState is MapUiState.Error) {
+      Snackbar(modifier = Modifier.padding(16.dp)) { Text((uiState as MapUiState.Error).message) }
+    }
+
+    // Cleanup resources
+    DisposableEffect(Unit) {
+      onDispose {
+        viewModel.stopLocationTracking()
+        mapFragment?.let {
+          fragmentManager.beginTransaction().remove(it).commitNowAllowingStateLoss()
         }
       }
+    }
+  }
 }
