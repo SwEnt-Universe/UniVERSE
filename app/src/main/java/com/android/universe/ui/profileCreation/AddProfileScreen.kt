@@ -1,4 +1,4 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +58,7 @@ object AddProfileScreenTestTags {
   // Description
   const val DESCRIPTION_TEXT = "description_text"
   const val DESCRIPTION_FIELD = "description_field"
+  const val DESCRIPTION_ERROR = "description_error"
 
   // Country
   const val COUNTRY_TEXT = "country_text"
@@ -164,9 +165,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          if (hasTouchedUsername && profileUIState.username.isBlank()) {
+          if (hasTouchedUsername && profileUIState.usernameError != null) {
             Text(
-                text = "Username cannot be empty",
+                text = profileUIState.usernameError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_ERROR))
@@ -191,9 +192,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          if (hasTouchedFirstName && profileUIState.firstName.isBlank()) {
+          if (hasTouchedFirstName && profileUIState.firstNameError != null) {
             Text(
-                text = "First Name cannot be empty",
+                text = profileUIState.firstNameError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_ERROR))
@@ -218,9 +219,9 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       },
               shape = RoundedCornerShape(12.dp),
               singleLine = true)
-          if (hasTouchedLastName && profileUIState.lastName.isBlank()) {
+          if (hasTouchedLastName && profileUIState.lastNameError != null) {
             Text(
-                text = "Last Name cannot be empty",
+                text = profileUIState.lastNameError!!,
                 color = Color.Red,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_ERROR))
@@ -237,7 +238,16 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
               placeholder = { Text("Description") },
               modifier =
                   Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.DESCRIPTION_FIELD),
-              shape = RoundedCornerShape(12.dp))
+              shape = RoundedCornerShape(12.dp),
+              maxLines = 3,
+              singleLine = false)
+          if (profileUIState.descriptionError != null) {
+            Text(
+                text = profileUIState.descriptionError!!,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_ERROR))
+          }
 
           // Country selector
           Text(

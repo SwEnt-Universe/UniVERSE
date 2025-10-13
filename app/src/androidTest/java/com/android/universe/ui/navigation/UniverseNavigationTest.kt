@@ -1,15 +1,12 @@
 package com.android.universe.ui.navigation
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.android.universe.MainActivity
 import com.android.universe.UniverseApp
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,16 +14,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class UniverseAppNavigationTest : TestCase() {
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
-
-  @Before
-  fun grantLocationPermission() {
-    val instrumentation = InstrumentationRegistry.getInstrumentation()
-    instrumentation.uiAutomation
-        .executeShellCommand(
-            "pm grant ${composeTestRule.activity.packageName} android.permission.ACCESS_FINE_LOCATION")
-        .close()
-  }
+  @get:Rule val composeTestRule = createComposeRule()
 
   @Test
   fun app_startsAtMapScreen() {
