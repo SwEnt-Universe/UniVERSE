@@ -58,16 +58,11 @@ class AddProfileScreenTest {
     // Date of birth
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT).assertIsDisplayed()
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY).assertIsNotDisplayed()
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER)
-        .assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR).assertIsNotDisplayed()
 
     // Save button
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsDisplayed()
@@ -173,12 +168,7 @@ class AddProfileScreenTest {
 
     // Assert that the error message is not displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY, useUnmergedTree = true)
-        .assertIsNotDisplayed()
-
-    // Assert that the error message is not displayed
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
 
@@ -194,12 +184,7 @@ class AddProfileScreenTest {
 
     // Assert that the error message is not displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY, useUnmergedTree = true)
-        .assertIsNotDisplayed()
-
-    // Assert that the error message is not displayed
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
 
@@ -215,12 +200,7 @@ class AddProfileScreenTest {
 
     // Assert that the error message is not displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY, useUnmergedTree = true)
-        .assertIsNotDisplayed()
-
-    // Assert that the error message is not displayed
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
 
@@ -276,12 +256,12 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun showsDayErrorWhenNotNumber() {
+  fun showsDayEmptyErrorWhenNonDigitsInput() {
     val text = "hello"
     // Focus the username field
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput(text)
@@ -291,7 +271,23 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Day cannot be empty")
+  }
+
+  @Test
+  fun showsDayErrorWhenErroneousInput() {
+    val text = "32"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
@@ -305,12 +301,27 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun showsMonthErrorWhenNotNumber() {
+  fun showsMonthErrorWhenErroneousMonth() {
+    val text = "13"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
+        .assertExists()
+  }
+
+  @Test
+  fun showsMonthEmptyErrorWhenNonDigitsInput() {
     val text = "hello"
     // Focus the username field
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput(text)
@@ -320,8 +331,9 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
         .assertExists()
+        .assertTextEquals("Month cannot be empty")
   }
 
   @Test
@@ -334,12 +346,12 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun showsYearErrorWhenNotNumber() {
+  fun showsYearEmptyErrorWhenNonDigitsInput() {
     val text = "hello"
     // Focus the username field
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput(text)
@@ -349,7 +361,38 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Year cannot be empty")
+  }
+
+  @Test
+  fun showsYearErrorWhenInvalidYear1() {
+    val text = "1600"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
+        .assertExists()
+  }
+
+  @Test
+  fun showsYearErrorWhenInvalidYear2() {
+    val text = "8000"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
