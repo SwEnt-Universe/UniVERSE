@@ -2,12 +2,12 @@ package com.android.universe.model.location
 
 import android.content.Context
 import junit.framework.TestCase.assertTrue
+import kotlin.test.assertNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertNull
 
 @RunWith(RobolectricTestRunner::class)
 class LocationRepositoryProviderTest {

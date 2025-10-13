@@ -29,6 +29,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.android.universe.BuildConfig
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.map.MapUiState
@@ -55,7 +57,15 @@ import kotlinx.coroutines.launch
 fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val context = LocalContext.current
 
-  val viewModel: MapViewModel = viewModel { MapViewModel(TomTomLocationRepository(context)) }
+  val viewModel: MapViewModel =
+    viewModel(
+      factory =
+        object : ViewModelProvider.Factory {
+          @Suppress("UNCHECKED_CAST")
+          override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return MapViewModel(TomTomLocationRepository(context)) as T
+          }
+        })
 
   // FragmentManager required to attach TomTomMapFragment
   val fragmentManager = (context as FragmentActivity).supportFragmentManager
@@ -72,15 +82,15 @@ fun MapScreen(onTabSelected: (Tab) -> Unit) {
 
   var hasPermission by remember {
     mutableStateOf(
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED)
+      ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+              PackageManager.PERMISSION_GRANTED)
   }
 
   // Launcher to request location permission at runtime
   val permissionLauncher =
-      rememberLauncherForActivityResult(
-          contract = ActivityResultContracts.RequestPermission(),
-          onResult = { granted -> hasPermission = granted })
+    rememberLauncherForActivityResult(
+      contract = ActivityResultContracts.RequestPermission(),
+      onResult = { granted -> hasPermission = granted })
 
   LaunchedEffect(Unit) {
     if (!hasPermission) {
@@ -112,37 +122,37 @@ fun MapScreen(onTabSelected: (Tab) -> Unit) {
 
   Scaffold(bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
     AndroidView(
-        factory = { ctx ->
-          FrameLayout(ctx).apply {
-            id = containerId
-            layoutParams =
-                FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+      factory = { ctx ->
+        FrameLayout(ctx).apply {
+          id = containerId
+          layoutParams =
+            FrameLayout.LayoutParams(
+              FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
 
-            post {
-              if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
-                val fragment = TomTomMapFragment.newInstance(mapOptions)
-                fragmentManager.beginTransaction().replace(id, fragment, "TomTomMap").commitNow()
-                mapFragment = fragment
+          post {
+            if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
+              val fragment = TomTomMapFragment.newInstance(mapOptions)
+              fragmentManager.beginTransaction().replace(id, fragment, "TomTomMap").commitNow()
+              mapFragment = fragment
 
-                fragment.getMapAsync { tomtomMap ->
-                  tomtomMap.setLocationProvider(viewModel.locationProvider)
+              fragment.getMapAsync { tomtomMap ->
+                tomtomMap.setLocationProvider(viewModel.locationProvider)
 
-                  val locationMarkerOptions =
-                      LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-                  tomtomMap.enableLocationMarker(locationMarkerOptions)
+                val locationMarkerOptions =
+                  LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
+                tomtomMap.enableLocationMarker(locationMarkerOptions)
 
-                  (ctx as FragmentActivity).lifecycleScope.launch {
-                    ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                      viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
-                    }
+                (ctx as FragmentActivity).lifecycleScope.launch {
+                  ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
                   }
                 }
               }
             }
           }
-        },
-        modifier = Modifier.fillMaxSize().padding(padding))
+        }
+      },
+      modifier = Modifier.fillMaxSize().padding(padding))
 
     if (uiState is MapUiState.Error) {
       Snackbar(modifier = Modifier.padding(16.dp)) { Text((uiState as MapUiState.Error).message) }

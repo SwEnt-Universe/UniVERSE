@@ -8,7 +8,7 @@ import com.android.universe.model.map.MapUiState
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -28,7 +28,7 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
 
   // Use replay=1 so new collectors immediately get the latest camera command.
   private val _cameraCommands =
-      MutableSharedFlow<CameraOptions>(replay = 1, extraBufferCapacity = 1)
+    MutableSharedFlow<CameraOptions>(replay = 1, extraBufferCapacity = 1)
   val cameraCommands = _cameraCommands.asSharedFlow()
 
   // Expose user location as state
@@ -59,11 +59,11 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
     }
 
     locationRepository.getLastKnownLocation(
-        onSuccess = { location ->
-          _userLocation.value = location
-          _uiState.value = MapUiState.LocationAvailable
-        },
-        onFailure = { _uiState.value = MapUiState.LocationUnavailable })
+      onSuccess = { location ->
+        _userLocation.value = location
+        _uiState.value = MapUiState.LocationAvailable
+      },
+      onFailure = { _uiState.value = MapUiState.LocationUnavailable })
   }
 
   /**
@@ -73,8 +73,10 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
    */
   fun centerOn(point: GeoPoint, zoom: Double = 10.0) {
     _cameraCommands.tryEmit(
-        CameraOptions(position = point, zoom = zoom, tilt = 0.0, rotation = 0.0))
+      CameraOptions(position = point, zoom = zoom, tilt = 0.0, rotation = 0.0))
   }
+
+  private var trackingJob: Job? = null
 
   /** Starts tracking the user's location. Emits location updates to userLocation StateFlow. */
   fun startLocationTracking() {
@@ -85,28 +87,26 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
 
     if (_isTrackingLocation.value) return
 
-    viewModelScope.launch {
+    trackingJob = viewModelScope.launch {
       _isTrackingLocation.value = true
       _uiState.value = MapUiState.Tracking
-
-      locationRepository
-          .startLocationTracking()
+      try {
+        locationRepository.startLocationTracking()
           .catch { e ->
-            _isTrackingLocation.value = false
             _uiState.value = MapUiState.Error(e.message ?: "Location tracking failed")
           }
           .collect { location -> _userLocation.value = location }
+      } finally {
+        _isTrackingLocation.value = false
+      }
     }
   }
 
   /** Stops location tracking. */
   fun stopLocationTracking() {
-    if (_isTrackingLocation.value) {
-      _isTrackingLocation.value = false
-      _uiState.value = MapUiState.Idle
-      // Cancel the tracking coroutine
-      viewModelScope.coroutineContext.cancelChildren()
-    }
+    trackingJob?.cancel()
+    _isTrackingLocation.value = false
+    _uiState.value = MapUiState.Idle
   }
 
   /**

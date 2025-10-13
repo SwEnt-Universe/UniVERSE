@@ -59,7 +59,17 @@ fun UniverseApp() {
         startDestination = NavigationScreens.Map.route,
         route = NavigationScreens.Map.name,
     ) {
-      composable(NavigationScreens.Map.route) { MapScreen(onTabSelected) }
+      composable(NavigationScreens.Map.route) {
+          /*
+          NavigationPlaceholderScreen(
+              title = NavigationScreens.Map.name,
+              selectedTab = Tab.Map,
+              onTabSelected = onTabSelected,
+              testTag = NavigationTestTags.MAP_SCREEN,
+          )
+          */
+          MapScreen(onTabSelected)
+      }
     }
 
     navigation(
