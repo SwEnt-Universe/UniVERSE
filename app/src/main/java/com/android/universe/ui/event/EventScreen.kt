@@ -125,11 +125,11 @@ fun EventCard(
 ) {
   Card(
       modifier = Modifier.fillMaxWidth().padding(8.dp).testTag(EventScreenTestTags.EVENT_CARD),
-      shape = RoundedCornerShape(12.dp),
-      elevation = CardDefaults.cardElevation(50.dp)) {
+      shape = RoundedCornerShape(16.dp),
+      elevation = CardDefaults.cardElevation(48.dp)) {
         Column(modifier = Modifier.background(Color.White)) {
           // Image with overlay
-          Box(modifier = Modifier.height(100.dp).fillMaxWidth()) {
+          Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
             Image(
                 painter = painterResource(id = R.drawable.default_event_img),
                 contentDescription = null,
@@ -141,7 +141,7 @@ fun EventCard(
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
                         .background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(
                       text = date,
@@ -155,7 +155,7 @@ fun EventCard(
                     Modifier.align(Alignment.TopStart)
                         .padding(8.dp)
                         .testTag(EventScreenTestTags.EVENT_TAGS_COLUMN),
-                verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
                   tags.forEach { tag -> TagCard(tag, EventScreenTestTags.EVENT_TAG) }
                 }
           }
@@ -167,7 +167,7 @@ fun EventCard(
               fontWeight = FontWeight.Bold,
               color = Color.Black,
               modifier =
-                  Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                  Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                       .testTag(EventScreenTestTags.EVENT_TITLE),
               maxLines = 1,
               overflow = TextOverflow.Ellipsis)
@@ -178,7 +178,7 @@ fun EventCard(
               style = MaterialTheme.typography.bodyMedium,
               color = Color.DarkGray,
               modifier =
-                  Modifier.padding(horizontal = 12.dp)
+                  Modifier.padding(horizontal = 16.dp)
                       .testTag(EventScreenTestTags.EVENT_DESCRIPTION),
               maxLines = 3,
               overflow = TextOverflow.Ellipsis)
@@ -187,7 +187,7 @@ fun EventCard(
           Row(
               modifier =
                   Modifier.fillMaxWidth()
-                      .padding(horizontal = 12.dp, vertical = 8.dp)
+                      .padding(horizontal = 16.dp, vertical = 8.dp)
                       .testTag(EventScreenTestTags.EVENT_CREATOR_PARTICIPANTS),
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically) {
@@ -220,7 +220,7 @@ fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
           Modifier.background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-              .padding(horizontal = 6.dp, vertical = 4.dp)
+              .padding(horizontal = 8.dp, vertical = 4.dp)
               .testTag(testTag)) {
         Text(
             text = tag,
