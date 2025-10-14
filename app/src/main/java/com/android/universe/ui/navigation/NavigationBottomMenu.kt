@@ -5,8 +5,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -37,6 +39,8 @@ sealed class Tab(
   /** Represents the 'Map' tab. */
   object Map : Tab(NavigationScreens.Map, Icons.Outlined.Explore, Icons.Filled.Explore)
 
+  object Event : Tab(NavigationScreens.Event, Icons.Outlined.Event, Icons.Filled.Event)
+
   /** Represents the 'Profile' tab. */
   object Profile :
       Tab(NavigationScreens.Profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle)
@@ -51,6 +55,7 @@ val tabs =
     listOf(
         Tab.Chat,
         Tab.Map,
+        Tab.Event,
         Tab.Profile,
     )
 

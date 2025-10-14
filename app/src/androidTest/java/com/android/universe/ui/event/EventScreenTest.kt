@@ -72,7 +72,7 @@ class EventScreenTest {
 
     viewModel = EventViewModel(fakeEventRepository)
 
-    composeTestRule.setContent { EventScreen(viewModel) }
+    composeTestRule.setContent { EventScreen(viewModel = viewModel) }
 
     // Wait until Compose settles
     composeTestRule.waitForIdle()
