@@ -16,7 +16,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.map.MapScreen
@@ -26,7 +25,6 @@ import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
-import com.android.universe.ui.profile.UserProfileViewModel
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
@@ -88,22 +86,24 @@ fun UniverseApp() {
         route = NavigationScreens.Profile.name,
     ) {
       composable(NavigationScreens.Profile.route) {
-        UserProfileScreen(
-          username = "emma",
-          onTabSelected,
-          navController) }
+        UserProfileScreen(username = "emma", onTabSelected, navController)
+      }
     }
 
     composable(
-      route = NavigationScreens.Settings.route,
-      arguments = listOf(navArgument("username") { type = NavType.StringType })
-    ) { backStackEntry ->
-      val username = backStackEntry.arguments?.getString("username") ?: "emma"
-      SettingsScreen(
-        username = username,
-        onSaveSuccess = { navController.popBackStack(NavigationScreens.Profile.route, inclusive = false) },
-        onCancel = { navController.popBackStack(NavigationScreens.Profile.route, inclusive = false) },
-      )
-    }
+        route = NavigationScreens.Settings.route,
+        arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
+          ->
+          val username = backStackEntry.arguments?.getString("username") ?: "emma"
+          SettingsScreen(
+              username = username,
+              onSaveSuccess = {
+                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+              },
+              onCancel = {
+                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+              },
+          )
+        }
   }
 }

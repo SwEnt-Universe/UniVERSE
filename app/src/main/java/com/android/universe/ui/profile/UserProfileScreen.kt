@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -53,10 +52,10 @@ object UserProfileScreenTestTags {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
-  username: String,
-  onTabSelected: (Tab) -> Unit = {},
-  navController: NavController,
-  userProfileViewModel: UserProfileViewModel = viewModel()
+    username: String,
+    onTabSelected: (Tab) -> Unit = {},
+    navController: NavController,
+    userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
 
   val userUIState by userProfileViewModel.userState.collectAsState()
@@ -74,21 +73,20 @@ fun UserProfileScreen(
   val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
   val nb_tags = userUIState.userProfile.tags.size
   Scaffold(
-    topBar = {
-      TopAppBar(
-        title = { Text("Profile") },
-        actions = {
-          IconButton(
-            onClick = {
-              navController.navigate(NavigationScreens.Settings.route.replace("{username}", username))
-            },
-            modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)
-          ) {
-            Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
-          }
-        }
-      )
-    },
+      topBar = {
+        TopAppBar(
+            title = { Text("Profile") },
+            actions = {
+              IconButton(
+                  onClick = {
+                    navController.navigate(
+                        NavigationScreens.Settings.route.replace("{username}", username))
+                  },
+                  modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
+                    Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
+                  }
+            })
+      },
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
         Column(
             modifier =
@@ -234,6 +232,4 @@ private fun TagChip(tag: Tag) {
 @Composable
 fun UserProfileScreenPreview() {
   UserProfileScreen(username = "emma", navController = rememberNavController())
-
-
 }

@@ -35,10 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tagsCanton
 import com.android.universe.model.tagsInterest
@@ -86,7 +84,7 @@ private fun TagGroup(
     onTagReSelect: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-  Text(name, style = MaterialTheme.typography.titleLarge , modifier = Modifier.padding(16.dp))
+  Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
