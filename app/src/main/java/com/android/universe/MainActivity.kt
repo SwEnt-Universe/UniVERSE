@@ -16,7 +16,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
@@ -95,19 +94,19 @@ fun UniverseApp() {
       }
     }
     composable(
-      route = NavigationScreens.Settings.route,
-      arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
-      ->
-      val username = backStackEntry.arguments?.getString("username") ?: "emma"
-      SettingsScreen(
-        username = username,
-        onSaveSuccess = {
-          navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-        },
-        onBack = {
-          navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-        },
-      )
-    }
+        route = NavigationScreens.Settings.route,
+        arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
+          ->
+          val username = backStackEntry.arguments?.getString("username") ?: "emma"
+          SettingsScreen(
+              username = username,
+              onSaveSuccess = {
+                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+              },
+              onBack = {
+                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+              },
+          )
+        }
   }
 }
