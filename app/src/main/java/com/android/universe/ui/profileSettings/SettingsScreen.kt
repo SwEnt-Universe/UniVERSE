@@ -66,7 +66,7 @@ fun SettingsScreen(
     onToggleCountryDropdown = viewModel::toggleCountryDropdown,
     onAddTag = viewModel::addTag,
     onRemoveTag = viewModel::removeTag,
-    onSaveModal = { viewModel.saveModal(username, onSaveSuccess) })
+    onSaveModal = { viewModel.saveModal(username) })
 }
 
 /* =========================================================

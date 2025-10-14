@@ -101,6 +101,7 @@ class SettingsViewModel(
       _uiState.value.copy(
         showModal = true,
         currentField = field,
+        password = if (field == "password") "" else _uiState.value.password, // Reset password
         tempSelectedTags =
           when (field) {
             "interest_tags" ->
@@ -143,7 +144,7 @@ class SettingsViewModel(
     }
   }
 
-  fun saveModal(username: String, onSaveSuccess: () -> Unit) {
+  fun saveModal(username: String) {
     val state = _uiState.value
     val modalError =
       when (state.currentField) {
@@ -198,10 +199,10 @@ class SettingsViewModel(
     }
 
     _uiState.value = _uiState.value.copy(showModal = false, currentField = "", modalError = null)
-    saveProfile(username, onSaveSuccess)
+    saveProfile(username)
   }
 
-  fun saveProfile(username: String, onSaveSuccess: () -> Unit) {
+  fun saveProfile(username: String) {
     viewModelScope.launch {
       val state = _uiState.value
       val emailError =
@@ -286,7 +287,6 @@ class SettingsViewModel(
                 _uiState.value.copy(errorMsg = "Failed to update password: ${e.message}")
             }
         }
-        onSaveSuccess()
       } catch (e: Exception) {
         _uiState.value = _uiState.value.copy(errorMsg = "Failed to save profile: ${e.message}")
       }
