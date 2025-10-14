@@ -18,8 +18,8 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
+    alias(libs.plugins.gms)
     id("jacoco")
-    // id("com.google.gms.google-services")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -162,22 +162,34 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
 
-    // Compose (BOM + modules)
+    // --------------------- Auth ---------------------
+    implementation(libs.credentials)
+    implementation(libs.googleid)
+
+    // ------------------- Firebase -------------------
+    val firebaseBom = platform(libs.firebase.bom)
+    implementation(firebaseBom)
+    globalTestImplementation(firebaseBom)
+
+    implementation(libs.firebase.auth)
+
+    // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     globalTestImplementation(composeBom)
 
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
+    // Material Design 3
     implementation(libs.compose.material3)
     implementation(libs.androidx.material.icons.extended)
     // Integration with activities
     implementation(libs.compose.activity)
+    // Integration with ViewModels
     implementation(libs.compose.viewmodel)
+    // Android Studio Preview support
     implementation(libs.compose.preview)
     debugImplementation(libs.compose.tooling)
     // Navigation
@@ -189,22 +201,25 @@ dependencies {
     debugImplementation(libs.compose.test.manifest)
 
     // Testing
+    testImplementation(libs.logback) // logback for logging mockK
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
 
     // Coroutines test (pick ONE version; 1.8.1 is current)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation(libs.jetbrains.kotlinx.coroutines.test)
     // Turbine for Flow testing
-    testImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation(libs.turbine)
     // MockK
-    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation(libs.mockk)
+    testImplementation(libs.mockk.agent)
+    testImplementation(libs.mockk.android)
     // Kotlin test bridge
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
-    androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    testImplementation(libs.kotlin.test.junit)
+    androidTestImplementation(libs.jetbrains.kotlin.test.junit)
 
     // AndroidX test core (explicit if needed)
-    androidTestImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation(libs.androidx.core)
 
     // Kaspresso
     globalTestImplementation(libs.kaspresso)
