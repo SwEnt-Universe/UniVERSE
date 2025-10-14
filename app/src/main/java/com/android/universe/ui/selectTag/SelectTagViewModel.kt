@@ -24,7 +24,7 @@ class SelectTagViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
 ) : ViewModel() {
   /** Backing field for [uiStateTags]. Mutable within the ViewModel only. */
-  private val selectedTags = MutableStateFlow<List<String>>(emptyList())
+  private val selectedTags = MutableStateFlow<List<Tag>>(emptyList())
 
   /** Publicly exposed state of the selected tags. */
   val uiStateTags = selectedTags.asStateFlow()
@@ -33,14 +33,16 @@ class SelectTagViewModel(
    * Adds a new tag to the list of selected tags. Throws an IllegalArgumentException and logs an
    * error in Logcat if the tag is already selected.
    *
-   * @param name the name of the tag that is selected.
+   * @param tag the tag that is selected.
    */
-  fun addTag(name: String) {
-    if (selectedTags.value.contains(name)) {
-      Log.e("SelectTagViewModel", "Cannot add tag '$name' because it was already in the list")
-      throw IllegalArgumentException("Tag '$name' is already selected")
+  fun addTag(tag: Tag) {
+    if (selectedTags.value.contains(tag)) {
+      Log.e(
+          "SelectTagViewModel",
+          "Cannot add tag '${tag.displayName}' because it was already in the list")
+      throw IllegalArgumentException("Tag '${tag.displayName}' is already selected")
     } else {
-      selectedTags.value = selectedTags.value + name
+      selectedTags.value = selectedTags.value + tag
     }
   }
 
@@ -48,14 +50,16 @@ class SelectTagViewModel(
    * Removes a tag from the list of selected tags. Throws an IllegalArgumentException and logs an
    * error in Logcat if the tag is not already selected.
    *
-   * @param name the name of the tag that is deselected.
+   * @param tag the tag that is deselected.
    */
-  fun deleteTag(name: String) {
-    if (!selectedTags.value.contains(name)) {
-      Log.e("SelectTagViewModel", "Cannot delete tag '$name' because it is not in the list")
-      throw IllegalArgumentException("Tag '$name' is not currently selected")
+  fun deleteTag(tag: Tag) {
+    if (!selectedTags.value.contains(tag)) {
+      Log.e(
+          "SelectTagViewModel",
+          "Cannot delete tag '${tag.displayName}' because it is not in the list")
+      throw IllegalArgumentException("Tag '${tag.displayName}' is not currently selected")
     } else {
-      selectedTags.value = selectedTags.value - name
+      selectedTags.value = selectedTags.value - tag
     }
   }
 
@@ -67,7 +71,7 @@ class SelectTagViewModel(
    */
   suspend fun loadTags(username: String) {
     val userProfile = userRepository.getUser(username)
-    selectedTags.value = userProfile.tags.map { tag -> tag.name }
+    selectedTags.value = userProfile.tags
   }
 
   /**
@@ -85,7 +89,7 @@ class SelectTagViewModel(
             userProfile.country,
             userProfile.description,
             userProfile.dateOfBirth,
-            selectedTags.value.map { tagName -> Tag(tagName) })
+            selectedTags.value)
     userRepository.updateUser(username, newUserProfile)
   }
 }

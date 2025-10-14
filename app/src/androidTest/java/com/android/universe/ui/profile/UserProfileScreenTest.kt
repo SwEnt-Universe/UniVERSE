@@ -35,7 +35,7 @@ class UserProfileScreenTest {
             country = "IT",
             description = "Coffee aficionado.",
             dateOfBirth = LocalDate.of(1993, 6, 18),
-            tags = listOf(Tag("Metal")))
+            tags = listOf(Tag.METAL))
     UserRepositoryProvider.repository.addUser(profile)
 
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
@@ -72,7 +72,20 @@ class UserProfileScreenTest {
 
   @Test
   fun moreThanEightTagsScrollsAndShowsPartialContent() = runTest {
-    val manyTags = (1..12).map { Tag("Tag$it") }
+    val manyTags =
+        listOf(
+            Tag.METAL,
+            Tag.TABLE_TENNIS,
+            Tag.ARTIFICIAL_INTELLIGENCE,
+            Tag.CYCLING,
+            Tag.HANDBALL,
+            Tag.BASKETBALL,
+            Tag.MUSIC,
+            Tag.GENEVA,
+            Tag.AARGAU,
+            Tag.FOOT,
+            Tag.VAUD,
+            Tag.YOGA)
     val profile =
         UserProfile(
             username = "overflow",
@@ -98,8 +111,7 @@ class UserProfileScreenTest {
 
   @Test
   fun tagsAreUniqueAndInAllowedList() = runTest {
-    val testTags =
-        listOf(Tag("Rock"), Tag("Pop"), Tag("Metal"), Tag("Jazz"), Tag("Blues"), Tag("Country"))
+    val testTags = listOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
     val profile =
         UserProfile(
             username = "musiclover",
@@ -122,7 +134,9 @@ class UserProfileScreenTest {
         .forEach { node ->
           val tagText = node.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
           assertNotNull("Tag text should not be null", tagText)
-          assertTrue("Tag text '$tagText' must be in allowed list", allTags.contains(tagText))
+          assertTrue(
+              "Tag text '$tagText' must be in allowed list",
+              allTags.map { tag -> tag.displayName }.contains(tagText))
           assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
         }
     UserRepositoryProvider.repository.deleteUser(profile.username)

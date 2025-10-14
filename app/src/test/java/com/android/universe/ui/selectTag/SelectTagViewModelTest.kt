@@ -24,52 +24,52 @@ class SelectTagViewModelTest {
   fun uiStateTags_initiallyEmpty() = runTest {
     // Check that the selected tags are initially empty.
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
   fun addTag_addsInterestTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = "Music"
+    val tag = Tag.MUSIC
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(listOf("Music"), state)
+    assertEquals(listOf(Tag.MUSIC), state)
   }
 
   @Test
   fun addTag_addsSportTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = "Judo"
+    val tag = Tag.JUDO
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(listOf("Judo"), state)
+    assertEquals(listOf(Tag.JUDO), state)
   }
 
   @Test
   fun addTag_addsMusicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = "Metal"
+    val tag = Tag.METAL
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(listOf("Metal"), state)
+    assertEquals(listOf(Tag.METAL), state)
   }
 
   @Test
   fun addTag_addsTransportTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = "Boat"
+    val tag = Tag.BOAT
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(listOf("Boat"), state)
+    assertEquals(listOf(Tag.BOAT), state)
   }
 
   @Test
   fun addTag_addsCantonTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = "Geneva"
+    val tag = Tag.GENEVA
     viewModel.addTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(listOf("Geneva"), state)
+    assertEquals(listOf(Tag.GENEVA), state)
   }
 
   @Test
@@ -77,16 +77,16 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag changes when we add multiple tags.
     val tags =
         listOf(
-            "Geneva",
-            "Aargau",
-            "Car",
-            "Bicycle",
-            "Metal",
-            "Rock",
-            "Judo",
-            "Handball",
-            "Music",
-            "Role-playing games")
+            Tag.GENEVA,
+            Tag.AARGAU,
+            Tag.CAR,
+            Tag.BICYCLE,
+            Tag.METAL,
+            Tag.ROCK,
+            Tag.JUDO,
+            Tag.HANDBALL,
+            Tag.MUSIC,
+            Tag.ROLE_PLAYING_GAMES)
     for (tag in tags) {
       viewModel.addTag(tag)
     }
@@ -98,7 +98,7 @@ class SelectTagViewModelTest {
   fun addTag_throwsExceptionWhenTagAlreadySelected() = runTest {
     // Check that the function addTag throws an exception when we select a tag that is already
     // selected.
-    val tag = "Metal"
+    val tag = Tag.METAL
     viewModel.addTag(tag)
     try {
       viewModel.addTag(tag)
@@ -113,58 +113,58 @@ class SelectTagViewModelTest {
   @Test
   fun deleteTag_removesInterestTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = "Music"
+    val tag = Tag.MUSIC
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
   fun deleteTag_removesSportTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = "Judo"
+    val tag = Tag.JUDO
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
   fun deleteTag_removesMusicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = "Metal"
+    val tag = Tag.METAL
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
   fun deleteTag_removesTransportTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = "Boat"
+    val tag = Tag.BOAT
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
   fun deleteTag_removesCantonTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = "Geneva"
+    val tag = Tag.GENEVA
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
   fun deleteTag_throwsExceptionWhenTagNotSelected() = runTest {
     // Check that the function deleteTag throws an exception when we deselect a tag that is not
     // already selected.
-    val tag = "Metal"
+    val tag = Tag.METAL
     try {
       viewModel.deleteTag(tag)
       assert(false) { "Expected an exception" }
@@ -180,16 +180,16 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag change when we remove multiple tag.
     val tags =
         listOf(
-            "Geneva",
-            "Aargau",
-            "Car",
-            "Bicycle",
-            "Metal",
-            "Rock",
-            "Judo",
-            "Handball",
-            "Music",
-            "Role-playing games")
+            Tag.GENEVA,
+            Tag.AARGAU,
+            Tag.CAR,
+            Tag.BICYCLE,
+            Tag.METAL,
+            Tag.ROCK,
+            Tag.JUDO,
+            Tag.HANDBALL,
+            Tag.MUSIC,
+            Tag.ROLE_PLAYING_GAMES)
     for (tag in tags) {
       viewModel.addTag(tag)
     }
@@ -197,7 +197,7 @@ class SelectTagViewModelTest {
       viewModel.deleteTag(tag)
     }
     val state = viewModel.uiStateTags.value
-    assertEquals(emptyList<String>(), state)
+    assertEquals(emptyList<Tag>(), state)
   }
 
   @Test
@@ -207,25 +207,32 @@ class SelectTagViewModelTest {
     // were clicked.
     val tags =
         listOf(
-            "Geneva",
-            "Aargau",
-            "Car",
-            "Bicycle",
-            "Metal",
-            "Rock",
-            "Judo",
-            "Handball",
-            "Music",
-            "Role-playing games")
+            Tag.GENEVA,
+            Tag.AARGAU,
+            Tag.CAR,
+            Tag.BICYCLE,
+            Tag.METAL,
+            Tag.ROCK,
+            Tag.JUDO,
+            Tag.HANDBALL,
+            Tag.MUSIC,
+            Tag.ROLE_PLAYING_GAMES)
     for (tag in tags) {
       viewModel.addTag(tag)
     }
-    viewModel.deleteTag("Aargau")
-    viewModel.deleteTag("Bicycle")
-    viewModel.deleteTag("Car")
+    viewModel.deleteTag(Tag.AARGAU)
+    viewModel.deleteTag(Tag.BICYCLE)
+    viewModel.deleteTag(Tag.CAR)
 
     val expectedTags =
-        listOf("Geneva", "Metal", "Rock", "Judo", "Handball", "Music", "Role-playing games")
+        listOf(
+            Tag.GENEVA,
+            Tag.METAL,
+            Tag.ROCK,
+            Tag.JUDO,
+            Tag.HANDBALL,
+            Tag.MUSIC,
+            Tag.ROLE_PLAYING_GAMES)
     val state = viewModel.uiStateTags.value
     assertEquals(expectedTags, state)
   }
@@ -241,11 +248,11 @@ class SelectTagViewModelTest {
             country = "France",
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag("Metal"), Tag("Car")))
+            tags = listOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
 
     viewModel.loadTags("Jacquie")
-    assertEquals(listOf("Metal", "Car"), viewModel.uiStateTags.value)
+    assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
   }
 
   @Test
@@ -253,12 +260,12 @@ class SelectTagViewModelTest {
     // Check that if we select tags and deselect them, the selected tags remain in the correct
     // order, matching the sequence they
     // were clicked.
-    viewModel.addTag("Metal")
-    viewModel.addTag("Handball")
-    viewModel.addTag("Car")
-    viewModel.deleteTag("Handball")
+    viewModel.addTag(Tag.METAL)
+    viewModel.addTag(Tag.HANDBALL)
+    viewModel.addTag(Tag.CAR)
+    viewModel.deleteTag(Tag.HANDBALL)
 
-    assertEquals(listOf("Metal", "Car"), viewModel.uiStateTags.value)
+    assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
   }
 
   @Test
@@ -276,32 +283,32 @@ class SelectTagViewModelTest {
     repository.addUser(userProfile)
     val tags =
         listOf(
-            "Geneva",
-            "Aargau",
-            "Car",
-            "Bicycle",
-            "Metal",
-            "Rock",
-            "Judo",
-            "Handball",
-            "Music",
-            "Role-playing games")
+            Tag.GENEVA,
+            Tag.AARGAU,
+            Tag.CAR,
+            Tag.BICYCLE,
+            Tag.METAL,
+            Tag.ROCK,
+            Tag.JUDO,
+            Tag.HANDBALL,
+            Tag.MUSIC,
+            Tag.ROLE_PLAYING_GAMES)
     for (tag in tags) {
       viewModel.addTag(tag)
     }
     viewModel.saveTags("Jacquie")
     val expectedTags =
         listOf(
-            Tag("Geneva"),
-            Tag("Aargau"),
-            Tag("Car"),
-            Tag("Bicycle"),
-            Tag("Metal"),
-            Tag("Rock"),
-            Tag("Judo"),
-            Tag("Handball"),
-            Tag("Music"),
-            Tag("Role-playing games"))
+            Tag.GENEVA,
+            Tag.AARGAU,
+            Tag.CAR,
+            Tag.BICYCLE,
+            Tag.METAL,
+            Tag.ROCK,
+            Tag.JUDO,
+            Tag.HANDBALL,
+            Tag.MUSIC,
+            Tag.ROLE_PLAYING_GAMES)
     val expectedUserProfile =
         UserProfile(
             username = "Jacquie",
@@ -325,14 +332,14 @@ class SelectTagViewModelTest {
             country = "France",
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag("Metal"), Tag("Car")))
+            tags = listOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
     viewModel.loadTags("Jacquie")
 
-    viewModel.addTag("Handball")
+    viewModel.addTag(Tag.HANDBALL)
     viewModel.saveTags("Jacquie")
 
     val updatedUser = repository.getUser("Jacquie")
-    assertEquals(listOf(Tag("Metal"), Tag("Car"), Tag("Handball")), updatedUser.tags)
+    assertEquals(listOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
   }
 }
