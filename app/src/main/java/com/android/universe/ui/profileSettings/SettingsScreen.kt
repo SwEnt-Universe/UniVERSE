@@ -42,7 +42,7 @@ import com.android.universe.ui.selectTag.TagColors
 fun SettingsScreen(
   username: String,
   onSaveSuccess: () -> Unit = {},
-  onCancel: () -> Unit = {},
+  onBack: () -> Unit = {},
   viewModel: SettingsViewModel = viewModel()
 ) {
   val uiState by viewModel.uiState.collectAsState()
@@ -59,7 +59,7 @@ fun SettingsScreen(
 
   SettingsScreenContent(
     uiState = uiState,
-    onBack = onCancel,
+    onBack = onBack,
     onOpenField = viewModel::openModal,
     onCloseModal = viewModel::closeModal,
     onUpdateField = viewModel::updateField,
@@ -91,7 +91,7 @@ fun SettingsScreenContent(
         title = { Text("Settings") },
         navigationIcon = {
           IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Cancel")
+            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
           }
         })
     }) { padding ->

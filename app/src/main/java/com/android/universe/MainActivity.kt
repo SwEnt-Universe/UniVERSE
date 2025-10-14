@@ -95,19 +95,19 @@ fun UniverseApp() {
       }
     }
     composable(
-        route = NavigationScreens.Settings.route,
-        arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
-          ->
-          val username = backStackEntry.arguments?.getString("username") ?: "emma"
-          SettingsScreen(
-              username = username,
-              onSaveSuccess = {
-                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-              },
-              onCancel = {
-                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-              },
-          )
-        }
+      route = NavigationScreens.Settings.route,
+      arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
+      ->
+      val username = backStackEntry.arguments?.getString("username") ?: "emma"
+      SettingsScreen(
+        username = username,
+        onSaveSuccess = {
+          navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+        },
+        onBack = {
+          navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+        },
+      )
+    }
   }
 }
