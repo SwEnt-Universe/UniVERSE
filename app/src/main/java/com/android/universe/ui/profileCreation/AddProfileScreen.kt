@@ -70,18 +70,15 @@ object AddProfileScreenTestTags {
 
   // Day
   const val DAY_FIELD = "day_field"
-  const val DAY_ERROR_EMPTY = "day_error_empty"
-  const val DAY_ERROR_NUMBER = "day_error_number"
+  const val DAY_ERROR = "day_error"
 
   // Month
   const val MONTH_FIELD = "month_field"
-  const val MONTH_ERROR_EMPTY = "month_error_empty"
-  const val MONTH_ERROR_NUMBER = "month_error_number"
+  const val MONTH_ERROR = "month_error"
 
   // Year
   const val YEAR_FIELD = "year_field"
-  const val YEAR_ERROR_EMPTY = "year_error_empty"
-  const val YEAR_ERROR_NUMBER = "year_error_number"
+  const val YEAR_ERROR = "year_error"
 
   // Save button
   const val SAVE_BUTTON = "save_button"
@@ -319,18 +316,12 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                                   },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
-                      if (hasTouchedDay && profileUIState.day.isBlank()) {
+                      if (hasTouchedDay && profileUIState.dayError != null) {
                         Text(
-                            text = "Day cannot be empty",
+                            text = profileUIState.dayError!!,
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY))
-                      } else if (hasTouchedDay && profileUIState.day.toIntOrNull() == null) {
-                        Text(
-                            text = "Day need to be a number",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER))
+                            modifier = Modifier.testTag(AddProfileScreenTestTags.DAY_ERROR))
                       }
                     }
 
@@ -353,19 +344,12 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                                   },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
-                      if (hasTouchedMonth && profileUIState.month.isBlank()) {
+                      if (hasTouchedMonth && profileUIState.monthError != null) {
                         Text(
-                            text = "Month cannot be empty",
+                            text = profileUIState.monthError!!,
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY))
-                      } else if (hasTouchedMonth && profileUIState.month.toIntOrNull() == null) {
-                        Text(
-                            text = "Month need to be a number",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier =
-                                Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER))
+                            modifier = Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR))
                       }
                     }
 
@@ -388,18 +372,12 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                                   },
                           shape = RoundedCornerShape(12.dp),
                           singleLine = true)
-                      if (hasTouchedYear && profileUIState.year.isBlank()) {
+                      if (hasTouchedYear && profileUIState.yearError != null) {
                         Text(
-                            text = "Year cannot be empty",
+                            text = profileUIState.yearError!!,
                             color = Color.Red,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY))
-                      } else if (hasTouchedYear && profileUIState.year.toIntOrNull() == null) {
-                        Text(
-                            text = "Year need to be a number",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER))
+                            modifier = Modifier.testTag(AddProfileScreenTestTags.YEAR_ERROR))
                       }
                     }
               }
@@ -414,15 +392,13 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
                       .fillMaxWidth()
                       .testTag(AddProfileScreenTestTags.SAVE_BUTTON),
               enabled =
-                  profileUIState.username.isNotBlank() &&
-                      profileUIState.firstName.isNotBlank() &&
-                      profileUIState.lastName.isNotBlank() &&
-                      profileUIState.day.isNotBlank() &&
-                      profileUIState.day.toIntOrNull() != null &&
-                      profileUIState.month.isNotBlank() &&
-                      profileUIState.month.toIntOrNull() != null &&
-                      profileUIState.year.isNotBlank() &&
-                      profileUIState.year.toIntOrNull() != null,
+                  profileUIState.usernameError == null &&
+                      profileUIState.firstNameError == null &&
+                      profileUIState.lastNameError == null &&
+                      profileUIState.descriptionError == null &&
+                      profileUIState.dayError == null &&
+                      profileUIState.monthError == null &&
+                      profileUIState.yearError == null,
               colors =
                   ButtonDefaults.buttonColors(
                       containerColor = Color.Black, contentColor = Color.White),

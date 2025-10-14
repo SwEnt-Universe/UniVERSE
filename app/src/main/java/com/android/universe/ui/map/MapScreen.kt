@@ -2,8 +2,6 @@ package com.android.universe.ui.map
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.view.View
-import android.widget.FrameLayout
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -24,151 +22,138 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.model.location.TomTomLocationRepository
-import com.android.universe.model.map.MapUiState
 import com.android.universe.ui.navigation.NavigationBottomMenu
+import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
+import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
-import com.tomtom.sdk.map.display.ui.MapFragment as TomTomMapFragment
-import kotlinx.coroutines.launch
+import com.tomtom.sdk.map.display.ui.MapView
+
+object MapScreenTestTags {
+  const val MAP_VIEW = "map_view"
+  const val LOADING_INDICATOR = "loading_indicator"
+}
 
 /**
- * Composable for displaying a map using TomTom SDK and handling user location.
+ * Composable for displaying a map screen with location tracking and permissions.
  *
- * This screen requests location permissions, tracks the user's location, and updates the map
- * accordingly. It also provides a FloatingActionButton to center the map on the user's current
- * location.
+ * This screen handles location permissions, manages the MapViewModel, and displays the map along
+ * with appropriate UI states.
  *
  * @param onTabSelected Lambda to handle bottom navigation tab selection.
- * @param viewModel Optional [MapViewModel] instance for managing map state. If not provided, a
- *   default instance is created using [TomTomLocationRepository].
  */
 @Composable
 fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val context = LocalContext.current
-
   val viewModel: MapViewModel = viewModel { MapViewModel(TomTomLocationRepository(context)) }
-
-  // FragmentManager required to attach TomTomMapFragment
-  val fragmentManager = (context as FragmentActivity).supportFragmentManager
-  // Holds a reference to the TomTomMapFragment
-  var mapFragment by remember { mutableStateOf<TomTomMapFragment?>(null) }
-
-  // Map configuration with API key
-  val mapOptions = MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)
-  val containerId = remember { View.generateViewId() }
-
   val uiState by viewModel.uiState.collectAsState()
 
-  var hasPermission by remember {
-    mutableStateOf(
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED)
-  }
+  val hasPermission =
+      ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+          PackageManager.PERMISSION_GRANTED
 
-  // Launcher to request location permission at runtime
   val permissionLauncher =
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.RequestPermission(),
-          onResult = { granted -> hasPermission = granted })
+          onResult = { granted ->
+            if (granted) {
+              viewModel.loadLastKnownLocation()
+              viewModel.startLocationTracking()
+            }
+          })
 
   LaunchedEffect(Unit) {
-    if (!hasPermission) {
+    if (hasPermission) {
+      viewModel.loadLastKnownLocation()
+      viewModel.startLocationTracking()
+    } else {
       permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
   }
 
-  LaunchedEffect(hasPermission) {
-    if (hasPermission) {
-      viewModel.loadLastKnownLocation()
-      viewModel.startLocationTracking()
-    }
-  }
+  DisposableEffect(Unit) { onDispose { viewModel.stopLocationTracking() } }
 
-  // Automatically center map when location updates and tracking is active
-  LaunchedEffect(uiState) {
-    when (val state = uiState) {
-      is MapUiState.Success -> {
-        viewModel.centerOn(GeoPoint(state.location.latitude, state.location.longitude), zoom = 15.0)
+  Scaffold(
+      modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
+      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+          TomTomMapView(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+
+          if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier =
+                    Modifier.align(Alignment.Center).testTag(MapScreenTestTags.LOADING_INDICATOR))
+          }
+
+          uiState.error?.let { errorMessage ->
+            Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage) }
+          }
+
+          if (uiState.isPermissionRequired) {
+            Snackbar(modifier = Modifier.padding(16.dp)) { Text("Location permission required") }
+          }
+        }
       }
-      is MapUiState.Error -> {
-        viewModel.centerOnLausanne()
-      }
-      is MapUiState.PermissionRequired -> {
-        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-      }
-      else -> Unit
-    }
-  }
+}
 
-  Scaffold(bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
-    Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-      AndroidView(
-          factory = { ctx ->
-            FrameLayout(ctx).apply {
-              id = containerId
-              layoutParams =
-                  FrameLayout.LayoutParams(
-                      FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+/**
+ * A composable function that wraps the TomTom [MapView] in an [AndroidView].
+ *
+ * This function creates and manages a MapView instance, handling its lifecycle (onCreate, onStart,
+ * onStop, onDestroy) and integrating with the MapViewModel for location tracking and camera
+ * updates.
+ *
+ * @param viewModel The MapViewModel that manages map state and location data.
+ * @param modifier The modifier to be applied to the layout.
+ */
+@Composable
+fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
 
-              post {
-                if (fragmentManager.findFragmentByTag("TomTomMap") == null) {
-                  val fragment = TomTomMapFragment.newInstance(mapOptions)
-                  fragmentManager.beginTransaction().replace(id, fragment, "TomTomMap").commitNow()
-                  mapFragment = fragment
+  val mapView =
+      remember(context) { MapView(context, MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)) }
+  var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
+  var isInitialized by remember { mutableStateOf(false) }
+  var isLocationProviderSet by remember { mutableStateOf(false) }
 
-                  fragment.getMapAsync { tomtomMap ->
-                    tomtomMap.setLocationProvider(viewModel.locationProvider)
+  AndroidView(
+      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
+      factory = { ctx ->
+        mapView.apply {
+          if (!isInitialized) {
+            onCreate(null)
+            isInitialized = true
+          }
+          onStart()
 
-                    val locationMarkerOptions =
-                        LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-                    tomtomMap.enableLocationMarker(locationMarkerOptions)
+          getMapAsync { map ->
+            tomtomMap = map
 
-                    (ctx as FragmentActivity).lifecycleScope.launch {
-                      ctx.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        viewModel.cameraCommands.collect { camera -> tomtomMap.moveCamera(camera) }
-                      }
-                    }
-                  }
-                }
-              }
+            if (!isLocationProviderSet && viewModel.locationProvider != null) {
+              map.setLocationProvider(viewModel.locationProvider)
+              isLocationProviderSet = true
+
+              val locationMarkerOptions =
+                  LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
+              map.enableLocationMarker(locationMarkerOptions)
             }
-          },
-          modifier = Modifier.matchParentSize())
+          }
+        }
+      },
+      update = { view -> view.onStart() },
+      onReset = { mapView.onStop() })
 
-      when (val state = uiState) {
-        is MapUiState.Loading -> {
-          CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        }
-        is MapUiState.Error -> {
-          Snackbar(modifier = Modifier.padding(16.dp)) { Text(state.message) }
-        }
-        is MapUiState.PermissionRequired -> {
-          Snackbar(modifier = Modifier.padding(16.dp)) { Text("Location permission required") }
-        }
-        else -> Unit
-      }
-    }
-
-    // Cleanup resources
-    DisposableEffect(Unit) {
-      onDispose {
-        viewModel.stopLocationTracking()
-        mapFragment?.let {
-          fragmentManager.beginTransaction().remove(it).commitNowAllowingStateLoss()
-        }
-      }
-    }
+  LaunchedEffect(Unit) {
+    viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }
   }
+
+  DisposableEffect(Unit) { onDispose { mapView.onStop() } }
 }

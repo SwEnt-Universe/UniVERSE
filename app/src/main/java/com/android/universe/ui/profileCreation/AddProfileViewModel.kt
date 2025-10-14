@@ -8,6 +8,7 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.DateTimeException
 import java.time.LocalDate
+import java.time.Period
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +42,15 @@ import kotlinx.coroutines.withContext
  *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
  *   change if the user didn't enter anything and clicked away from the field.
  * @property descriptionError Optional error message for the description field.
+ * @property yearError Optional error message for the year field. Note that it is initialized to
+ *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
+ *   didn't enter anything and clicked away from the field.
+ * @property monthError Optional error message for the month field. Note that it is initialized to
+ *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
+ *   didn't enter anything and clicked away from the field.
+ * @property dayError Optional error message for the day field. Note that it is initialized to
+ *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
+ *   didn't enter anything and clicked away from the field.
  */
 data class AddProfileUIState(
     val username: String = "",
@@ -56,6 +66,9 @@ data class AddProfileUIState(
     val firstNameError: String? = "First name cannot be empty",
     val lastNameError: String? = "Last name cannot be empty",
     val descriptionError: String? = null,
+    val yearError: String? = "Year cannot be empty",
+    val monthError: String? = "Month cannot be empty",
+    val dayError: String? = "Day cannot be empty"
 )
 
 /**
@@ -69,6 +82,9 @@ object InputLimits {
   const val FIRST_NAME = 25
   const val LAST_NAME = 25
   const val DESCRIPTION = 100
+  const val DAY = 2
+  const val MONTH = 2
+  const val YEAR = 4
 }
 
 /**
@@ -101,6 +117,12 @@ class AddProfileViewModel(
   private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
 
   private val usernameRegex = "^[A-Za-z0-9._-]+$".toRegex()
+
+  private val oldestYear = 1900
+
+  private val currentDate = LocalDate.now()
+
+  private val minimumUserAge = 13
 
   /** Clears the current error message from the UI state. */
   fun clearErrorMsg() {
@@ -203,6 +225,11 @@ class AddProfileViewModel(
         return@launch
       }
 
+      if (!userOldEnough(LocalDate.of(year.toInt(), month.toInt(), day.toInt()))) {
+        setErrorMsg("At least 13 years old required")
+        return@launch
+      }
+
       val username = state.username
       if (username.isBlank()) {
         setErrorMsg("Username cannot be empty")
@@ -250,6 +277,16 @@ class AddProfileViewModel(
     } catch (_: DateTimeException) {
       false
     }
+  }
+
+  /**
+   * Tests if a user is old enough to use the app.
+   *
+   * @param dateOfBirth The user's date of birth.
+   */
+  private fun userOldEnough(dateOfBirth: LocalDate): Boolean {
+    // Number of whole years between dob and today
+    return Period.between(dateOfBirth, currentDate).years.coerceAtLeast(0) >= minimumUserAge
   }
 
   /**
@@ -310,19 +347,46 @@ class AddProfileViewModel(
     _uiState.value = _uiState.value.copy(country = country)
   }
 
-  /** Updates the day field. */
+  /** Updates the day field and sets the error if it is invalid */
   fun setDay(day: String) {
-    _uiState.value = _uiState.value.copy(day = day)
+    val number = day.filter { it.isDigit() }
+    val trimmed = number.take(InputLimits.DAY)
+    val error =
+        when {
+          trimmed.isBlank() -> "Day cannot be empty"
+          trimmed.toInt() < 1 -> "Day needs to be after 1"
+          trimmed.toInt() > 31 -> "Day needs to be before 31"
+          else -> null
+        }
+    _uiState.value = _uiState.value.copy(day = trimmed, dayError = error)
   }
 
-  /** Updates the month field. */
+  /** Updates the month field and sets the error if it is invalid */
   fun setMonth(month: String) {
-    _uiState.value = _uiState.value.copy(month = month)
+    val number = month.filter { it.isDigit() }
+    val trimmed = number.take(InputLimits.MONTH)
+    val error =
+        when {
+          trimmed.isBlank() -> "Month cannot be empty"
+          trimmed.toInt() < 1 -> "Month needs to be after 1"
+          trimmed.toInt() > 12 -> "Month needs to be before 12"
+          else -> null
+        }
+    _uiState.value = _uiState.value.copy(month = trimmed, monthError = error)
   }
 
-  /** Updates the year field. */
+  /** Updates the year field and sets the error if it is invalid */
   fun setYear(year: String) {
-    _uiState.value = _uiState.value.copy(year = year)
+    val number = year.filter { it.isDigit() }
+    val trimmed = number.take(InputLimits.YEAR)
+    val error =
+        when {
+          trimmed.isBlank() -> "Year cannot be empty"
+          trimmed.toInt() < oldestYear -> "Year needs to be after $oldestYear"
+          trimmed.toInt() > currentDate.year -> "Year needs to be before ${currentDate.year}"
+          else -> null
+        }
+    _uiState.value = _uiState.value.copy(year = trimmed, yearError = error)
   }
 
   /**

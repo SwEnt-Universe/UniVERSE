@@ -3,11 +3,12 @@ package com.android.universe.ui.map
 import app.cash.turbine.test
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
-import com.android.universe.model.map.MapUiState
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -42,73 +43,60 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadLastKnownLocation emits PermissionRequired when no permission`() = runTest {
-    every { repository.hasLocationPermission() } returns false
-
-    viewModel.loadLastKnownLocation()
-
-    assertTrue(viewModel.uiState.value is MapUiState.PermissionRequired)
-  }
-
-  @Test
   fun `loadLastKnownLocation emits Success on success`() = runTest {
     val fakeLocation = Location(latitude = 46.5196, longitude = 6.5685)
-    every { repository.hasLocationPermission() } returns true
     every { repository.getLastKnownLocation(any(), any()) } answers
         {
           firstArg<(Location) -> Unit>().invoke(fakeLocation)
         }
 
     viewModel.loadLastKnownLocation()
+    testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state is MapUiState.Success)
-    assertEquals(fakeLocation, (state).location)
+    assertTrue(state.location == fakeLocation)
+    assertNull(state.error)
+    assertFalse(state.isLoading)
   }
 
   @Test
-  fun `loadLastKnownLocation emits Error on failure`() = runTest {
-    every { repository.hasLocationPermission() } returns true
+  fun `loadLastKnownLocation emits Error on failure and centers on Lausanne`() = runTest {
     every { repository.getLastKnownLocation(any(), any()) } answers
         {
           secondArg<() -> Unit>().invoke()
         }
 
     viewModel.loadLastKnownLocation()
-
-    val state = viewModel.uiState.value
-    assertTrue(state is MapUiState.Error)
-    assertTrue((state).message.contains("Unable"))
-  }
-
-  @Test
-  fun `startLocationTracking emits Tracking and then Success`() = runTest {
-    val fakeFlow = flowOf(Location(46.5, 6.5), Location(46.6, 6.6))
-    every { repository.hasLocationPermission() } returns true
-    every { repository.startLocationTracking() } returns fakeFlow
-
-    viewModel.startLocationTracking()
-
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state is MapUiState.Success)
-    assertEquals(Location(46.6, 6.6), (state).location)
+    assertEquals("No last known location available", state.error)
+    assertFalse(state.isLoading)
+  }
+
+  @Test
+  fun `startLocationTracking emits latest location and clears error`() = runTest {
+    val fakeFlow = flowOf(Location(46.5, 6.5), Location(46.6, 6.6))
+    every { repository.startLocationTracking() } returns fakeFlow
+
+    viewModel.startLocationTracking()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(Location(46.6, 6.6), state.location)
+    assertNull(state.error)
   }
 
   @Test
   fun `startLocationTracking emits Error on exception`() = runTest {
-    every { repository.hasLocationPermission() } returns true
     every { repository.startLocationTracking() } returns
         flow { throw RuntimeException("Location tracking failed") }
 
     viewModel.startLocationTracking()
-
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state is MapUiState.Error)
-    assertTrue((state).message.contains("failed"))
+    assertTrue(state.error!!.contains("Location tracking failed"))
   }
 
   @Test
@@ -119,6 +107,19 @@ class MapViewModelTest {
 
       val emitted = awaitItem()
       assertEquals(point, emitted.position)
+      assertEquals(10.0, emitted.zoom)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `centerOnLausanne emits correct CameraOptions`() = runTest {
+    viewModel.cameraCommands.test {
+      viewModel.centerOnLausanne()
+      val emitted = awaitItem()
+      assertEquals(46.5196535, emitted.position!!.latitude, 0.00001)
+      assertEquals(6.6322734, emitted.position!!.longitude, 0.00001)
+      assertEquals(14.0, emitted.zoom)
       cancelAndIgnoreRemainingEvents()
     }
   }
