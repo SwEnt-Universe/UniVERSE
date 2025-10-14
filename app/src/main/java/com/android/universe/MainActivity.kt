@@ -26,7 +26,7 @@ import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profile.UserProfileViewModel
-import com.android.universe.ui.settings.SettingsScreen
+import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -109,7 +109,6 @@ fun UniverseApp() {
         username = username,
         onSaveSuccess = { navController.popBackStack(NavigationScreens.Profile.route, inclusive = false) },
         onCancel = { navController.popBackStack(NavigationScreens.Profile.route, inclusive = false) },
-        userProfileViewModel = UserProfileViewModel(userRepository)
       )
     }
   }
