@@ -100,9 +100,6 @@ fun UniverseApp() {
           val username = backStackEntry.arguments?.getString("username") ?: "emma"
           SettingsScreen(
               username = username,
-              onSaveSuccess = {
-                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-              },
               onBack = {
                 navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
               },
