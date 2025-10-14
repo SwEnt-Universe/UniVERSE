@@ -11,6 +11,7 @@ import com.android.universe.model.tagsSport
 import com.android.universe.model.tagsTransport
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.profileSettings.*
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -146,34 +147,22 @@ class SettingsViewModel(
 
   fun saveModal(username: String) {
     val state = _uiState.value
-    val modalError =
-        when (state.currentField) {
-          "email" ->
-              when {
-                state.email.isEmpty() -> "Email cannot be empty"
-                !state.email.contains("@") -> "Invalid email format"
-                else -> null
-              }
-          "password" ->
-              when {
-                state.password.isNotEmpty() && state.password.length < 6 ->
-                    "Password must be at least 6 characters"
-                else -> null
-              }
-          "firstName" -> if (state.firstName.isEmpty()) "First name cannot be empty" else null
-          "lastName" -> if (state.lastName.isEmpty()) "Last name cannot be empty" else null
-          "description" -> if (state.description.length > 200) "Description too long" else null
-          "country" -> if (state.country.isEmpty()) "Country cannot be empty" else null
-          "date" -> {
-            try {
-              LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt())
-              null
-            } catch (e: Exception) {
-              "Invalid date"
-            }
-          }
-          else -> null
+    var modalError: String? = null
+    when (state.currentField) {
+      "email" -> modalError = validateEmail(state.email)
+      "password" -> modalError = validatePassword(state.password)
+      "firstName" -> modalError = validateName("First name", state.firstName)
+      "lastName" -> modalError = validateName("Last name", state.lastName)
+      "description" -> modalError = validateDescription(state.description)
+      "country" -> modalError = validateNonEmpty("Country", state.country)
+      "date" -> {
+        val (dErr, mErr, yErr) = validateDateTriple(state.day, state.month, state.year)
+        if (dErr != null || mErr != null || yErr != null) {
+          _uiState.value = _uiState.value.copy(dayError = dErr, monthError = mErr, yearError = yErr)
+          return
         }
+      }
+    }
 
     if (modalError != null) {
       _uiState.value = _uiState.value.copy(modalError = modalError)
@@ -205,70 +194,49 @@ class SettingsViewModel(
   fun saveProfile(username: String) {
     viewModelScope.launch {
       val state = _uiState.value
-      val emailError =
-          when {
-            state.email.isEmpty() -> "Email cannot be empty"
-            !state.email.contains("@") -> "Invalid email format"
-            else -> null
-          }
-      val passwordError =
-          when {
-            state.password.isNotEmpty() && state.password.length < 6 ->
-                "Password must be at least 6 characters"
-            else -> null
-          }
-      val firstNameError = if (state.firstName.isEmpty()) "First name cannot be empty" else null
-      val lastNameError = if (state.lastName.isEmpty()) "Last name cannot be empty" else null
-      val descriptionError = if (state.description.length > 200) "Description too long" else null
-      val dayError =
-          when {
-            state.day.isEmpty() -> "Day cannot be empty"
-            state.day.toIntOrNull()?.let { it !in 1..31 } == true -> "Invalid day"
-            else -> null
-          }
-      val monthError =
-          when {
-            state.month.isEmpty() -> "Month cannot be empty"
-            state.month.toIntOrNull()?.let { it !in 1..12 } == true -> "Invalid month"
-            else -> null
-          }
-      val yearError =
-          when {
-            state.year.isEmpty() -> "Year cannot be empty"
-            state.year.toIntOrNull()?.let { it !in 1900..LocalDate.now().year } == true ->
-                "Invalid year"
-            else -> null
-          }
+      val errors =
+          validateAll(
+              state.email,
+              state.password,
+              state.firstName,
+              state.lastName,
+              state.description,
+              state.day,
+              state.month,
+              state.year)
 
-      if (emailError != null ||
-          passwordError != null ||
-          firstNameError != null ||
-          lastNameError != null ||
-          descriptionError != null ||
-          dayError != null ||
-          monthError != null ||
-          yearError != null) {
+      if (errors.email != null ||
+          errors.password != null ||
+          errors.firstName != null ||
+          errors.lastName != null ||
+          errors.description != null ||
+          errors.day != null ||
+          errors.month != null ||
+          errors.year != null) {
         _uiState.value =
             _uiState.value.copy(
-                emailError = emailError,
-                passwordError = passwordError,
-                firstNameError = firstNameError,
-                lastNameError = lastNameError,
-                descriptionError = descriptionError,
-                dayError = dayError,
-                monthError = monthError,
-                yearError = yearError)
+                emailError = errors.email,
+                passwordError = errors.password,
+                firstNameError = errors.firstName,
+                lastNameError = errors.lastName,
+                descriptionError = errors.description,
+                dayError = errors.day,
+                monthError = errors.month,
+                yearError = errors.year)
         return@launch
       }
 
       try {
+        val cleanedFirstName = sanitize(state.firstName)
+        val cleanedLastName = sanitize(state.lastName)
+        val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
         val updatedProfile =
             UserProfile(
                 username = username,
-                firstName = state.firstName,
-                lastName = state.lastName,
+                firstName = cleanedFirstName,
+                lastName = cleanedLastName,
                 country = state.country,
-                description = state.description,
+                description = cleanedDescription,
                 dateOfBirth =
                     LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
                 tags = state.selectedTags)
