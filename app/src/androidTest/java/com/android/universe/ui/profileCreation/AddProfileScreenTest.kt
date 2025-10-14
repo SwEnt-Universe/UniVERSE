@@ -1,4 +1,4 @@
-package com.android.universe.ui.overview
+package com.android.universe.ui.profileCreation
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -57,16 +58,11 @@ class AddProfileScreenTest {
     // Date of birth
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT).assertIsDisplayed()
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY).assertIsNotDisplayed()
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER)
-        .assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR).assertIsNotDisplayed()
 
     // Save button
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsDisplayed()
@@ -172,12 +168,7 @@ class AddProfileScreenTest {
 
     // Assert that the error message is not displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY, useUnmergedTree = true)
-        .assertIsNotDisplayed()
-
-    // Assert that the error message is not displayed
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
 
@@ -193,12 +184,7 @@ class AddProfileScreenTest {
 
     // Assert that the error message is not displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY, useUnmergedTree = true)
-        .assertIsNotDisplayed()
-
-    // Assert that the error message is not displayed
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
 
@@ -214,12 +200,7 @@ class AddProfileScreenTest {
 
     // Assert that the error message is not displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY, useUnmergedTree = true)
-        .assertIsNotDisplayed()
-
-    // Assert that the error message is not displayed
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
 
@@ -275,12 +256,12 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_EMPTY, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun showsDayErrorWhenNotNumber() {
+  fun showsDayEmptyErrorWhenNonDigitsInput() {
     val text = "hello"
     // Focus the username field
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput(text)
@@ -290,7 +271,23 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Day cannot be empty")
+  }
+
+  @Test
+  fun showsDayErrorWhenErroneousInput() {
+    val text = "32"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.DAY_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
@@ -304,12 +301,27 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_EMPTY, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun showsMonthErrorWhenNotNumber() {
+  fun showsMonthErrorWhenErroneousMonth() {
+    val text = "13"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
+        .assertExists()
+  }
+
+  @Test
+  fun showsMonthEmptyErrorWhenNonDigitsInput() {
     val text = "hello"
     // Focus the username field
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput(text)
@@ -319,8 +331,9 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.MONTH_ERROR, useUnmergedTree = true)
         .assertExists()
+        .assertTextEquals("Month cannot be empty")
   }
 
   @Test
@@ -333,12 +346,12 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_EMPTY, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun showsYearErrorWhenNotNumber() {
+  fun showsYearEmptyErrorWhenNonDigitsInput() {
     val text = "hello"
     // Focus the username field
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput(text)
@@ -348,7 +361,38 @@ class AddProfileScreenTest {
 
     // Assert that the error message is displayed
     composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR_NUMBER, useUnmergedTree = true)
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Year cannot be empty")
+  }
+
+  @Test
+  fun showsYearErrorWhenInvalidYear1() {
+    val text = "1600"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
+        .assertExists()
+  }
+
+  @Test
+  fun showsYearErrorWhenInvalidYear2() {
+    val text = "8000"
+    // Focus the username field
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput(text)
+
+    // Move focus away to trigger validation
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performClick()
+
+    // Assert that the error message is displayed
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.YEAR_ERROR, useUnmergedTree = true)
         .assertExists()
   }
 
@@ -371,5 +415,100 @@ class AddProfileScreenTest {
 
     // After entering valid inputs, the Save button should be enabled
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsEnabled()
+  }
+
+  @Test
+  fun showsUsernameErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD)
+        .performTextInput("A".repeat(InputLimits.USERNAME + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Username is too long")
+  }
+
+  @Test
+  fun showsFirstnameErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD)
+        .performTextInput("A".repeat(InputLimits.FIRST_NAME + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("First name is too long")
+  }
+
+  @Test
+  fun showsLastnameErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD)
+        .performTextInput("A".repeat(InputLimits.LAST_NAME + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Last name is too long")
+  }
+
+  @Test
+  fun showsDescriptionErrorWhenTooLongAndCuts() {
+
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_FIELD)
+        .performTextInput("A".repeat(InputLimits.DESCRIPTION + 20))
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals("Description is too long")
+  }
+
+  @Test
+  fun showsUsernameErrorWhenForbiddenCharacters() {
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD).performTextInput("a ")
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals(
+            "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
+  }
+
+  @Test
+  fun showsFirstnameErrorWhenForbiddenCharacters() {
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).performTextInput("10 ")
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals(
+            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+  }
+
+  @Test
+  fun showsLastnameErrorWhenForbiddenCharacters() {
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextInput("10 ")
+
+    // Assert that the error message is displayed and right
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
+        .assertExists()
+        .assertTextEquals(
+            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
   }
 }
