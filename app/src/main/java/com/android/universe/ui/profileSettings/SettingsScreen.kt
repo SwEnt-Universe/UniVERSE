@@ -35,6 +35,18 @@ import com.android.universe.ui.profile.SettingsViewModel
 import com.android.universe.ui.selectTag.TagColors
 
 /* =========================================================
+ * Padding constants
+ * ========================================================= */
+object SettingsScreenPaddings {
+  val InternalSpacing = 4.dp // Spacing between fields, titles, tag categories, and modal content
+  val DividerPadding = 20.dp // Vertical padding for section dividers
+  val ContentHorizontalPadding = 20.dp // Horizontal padding for main content and modal
+  val ErrorIndent = 8.dp // Start padding for error messages
+  val FieldIconSpacing = 10.dp // Horizontal spacing between field value and edit icon
+  val DateFieldSpacing = 8.dp // Spacing between date fields in modal
+}
+
+/* =========================================================
  * Stateful wrapper (production)
  * ========================================================= */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,8 +108,11 @@ fun SettingsScreenContent(
         })
     }) { padding ->
     LazyColumn(
-      modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)) {
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(padding)
+        .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)
+    ) {
       item { GeneralSection(uiState = uiState, open = onOpenField) }
       item { ProfileSection(uiState = uiState, open = onOpenField) }
       item { InterestsSection(uiState = uiState, open = onOpenField) }
@@ -106,7 +121,8 @@ fun SettingsScreenContent(
 
   if (uiState.showModal) {
     ModalBottomSheet(
-      onDismissRequest = onCloseModal, sheetState = rememberModalBottomSheetState()) {
+      onDismissRequest = onCloseModal,
+      sheetState = rememberModalBottomSheetState()) {
       ModalContentContentOnly(
         uiState = uiState,
         onUpdateField = onUpdateField,
@@ -124,7 +140,9 @@ fun SettingsScreenContent(
  * ========================================================= */
 @Composable
 private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
-  Column {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)
+  ) {
     Text("General", style = MaterialTheme.typography.titleLarge)
     EditableField(
       label = "Email address",
@@ -143,13 +161,14 @@ private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
 
 @Composable
 private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
-  Column {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)
+  ) {
     HorizontalDivider(
       color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
       thickness = 0.5.dp,
-      modifier = Modifier.padding(vertical = 20.dp))
+      modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Profile", style = MaterialTheme.typography.titleLarge)
-    Spacer(modifier = Modifier.height(8.dp))
     EditableField(
       label = "First Name",
       value = uiState.firstName,
@@ -179,13 +198,22 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
       testTag = SettingsTestTags.DATE_BUTTON,
       onClick = { open("date") })
     uiState.dayError?.let {
-      Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 16.dp))
+      Text(
+        it,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.monthError?.let {
-      Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 16.dp))
+      Text(
+        it,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.yearError?.let {
-      Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 16.dp))
+      Text(
+        it,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
   }
 }
@@ -203,46 +231,30 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
       open(tag.removeSuffix("_button"))
     }
 
-  Column {
+  Column(
+    verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)
+  ) {
     HorizontalDivider(
       color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
       thickness = 0.5.dp,
-      modifier = Modifier.padding(vertical = 20.dp))
+      modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Interests", style = MaterialTheme.typography.titleLarge)
-    Spacer(modifier = Modifier.height(8.dp))
-
     chipsLine(
       "Hobbies",
       uiState.selectedTags.filter { it.name in tagsInterest }.map { it.name },
       SettingsTestTags.INTEREST_TAGS_BUTTON)
-    HorizontalDivider(
-      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-      thickness = 1.dp,
-      modifier = Modifier.padding(vertical = 8.dp))
     chipsLine(
       "Sport",
       uiState.selectedTags.filter { it.name in tagsSport }.map { it.name },
       SettingsTestTags.SPORT_TAGS_BUTTON)
-    HorizontalDivider(
-      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-      thickness = 1.dp,
-      modifier = Modifier.padding(vertical = 8.dp))
     chipsLine(
       "Music",
       uiState.selectedTags.filter { it.name in tagsMusic }.map { it.name },
       SettingsTestTags.MUSIC_TAGS_BUTTON)
-    HorizontalDivider(
-      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-      thickness = 1.dp,
-      modifier = Modifier.padding(vertical = 8.dp))
     chipsLine(
       "Transport",
       uiState.selectedTags.filter { it.name in tagsTransport }.map { it.name },
       SettingsTestTags.TRANSPORT_TAGS_BUTTON)
-    HorizontalDivider(
-      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-      thickness = 1.dp,
-      modifier = Modifier.padding(vertical = 8.dp))
     chipsLine(
       "Canton",
       uiState.selectedTags.filter { it.name in tagsCanton }.map { it.name },
@@ -262,8 +274,11 @@ private fun EditableField(
   onClick: () -> Unit
 ) {
   Row(
-    modifier =
-      Modifier.fillMaxWidth().clickable { onClick() }.testTag(testTag).padding(vertical = 8.dp),
+    modifier = Modifier
+      .fillMaxWidth()
+      .clickable { onClick() }
+      .testTag(testTag)
+      .padding(vertical = SettingsScreenPaddings.InternalSpacing),
     verticalAlignment = Alignment.CenterVertically) {
     Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
     Text(
@@ -271,11 +286,14 @@ private fun EditableField(
       style = MaterialTheme.typography.bodyMedium,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis)
-    Spacer(modifier = Modifier.width(8.dp))
+    Spacer(modifier = Modifier.width(SettingsScreenPaddings.FieldIconSpacing))
     Icon(Icons.Default.Edit, contentDescription = "Edit $label")
   }
   if (error != null) {
-    Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(start = 16.dp))
+    Text(
+      error,
+      color = MaterialTheme.colorScheme.error,
+      modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
   }
 }
 
@@ -294,8 +312,11 @@ private fun ModalContentContentOnly(
   onSave: () -> Unit
 ) {
   Column(
-    modifier = Modifier.fillMaxWidth().padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(SettingsScreenPaddings.ContentHorizontalPadding),
+    verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)
+  ) {
     Row(
       modifier = Modifier.fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically,
@@ -321,7 +342,7 @@ private fun ModalContentContentOnly(
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.weight(1f)
       )
-      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      Row(horizontalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
         TextButton(
           onClick = onClose,
           modifier = Modifier.testTag(SettingsTestTags.MODAL_CANCEL_BUTTON)) {
@@ -334,6 +355,7 @@ private fun ModalContentContentOnly(
         }
       }
     }
+    Spacer(modifier = Modifier.height(SettingsScreenPaddings.InternalSpacing))
 
     when (uiState.currentField) {
       "email",
@@ -410,7 +432,8 @@ private fun ModalContentContentOnly(
       "date" -> {
         Row(
           modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          horizontalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.DateFieldSpacing)
+        ) {
           OutlinedTextField(
             value = uiState.day,
             onValueChange = { onUpdateField("day", it) },
