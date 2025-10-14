@@ -71,7 +71,7 @@ class SelectTagViewModel(
    */
   suspend fun loadTags(username: String) {
     val userProfile = userRepository.getUser(username)
-    selectedTags.value = userProfile.tags
+    selectedTags.value = userProfile.tags.toList()
   }
 
   /**
@@ -89,7 +89,7 @@ class SelectTagViewModel(
             userProfile.country,
             userProfile.description,
             userProfile.dateOfBirth,
-            selectedTags.value)
+            selectedTags.value.toSet())
     userRepository.updateUser(username, newUserProfile)
   }
 }

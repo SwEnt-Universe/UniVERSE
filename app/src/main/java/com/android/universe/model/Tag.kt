@@ -1,8 +1,8 @@
 package com.android.universe.model
 
 /**
- * Enumeration representing various tags that can be associated with user profiles.
- * Each tag has a [displayName] for user-friendly representation.
+ * Enumeration representing various tags that can be associated with user profiles. Each tag has a
+ * [displayName] for user-friendly representation.
  */
 enum class Tag(val displayName: String) {
   READING("Reading"),
@@ -104,9 +104,7 @@ enum class Tag(val displayName: String) {
   ZURICH("Zürich")
 }
 
-/**
- * List of tags related to interests.
- */
+/** List of tags related to interests. */
 val tagsInterest =
     listOf(
         Tag.READING,
@@ -131,9 +129,7 @@ val tagsInterest =
         Tag.ROLE_PLAYING_GAMES,
         Tag.CAR_RACE)
 
-/**
- * List of tags related to sports.
- */
+/** List of tags related to sports. */
 val tagsSport =
     listOf(
         Tag.RUNNING,
@@ -165,9 +161,7 @@ val tagsSport =
         Tag.DANCING,
         Tag.HORSEBACK_RIDING)
 
-/**
- * List of tags related to music.
- */
+/** List of tags related to music. */
 val tagsMusic =
     listOf(
         Tag.JAZZ,
@@ -186,14 +180,10 @@ val tagsMusic =
         Tag.PUNK,
         Tag.K_POP)
 
-/**
- * List of tags related to transportation.
- */
+/** List of tags related to transportation. */
 val tagsTransport = listOf(Tag.CAR, Tag.TRAIN, Tag.BOAT, Tag.BUS, Tag.BICYCLE, Tag.FOOT, Tag.PLANE)
 
-/**
- * List of tags related to Swiss cantons.
- */
+/** List of tags related to Swiss cantons. */
 val tagsCanton =
     listOf(
         Tag.AARGAU,

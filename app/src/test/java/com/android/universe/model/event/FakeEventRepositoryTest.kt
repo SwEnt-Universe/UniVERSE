@@ -41,7 +41,7 @@ class FakeEventRepositoryTest {
             country = "CH",
             description = "Bio",
             dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = listOf(Tag.MUSIC, Tag.RUNNING))
+            tags = setOf(Tag.MUSIC, Tag.RUNNING))
     val user2 =
         UserProfile(
             username = "bob",
@@ -49,7 +49,7 @@ class FakeEventRepositoryTest {
             lastName = "Jones",
             country = "FR",
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag.COOKING, Tag.FITNESS))
+            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event =
         Event(
             id = "event-001",
@@ -85,7 +85,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-002",
@@ -117,7 +117,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-003",
@@ -152,7 +152,7 @@ class FakeEventRepositoryTest {
             country = "CH",
             description = "Bio",
             dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = listOf(Tag.MUSIC, Tag.RUNNING))
+            tags = setOf(Tag.MUSIC, Tag.RUNNING))
     val user2 =
         UserProfile(
             username = "bob",
@@ -160,7 +160,7 @@ class FakeEventRepositoryTest {
             lastName = "Jones",
             country = "FR",
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag.COOKING, Tag.FITNESS))
+            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event1 =
         Event(
             id = "event-001",
@@ -212,7 +212,7 @@ class FakeEventRepositoryTest {
             country = "CH",
             description = "Bio",
             dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = listOf(Tag.MUSIC, Tag.RUNNING))
+            tags = setOf(Tag.MUSIC, Tag.RUNNING))
     val user2 =
         UserProfile(
             username = "bob",
@@ -220,7 +220,7 @@ class FakeEventRepositoryTest {
             lastName = "Jones",
             country = "FR",
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag.COOKING, Tag.FITNESS))
+            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event =
         Event(
             id = "event-001",
@@ -269,7 +269,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-002",
@@ -315,7 +315,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-003",
@@ -364,7 +364,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val newEvent =
         Event(
             id = "event-001",
@@ -390,7 +390,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event1 =
         Event(
             id = "event-001",
@@ -432,7 +432,7 @@ class FakeEventRepositoryTest {
             lastName = "Brown",
             country = "US",
             dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = listOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
+            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-001",

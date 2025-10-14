@@ -35,7 +35,7 @@ class UserProfileScreenTest {
             country = "IT",
             description = "Coffee aficionado.",
             dateOfBirth = LocalDate.of(1993, 6, 18),
-            tags = listOf(Tag.METAL))
+            tags = setOf(Tag.METAL))
     UserRepositoryProvider.repository.addUser(profile)
 
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
@@ -73,7 +73,7 @@ class UserProfileScreenTest {
   @Test
   fun moreThanEightTagsScrollsAndShowsPartialContent() = runTest {
     val manyTags =
-        listOf(
+        setOf(
             Tag.METAL,
             Tag.TABLE_TENNIS,
             Tag.ARTIFICIAL_INTELLIGENCE,
@@ -111,7 +111,7 @@ class UserProfileScreenTest {
 
   @Test
   fun tagsAreUniqueAndInAllowedList() = runTest {
-    val testTags = listOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
+    val testTags = setOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
     val profile =
         UserProfile(
             username = "musiclover",
@@ -152,7 +152,7 @@ class UserProfileScreenTest {
             country = "FR",
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = emptyList())
+            tags = emptySet())
     UserRepositoryProvider.repository.addUser(profile)
 
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
@@ -176,7 +176,7 @@ class UserProfileScreenTest {
             country = "FR",
             description = "Hello world",
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = emptyList())
+            tags = emptySet())
     UserRepositoryProvider.repository.addUser(profile)
 
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
@@ -200,7 +200,7 @@ class UserProfileScreenTest {
             country = "FR",
             description = "",
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = emptyList())
+            tags = emptySet())
     UserRepositoryProvider.repository.addUser(profile)
 
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }

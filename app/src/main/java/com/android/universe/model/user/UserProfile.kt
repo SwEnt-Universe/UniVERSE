@@ -20,5 +20,5 @@ data class UserProfile(
     val country: String,
     val description: String? = null,
     val dateOfBirth: LocalDate,
-    val tags: List<Tag>
+    val tags: Set<Tag>
 )

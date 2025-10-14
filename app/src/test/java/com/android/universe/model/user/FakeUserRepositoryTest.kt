@@ -14,7 +14,7 @@ class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
   private val tag = Tag.METAL
-  private val tags = listOf(tag)
+  private val tags = setOf(tag)
 
   @Before
   fun setup() {

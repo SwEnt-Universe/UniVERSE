@@ -248,7 +248,7 @@ class SelectTagViewModelTest {
             country = "France",
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag.METAL, Tag.CAR))
+            tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
 
     viewModel.loadTags("Jacquie")
@@ -279,7 +279,7 @@ class SelectTagViewModelTest {
             country = "France",
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = emptyList())
+            tags = emptySet())
     repository.addUser(userProfile)
     val tags =
         listOf(
@@ -298,7 +298,7 @@ class SelectTagViewModelTest {
     }
     viewModel.saveTags("Jacquie")
     val expectedTags =
-        listOf(
+        setOf(
             Tag.GENEVA,
             Tag.AARGAU,
             Tag.CAR,
@@ -332,7 +332,7 @@ class SelectTagViewModelTest {
             country = "France",
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = listOf(Tag.METAL, Tag.CAR))
+            tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
     viewModel.loadTags("Jacquie")
 
@@ -340,6 +340,6 @@ class SelectTagViewModelTest {
     viewModel.saveTags("Jacquie")
 
     val updatedUser = repository.getUser("Jacquie")
-    assertEquals(listOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
+    assertEquals(setOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
   }
 }
