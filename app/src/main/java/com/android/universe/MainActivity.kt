@@ -56,7 +56,6 @@ fun UniverseApp() {
   val startDestination = NavigationScreens.Map.route
   // TODO: verify that user is authenticated once the signIn is done.
 
-  val userRepository = UserRepositoryProvider.repository
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
   NavHost(navController = navController, startDestination = startDestination) {
