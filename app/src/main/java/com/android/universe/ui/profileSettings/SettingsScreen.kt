@@ -93,7 +93,6 @@ private fun CountryDropdown(
         value = value,
         onValueChange = {},
         readOnly = true,
-        label = { Text("Country") },
         modifier = Modifier.fillMaxWidth().menuAnchor(),
         shape = RoundedCornerShape(12.dp))
     ExposedDropdownMenu(
@@ -116,7 +115,7 @@ private fun CountryDropdown(
 @Composable
 fun SettingsScreen(
     username: String,
-    onSaveSuccess: () -> Unit = {},
+    // onSaveSuccess: () -> Unit = {},
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
@@ -403,20 +402,10 @@ private fun ModalContentContentOnly(
                   "description" -> uiState.description
                   else -> ""
                 }
-            val label =
-                when (uiState.currentField) {
-                  "email" -> "Email"
-                  "password" -> "New Password"
-                  "firstName" -> "First Name"
-                  "lastName" -> "Last Name"
-                  "description" -> "Description"
-                  else -> ""
-                }
 
             OutlinedTextField(
                 value = value,
                 onValueChange = { onUpdateField(uiState.currentField, it) },
-                label = { Text(label) },
                 modifier =
                     Modifier.fillMaxWidth().onFocusChanged {
                       if (it.isFocused) {
@@ -545,7 +534,7 @@ private fun sampleSettingsState(showModal: Boolean = false, field: String = "") 
     SettingsUiState(
         email = "preview@example.com",
         firstName = "Emma",
-        lastName = "Univers",
+        lastName = "Prolapse",
         country = "Switzerland",
         description = "Loves Kotlin, skiing, and fondue. Building UniVERSE app.",
         day = "05",
