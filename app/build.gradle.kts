@@ -205,6 +205,7 @@ dependencies {
 
     // ----------------- Unit Testing (test/) -----------------
     globalTestImplementation(libs.kotlin.test)
+    testImplementation(libs.androidx.test.core)
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.kotlin.coroutines.test)
