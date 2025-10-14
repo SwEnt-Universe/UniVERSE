@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
+import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationPlaceholderScreen
 import com.android.universe.ui.navigation.NavigationScreens
@@ -65,14 +66,7 @@ fun UniverseApp() {
         startDestination = NavigationScreens.Map.route,
         route = NavigationScreens.Map.name,
     ) {
-      composable(NavigationScreens.Map.route) {
-        NavigationPlaceholderScreen(
-            title = NavigationScreens.Map.name,
-            selectedTab = Tab.Map,
-            onTabSelected = onTabSelected,
-            testTag = NavigationTestTags.MAP_SCREEN,
-        )
-      }
+      composable(NavigationScreens.Map.route) { MapScreen(onTabSelected) }
     }
 
     navigation(
