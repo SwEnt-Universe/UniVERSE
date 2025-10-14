@@ -31,6 +31,10 @@ data class SettingsUiState(
     val year: String = "",
     val selectedTags: List<Tag> = emptyList(),
     val tempSelectedTags: List<String> = emptyList(),
+    val tempValue: String = "",
+    val tempDay: String = "",
+    val tempMonth: String = "",
+    val tempYear: String = "",
     val emailError: String? = null,
     val passwordError: String? = null,
     val firstNameError: String? = null,
@@ -39,6 +43,9 @@ data class SettingsUiState(
     val dayError: String? = null,
     val monthError: String? = null,
     val yearError: String? = null,
+    val tempDayError: String? = null,
+    val tempMonthError: String? = null,
+    val tempYearError: String? = null,
     val modalError: String? = null,
     val showModal: Boolean = false,
     val currentField: String = "",
@@ -82,47 +89,63 @@ class SettingsViewModel(
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
-  fun updateField(field: String, value: String) {
-    when (field) {
-      "email" -> _uiState.value = _uiState.value.copy(email = value, emailError = null)
-      "password" -> _uiState.value = _uiState.value.copy(password = value, passwordError = null)
-      "firstName" -> _uiState.value = _uiState.value.copy(firstName = value, firstNameError = null)
-      "lastName" -> _uiState.value = _uiState.value.copy(lastName = value, lastNameError = null)
-      "description" ->
-          _uiState.value = _uiState.value.copy(description = value, descriptionError = null)
-      "country" -> _uiState.value = _uiState.value.copy(country = value)
-      "day" -> _uiState.value = _uiState.value.copy(day = value, dayError = null)
-      "month" -> _uiState.value = _uiState.value.copy(month = value, monthError = null)
-      "year" -> _uiState.value = _uiState.value.copy(year = value, yearError = null)
-    }
+  fun updateTemp(key: String, value: String) {
+    _uiState.value =
+        when (key) {
+          "tempValue" -> _uiState.value.copy(tempValue = value, modalError = null)
+          "tempDay" -> _uiState.value.copy(tempDay = value, tempDayError = null)
+          "tempMonth" -> _uiState.value.copy(tempMonth = value, tempMonthError = null)
+          "tempYear" -> _uiState.value.copy(tempYear = value, tempYearError = null)
+          else -> _uiState.value
+        }
   }
 
   fun openModal(field: String) {
+    val state = _uiState.value
     _uiState.value =
         _uiState.value.copy(
             showModal = true,
             currentField = field,
-            password = if (field == "password") "" else _uiState.value.password, // Reset password
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null,
+            tempValue =
+                when (field) {
+                  "email" -> state.email
+                  "password" -> ""
+                  "firstName" -> state.firstName
+                  "lastName" -> state.lastName
+                  "description" -> state.description
+                  "country" -> state.country
+                  else -> ""
+                },
+            tempDay = if (field == "date") state.day else "",
+            tempMonth = if (field == "date") state.month else "",
+            tempYear = if (field == "date") state.year else "",
             tempSelectedTags =
                 when (field) {
                   "interest_tags" ->
-                      _uiState.value.selectedTags.filter { it.name in tagsInterest }.map { it.name }
-                  "sport_tags" ->
-                      _uiState.value.selectedTags.filter { it.name in tagsSport }.map { it.name }
-                  "music_tags" ->
-                      _uiState.value.selectedTags.filter { it.name in tagsMusic }.map { it.name }
+                      state.selectedTags.filter { it.name in tagsInterest }.map { it.name }
+                  "sport_tags" -> state.selectedTags.filter { it.name in tagsSport }.map { it.name }
+                  "music_tags" -> state.selectedTags.filter { it.name in tagsMusic }.map { it.name }
                   "transport_tags" ->
-                      _uiState.value.selectedTags
-                          .filter { it.name in tagsTransport }
-                          .map { it.name }
+                      state.selectedTags.filter { it.name in tagsTransport }.map { it.name }
                   "canton_tags" ->
-                      _uiState.value.selectedTags.filter { it.name in tagsCanton }.map { it.name }
+                      state.selectedTags.filter { it.name in tagsCanton }.map { it.name }
                   else -> emptyList()
                 })
   }
 
   fun closeModal() {
-    _uiState.value = _uiState.value.copy(showModal = false, currentField = "", modalError = null)
+    _uiState.value =
+        _uiState.value.copy(
+            showModal = false,
+            currentField = "",
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null)
   }
 
   fun toggleCountryDropdown(show: Boolean) {
@@ -149,24 +172,70 @@ class SettingsViewModel(
     val state = _uiState.value
     var modalError: String? = null
     when (state.currentField) {
-      "email" -> modalError = validateEmail(state.email)
-      "password" -> modalError = validatePassword(state.password)
-      "firstName" -> modalError = validateName("First name", state.firstName)
-      "lastName" -> modalError = validateName("Last name", state.lastName)
-      "description" -> modalError = validateDescription(state.description)
-      "country" -> modalError = validateNonEmpty("Country", state.country)
-      "date" -> {
-        val (dErr, mErr, yErr) = validateDateTriple(state.day, state.month, state.year)
-        if (dErr != null || mErr != null || yErr != null) {
-          _uiState.value = _uiState.value.copy(dayError = dErr, monthError = mErr, yearError = yErr)
+      "email" -> {
+        modalError = validateEmail(state.tempValue)
+        if (modalError != null) {
+          _uiState.value = _uiState.value.copy(modalError = modalError)
           return
         }
+        _uiState.value = _uiState.value.copy(email = state.tempValue, emailError = null)
       }
-    }
-
-    if (modalError != null) {
-      _uiState.value = _uiState.value.copy(modalError = modalError)
-      return
+      "password" -> {
+        modalError = validatePassword(state.tempValue)
+        if (modalError != null) {
+          _uiState.value = _uiState.value.copy(modalError = modalError)
+          return
+        }
+        _uiState.value = _uiState.value.copy(password = state.tempValue, passwordError = null)
+      }
+      "firstName" -> {
+        modalError = validateName("First name", state.tempValue)
+        if (modalError != null) {
+          _uiState.value = _uiState.value.copy(modalError = modalError)
+          return
+        }
+        _uiState.value = _uiState.value.copy(firstName = state.tempValue, firstNameError = null)
+      }
+      "lastName" -> {
+        modalError = validateName("Last name", state.tempValue)
+        if (modalError != null) {
+          _uiState.value = _uiState.value.copy(modalError = modalError)
+          return
+        }
+        _uiState.value = _uiState.value.copy(lastName = state.tempValue, lastNameError = null)
+      }
+      "description" -> {
+        modalError = validateDescription(state.tempValue)
+        if (modalError != null) {
+          _uiState.value = _uiState.value.copy(modalError = modalError)
+          return
+        }
+        _uiState.value = _uiState.value.copy(description = state.tempValue, descriptionError = null)
+      }
+      "country" -> {
+        modalError = validateNonEmpty("Country", state.tempValue)
+        if (modalError != null) {
+          _uiState.value = _uiState.value.copy(modalError = modalError)
+          return
+        }
+        _uiState.value = _uiState.value.copy(country = state.tempValue)
+      }
+      "date" -> {
+        val (dErr, mErr, yErr) = validateDateTriple(state.tempDay, state.tempMonth, state.tempYear)
+        if (dErr != null || mErr != null || yErr != null) {
+          _uiState.value =
+              _uiState.value.copy(tempDayError = dErr, tempMonthError = mErr, tempYearError = yErr)
+          return
+        }
+        _uiState.value =
+            _uiState.value.copy(
+                day = state.tempDay,
+                month = state.tempMonth,
+                year = state.tempYear,
+                dayError = null,
+                monthError = null,
+                yearError = null)
+      }
     }
 
     if (state.currentField in
@@ -187,7 +256,14 @@ class SettingsViewModel(
                       _uiState.value.tempSelectedTags.map { Tag(it) })
     }
 
-    _uiState.value = _uiState.value.copy(showModal = false, currentField = "", modalError = null)
+    _uiState.value =
+        _uiState.value.copy(
+            showModal = false,
+            currentField = "",
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null)
     saveProfile(username)
   }
 

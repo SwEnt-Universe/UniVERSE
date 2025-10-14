@@ -15,7 +15,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -136,7 +135,7 @@ fun SettingsScreen(
       onBack = onBack,
       onOpenField = viewModel::openModal,
       onCloseModal = viewModel::closeModal,
-      onUpdateField = viewModel::updateField,
+      onUpdateTemp = viewModel::updateTemp,
       onToggleCountryDropdown = viewModel::toggleCountryDropdown,
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
@@ -153,7 +152,7 @@ fun SettingsScreenContent(
     onBack: () -> Unit = {},
     onOpenField: (String) -> Unit = {},
     onCloseModal: () -> Unit = {},
-    onUpdateField: (String, String) -> Unit = { _, _ -> },
+    onUpdateTemp: (String, String) -> Unit = { _, _ -> },
     onToggleCountryDropdown: (Boolean) -> Unit = {},
     onAddTag: (String) -> Unit = {},
     onRemoveTag: (String) -> Unit = {},
@@ -185,7 +184,7 @@ fun SettingsScreenContent(
         onDismissRequest = onCloseModal, sheetState = rememberModalBottomSheetState()) {
           ModalContentContentOnly(
               uiState = uiState,
-              onUpdateField = onUpdateField,
+              onUpdateTemp = onUpdateTemp,
               onToggleCountryDropdown = onToggleCountryDropdown,
               onAddTag = onAddTag,
               onRemoveTag = onRemoveTag,
@@ -352,7 +351,7 @@ private fun EditableField(
 @Composable
 private fun ModalContentContentOnly(
     uiState: SettingsUiState,
-    onUpdateField: (String, String) -> Unit,
+    onUpdateTemp: (String, String) -> Unit,
     onToggleCountryDropdown: (Boolean) -> Unit,
     onAddTag: (String) -> Unit,
     onRemoveTag: (String) -> Unit,
@@ -393,25 +392,10 @@ private fun ModalContentContentOnly(
           "firstName",
           "lastName",
           "description" -> {
-            val value =
-                when (uiState.currentField) {
-                  "email" -> uiState.email
-                  "password" -> uiState.password
-                  "firstName" -> uiState.firstName
-                  "lastName" -> uiState.lastName
-                  "description" -> uiState.description
-                  else -> ""
-                }
-
             OutlinedTextField(
-                value = value,
-                onValueChange = { onUpdateField(uiState.currentField, it) },
-                modifier =
-                    Modifier.fillMaxWidth().onFocusChanged {
-                      if (it.isFocused) {
-                        onUpdateField(uiState.currentField, value)
-                      }
-                    },
+                value = uiState.tempValue,
+                onValueChange = { onUpdateTemp("tempValue", it) },
+                modifier = Modifier.fillMaxWidth(),
                 isError = uiState.modalError != null,
                 supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
                 shape = RoundedCornerShape(12.dp),
@@ -420,11 +404,11 @@ private fun ModalContentContentOnly(
 
           "country" ->
               CountryDropdown(
-                  value = uiState.country,
+                  value = uiState.tempValue,
                   expanded = uiState.showCountryDropdown,
                   onExpandedChange = onToggleCountryDropdown,
                   onPick = {
-                    onUpdateField("country", it)
+                    onUpdateTemp("tempValue", it)
                     onToggleCountryDropdown(false)
                   })
 
@@ -434,37 +418,28 @@ private fun ModalContentContentOnly(
                 horizontalArrangement =
                     Arrangement.spacedBy(SettingsScreenPaddings.DateFieldSpacing)) {
                   OutlinedTextField(
-                      value = uiState.day,
-                      onValueChange = { onUpdateField("day", it) },
+                      value = uiState.tempDay,
+                      onValueChange = { onUpdateTemp("tempDay", it) },
                       label = { Text("Day") },
-                      modifier =
-                          Modifier.weight(1f).onFocusChanged {
-                            if (it.isFocused) onUpdateField("day", uiState.day)
-                          },
-                      isError = uiState.dayError != null,
-                      supportingText = { uiState.dayError?.let { msg -> Text(msg) } },
+                      modifier = Modifier.weight(1f),
+                      isError = uiState.tempDayError != null,
+                      supportingText = { uiState.tempDayError?.let { msg -> Text(msg) } },
                       shape = RoundedCornerShape(12.dp))
                   OutlinedTextField(
-                      value = uiState.month,
-                      onValueChange = { onUpdateField("month", it) },
+                      value = uiState.tempMonth,
+                      onValueChange = { onUpdateTemp("tempMonth", it) },
                       label = { Text("Month") },
-                      modifier =
-                          Modifier.weight(1f).onFocusChanged {
-                            if (it.isFocused) onUpdateField("month", uiState.month)
-                          },
-                      isError = uiState.monthError != null,
-                      supportingText = { uiState.monthError?.let { msg -> Text(msg) } },
+                      modifier = Modifier.weight(1f),
+                      isError = uiState.tempMonthError != null,
+                      supportingText = { uiState.tempMonthError?.let { msg -> Text(msg) } },
                       shape = RoundedCornerShape(12.dp))
                   OutlinedTextField(
-                      value = uiState.year,
-                      onValueChange = { onUpdateField("year", it) },
+                      value = uiState.tempYear,
+                      onValueChange = { onUpdateTemp("tempYear", it) },
                       label = { Text("Year") },
-                      modifier =
-                          Modifier.weight(1.5f).onFocusChanged {
-                            if (it.isFocused) onUpdateField("year", uiState.year)
-                          },
-                      isError = uiState.yearError != null,
-                      supportingText = { uiState.yearError?.let { msg -> Text(msg) } },
+                      modifier = Modifier.weight(1.5f),
+                      isError = uiState.tempYearError != null,
+                      supportingText = { uiState.tempYearError?.let { msg -> Text(msg) } },
                       shape = RoundedCornerShape(12.dp))
                 }
           }
@@ -559,7 +534,7 @@ private fun SettingsScreenContent_Modal_Preview() {
     SettingsScreenContent(
         uiState = sampleSettingsState(showModal = true, field = "firstName"),
         onOpenField = {},
-        onUpdateField = { _, _ -> },
+        onUpdateTemp = { _, _ -> },
         onToggleCountryDropdown = {},
         onAddTag = {},
         onRemoveTag = {},
