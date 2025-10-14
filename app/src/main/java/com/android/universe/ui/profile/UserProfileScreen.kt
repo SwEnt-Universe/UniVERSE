@@ -22,11 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationBottomMenu
-import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import kotlin.collections.chunked
@@ -46,7 +43,7 @@ object UserProfileScreenTestTags {
  *
  * @param username The username of the user to display.
  * @param onTabSelected Callback when a bottom navigation tab is selected.
- * @param navController The NavController for handling navigation actions.
+ * @param onEditProfileClick Callback when the edit profile button is clicked.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +51,7 @@ object UserProfileScreenTestTags {
 fun UserProfileScreen(
     username: String,
     onTabSelected: (Tab) -> Unit = {},
-    navController: NavController,
+    onEditProfileClick: (String) -> Unit = {},
     userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
 
@@ -78,10 +75,7 @@ fun UserProfileScreen(
             title = { Text("Profile") },
             actions = {
               IconButton(
-                  onClick = {
-                    navController.navigate(
-                        NavigationScreens.Settings.route.replace("{username}", username))
-                  },
+                  onClick = { onEditProfileClick(username) },
                   modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
                     Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
                   }
@@ -231,5 +225,5 @@ private fun TagChip(tag: Tag) {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UserProfileScreen(username = "emma", navController = rememberNavController())
+  UserProfileScreen(username = "emma")
 }
