@@ -296,24 +296,44 @@ private fun ModalContentContentOnly(
   Column(
     modifier = Modifier.fillMaxWidth().padding(16.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text(
-      text =
-        when (uiState.currentField) {
-          "email" -> "Edit Email"
-          "password" -> "Edit Password"
-          "firstName" -> "Edit First Name"
-          "lastName" -> "Edit Last Name"
-          "description" -> "Edit Description"
-          "country" -> "Edit Country"
-          "date" -> "Edit Date of Birth"
-          "interest_tags" -> "Edit Interest Tags"
-          "sport_tags" -> "Edit Sport Tags"
-          "music_tags" -> "Edit Music Tags"
-          "transport_tags" -> "Edit Transport Tags"
-          "canton_tags" -> "Edit Canton Tags"
-          else -> ""
-        },
-      style = MaterialTheme.typography.titleMedium)
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+      Text(
+        text =
+          when (uiState.currentField) {
+            "email" -> "Edit Email"
+            "password" -> "Edit Password"
+            "firstName" -> "Edit First Name"
+            "lastName" -> "Edit Last Name"
+            "description" -> "Edit Description"
+            "country" -> "Edit Country"
+            "date" -> "Edit Date of Birth"
+            "interest_tags" -> "Edit Interest Tags"
+            "sport_tags" -> "Edit Sport Tags"
+            "music_tags" -> "Edit Music Tags"
+            "transport_tags" -> "Edit Transport Tags"
+            "canton_tags" -> "Edit Canton Tags"
+            else -> ""
+          },
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.weight(1f)
+      )
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TextButton(
+          onClick = onClose,
+          modifier = Modifier.testTag(SettingsTestTags.MODAL_CANCEL_BUTTON)) {
+          Text("Cancel")
+        }
+        TextButton(
+          onClick = onSave,
+          modifier = Modifier.testTag(SettingsTestTags.MODAL_SAVE_BUTTON)) {
+          Text("Save")
+        }
+      }
+    }
 
     when (uiState.currentField) {
       "email",
@@ -480,19 +500,6 @@ private fun ModalContentContentOnly(
           onTagSelect = onAddTag,
           onTagReSelect = onRemoveTag,
           modifier = Modifier.fillMaxWidth())
-      }
-    }
-
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-      TextButton(
-        onClick = onClose,
-        modifier = Modifier.testTag(SettingsTestTags.MODAL_CANCEL_BUTTON)) {
-        Text("Cancel")
-      }
-
-      TextButton(
-        onClick = onSave, modifier = Modifier.testTag(SettingsTestTags.MODAL_SAVE_BUTTON)) {
-        Text("Save")
       }
     }
   }
