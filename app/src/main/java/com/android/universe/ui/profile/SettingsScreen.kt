@@ -1,12 +1,15 @@
 package com.android.universe.ui.settings
 
 import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
@@ -14,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,13 +26,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
+import com.android.universe.model.tagsCanton
+import com.android.universe.model.tagsInterest
+import com.android.universe.model.tagsMusic
+import com.android.universe.model.tagsSport
+import com.android.universe.model.tagsTransport
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileViewModel
 import com.android.universe.ui.profileCreation.AddProfileScreenTestTags
+import com.android.universe.ui.selectTag.TagColors
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
-import java.time.format.DateTimeParseException
 
 object SettingsScreenTestTags {
 	const val EMAIL_BUTTON = "email_button"
@@ -43,9 +52,14 @@ object SettingsScreenTestTags {
 	const val SAVE_BUTTON = "save_button"
 	const val MODAL_SAVE_BUTTON = "modal_save_button"
 	const val MODAL_CANCEL_BUTTON = "modal_cancel_button"
+	const val INTEREST_TAGS_BUTTON = "interest_tags_button"
+	const val SPORT_TAGS_BUTTON = "sport_tags_button"
+	const val MUSIC_TAGS_BUTTON = "music_tags_button"
+	const val TRANSPORT_TAGS_BUTTON = "transport_tags_button"
+	const val CANTON_TAGS_BUTTON = "canton_tags_button"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
 	username: String,
@@ -88,6 +102,9 @@ fun SettingsScreen(
 	var modalError by remember { mutableStateOf<String?>(null) }
 	var showCountryDropdown by remember { mutableStateOf(false) }
 
+	// Temporary state for tag modals
+	var tempSelectedTags by remember { mutableStateOf(emptyList<String>()) }
+
 	// Validation errors
 	var firstNameError by remember { mutableStateOf<String?>(null) }
 	var lastNameError by remember { mutableStateOf<String?>(null) }
@@ -95,11 +112,6 @@ fun SettingsScreen(
 	var dayError by remember { mutableStateOf<String?>(null) }
 	var monthError by remember { mutableStateOf<String?>(null) }
 	var yearError by remember { mutableStateOf<String?>(null) }
-
-	// Sample tags
-	val availableTags = listOf(
-		Tag("Music"), Tag("Sports"), Tag("Travel"), Tag("Food"), Tag("Tech")
-	)
 
 	val context = LocalContext.current
 	LaunchedEffect(errorMsg) {
@@ -123,6 +135,20 @@ fun SettingsScreen(
 		selectedTags = userUIState.userProfile.tags
 	}
 
+	// Initialize tempSelectedTags when modal opens for tag categories
+	LaunchedEffect(showModal, currentField) {
+		if (showModal) {
+			tempSelectedTags = when (currentField) {
+				"interest_tags" -> selectedTags.filter { it.name in tagsInterest }.map { it.name }
+				"sport_tags" -> selectedTags.filter { it.name in tagsSport }.map { it.name }
+				"music_tags" -> selectedTags.filter { it.name in tagsMusic }.map { it.name }
+				"transport_tags" -> selectedTags.filter { it.name in tagsTransport }.map { it.name }
+				"canton_tags" -> selectedTags.filter { it.name in tagsCanton }.map { it.name }
+				else -> emptyList()
+			}
+		}
+	}
+
 	// ModalBottomSheet for editing fields
 	if (showModal) {
 		ModalBottomSheet(
@@ -144,6 +170,11 @@ fun SettingsScreen(
 						"description" -> "Edit Description"
 						"country" -> "Edit Country"
 						"date" -> "Edit Date of Birth"
+						"interest_tags" -> "Edit Interest Tags"
+						"sport_tags" -> "Edit Sport Tags"
+						"music_tags" -> "Edit Music Tags"
+						"transport_tags" -> "Edit Transport Tags"
+						"canton_tags" -> "Edit Canton Tags"
 						else -> ""
 					},
 					style = MaterialTheme.typography.titleMedium
@@ -255,6 +286,61 @@ fun SettingsScreen(
 							)
 						}
 					}
+					"interest_tags" -> {
+						TagGroup(
+							name = "",
+							tagList = tagsInterest,
+							selectedTags = tempSelectedTags,
+							color = TagColors.Interest,
+							onTagSelect = { tempSelectedTags = tempSelectedTags + it },
+							onTagReSelect = { tempSelectedTags = tempSelectedTags - it },
+							modifier = Modifier.fillMaxWidth()
+						)
+					}
+					"sport_tags" -> {
+						TagGroup(
+							name = "",
+							tagList = tagsSport,
+							selectedTags = tempSelectedTags,
+							color = TagColors.Sport,
+							onTagSelect = { tempSelectedTags = tempSelectedTags + it },
+							onTagReSelect = { tempSelectedTags = tempSelectedTags - it },
+							modifier = Modifier.fillMaxWidth()
+						)
+					}
+					"music_tags" -> {
+						TagGroup(
+							name = "",
+							tagList = tagsMusic,
+							selectedTags = tempSelectedTags,
+							color = TagColors.Music,
+							onTagSelect = { tempSelectedTags = tempSelectedTags + it },
+							onTagReSelect = { tempSelectedTags = tempSelectedTags - it },
+							modifier = Modifier.fillMaxWidth()
+						)
+					}
+					"transport_tags" -> {
+						TagGroup(
+							name = "",
+							tagList = tagsTransport,
+							selectedTags = tempSelectedTags,
+							color = TagColors.Transport,
+							onTagSelect = { tempSelectedTags = tempSelectedTags + it },
+							onTagReSelect = { tempSelectedTags = tempSelectedTags - it },
+							modifier = Modifier.fillMaxWidth()
+						)
+					}
+					"canton_tags" -> {
+						TagGroup(
+							name = "",
+							tagList = tagsCanton,
+							selectedTags = tempSelectedTags,
+							color = TagColors.Canton,
+							onTagSelect = { tempSelectedTags = tempSelectedTags + it },
+							onTagReSelect = { tempSelectedTags = tempSelectedTags - it },
+							modifier = Modifier.fillMaxWidth()
+						)
+					}
 				}
 				Row(
 					modifier = Modifier.fillMaxWidth(),
@@ -290,6 +376,7 @@ fun SettingsScreen(
 										"Invalid date"
 									}
 								}
+								"interest_tags", "sport_tags", "music_tags", "transport_tags", "canton_tags" -> null
 								else -> null
 							}
 							if (modalError == null) {
@@ -300,6 +387,21 @@ fun SettingsScreen(
 									"lastName" -> lastName = modalInput
 									"description" -> description = modalInput
 									"country" -> country = modalInput
+									"interest_tags" -> {
+										selectedTags = selectedTags.filter { it.name !in tagsInterest } + tempSelectedTags.map { Tag(it) }
+									}
+									"sport_tags" -> {
+										selectedTags = selectedTags.filter { it.name !in tagsSport } + tempSelectedTags.map { Tag(it) }
+									}
+									"music_tags" -> {
+										selectedTags = selectedTags.filter { it.name !in tagsMusic } + tempSelectedTags.map { Tag(it) }
+									}
+									"transport_tags" -> {
+										selectedTags = selectedTags.filter { it.name !in tagsTransport } + tempSelectedTags.map { Tag(it) }
+									}
+									"canton_tags" -> {
+										selectedTags = selectedTags.filter { it.name !in tagsCanton } + tempSelectedTags.map { Tag(it) }
+									}
 								}
 								showModal = false
 							}
@@ -587,30 +689,187 @@ fun SettingsScreen(
 				)
 				Text("Interests", style = MaterialTheme.typography.titleLarge)
 				Spacer(modifier = Modifier.height(8.dp))
-				val rows = availableTags.chunked(3)
-				rows.forEachIndexed { index, row ->
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.spacedBy(8.dp)
-					) {
-						row.forEach { tag ->
-							FilterChip(
-								selected = tag in selectedTags,
-								onClick = {
-									selectedTags = if (tag in selectedTags) {
-										selectedTags - tag
-									} else {
-										selectedTags + tag
-									}
-								},
-								label = { Text(tag.name) },
-								modifier = Modifier
-									.weight(1f)
-									.testTag(SettingsScreenTestTags.TAG_CHIP_PREFIX + tag.name)
-							)
+				// Interest Tags
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable {
+							currentField = "interest_tags"
+							showModal = true
 						}
+						.testTag(SettingsScreenTestTags.INTEREST_TAGS_BUTTON)
+						.padding(vertical = 8.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Text("Hobbies", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+					val interestString = selectedTags.filter { it.name in tagsInterest }.joinToString(", ") { it.name }
+					Text(
+						interestString.take(30) + if (interestString.length > 30) "..." else "",
+						style = MaterialTheme.typography.bodyMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					Spacer(modifier = Modifier.width(8.dp))
+					Icon(Icons.Default.Edit, contentDescription = "Edit Interest Tags")
+				}
+				HorizontalDivider(
+					color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+					thickness = 1.dp,
+					modifier = Modifier.padding(vertical = 8.dp)
+				)
+				// Sport Tags
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable {
+							currentField = "sport_tags"
+							showModal = true
+						}
+						.testTag(SettingsScreenTestTags.SPORT_TAGS_BUTTON)
+						.padding(vertical = 8.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Text("Sport", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+					val sportString = selectedTags.filter { it.name in tagsSport }.joinToString(", ") { it.name }
+					Text(
+						sportString.take(30) + if (sportString.length > 30) "..." else "",
+						style = MaterialTheme.typography.bodyMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					Spacer(modifier = Modifier.width(8.dp))
+					Icon(Icons.Default.Edit, contentDescription = "Edit Sport Tags")
+				}
+				HorizontalDivider(
+					color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+					thickness = 1.dp,
+					modifier = Modifier.padding(vertical = 8.dp)
+				)
+				// Music Tags
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable {
+							currentField = "music_tags"
+							showModal = true
+						}
+						.testTag(SettingsScreenTestTags.MUSIC_TAGS_BUTTON)
+						.padding(vertical = 8.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Text("Music", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+					val musicString = selectedTags.filter { it.name in tagsMusic }.joinToString(", ") { it.name }
+					Text(
+						musicString.take(30) + if (musicString.length > 30) "..." else "",
+						style = MaterialTheme.typography.bodyMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					Spacer(modifier = Modifier.width(8.dp))
+					Icon(Icons.Default.Edit, contentDescription = "Edit Music Tags")
+				}
+				HorizontalDivider(
+					color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+					thickness = 1.dp,
+					modifier = Modifier.padding(vertical = 8.dp)
+				)
+				// Transport Tags
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable {
+							currentField = "transport_tags"
+							showModal = true
+						}
+						.testTag(SettingsScreenTestTags.TRANSPORT_TAGS_BUTTON)
+						.padding(vertical = 8.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Text("Transport", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+					val transportString = selectedTags.filter { it.name in tagsTransport }.joinToString(", ") { it.name }
+					Text(
+						transportString.take(30) + if (transportString.length > 30) "..." else "",
+						style = MaterialTheme.typography.bodyMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					Spacer(modifier = Modifier.width(8.dp))
+					Icon(Icons.Default.Edit, contentDescription = "Edit Transport Tags")
+				}
+				HorizontalDivider(
+					color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+					thickness = 1.dp,
+					modifier = Modifier.padding(vertical = 8.dp)
+				)
+				// Canton Tags
+				Row(
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable {
+							currentField = "canton_tags"
+							showModal = true
+						}
+						.testTag(SettingsScreenTestTags.CANTON_TAGS_BUTTON)
+						.padding(vertical = 8.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Text("Canton", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+					val cantonString = selectedTags.filter { it.name in tagsCanton }.joinToString(", ") { it.name }
+					Text(
+						cantonString.take(30) + if (cantonString.length > 30) "..." else "",
+						style = MaterialTheme.typography.bodyMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					Spacer(modifier = Modifier.width(8.dp))
+					Icon(Icons.Default.Edit, contentDescription = "Edit Canton Tags")
+				}
+			}
+		}
+	}
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TagGroup(
+	name: String,
+	tagList: List<String>,
+	selectedTags: List<String>,
+	color: Color = Color(0xFF6650a4),
+	onTagSelect: (String) -> Unit = {},
+	onTagReSelect: (String) -> Unit = {},
+	modifier: Modifier = Modifier
+) {
+	if (name.isNotEmpty()) {
+		Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
+	}
+	FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+		tagList.forEach { tag ->
+			val isSelected = selectedTags.contains(tag)
+			val buttonColor by animateColorAsState(targetValue = if (isSelected) Color.Gray else color)
+			Button(
+				onClick = {
+					if (isSelected) {
+						onTagReSelect(tag)
+					} else {
+						onTagSelect(tag)
 					}
-					Spacer(modifier = Modifier.height(8.dp))
+				},
+				modifier = Modifier.padding(4.dp),
+				border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
+				colors = ButtonDefaults.buttonColors(containerColor = buttonColor)
+			) {
+				Row(verticalAlignment = Alignment.CenterVertically) {
+					Text(tag)
+					if (isSelected) {
+						Spacer(modifier = Modifier.width(4.dp))
+						Icon(
+							imageVector = Icons.Default.Check,
+							contentDescription = "Selected",
+							tint = Color.White,
+							modifier = Modifier.size(18.dp)
+						)
+					}
 				}
 			}
 		}
