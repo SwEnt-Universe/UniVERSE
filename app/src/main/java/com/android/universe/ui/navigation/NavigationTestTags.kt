@@ -36,4 +36,14 @@ object NavigationTestTags {
         is Tab.Profile -> PROFILE_TAB
         is Tab.Event -> EVENT_TAB
       }
+
+  fun getScreenTestTag(screen: NavigationScreens): String =
+      when (screen) {
+        is NavigationScreens.Map -> MAP_SCREEN
+        is NavigationScreens.Event -> EVENT_SCREEN
+        is NavigationScreens.Chat -> CHAT_SCREEN
+        is NavigationScreens.Profile -> PROFILE_SCREEN
+        is NavigationScreens.SignIn -> SIGN_IN_SCREEN
+        is NavigationScreens.AddProfile -> ADD_PROFILE_SCREEN
+      }
 }
