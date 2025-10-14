@@ -51,6 +51,65 @@ object SettingsScreenStyles {
 }
 
 /* =========================================================
+ * Helper methods
+ * ========================================================= */
+private fun modalTitle(field: String): String =
+    when (field) {
+      "email" -> "Edit Email"
+      "password" -> "Edit Password"
+      "firstName" -> "Edit First Name"
+      "lastName" -> "Edit Last Name"
+      "description" -> "Edit Description"
+      "country" -> "Edit Country"
+      "date" -> "Edit Date of Birth"
+      "interest_tags" -> "Edit Interest Tags"
+      "sport_tags" -> "Edit Sport Tags"
+      "music_tags" -> "Edit Music Tags"
+      "transport_tags" -> "Edit Transport Tags"
+      "canton_tags" -> "Edit Canton Tags"
+      else -> ""
+    }
+
+@Composable
+private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpen: () -> Unit) {
+  val joined = names.joinToString(", ")
+  EditableField(
+      label = label,
+      value = if (joined.length > 30) joined.take(30) + "..." else joined,
+      testTag = testTag,
+      onClick = onOpen)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CountryDropdown(
+    value: String,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onPick: (String) -> Unit
+) {
+  ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = onExpandedChange) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        readOnly = true,
+        label = { Text("Country") },
+        modifier = Modifier.fillMaxWidth().menuAnchor(),
+        shape = RoundedCornerShape(12.dp))
+    ExposedDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { onExpandedChange(false) },
+        modifier = Modifier.heightIn(max = 240.dp)) {
+          CountryData.allCountries.forEach { option ->
+            DropdownMenuItem(
+                text = { Text(if (option.length > 30) option.take(30) + "..." else option) },
+                onClick = { onPick(option) })
+          }
+        }
+  }
+}
+
+/* =========================================================
  * Stateful wrapper (production)
  * ========================================================= */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -218,43 +277,37 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
 
 @Composable
 private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
-  @Composable
-  fun chipsLine(label: String, names: List<String>, tag: String) =
-      EditableField(
-          label = label,
-          value =
-              names.joinToString(", ").take(30) +
-                  if (names.joinToString().length > 30) "..." else "",
-          testTag = tag) {
-            open(tag.removeSuffix("_button"))
-          }
-
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
         thickness = 0.5.dp,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Interests", style = SettingsScreenStyles.sectionTitleStyle())
-    chipsLine(
-        "Interests",
-        uiState.selectedTags.filter { it.name in tagsInterest }.map { it.name },
-        SettingsTestTags.INTEREST_TAGS_BUTTON)
-    chipsLine(
-        "Sport",
-        uiState.selectedTags.filter { it.name in tagsSport }.map { it.name },
-        SettingsTestTags.SPORT_TAGS_BUTTON)
-    chipsLine(
-        "Music",
-        uiState.selectedTags.filter { it.name in tagsMusic }.map { it.name },
-        SettingsTestTags.MUSIC_TAGS_BUTTON)
-    chipsLine(
-        "Transport",
-        uiState.selectedTags.filter { it.name in tagsTransport }.map { it.name },
-        SettingsTestTags.TRANSPORT_TAGS_BUTTON)
-    chipsLine(
-        "Canton",
-        uiState.selectedTags.filter { it.name in tagsCanton }.map { it.name },
-        SettingsTestTags.CANTON_TAGS_BUTTON)
+    ChipsLine(
+        label = "Interests",
+        names = uiState.selectedTags.filter { it.name in tagsInterest }.map { it.name },
+        testTag = SettingsTestTags.INTEREST_TAGS_BUTTON,
+        onOpen = { open("interest_tags") })
+    ChipsLine(
+        label = "Sport",
+        names = uiState.selectedTags.filter { it.name in tagsSport }.map { it.name },
+        testTag = SettingsTestTags.SPORT_TAGS_BUTTON,
+        onOpen = { open("sport_tags") })
+    ChipsLine(
+        label = "Music",
+        names = uiState.selectedTags.filter { it.name in tagsMusic }.map { it.name },
+        testTag = SettingsTestTags.MUSIC_TAGS_BUTTON,
+        onOpen = { open("music_tags") })
+    ChipsLine(
+        label = "Transport",
+        names = uiState.selectedTags.filter { it.name in tagsTransport }.map { it.name },
+        testTag = SettingsTestTags.TRANSPORT_TAGS_BUTTON,
+        onOpen = { open("transport_tags") })
+    ChipsLine(
+        label = "Canton",
+        names = uiState.selectedTags.filter { it.name in tagsCanton }.map { it.name },
+        testTag = SettingsTestTags.CANTON_TAGS_BUTTON,
+        onOpen = { open("canton_tags") })
   }
 }
 
@@ -315,22 +368,7 @@ private fun ModalContentContentOnly(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween) {
               Text(
-                  text =
-                      when (uiState.currentField) {
-                        "email" -> "Edit Email"
-                        "password" -> "Edit Password"
-                        "firstName" -> "Edit First Name"
-                        "lastName" -> "Edit Last Name"
-                        "description" -> "Edit Description"
-                        "country" -> "Edit Country"
-                        "date" -> "Edit Date of Birth"
-                        "interest_tags" -> "Edit Interest Tags"
-                        "sport_tags" -> "Edit Sport Tags"
-                        "music_tags" -> "Edit Music Tags"
-                        "transport_tags" -> "Edit Transport Tags"
-                        "canton_tags" -> "Edit Canton Tags"
-                        else -> ""
-                      },
+                  text = modalTitle(uiState.currentField),
                   style = MaterialTheme.typography.titleMedium,
                   modifier = Modifier.weight(1f))
               Row(
@@ -391,36 +429,15 @@ private fun ModalContentContentOnly(
                 maxLines = if (uiState.currentField == "description") 3 else 1)
           }
 
-          "country" -> {
-            ExposedDropdownMenuBox(
-                expanded = uiState.showCountryDropdown,
-                onExpandedChange = { onToggleCountryDropdown(!uiState.showCountryDropdown) }) {
-                  OutlinedTextField(
-                      value = uiState.country,
-                      onValueChange = {},
-                      readOnly = true,
-                      label = { Text("Country") },
-                      modifier = Modifier.fillMaxWidth().menuAnchor(),
-                      shape = RoundedCornerShape(12.dp))
-                  ExposedDropdownMenu(
-                      expanded = uiState.showCountryDropdown,
-                      onDismissRequest = { onToggleCountryDropdown(false) },
-                      modifier = Modifier.heightIn(max = 240.dp)) {
-                        CountryData.allCountries.forEach { countryOption ->
-                          DropdownMenuItem(
-                              text = {
-                                Text(
-                                    countryOption.take(30) +
-                                        if (countryOption.length > 30) "..." else "")
-                              },
-                              onClick = {
-                                onUpdateField("country", countryOption)
-                                onToggleCountryDropdown(false)
-                              })
-                        }
-                      }
-                }
-          }
+          "country" ->
+              CountryDropdown(
+                  value = uiState.country,
+                  expanded = uiState.showCountryDropdown,
+                  onExpandedChange = onToggleCountryDropdown,
+                  onPick = {
+                    onUpdateField("country", it)
+                    onToggleCountryDropdown(false)
+                  })
 
           "date" -> {
             Row(
