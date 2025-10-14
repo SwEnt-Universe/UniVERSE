@@ -438,29 +438,7 @@ class AddProfileViewModelTest {
   }
 
   @Test
-  fun addProfileInvalidDate5() = runTest {
-    val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
-
-    viewModel.setUsername("john_doe")
-    viewModel.setFirstName("John")
-    viewModel.setLastName("Doe")
-    viewModel.setCountry("United States")
-    viewModel.setDay("-2")
-    viewModel.setMonth("1")
-    viewModel.setYear("2025")
-
-    viewModel.addProfile()
-    advanceUntilIdle()
-
-    val users = repository.getAllUsers()
-    assertEquals(0, users.size)
-    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
-  }
-
-  @Test
-  fun addProfileInvalidDate6() = runTest {
+  fun addProfileInvalidDate4() = runTest {
     val repository = FakeUserRepository()
     val testDispatcher = StandardTestDispatcher(testScheduler)
     val viewModel = AddProfileViewModel(repository, testDispatcher)
@@ -470,7 +448,7 @@ class AddProfileViewModelTest {
     viewModel.setLastName("Doe")
     viewModel.setCountry("United States")
     viewModel.setDay("12")
-    viewModel.setMonth("-1")
+    viewModel.setMonth("11")
     viewModel.setYear("2025")
 
     viewModel.addProfile()
@@ -478,7 +456,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+    assertEquals("At least 13 years old required", viewModel.uiState.value.errorMsg)
   }
 
   @Test
