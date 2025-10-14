@@ -255,7 +255,7 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
       style = SettingsScreenStyles.sectionTitleStyle()
     )
     chipsLine(
-      "Hobbies",
+      "Interests",
       uiState.selectedTags.filter { it.name in tagsInterest }.map { it.name },
       SettingsTestTags.INTEREST_TAGS_BUTTON)
     chipsLine(
