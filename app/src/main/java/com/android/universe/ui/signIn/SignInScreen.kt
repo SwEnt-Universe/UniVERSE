@@ -19,9 +19,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.ui.navigation.NavigationTestTags
 
 object SignInScreenTestTags {
-  const val SCREEN = "signInScreen"
   const val SIGN_IN_BUTTON = "signInButton"
 }
 
@@ -46,7 +46,7 @@ fun SignInScreen(
     }
   }
 
-  Scaffold(modifier = Modifier.testTag(SignInScreenTestTags.SCREEN)) { paddingValues ->
+  Scaffold(modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN)) { paddingValues ->
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
