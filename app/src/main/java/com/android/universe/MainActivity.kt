@@ -10,10 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationPlaceholderScreen
@@ -21,6 +25,8 @@ import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
+import com.android.universe.ui.profile.UserProfileViewModel
+import com.android.universe.ui.settings.SettingsScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -51,6 +57,7 @@ fun UniverseApp() {
   val startDestination = NavigationScreens.Map.route
   // TODO: verify that user is authenticated once the signIn is done.
 
+  val userRepository = UserRepositoryProvider.repository
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
   NavHost(navController = navController, startDestination = startDestination) {
@@ -86,7 +93,24 @@ fun UniverseApp() {
         startDestination = NavigationScreens.Profile.route,
         route = NavigationScreens.Profile.name,
     ) {
-      composable(NavigationScreens.Profile.route) { UserProfileScreen("emma", onTabSelected) }
+      composable(NavigationScreens.Profile.route) {
+        UserProfileScreen(
+          username = "emma",
+          onTabSelected,
+          navController) }
+    }
+
+    composable(
+      route = NavigationScreens.Settings.route,
+      arguments = listOf(navArgument("username") { type = NavType.StringType })
+    ) { backStackEntry ->
+      val username = backStackEntry.arguments?.getString("username") ?: "emma"
+      SettingsScreen(
+        username = username,
+        onSaveSuccess = { navController.popBackStack(NavigationScreens.Profile.route, inclusive = false) },
+        onCancel = { navController.popBackStack(NavigationScreens.Profile.route, inclusive = false) },
+        userProfileViewModel = UserProfileViewModel(userRepository)
+      )
     }
   }
 }

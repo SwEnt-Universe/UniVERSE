@@ -22,8 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationBottomMenu
+import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import kotlin.collections.chunked
@@ -34,22 +37,25 @@ object UserProfileScreenTestTags {
   const val AGE = "userProfileAge"
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
-
   const val TAG = "userProfileTag"
+  const val EDIT_BUTTON = "userProfileEditButton"
 }
 
 /**
  * Composable for displaying a user's profile.
  *
  * @param username The username of the user to display.
+ * @param onTabSelected Callback when a bottom navigation tab is selected.
+ * @param navController The NavController for handling navigation actions.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
-    username: String,
-    onTabSelected: (Tab) -> Unit = {},
-    userProfileViewModel: UserProfileViewModel = viewModel()
+  username: String,
+  onTabSelected: (Tab) -> Unit = {},
+  navController: NavController,
+  userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
 
   val userUIState by userProfileViewModel.userState.collectAsState()
@@ -67,15 +73,21 @@ fun UserProfileScreen(
   val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
   val nb_tags = userUIState.userProfile.tags.size
   Scaffold(
-      topBar = {
-        TopAppBar(
-            title = { Text("Profile") },
-            actions = {
-              IconButton(onClick = { /* Handle edit profile action TODO */ }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
-              }
-            })
-      },
+    topBar = {
+      TopAppBar(
+        title = { Text("Profile") },
+        actions = {
+          IconButton(
+            onClick = {
+              navController.navigate(NavigationScreens.Settings.route.replace("{username}", username))
+            },
+            modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)
+          ) {
+            Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
+          }
+        }
+      )
+    },
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
         Column(
             modifier =
@@ -220,5 +232,7 @@ private fun TagChip(tag: Tag) {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UserProfileScreen(username = "emma")
+  UserProfileScreen(username = "emma", navController = rememberNavController())
+
+
 }
