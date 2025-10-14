@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -83,7 +84,7 @@ fun UserProfileScreen(
             },
             modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)
           ) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
+            Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
           }
         }
       )
