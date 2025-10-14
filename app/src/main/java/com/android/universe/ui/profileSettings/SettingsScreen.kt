@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,7 +36,7 @@ import com.android.universe.ui.profile.SettingsViewModel
 import com.android.universe.ui.selectTag.TagColors
 
 /* =========================================================
- * Padding constants
+ * Padding/style constants
  * ========================================================= */
 object SettingsScreenPaddings {
   val InternalSpacing = 4.dp // Spacing between fields, titles, tag categories, and modal content
@@ -44,6 +45,11 @@ object SettingsScreenPaddings {
   val ErrorIndent = 8.dp // Start padding for error messages
   val FieldIconSpacing = 10.dp // Horizontal spacing between field value and edit icon
   val DateFieldSpacing = 8.dp // Spacing between date fields in modal
+}
+
+object SettingsScreenStyles {
+  @Composable
+  fun sectionTitleStyle() = MaterialTheme.typography.titleLarge
 }
 
 /* =========================================================
@@ -143,7 +149,10 @@ private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(
     verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)
   ) {
-    Text("General", style = MaterialTheme.typography.titleLarge)
+    Text(
+      "General",
+      style = SettingsScreenStyles.sectionTitleStyle()
+    )
     EditableField(
       label = "Email address",
       value = uiState.email,
@@ -168,7 +177,10 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
       color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
       thickness = 0.5.dp,
       modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
-    Text("Profile", style = MaterialTheme.typography.titleLarge)
+    Text(
+      "Profile",
+      style = SettingsScreenStyles.sectionTitleStyle()
+    )
     EditableField(
       label = "First Name",
       value = uiState.firstName,
@@ -238,7 +250,10 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
       color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
       thickness = 0.5.dp,
       modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
-    Text("Interests", style = MaterialTheme.typography.titleLarge)
+    Text(
+      "Interests",
+      style = SettingsScreenStyles.sectionTitleStyle()
+    )
     chipsLine(
       "Hobbies",
       uiState.selectedTags.filter { it.name in tagsInterest }.map { it.name },
