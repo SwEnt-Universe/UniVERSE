@@ -165,6 +165,7 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
     testImplementation(dep)
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Dependencies
 // - use /gradle/wrapper/libs.versions.tomtom when available
@@ -243,10 +244,18 @@ dependencies {
     // Robolectric (from catalog)
     testImplementation(libs.robolectric)
 
-    // TomTom SDK
-    implementation(libs.tomtomMap)
-    implementation(libs.tomtomLocation)
-    implementation(libs.tomtomSearch)
+    implementation(libs.tomtomMap) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtomLocation) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtomSearch) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
 
     // Firebase
     implementation(libs.firebase.database.ktx)
@@ -254,7 +263,13 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
 }
-
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "com.google.protobuf" && requested.name.contains("lite")) {
+            useVersion("3.25.5")
+        }
+    }
+}
 // ─────────────────────────────────────────────────────────────────────────────
 // JaCoCo agent tuning for ALL test tasks
 // - include no-location classes
