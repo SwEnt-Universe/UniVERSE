@@ -49,7 +49,7 @@ mockK = "1.14.2"
 jacoco = "0.8.13"
 #endregion
 
-#region TomTom
+#region TomTom SDK
 tomtom = "1.26.0"
 #endregion
 
