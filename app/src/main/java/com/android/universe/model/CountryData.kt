@@ -428,4 +428,3 @@ object CountryData {
 
 /** Reverse map for converting ISO codes back to human-readable names. */
 val isoToCountryName = countryToIsoCode.entries.associate { (name, iso) -> iso to name }
-

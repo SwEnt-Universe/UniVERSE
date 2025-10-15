@@ -23,10 +23,11 @@ import androidx.compose.ui.unit.dp
  *
  * When a tag is clicked:
  * - If it was not previously selected, [onTagSelect] is invoked.
- * - If it was already selected, [onTagReSelect] is invoked (allowing deselection or custom behavior).
+ * - If it was already selected, [onTagReSelect] is invoked (allowing deselection or custom
+ *   behavior).
  *
- * This composable is typically used to categorized tags such as user interests,
- * hobbies, or filters within a profile or settings screen.
+ * This composable is typically used to categorized tags such as user interests, hobbies, or filters
+ * within a profile or settings screen.
  *
  * ### Example:
  * ```
@@ -39,10 +40,12 @@ import androidx.compose.ui.unit.dp
  * )
  * ```
  *
- * @param name Optional title displayed above the tag group (e.g., "Interests"). If empty, no title is shown.
+ * @param name Optional title displayed above the tag group (e.g., "Interests"). If empty, no title
+ *   is shown.
  * @param tagList The full list of tag names to display as buttons.
  * @param selectedTags The subset of [tagList] that are currently selected.
- * @param color The background color for unselected tag buttons. Defaults to a purple accent (0xFF6650a4).
+ * @param color The background color for unselected tag buttons. Defaults to a purple accent
+ *   (0xFF6650a4).
  * @param onTagSelect Callback triggered when a tag is newly selected.
  * @param onTagReSelect Callback triggered when a selected tag is clicked again.
  * @param modifier The [Modifier] to be applied to the root [FlowRow] container.
