@@ -28,13 +28,18 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
+import com.android.universe.R
+import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
+import com.tomtom.sdk.map.display.image.ImageFactory
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
+import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.ui.MapView
 
 object MapScreenTestTags {
@@ -53,7 +58,9 @@ object MapScreenTestTags {
 @Composable
 fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val context = LocalContext.current
-  val viewModel: MapViewModel = viewModel { MapViewModel(TomTomLocationRepository(context)) }
+  val viewModel: MapViewModel = viewModel {
+    MapViewModel(TomTomLocationRepository(context), FakeEventRepository())
+  }
   val uiState by viewModel.uiState.collectAsState()
 
   val hasPermission =
@@ -124,6 +131,8 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
   var isInitialized by remember { mutableStateOf(false) }
   var isLocationProviderSet by remember { mutableStateOf(false) }
 
+  val eventMarkers by viewModel.eventMarkers.collectAsState()
+
   AndroidView(
       modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
       factory = { ctx ->
@@ -150,6 +159,21 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
       },
       update = { view -> view.onStart() },
       onReset = { mapView.onStop() })
+
+  LaunchedEffect(eventMarkers) {
+    tomtomMap?.let { map ->
+      map.clear()
+      eventMarkers.forEach { event ->
+        event.location?.let { loc ->
+          map.addMarker(
+              MarkerOptions(
+                  coordinate = GeoPoint(loc.latitude, loc.longitude),
+                  pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
+                  pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+        }
+      }
+    }
+  }
 
   LaunchedEffect(Unit) {
     viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }

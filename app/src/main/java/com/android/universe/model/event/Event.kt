@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.Tag
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDateTime
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime
  * @property tags set of tags associated with the event for categorization.
  * @property creator user profile of the event creator.
  * @property participants set of user profiles participating in the event.
+ * @property location where the event will take place.
  */
 data class Event(
     val id: String,
@@ -22,5 +24,6 @@ data class Event(
     val date: LocalDateTime,
     val tags: Set<Tag>,
     val creator: UserProfile,
-    val participants: Set<UserProfile> = emptySet()
+    val participants: Set<UserProfile> = emptySet(),
+    val location: Location
 )
