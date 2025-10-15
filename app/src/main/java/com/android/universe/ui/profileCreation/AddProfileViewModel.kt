@@ -142,6 +142,8 @@ class AddProfileViewModel(
    *
    * If any check fails, [errorMsg] is updated with a user-friendly message. Otherwise, a
    * [UserProfile] is constructed and persisted via [repository]
+   *
+   * @param uid The user's unique identifier.
    */
   fun addProfile(uid: String) {
     viewModelScope.launch(dispatcher) {

@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
@@ -315,6 +314,7 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
         showModal = showModal,
         currentField = field)
 
+/*
 @Preview(showBackground = true, name = "Settings")
 @Composable
 private fun SettingsScreenContent_Preview() {
@@ -322,3 +322,4 @@ private fun SettingsScreenContent_Preview() {
     SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
   }
 }
+ */

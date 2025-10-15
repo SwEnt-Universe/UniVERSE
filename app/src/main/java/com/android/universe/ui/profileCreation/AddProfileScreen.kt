@@ -105,6 +105,7 @@ object AddProfileScreenTestTags {
  * - Inline errors are shown once a field has been focused ("touched").
  * - Errors from the ViewModel are displayed as Toast messages.
  *
+ * @param uid The user's unique identifier.
  * @param addProfileViewModel The [AddProfileViewModel] that manages the screen's state and business
  *   logic. Defaults to [ViewModel()] for preview and runtime injection.
  * @see AddProfileViewModel
