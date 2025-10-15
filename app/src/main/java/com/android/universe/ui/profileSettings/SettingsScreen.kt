@@ -322,20 +322,3 @@ private fun SettingsScreenContent_Preview() {
     SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
   }
 }
-
-/** Preview for Settings screen with modal open. */
-@Preview(showBackground = true, name = "Settings – modal open")
-@Composable
-private fun SettingsScreenContent_Modal_Preview() {
-  MaterialTheme {
-    SettingsScreenContent(
-        uiState = sampleSettingsState(showModal = true, field = "firstName"),
-        onOpenField = {},
-        onUpdateTemp = { _, _ -> },
-        onToggleCountryDropdown = {},
-        onAddTag = {},
-        onRemoveTag = {},
-        onCloseModal = {},
-        onSaveModal = {})
-  }
-}

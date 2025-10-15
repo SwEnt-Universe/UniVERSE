@@ -222,6 +222,7 @@ class SettingsViewModel(
         }
         _uiState.value = _uiState.value.copy(email = state.tempValue, emailError = null)
       }
+
       "password" -> {
         modalError = validatePassword(state.tempValue)
         if (modalError != null) {
@@ -230,6 +231,7 @@ class SettingsViewModel(
         }
         _uiState.value = _uiState.value.copy(password = state.tempValue, passwordError = null)
       }
+
       "firstName" -> {
         modalError = validateName("First name", state.tempValue)
         if (modalError != null) {
@@ -238,6 +240,7 @@ class SettingsViewModel(
         }
         _uiState.value = _uiState.value.copy(firstName = state.tempValue, firstNameError = null)
       }
+
       "lastName" -> {
         modalError = validateName("Last name", state.tempValue)
         if (modalError != null) {
@@ -246,6 +249,7 @@ class SettingsViewModel(
         }
         _uiState.value = _uiState.value.copy(lastName = state.tempValue, lastNameError = null)
       }
+
       "description" -> {
         modalError = validateDescription(state.tempValue)
         if (modalError != null) {
@@ -254,6 +258,7 @@ class SettingsViewModel(
         }
         _uiState.value = _uiState.value.copy(description = state.tempValue, descriptionError = null)
       }
+
       "country" -> {
         modalError = validateNonEmpty("Country", state.tempValue)
         if (modalError != null) {
@@ -262,6 +267,7 @@ class SettingsViewModel(
         }
         _uiState.value = _uiState.value.copy(country = state.tempValue)
       }
+
       "date" -> {
         val (dErr, mErr, yErr) = validateDateTriple(state.tempDay, state.tempMonth, state.tempYear)
         if (dErr != null || mErr != null || yErr != null) {
@@ -278,6 +284,7 @@ class SettingsViewModel(
                 monthError = null,
                 yearError = null)
       }
+
       else -> {
         Tag.Category.entries
             .find { it.fieldName == state.currentField }
@@ -317,6 +324,8 @@ class SettingsViewModel(
   fun saveProfile(username: String) {
     viewModelScope.launch {
       val state = _uiState.value
+
+      // ─── 1. Validate input fields ────────────────────────────────
       val errors =
           validateAll(
               state.email,
@@ -349,10 +358,12 @@ class SettingsViewModel(
         return@launch
       }
 
+      // ─── 2. Attempt to update the user profile ─────────────────────
       try {
         val cleanedFirstName = sanitize(state.firstName)
         val cleanedLastName = sanitize(state.lastName)
         val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
+
         val updatedProfile =
             UserProfile(
                 username = username,
@@ -363,22 +374,23 @@ class SettingsViewModel(
                 dateOfBirth =
                     LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
                 tags = state.selectedTags.toSet())
+
         userRepository.repository.updateUser(username, updatedProfile)
 
-        if (state.email != FirebaseAuth.getInstance().currentUser?.email) {
-          FirebaseAuth.getInstance().currentUser?.updateEmail(state.email)?.addOnFailureListener { e
-            ->
+        // ─── 3. Firebase Email update ──────────────────────────────
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (state.email != currentUser?.email) {
+          currentUser?.updateEmail(state.email)?.addOnFailureListener { e ->
             _uiState.value = _uiState.value.copy(errorMsg = "Failed to update email: ${e.message}")
           }
         }
+
+        // ─── 4. Firebase Password update ───────────────────────────
         if (state.password.isNotEmpty()) {
-          FirebaseAuth.getInstance()
-              .currentUser
-              ?.updatePassword(state.password)
-              ?.addOnFailureListener { e ->
-                _uiState.value =
-                    _uiState.value.copy(errorMsg = "Failed to update password: ${e.message}")
-              }
+          currentUser?.updatePassword(state.password)?.addOnFailureListener { e ->
+            _uiState.value =
+                _uiState.value.copy(errorMsg = "Failed to update password: ${e.message}")
+          }
         }
       } catch (e: Exception) {
         _uiState.value = _uiState.value.copy(errorMsg = "Failed to save profile: ${e.message}")
