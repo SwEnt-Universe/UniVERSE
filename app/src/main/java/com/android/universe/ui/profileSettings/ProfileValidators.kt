@@ -4,18 +4,16 @@ import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.Period
 
-/**
- * Holds validation error messages for profile form fields.
- */
+/** Holds validation error messages for profile form fields. */
 data class FormErrors(
-  val email: String? = null,
-  val password: String? = null,
-  val firstName: String? = null,
-  val lastName: String? = null,
-  val description: String? = null,
-  val day: String? = null,
-  val month: String? = null,
-  val year: String? = null,
+    val email: String? = null,
+    val password: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val description: String? = null,
+    val day: String? = null,
+    val month: String? = null,
+    val year: String? = null,
 )
 
 private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
@@ -29,12 +27,12 @@ private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
  * @return A human-readable error message, or null if valid.
  */
 fun validateName(label: String, s: String, maxLength: Int = 25): String? =
-  when {
-    s.isBlank() -> "$label cannot be empty"
-    !nameRegex.matches(s) -> "Invalid $label format"
-    s.length > maxLength -> "$label too long"
-    else -> null
-  }
+    when {
+      s.isBlank() -> "$label cannot be empty"
+      !nameRegex.matches(s) -> "Invalid $label format"
+      s.length > maxLength -> "$label too long"
+      else -> null
+    }
 
 /**
  * Validates email address format.
@@ -43,11 +41,11 @@ fun validateName(label: String, s: String, maxLength: Int = 25): String? =
  * @return Error message or null if valid.
  */
 fun validateEmail(s: String) =
-  when {
-    s.isBlank() -> "Email cannot be empty"
-    !s.contains('@') -> "Invalid email format"
-    else -> null
-  }
+    when {
+      s.isBlank() -> "Email cannot be empty"
+      !s.contains('@') -> "Invalid email format"
+      else -> null
+    }
 
 /**
  * Validates password strength.
@@ -56,10 +54,10 @@ fun validateEmail(s: String) =
  * @return Error message if too short, or null if valid.
  */
 fun validatePassword(s: String) =
-  when {
-    s.isNotEmpty() && s.length < 6 -> "Password must be at least 6 characters"
-    else -> null
-  }
+    when {
+      s.isNotEmpty() && s.length < 6 -> "Password must be at least 6 characters"
+      else -> null
+    }
 
 /**
  * Validates profile description length.
@@ -69,7 +67,7 @@ fun validatePassword(s: String) =
  * @return Error message or null.
  */
 fun validateDescription(s: String, maxLength: Int = 200) =
-  if (s.length > maxLength) "Description too long" else null
+    if (s.length > maxLength) "Description too long" else null
 
 /**
  * Ensures that a string field is not empty.
@@ -81,7 +79,6 @@ fun validateNonEmpty(label: String, s: String) = if (s.isBlank()) "$label cannot
 
 /**
  * Validates a date triple (day, month, year) for logical consistency and age constraint.
- *
  * - Checks numeric format and valid ranges.
  * - Verifies that the date exists.
  * - Enforces minimum age of 13 years.
@@ -89,28 +86,28 @@ fun validateNonEmpty(label: String, s: String) = if (s.isBlank()) "$label cannot
  * @return Triple of day, month, and year error messages (null for valid).
  */
 fun validateDateTriple(
-  day: String,
-  month: String,
-  year: String
+    day: String,
+    month: String,
+    year: String
 ): Triple<String?, String?, String?> {
   val dayErr =
-    when {
-      day.isBlank() -> "Day cannot be empty"
-      day.toIntOrNull() == null || day.toInt() !in 1..31 -> "Invalid day"
-      else -> null
-    }
+      when {
+        day.isBlank() -> "Day cannot be empty"
+        day.toIntOrNull() == null || day.toInt() !in 1..31 -> "Invalid day"
+        else -> null
+      }
   val monthErr =
-    when {
-      month.isBlank() -> "Month cannot be empty"
-      month.toIntOrNull() == null || month.toInt() !in 1..12 -> "Invalid month"
-      else -> null
-    }
+      when {
+        month.isBlank() -> "Month cannot be empty"
+        month.toIntOrNull() == null || month.toInt() !in 1..12 -> "Invalid month"
+        else -> null
+      }
   val yearErr =
-    when {
-      year.isBlank() -> "Year cannot be empty"
-      year.toIntOrNull() == null || year.toInt() !in 1900..LocalDate.now().year -> "Invalid year"
-      else -> null
-    }
+      when {
+        year.isBlank() -> "Year cannot be empty"
+        year.toIntOrNull() == null || year.toInt() !in 1900..LocalDate.now().year -> "Invalid year"
+        else -> null
+      }
   if (dayErr != null || monthErr != null || yearErr != null) {
     return Triple(dayErr, monthErr, yearErr)
   }
@@ -125,32 +122,28 @@ fun validateDateTriple(
   return Triple(null, null, null)
 }
 
-/**
- * Normalizes whitespace and trims leading/trailing spaces.
- */
+/** Normalizes whitespace and trims leading/trailing spaces. */
 fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
 
-/**
- * Runs validation on all form fields and collects errors.
- */
+/** Runs validation on all form fields and collects errors. */
 fun validateAll(
-  email: String,
-  password: String,
-  firstName: String,
-  lastName: String,
-  description: String,
-  day: String,
-  month: String,
-  year: String
+    email: String,
+    password: String,
+    firstName: String,
+    lastName: String,
+    description: String,
+    day: String,
+    month: String,
+    year: String
 ): FormErrors {
   val (dErr, mErr, yErr) = validateDateTriple(day, month, year)
   return FormErrors(
-    email = validateEmail(email),
-    password = validatePassword(password),
-    firstName = validateName("First name", firstName),
-    lastName = validateName("Last name", lastName),
-    description = validateDescription(description),
-    day = dErr,
-    month = mErr,
-    year = yErr)
+      email = validateEmail(email),
+      password = validatePassword(password),
+      firstName = validateName("First name", firstName),
+      lastName = validateName("Last name", lastName),
+      description = validateDescription(description),
+      day = dErr,
+      month = mErr,
+      year = yErr)
 }

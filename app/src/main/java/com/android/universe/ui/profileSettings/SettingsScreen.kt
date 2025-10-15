@@ -43,6 +43,9 @@ object SettingsScreenStyles {
 /* =========================================================
  * Helper methods
  * ========================================================= */
+/**
+ * Maps internal field keys to modal titles.
+ */
 internal fun modalTitle(field: String): String =
     when (field) {
       "email" -> "Edit Email"
@@ -60,6 +63,44 @@ internal fun modalTitle(field: String): String =
       else -> field.ifBlank { "Edit" }
     }
 
+/**
+ * Reusable editable text row with trailing edit icon.
+ */
+@Composable
+private fun EditableField(
+  label: String,
+  value: String,
+  error: String? = null,
+  testTag: String,
+  onClick: () -> Unit
+) {
+  Row(
+    modifier =
+      Modifier.fillMaxWidth()
+        .clickable { onClick() }
+        .testTag(testTag)
+        .padding(vertical = SettingsScreenPaddings.InternalSpacing),
+    verticalAlignment = Alignment.CenterVertically) {
+    Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+    Text(
+      value,
+      style = MaterialTheme.typography.bodyMedium,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis)
+    Spacer(modifier = Modifier.width(SettingsScreenPaddings.FieldIconSpacing))
+    Icon(Icons.Filled.Edit, contentDescription = "Edit $label")
+  }
+  if (error != null) {
+    Text(
+      error,
+      color = MaterialTheme.colorScheme.error,
+      modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
+  }
+}
+
+/**
+ * Reusable row for displaying a list of tags.
+ */
 @Composable
 private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpen: () -> Unit) {
   val joined = names.joinToString(", ")
@@ -73,6 +114,13 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 /* =========================================================
  * Stateful wrapper (production)
  * ========================================================= */
+/**
+ * Top-level composable for the user Settings screen.
+ *
+ * @param username Logged-in user's username.
+ * @param onBack Callback when back arrow pressed.
+ * @param viewModel Shared [SettingsViewModel] for state and actions.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -104,9 +152,9 @@ fun SettingsScreen(
       onSaveModal = { viewModel.saveModal(username) })
 }
 
-/* =========================================================
- * Stateless, preview-friendly UI
- * ========================================================= */
+/**
+ * Stateless content of the Settings screen, allowing for previews and tests.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreenContent(
@@ -157,8 +205,11 @@ fun SettingsScreenContent(
 }
 
 /* =========================================================
- * Sections (stateless)
+ * Sections
  * ========================================================= */
+/**
+ * Section for displaying general account information like email and password.
+ */
 @Composable
 private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
@@ -178,6 +229,9 @@ private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
   }
 }
 
+/**
+ * Section for displaying personal profile information.
+ */
 @Composable
 private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
@@ -235,6 +289,9 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
   }
 }
 
+/**
+ * Section for displaying and editing tag-based interests.
+ */
 @Composable
 private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
@@ -254,43 +311,11 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
 }
 
 /* =========================================================
- * Reusable field row (stateless)
- * ========================================================= */
-@Composable
-private fun EditableField(
-    label: String,
-    value: String,
-    error: String? = null,
-    testTag: String,
-    onClick: () -> Unit
-) {
-  Row(
-      modifier =
-          Modifier.fillMaxWidth()
-              .clickable { onClick() }
-              .testTag(testTag)
-              .padding(vertical = SettingsScreenPaddings.InternalSpacing),
-      verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis)
-        Spacer(modifier = Modifier.width(SettingsScreenPaddings.FieldIconSpacing))
-        Icon(Icons.Filled.Edit, contentDescription = "Edit $label")
-      }
-  if (error != null) {
-    Text(
-        error,
-        color = MaterialTheme.colorScheme.error,
-        modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
-  }
-}
-
-/* =========================================================
  * Previews (use stateless content only)
  * ========================================================= */
+/**
+ * Preview for Settings screen without modal.
+ */
 fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
     SettingsUiState(
         email = "preview@example.com",
@@ -314,6 +339,9 @@ private fun SettingsScreenContent_Preview() {
   }
 }
 
+/**
+ * Preview for Settings screen with modal open.
+ */
 @Preview(showBackground = true, name = "Settings – modal open")
 @Composable
 private fun SettingsScreenContent_Modal_Preview() {
