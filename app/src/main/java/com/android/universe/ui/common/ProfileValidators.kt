@@ -1,4 +1,4 @@
-package com.android.universe.ui.profileSettings
+package com.android.universe.ui.common
 
 import java.time.DateTimeException
 import java.time.LocalDate

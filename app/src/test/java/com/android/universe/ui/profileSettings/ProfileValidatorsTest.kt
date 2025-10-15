@@ -1,5 +1,13 @@
 package com.android.universe.ui.profileSettings
 
+import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.validateAll
+import com.android.universe.ui.common.validateDateTriple
+import com.android.universe.ui.common.validateDescription
+import com.android.universe.ui.common.validateEmail
+import com.android.universe.ui.common.validateName
+import com.android.universe.ui.common.validateNonEmpty
+import com.android.universe.ui.common.validatePassword
 import java.time.LocalDate
 import org.junit.Assert.*
 import org.junit.Test
@@ -144,8 +152,9 @@ class ProfileValidatorsTest {
   fun validateDateTriple_under13() {
     val dob = LocalDate.now().minusYears(12)
     val (d, m, y) =
-        validateDateTriple(
-            dob.dayOfMonth.toString(), dob.monthValue.toString(), dob.year.toString())
+      validateDateTriple(
+        dob.dayOfMonth.toString(), dob.monthValue.toString(), dob.year.toString()
+      )
     assertNull(d)
     assertNull(m)
     assertEquals("Must be at least 13 years old", y)
@@ -155,8 +164,9 @@ class ProfileValidatorsTest {
   fun validateDateTriple_exactly13_ok() {
     val dob = LocalDate.now().minusYears(13)
     val (d, m, y) =
-        validateDateTriple(
-            dob.dayOfMonth.toString(), dob.monthValue.toString(), dob.year.toString())
+      validateDateTriple(
+        dob.dayOfMonth.toString(), dob.monthValue.toString(), dob.year.toString()
+      )
     assertNull(d)
     assertNull(m)
     assertNull(y)
@@ -167,15 +177,16 @@ class ProfileValidatorsTest {
   fun validateAll_allValid() {
     val dob = LocalDate.now().minusYears(20)
     val e =
-        validateAll(
-            email = "a@b.com",
-            password = "secret",
-            firstName = "Alice",
-            lastName = "Smith",
-            description = "Hi!",
-            day = dob.dayOfMonth.toString(),
-            month = dob.monthValue.toString(),
-            year = dob.year.toString())
+      validateAll(
+        email = "a@b.com",
+        password = "secret",
+        firstName = "Alice",
+        lastName = "Smith",
+        description = "Hi!",
+        day = dob.dayOfMonth.toString(),
+        month = dob.monthValue.toString(),
+        year = dob.year.toString()
+      )
     assertNull(e.email)
     assertNull(e.password)
     assertNull(e.firstName)
@@ -189,15 +200,16 @@ class ProfileValidatorsTest {
   @Test
   fun validateAll_collectsErrors() {
     val e =
-        validateAll(
-            email = "not-an-email",
-            password = "123",
-            firstName = "",
-            lastName = "Doe3",
-            description = "x".repeat(201),
-            day = "31",
-            month = "4",
-            year = "2005")
+      validateAll(
+        email = "not-an-email",
+        password = "123",
+        firstName = "",
+        lastName = "Doe3",
+        description = "x".repeat(201),
+        day = "31",
+        month = "4",
+        year = "2005"
+      )
     assertEquals("Invalid email format", e.email)
     assertEquals("Password must be at least 6 characters", e.password)
     assertEquals("First name cannot be empty", e.firstName)
