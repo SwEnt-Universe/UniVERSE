@@ -20,15 +20,15 @@ class SettingsScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private fun setUpScreen(
-    uiState: SettingsUiState = sampleSettingsState(),
-    onOpenField: (String) -> Unit = {},
-    onUpdateTemp: (String, String) -> Unit = { _, _ -> },
-    onToggleCountryDropdown: (Boolean) -> Unit = {},
-    onAddTag: (Tag) -> Unit = {},
-    onRemoveTag: (Tag) -> Unit = {},
-    onCloseModal: () -> Unit = {},
-    onSaveModal: () -> Unit = {},
-    onBack: () -> Unit = {}
+      uiState: SettingsUiState = sampleSettingsState(),
+      onOpenField: (String) -> Unit = {},
+      onUpdateTemp: (String, String) -> Unit = { _, _ -> },
+      onToggleCountryDropdown: (Boolean) -> Unit = {},
+      onAddTag: (Tag) -> Unit = {},
+      onRemoveTag: (Tag) -> Unit = {},
+      onCloseModal: () -> Unit = {},
+      onSaveModal: () -> Unit = {},
+      onBack: () -> Unit = {}
   ) {
     composeTestRule.setContent {
       MaterialTheme {
