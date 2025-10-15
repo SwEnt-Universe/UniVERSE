@@ -39,11 +39,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
-import com.android.universe.model.tagsCanton
-import com.android.universe.model.tagsInterest
-import com.android.universe.model.tagsMusic
-import com.android.universe.model.tagsSport
-import com.android.universe.model.tagsTransport
 import kotlinx.coroutines.launch
 
 object SelectTagsScreenTestTags {
@@ -147,10 +142,8 @@ object TagColors {
 /**
  * Composable screen that displays tags organized by topic and allows the user to select them.
  *
- * Tags are grouped into the following topics: Interest, Sport, Music, Transport, and Canton. Each
- * topic is displayed with a title and a distinct color.
- *
- * Users can:
+ * Tags are grouped into categories defined by [Tag.Category]. Each category is displayed with a
+ * title and a distinct color. Users can:
  * - Select a tag by clicking on it (selected tags turn grey and show a check icon).
  * - Deselect a tag by clicking it again in the main list or by clicking the trash icon in the
  *   selected tags section at the bottom.
@@ -169,61 +162,32 @@ fun SelectTagScreen(
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
-      item {
+      items(Tag.Category.entries) { category ->
         TagGroup(
-            "Interest",
-            tagsInterest,
-            selectedTags,
-            TagColors.Interest,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.INTEREST_TAGS))
+            name = category.displayName,
+            tagList = Tag.getTagsForCategory(category),
+            selectedTags = selectedTags,
+            color =
+                when (category) {
+                  Tag.Category.INTEREST -> TagColors.Interest
+                  Tag.Category.SPORT -> TagColors.Sport
+                  Tag.Category.MUSIC -> TagColors.Music
+                  Tag.Category.TRANSPORT -> TagColors.Transport
+                  Tag.Category.CANTON -> TagColors.Canton
+                },
+            onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
+            onTagReSelect = { tag -> selectedTagOverview.deleteTag(tag) },
+            modifier =
+                Modifier.testTag(
+                    when (category) {
+                      Tag.Category.INTEREST -> SelectTagsScreenTestTags.INTEREST_TAGS
+                      Tag.Category.SPORT -> SelectTagsScreenTestTags.SPORT_TAGS
+                      Tag.Category.MUSIC -> SelectTagsScreenTestTags.MUSIC_TAGS
+                      Tag.Category.TRANSPORT -> SelectTagsScreenTestTags.TRANSPORT_TAGS
+                      Tag.Category.CANTON -> SelectTagsScreenTestTags.CANTON_TAGS
+                    }))
+        SectionDivider()
       }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Sport",
-            tagsSport,
-            selectedTags,
-            TagColors.Sport,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.SPORT_TAGS))
-      }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Music",
-            tagsMusic,
-            selectedTags,
-            TagColors.Music,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.MUSIC_TAGS))
-      }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Transport:",
-            tagsTransport,
-            selectedTags,
-            TagColors.Transport,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.TRANSPORT_TAGS))
-      }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Canton:",
-            tagsCanton,
-            selectedTags,
-            TagColors.Canton,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.CANTON_TAGS))
-      }
-      item { SectionDivider() }
     }
     if (selectedTags.isNotEmpty()) {
       LazyRow(modifier = Modifier.testTag(SelectTagsScreenTestTags.SELECTED_TAGS)) {
@@ -242,8 +206,7 @@ fun SelectTagScreen(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
                     tint = Color.Gray,
-                    modifier = Modifier.height(16.dp),
-                )
+                    modifier = Modifier.height(16.dp))
               }
         }
       }

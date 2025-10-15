@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import com.android.universe.model.Tag
 import com.android.universe.ui.profile.SettingsUiState
 import org.junit.Rule
 import org.junit.Test
@@ -19,15 +20,15 @@ class SettingsScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private fun setUpScreen(
-      uiState: SettingsUiState = sampleSettingsState(),
-      onOpenField: (String) -> Unit = {},
-      onUpdateTemp: (String, String) -> Unit = { _, _ -> },
-      onToggleCountryDropdown: (Boolean) -> Unit = {},
-      onAddTag: (String) -> Unit = {},
-      onRemoveTag: (String) -> Unit = {},
-      onCloseModal: () -> Unit = {},
-      onSaveModal: () -> Unit = {},
-      onBack: () -> Unit = {}
+    uiState: SettingsUiState = sampleSettingsState(),
+    onOpenField: (String) -> Unit = {},
+    onUpdateTemp: (String, String) -> Unit = { _, _ -> },
+    onToggleCountryDropdown: (Boolean) -> Unit = {},
+    onAddTag: (Tag) -> Unit = {},
+    onRemoveTag: (Tag) -> Unit = {},
+    onCloseModal: () -> Unit = {},
+    onSaveModal: () -> Unit = {},
+    onBack: () -> Unit = {}
   ) {
     composeTestRule.setContent {
       MaterialTheme {
