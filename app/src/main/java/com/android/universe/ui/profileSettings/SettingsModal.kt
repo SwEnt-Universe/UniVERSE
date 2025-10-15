@@ -10,15 +10,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
+import com.android.universe.ui.common.TagGroup
 import com.android.universe.ui.profile.SettingsUiState
+import com.android.universe.ui.selectTag.TagColors
 
 /**
- * Dropdown component used in the modal for selecting a country.
+ * A composable dropdown component used for selecting a country.
  *
- * @param value Currently selected country.
- * @param expanded Whether the dropdown menu is open.
- * @param onExpandedChange Callback when dropdown is toggled.
- * @param onPick Callback when a country is selected.
+ * Displayed inside the profile settings modal when the user edits their country.
+ * The dropdown shows all available countries defined in [CountryData.allCountries] and updates
+ * its selection via [onPick].
+ *
+ * @param value The currently selected country name.
+ * @param expanded Whether the dropdown menu is currently expanded.
+ * @param onExpandedChange Callback triggered when the dropdown expansion state changes.
+ * @param onPick Callback invoked when a user selects a country from the list.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,10 +62,25 @@ internal fun CountryDropdown(
 }
 
 /**
- * Modal bottom-sheet content for editing profile fields.
+ * The core content of the profile settings modal.
  *
- * Dynamically adapts its layout based on `uiState.currentField` to display either text fields,
- * dropdowns, date pickers, or tag groups.
+ * This composable adapts its layout dynamically based on the currently active field
+ * (`uiState.currentField`), showing different input controls for:
+ * - Text fields (email, password, name, description)
+ * - Country selection (dropdown)
+ * - Date of birth (three separate fields)
+ * - Tag-based interest groups
+ *
+ * The modal also contains a header with the field title and action buttons ("Cancel" / "Save"),
+ * both of which can trigger callbacks for closing or persisting changes.
+ *
+ * @param uiState The current UI state containing temporary form values and error messages.
+ * @param onUpdateTemp Called when a temporary field value changes (e.g., typing in an input box).
+ * @param onToggleCountryDropdown Called to expand or collapse the country dropdown.
+ * @param onAddTag Adds a tag to the user’s temporary selection when a new tag is selected.
+ * @param onRemoveTag Removes a tag from the user’s temporary selection when deselected.
+ * @param onClose Invoked when the user presses the "Cancel" button.
+ * @param onSave Invoked when the user presses the "Save" button.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +93,7 @@ internal fun ModalContent(
     onClose: () -> Unit,
     onSave: () -> Unit
 ) {
-  // Local mirrors keep modal responsive without direct upstream updates
+  // Local mirrors keep the modal responsive without requiring immediate upstream state updates.
   var localText by remember(uiState.currentField) { mutableStateOf(uiState.tempValue) }
   var localDay by remember(uiState.currentField) { mutableStateOf(uiState.tempDay) }
   var localMonth by remember(uiState.currentField) { mutableStateOf(uiState.tempMonth) }
@@ -81,7 +102,8 @@ internal fun ModalContent(
   Column(
       modifier = Modifier.fillMaxWidth().padding(SettingsScreenPaddings.ContentHorizontalPadding),
       verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
-        // Modal header with title + action buttons
+
+        // ───────────── Modal Header (title + Save/Cancel) ─────────────
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
           Text(
               text = modalTitle(uiState.currentField),
@@ -104,24 +126,131 @@ internal fun ModalContent(
         }
 
         Spacer(Modifier.height(SettingsScreenPaddings.InternalSpacing))
-
-        // Conditional rendering depending on field type
+        // ───────────── Conditional Rendering by Field Type ─────────────
         when (uiState.currentField) {
+          // ────── Simple Text Fields (Email, Password, Name, Description) ──────
           "email",
           "password",
           "firstName",
           "lastName",
           "description" -> {
-            /* text field block */
+            val tag =
+                when (uiState.currentField) {
+                  "email" -> SettingsTestTags.EMAIL_FIELD
+                  "password" -> SettingsTestTags.PASSWORD_FIELD
+                  "firstName" -> SettingsTestTags.FIRST_NAME_FIELD
+                  "lastName" -> SettingsTestTags.LAST_NAME_FIELD
+                  else -> SettingsTestTags.DESCRIPTION_FIELD
+                }
+            val maxLines = if (uiState.currentField == "description") 3 else 1
+
+            // Main editable text input
+            OutlinedTextField(
+                value = localText,
+                onValueChange = { newValue ->
+                  localText = newValue
+                  onUpdateTemp("tempValue", newValue)
+                },
+                modifier = Modifier.fillMaxWidth().testTag(tag),
+                isError = uiState.modalError != null,
+                supportingText = {
+                  val message = uiState.modalError
+                  if (message != null) Text(message)
+                },
+                shape = RoundedCornerShape(12.dp),
+                maxLines = maxLines)
           }
+
+          // ────── Country Dropdown ──────
           "country" -> {
-            /* country dropdown block */
+            CountryDropdown(
+                value = uiState.tempValue,
+                expanded = uiState.showCountryDropdown,
+                onExpandedChange = { isExpanded -> onToggleCountryDropdown(isExpanded) },
+                onPick = { picked ->
+                  onUpdateTemp("tempValue", picked)
+                  onToggleCountryDropdown(false)
+                })
           }
+
+          // ────── Date Picker (Day / Month / Year) ──────
           "date" -> {
-            /* date input triple */
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.spacedBy(SettingsScreenPaddings.DateFieldSpacing)) {
+                  OutlinedTextField(
+                      value = localDay,
+                      onValueChange = { newDay ->
+                        localDay = newDay
+                        onUpdateTemp("tempDay", newDay)
+                      },
+                      label = { Text("Day") },
+                      modifier = Modifier.weight(1f).testTag(SettingsTestTags.DAY_FIELD),
+                      isError = uiState.tempDayError != null,
+                      supportingText = {
+                        val message = uiState.tempDayError
+                        if (message != null) Text(message)
+                      },
+                      shape = RoundedCornerShape(12.dp))
+                  OutlinedTextField(
+                      value = localMonth,
+                      onValueChange = { newMonth ->
+                        localMonth = newMonth
+                        onUpdateTemp("tempMonth", newMonth)
+                      },
+                      label = { Text("Month") },
+                      modifier = Modifier.weight(1f).testTag(SettingsTestTags.MONTH_FIELD),
+                      isError = uiState.tempMonthError != null,
+                      supportingText = {
+                        val message = uiState.tempMonthError
+                        if (message != null) Text(message)
+                      },
+                      shape = RoundedCornerShape(12.dp))
+                  OutlinedTextField(
+                      value = localYear,
+                      onValueChange = { newYear ->
+                        localYear = newYear
+                        onUpdateTemp("tempYear", newYear)
+                      },
+                      label = { Text("Year") },
+                      modifier = Modifier.weight(1.5f).testTag(SettingsTestTags.YEAR_FIELD),
+                      isError = uiState.tempYearError != null,
+                      supportingText = {
+                        val message = uiState.tempYearError
+                        if (message != null) Text(message)
+                      },
+                      shape = RoundedCornerShape(12.dp))
+                }
           }
+
+          // ────── Tag Selection Groups (Interest, Sport, etc.) ──────
           else -> {
-            /* tag group */
+            Tag.Category.entries
+                .find { it.fieldName == uiState.currentField }
+                ?.let { category ->
+                  TagGroup(
+                      name = "",
+                      tagList = Tag.getDisplayNamesForCategory(category),
+                      selectedTags = uiState.tempSelectedTags.map { it.displayName },
+                      color =
+                          when (category) {
+                            Tag.Category.INTEREST -> TagColors.Interest
+                            Tag.Category.SPORT -> TagColors.Sport
+                            Tag.Category.MUSIC -> TagColors.Music
+                            Tag.Category.TRANSPORT -> TagColors.Transport
+                            Tag.Category.CANTON -> TagColors.Canton
+                          },
+                      onTagSelect = { displayName ->
+                        val tag = Tag.fromDisplayName(displayName)
+                        if (tag != null) onAddTag(tag)
+                      },
+                      onTagReSelect = { displayName ->
+                        val tag = Tag.fromDisplayName(displayName)
+                        if (tag != null) onRemoveTag(tag)
+                      },
+                      modifier = Modifier.fillMaxWidth())
+                }
           }
         }
       }

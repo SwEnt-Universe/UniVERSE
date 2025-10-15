@@ -24,9 +24,9 @@ import kotlinx.coroutines.launch
 /**
  * Represents all UI-related state for the user settings screen.
  *
- * It includes both persistent data (e.g., `email`, `firstName`, `tags`)
- * and temporary modal values (`tempValue`, `tempDay`, etc.), as well as
- * field-specific validation errors and modal visibility flags.
+ * It includes both persistent data (e.g., `email`, `firstName`, `tags`) and temporary modal values
+ * (`tempValue`, `tempDay`, etc.), as well as field-specific validation errors and modal visibility
+ * flags.
  */
 data class SettingsUiState(
     val email: String = "preview@example.com",
@@ -84,8 +84,8 @@ class SettingsViewModel(
   }
 
   /**
-   * Loads the full [UserProfile] for the given [username] from the repository
-   * and populates the state fields accordingly.
+   * Loads the full [UserProfile] for the given [username] from the repository and populates the
+   * state fields accordingly.
    *
    * If loading fails, [SettingsUiState.errorMsg] is updated with an error message.
    */
@@ -109,16 +109,13 @@ class SettingsViewModel(
     }
   }
 
-  /**
-   * Clears any active global error message shown via toast or snackbar.
-   */
+  /** Clears any active global error message shown via toast or snackbar. */
   fun clearErrorMsg() {
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
   /**
-   * Updates a temporary modal field (e.g., `tempValue`, `tempDay`, etc.)
-   * based on the given [key].
+   * Updates a temporary modal field (e.g., `tempValue`, `tempDay`, etc.) based on the given [key].
    *
    * Also clears any existing validation errors for that temporary field.
    */
@@ -134,10 +131,11 @@ class SettingsViewModel(
   }
 
   /**
-   * Opens a modal bottom sheet for editing a specific field (e.g. `"email"`, `"country"`, `"date"`).
+   * Opens a modal bottom sheet for editing a specific field (e.g. `"email"`, `"country"`,
+   * `"date"`).
    *
-   * Initializes all relevant temporary values (`tempValue`, `tempDay`, etc.)
-   * and resets modal error fields.
+   * Initializes all relevant temporary values (`tempValue`, `tempDay`, etc.) and resets modal error
+   * fields.
    */
   fun openModal(field: String) {
     val state = _uiState.value
@@ -169,9 +167,7 @@ class SettingsViewModel(
                     ?: emptyList())
   }
 
-  /**
-   * Closes the currently open modal and resets all temporary modal-related fields and errors.
-   */
+  /** Closes the currently open modal and resets all temporary modal-related fields and errors. */
   fun closeModal() {
     _uiState.value =
         _uiState.value.copy(
@@ -183,16 +179,12 @@ class SettingsViewModel(
             tempYearError = null)
   }
 
-  /**
-   * Toggles the visibility of the country dropdown within the modal.
-   */
+  /** Toggles the visibility of the country dropdown within the modal. */
   fun toggleCountryDropdown(show: Boolean) {
     _uiState.value = _uiState.value.copy(showCountryDropdown = show)
   }
 
-  /**
-   * Adds a [Tag] to the temporary selection list if it is not already selected.
-   */
+  /** Adds a [Tag] to the temporary selection list if it is not already selected. */
   fun addTag(tag: Tag) {
     if (!_uiState.value.tempSelectedTags.contains(tag)) {
       _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags + tag)
@@ -201,9 +193,7 @@ class SettingsViewModel(
     }
   }
 
-  /**
-   * Removes a [Tag] from the temporary selection list if it exists.
-   */
+  /** Removes a [Tag] from the temporary selection list if it exists. */
   fun removeTag(tag: Tag) {
     if (_uiState.value.tempSelectedTags.contains(tag)) {
       _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags - tag)
@@ -215,8 +205,8 @@ class SettingsViewModel(
   /**
    * Validates and applies changes from the modal to the main state.
    *
-   * Performs field-specific validation based on [SettingsUiState.currentField].
-   * If validation passes, updates the corresponding state field and closes the modal.
+   * Performs field-specific validation based on [SettingsUiState.currentField]. If validation
+   * passes, updates the corresponding state field and closes the modal.
    *
    * Finally, triggers [saveProfile] to persist all updates.
    */
