@@ -78,16 +78,16 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     /**
      * Retrieves a user by their username.
      *
-     * @param username the unique username of the user.
+     * @param uid the unique uid of the user.
      * @return the [UserProfile] associated with the given username.
-     * @throws NoSuchElementException if no user with the given [username] exists.
+     * @throws NoSuchElementException if no user with the given [uid] exists.
      */
-    override suspend fun getUser(username: String): UserProfile {
-        val user = db.collection(USERS_COLLECTION_PATH).document(username).get().await()
+    override suspend fun getUser(uid: String): UserProfile {
+        val user = db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
         if (user.exists()) {
             return documentToUserProfile(user)
         } else {
-            throw NoSuchElementException("No user with username $username found")
+            throw NoSuchElementException("No user with username $uid found")
         }
     }
 
@@ -104,34 +104,34 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     /**
      * Updates an existing user profile identified by username.
      *
-     * @param username the username of the user to update.
+     * @param uid the uid of the user to update.
      * @param newUserProfile the new [UserProfile] to replace the old one.
-     * @throws NoSuchElementException if no user with the given [username] exists.
+     * @throws NoSuchElementException if no user with the given [uid] exists.
      */
     override suspend fun updateUser(
-        username: String,
+        uid: String,
         newUserProfile: UserProfile
     ) {
-        val user = db.collection(USERS_COLLECTION_PATH).document(username).get().await()
+        val user = db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
         if (user.exists()) {
-            db.collection(USERS_COLLECTION_PATH).document(username).set(userProfileToMap(newUserProfile)).await()
+            db.collection(USERS_COLLECTION_PATH).document(uid).set(userProfileToMap(newUserProfile)).await()
         } else {
-            throw NoSuchElementException("No user with username $username found")
+            throw NoSuchElementException("No user with username $uid found")
         }
     }
 
     /**
      * Deletes a user by username.
      *
-     * @param username the username of the user to remove. If no such user exists
-     * @throws NoSuchElementException if no user with the given [username] exists.
+     * @param uid the uid of the user to delete. If no such user exists
+     * @throws NoSuchElementException if no user with the given [uid] exists.
      */
-    override suspend fun deleteUser(username: String) {
-        val user = db.collection(USERS_COLLECTION_PATH).document(username).get().await()
+    override suspend fun deleteUser(uid: String) {
+        val user = db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
         if (user.exists()) {
-            db.collection(USERS_COLLECTION_PATH).document(username).delete().await()
+            db.collection(USERS_COLLECTION_PATH).document(uid).delete().await()
         }else{
-            throw NoSuchElementException("No user with username $username found")
+            throw NoSuchElementException("No user with username $uid found")
         }
     }
 
