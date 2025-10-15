@@ -186,8 +186,6 @@ dependencies {
     implementation(firebaseBom)
     globalTestImplementation(firebaseBom)
 
-    implementation(libs.firebase.auth)
-
     // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
@@ -249,6 +247,12 @@ dependencies {
     implementation(libs.tomtomMap)
     implementation(libs.tomtomLocation)
     implementation(libs.tomtomSearch)
+
+    // Firebase
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.auth)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
