@@ -66,21 +66,12 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun moreThanEightTagsScrollsAndShowsPartialContent() = runTest {
+  fun tooManyTagsImpliesScrollable() = runTest {
     val manyTags =
-        setOf(
-            Tag.METAL,
-            Tag.TABLE_TENNIS,
-            Tag.ARTIFICIAL_INTELLIGENCE,
-            Tag.CYCLING,
-            Tag.HANDBALL,
-            Tag.BASKETBALL,
-            Tag.MUSIC,
-            Tag.GENEVA,
-            Tag.AARGAU,
-            Tag.FOOT,
-            Tag.VAUD,
-            Tag.YOGA)
+        (Tag.getTagsForCategory(Tag.Category.INTEREST) +
+                Tag.getTagsForCategory(Tag.Category.CANTON))
+            .toSet()
+
     val profile =
         UserProfile(
             username = "overflow",
@@ -90,17 +81,14 @@ class UserProfileScreenTest {
             description = "Testing scrolling behavior.",
             dateOfBirth = LocalDate.of(1995, 1, 1),
             tags = manyTags)
+
     UserRepositoryProvider.repository.addUser(profile)
+
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
 
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assert(hasScrollAction())
 
-    val visibleTags =
-        composeTestRule.onAllNodesWithTag(UserProfileScreenTestTags.TAG).fetchSemanticsNodes()
-
-    assertTrue(
-        "Should not display all tags at once when overflow occurs",
-        visibleTags.size < manyTags.size)
     UserRepositoryProvider.repository.deleteUser(profile.username)
   }
 
@@ -123,17 +111,21 @@ class UserProfileScreenTest {
     composeTestRule.waitForIdle()
 
     val seenTags = mutableSetOf<String>()
-    composeTestRule
-        .onAllNodesWithTag(UserProfileScreenTestTags.TAG)
-        .fetchSemanticsNodes()
-        .forEach { node ->
-          val tagText = node.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
-          assertNotNull("Tag text should not be null", tagText)
-          assertTrue(
-              "Tag text '$tagText' must be in allowed list",
-              allTags.map { tag -> tag.displayName }.contains(tagText))
-          assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
-        }
+    for (i in 0 until testTags.size) {
+      val tagText =
+          composeTestRule
+              .onNodeWithTag(UserProfileScreenTestTags.getTagTestTag(i))
+              .fetchSemanticsNode()
+              .config
+              .getOrNull(SemanticsProperties.Text)
+              ?.firstOrNull()
+              ?.text
+      assertNotNull("Tag text should not be null", tagText)
+      assertTrue(
+          "Tag text '$tagText' must be in allowed list",
+          allTags.map { tag -> tag.displayName }.contains(tagText))
+      assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
+    }
     UserRepositoryProvider.repository.deleteUser(profile.username)
   }
 
