@@ -97,7 +97,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
      * @param userProfile the [UserProfile] to add.
      */
     override suspend fun addUser(userProfile: UserProfile) {
-        db.collection(USERS_COLLECTION_PATH).document(userProfile.username)
+        db.collection(USERS_COLLECTION_PATH).document(userProfile.uid)
             .set(userProfileToMap(userProfile)).await()
     }
 
