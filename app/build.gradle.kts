@@ -218,6 +218,10 @@ dependencies {
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
+    // Mockito for JVM unit tests (needed to mock FirebaseAuth.getInstance())
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")   // enables mockStatic(...)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 
     // Coroutines test (pick ONE version; 1.8.1 is current)
     testImplementation(libs.jetbrains.kotlinx.coroutines.test)
