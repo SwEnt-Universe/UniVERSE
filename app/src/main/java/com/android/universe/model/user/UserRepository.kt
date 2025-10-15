@@ -18,10 +18,10 @@ interface UserRepository {
   /**
    * Retrieves a single user by username.
    *
-   * @param username the unique username of the user.
+   * @param uid the unique uid of the user.
    * @return the UserProfile associated with the given username, or null if not found.
    */
-  suspend fun getUser(username: String): UserProfile
+  suspend fun getUser(uid: String): UserProfile
 
   /**
    * Adds a new user to the repository.
@@ -33,17 +33,17 @@ interface UserRepository {
   /**
    * Updates an existing user's profile.
    *
-   * @param username the username of the user to update.
+   * @param uid the uid of the user to update.
    * @param newUserProfile the updated UserProfile.
    */
-  suspend fun updateUser(username: String, newUserProfile: UserProfile)
+  suspend fun updateUser(uid: String, newUserProfile: UserProfile)
 
   /**
    * Deletes a user from the repository.
    *
-   * @param username the username of the user to delete.
+   * @param uid the uid of the user to delete.
    */
-  suspend fun deleteUser(username: String)
+  suspend fun deleteUser(uid: String)
 
   /**
    * Checks if a username is unique (i.e., not already taken by another user).
