@@ -1,7 +1,5 @@
 package com.android.universe.ui.profileSettings
 
-import android.R.attr.tag
-
 object SettingsTestTags {
   const val EMAIL_BUTTON = "email_button"
   const val PASSWORD_BUTTON = "password_button"
