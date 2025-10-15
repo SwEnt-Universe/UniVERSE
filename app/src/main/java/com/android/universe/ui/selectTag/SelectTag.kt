@@ -24,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,15 +35,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.tagsCanton
-import com.android.universe.model.tagsInterest
-import com.android.universe.model.tagsMusic
-import com.android.universe.model.tagsSport
-import com.android.universe.model.tagsTransport
+import com.android.universe.model.Tag
 import kotlinx.coroutines.launch
 
 object SelectTagsScreenTestTags {
@@ -71,20 +67,22 @@ object SelectTagsScreenTestTags {
  * @param selectedTags A mutable state holding the list of currently selected tags. Clicking a tag
  *   will update this state.
  * @param color The color of unselected tags (default is purple).
+ * @param onTagSelect Callback invoked when a tag is selected.
+ * @param onTagReSelect Callback invoked when a tag is deselected.
  * @param modifier The modifier to apply to the composable
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagGroup(
     name: String,
-    tagList: List<String>,
-    selectedTags: List<String>,
+    tagList: List<Tag>,
+    selectedTags: List<Tag>,
     color: Color = Color(0xFF6650a4),
-    onTagSelect: (String) -> Unit = {},
-    onTagReSelect: (String) -> Unit = {},
+    onTagSelect: (Tag) -> Unit = {},
+    onTagReSelect: (Tag) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-  Text(name, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
+  Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
@@ -98,11 +96,12 @@ private fun TagGroup(
             }
           },
           modifier =
-              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}$tag").padding(4.dp),
+              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}${tag.displayName}")
+                  .padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(tag)
+              Text(tag.displayName)
               if (isSelected) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
@@ -143,10 +142,8 @@ object TagColors {
 /**
  * Composable screen that displays tags organized by topic and allows the user to select them.
  *
- * Tags are grouped into the following topics: Interest, Sport, Music, Transport, and Canton. Each
- * topic is displayed with a title and a distinct color.
- *
- * Users can:
+ * Tags are grouped into categories defined by [Tag.Category]. Each category is displayed with a
+ * title and a distinct color. Users can:
  * - Select a tag by clicking on it (selected tags turn grey and show a check icon).
  * - Deselect a tag by clicking it again in the main list or by clicking the trash icon in the
  *   selected tags section at the bottom.
@@ -165,70 +162,42 @@ fun SelectTagScreen(
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
-      item {
+      items(Tag.Category.entries) { category ->
         TagGroup(
-            "Interest:",
-            tagsInterest,
-            selectedTags,
-            TagColors.Interest,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.INTEREST_TAGS))
+            name = category.displayName,
+            tagList = Tag.getTagsForCategory(category),
+            selectedTags = selectedTags,
+            color =
+                when (category) {
+                  Tag.Category.INTEREST -> TagColors.Interest
+                  Tag.Category.SPORT -> TagColors.Sport
+                  Tag.Category.MUSIC -> TagColors.Music
+                  Tag.Category.TRANSPORT -> TagColors.Transport
+                  Tag.Category.CANTON -> TagColors.Canton
+                },
+            onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
+            onTagReSelect = { tag -> selectedTagOverview.deleteTag(tag) },
+            modifier =
+                Modifier.testTag(
+                    when (category) {
+                      Tag.Category.INTEREST -> SelectTagsScreenTestTags.INTEREST_TAGS
+                      Tag.Category.SPORT -> SelectTagsScreenTestTags.SPORT_TAGS
+                      Tag.Category.MUSIC -> SelectTagsScreenTestTags.MUSIC_TAGS
+                      Tag.Category.TRANSPORT -> SelectTagsScreenTestTags.TRANSPORT_TAGS
+                      Tag.Category.CANTON -> SelectTagsScreenTestTags.CANTON_TAGS
+                    }))
+        SectionDivider()
       }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Sport:",
-            tagsSport,
-            selectedTags,
-            TagColors.Sport,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.SPORT_TAGS))
-      }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Music:",
-            tagsMusic,
-            selectedTags,
-            TagColors.Music,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.MUSIC_TAGS))
-      }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Transport:",
-            tagsTransport,
-            selectedTags,
-            TagColors.Transport,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.TRANSPORT_TAGS))
-      }
-      item { SectionDivider() }
-      item {
-        TagGroup(
-            "Canton:",
-            tagsCanton,
-            selectedTags,
-            TagColors.Canton,
-            { tag -> selectedTagOverview.addTag(tag) },
-            { tag -> selectedTagOverview.deleteTag(tag) },
-            Modifier.testTag(SelectTagsScreenTestTags.CANTON_TAGS))
-      }
-      item { SectionDivider() }
     }
     if (selectedTags.isNotEmpty()) {
       LazyRow(modifier = Modifier.testTag(SelectTagsScreenTestTags.SELECTED_TAGS)) {
-        items(selectedTags) { tag ->
+        items(selectedTags.toList()) { tag ->
           Button(
               onClick = {},
               modifier =
-                  Modifier.testTag("${SelectTagsScreenTestTags.SELECTED_TAG_BUTTON_PREFIX}$tag")) {
-                Text(tag)
+                  Modifier.testTag(
+                      "${SelectTagsScreenTestTags.SELECTED_TAG_BUTTON_PREFIX}${tag.displayName}")) {
+                Text(tag.displayName)
               }
           IconButton(
               onClick = { selectedTagOverview.deleteTag(tag) },
@@ -237,8 +206,7 @@ fun SelectTagScreen(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete",
                     tint = Color.Gray,
-                    modifier = Modifier.height(16.dp),
-                )
+                    modifier = Modifier.height(16.dp))
               }
         }
       }
@@ -256,4 +224,10 @@ fun SelectTagScreen(
           Text("Save Tags")
         }
   }
+}
+
+@Preview
+@Composable
+fun SelectTagPreview() {
+  SelectTagScreen(username = "emma")
 }

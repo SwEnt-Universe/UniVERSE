@@ -4,10 +4,12 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,15 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import kotlin.collections.chunked
 
 object UserProfileScreenTestTags {
   const val FIRSTNAME = "userProfileFirstName"
@@ -34,21 +33,36 @@ object UserProfileScreenTestTags {
   const val AGE = "userProfileAge"
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
-
   const val TAG = "userProfileTag"
+  const val EDIT_BUTTON = "userProfileEditButton"
+  const val TAGLIST = "userProfileTagList"
+
+  fun getTagTestTag(index: Int): String {
+    return "userProfileTag$index"
+  }
+}
+
+object FieldFontSizes {
+  const val NAMES = 16
+  const val AGE = 14
+  const val COUNTRY = 14
+  const val DESCRIPTION = 14
 }
 
 /**
  * Composable for displaying a user's profile.
  *
  * @param username The username of the user to display.
+ * @param onTabSelected Callback invoked when a tab is selected to switch between screens
+ * @param onEditProfileClick Callback when the edit profile button is clicked.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun UserProfileScreen(
     username: String,
     onTabSelected: (Tab) -> Unit = {},
+    onEditProfileClick: (String) -> Unit = {},
     userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
 
@@ -65,15 +79,16 @@ fun UserProfileScreen(
     }
   }
   val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
-  val nb_tags = userUIState.userProfile.tags.size
   Scaffold(
       topBar = {
         TopAppBar(
             title = { Text("Profile") },
             actions = {
-              IconButton(onClick = { /* Handle edit profile action TODO */ }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
-              }
+              IconButton(
+                  onClick = { onEditProfileClick(username) },
+                  modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
+                    Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
+                  }
             })
       },
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
@@ -95,28 +110,22 @@ fun UserProfileScreen(
                           Text("Img", color = Color.White)
                         }
 
-                    // Spacer(modifier = Modifier.height(8.dp))
-
                     Column(
                         verticalArrangement = Arrangement.SpaceEvenly,
                         horizontalAlignment = Alignment.CenterHorizontally) {
-                          // Name and details
-                          Row(
-                              verticalAlignment = Alignment.CenterVertically,
-                              horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = userUIState.userProfile.firstName,
-                                    fontSize = 20.sp,
-                                    color = Color.Blue,
-                                    modifier =
-                                        Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = userUIState.userProfile.lastName,
-                                    fontSize = 20.sp,
-                                    color = Color.Blue,
-                                    modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
-                              }
+
+                          // First and last name
+                          Text(
+                              text = userUIState.userProfile.firstName,
+                              fontSize = FieldFontSizes.NAMES.sp,
+                              color = Color.Blue,
+                              modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
+                          Spacer(modifier = Modifier.width(4.dp))
+                          Text(
+                              text = userUIState.userProfile.lastName,
+                              fontSize = FieldFontSizes.NAMES.sp,
+                              color = Color.Blue,
+                              modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
 
                           // Age and country (split for tagging, same line)
                           Row(
@@ -124,13 +133,13 @@ fun UserProfileScreen(
                               horizontalArrangement = Arrangement.Center) {
                                 Text(
                                     text = "Age: $userAge",
-                                    fontSize = 14.sp,
+                                    fontSize = FieldFontSizes.AGE.sp,
                                     color = Color.Gray,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Country: ${userUIState.userProfile.country}",
-                                    fontSize = 14.sp,
+                                    fontSize = FieldFontSizes.COUNTRY.sp,
                                     color = Color.Gray,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
                               }
@@ -138,26 +147,23 @@ fun UserProfileScreen(
                   }
 
               Spacer(modifier = Modifier.height(16.dp))
-              val nb_chunks = 4
-              val row_height = 35
-              // Tag chips
-              LazyColumn(
+              Box(
                   modifier =
                       Modifier.fillMaxWidth()
-                          .height(
-                              height =
-                                  if (nb_tags <= nb_chunks) row_height.dp
-                                  else (2 * row_height).dp)) {
-                    val rows: List<List<Tag>> = userUIState.userProfile.tags.chunked(nb_chunks)
-                    items(rows.size) { index ->
-                      Row(
-                          modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement = Arrangement.SpaceEvenly,
-                          verticalAlignment = Alignment.CenterVertically) {
-                            rows[index].forEach { tag -> TagChip(tag) }
+                          .height(100.dp)
+                          .background(Color.LightGray.copy(alpha = 0.3f)),
+                  contentAlignment = Alignment.Center) {
+                    FlowRow(
+                        modifier =
+                            Modifier.testTag(UserProfileScreenTestTags.TAGLIST)
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                          userUIState.userProfile.tags.toList().forEachIndexed { index, tag ->
+                            InterestTag(tag.displayName, index)
                           }
-                      Spacer(modifier = Modifier.height(8.dp))
-                    }
+                        }
                   }
 
               Spacer(modifier = Modifier.height(16.dp))
@@ -176,22 +182,10 @@ fun UserProfileScreen(
                               ?: "No description"
                       Text(
                           text = descriptionText,
+                          fontSize = FieldFontSizes.DESCRIPTION.sp,
                           modifier =
                               Modifier.padding(16.dp)
                                   .testTag(UserProfileScreenTestTags.DESCRIPTION))
-                      /*
-                      if (userUIState.userProfile.description != null &&
-                          userUIState.userProfile.description!!.isNotEmpty()) {
-                        Text(
-                            text = userUIState.userProfile.description.toString(),
-                            modifier =
-                                Modifier.padding(16.dp)
-                                    .testTag(UserProfileScreenTestTags.DESCRIPTION))
-                      } else {
-                        Text(
-                            text = "No description",
-                            modifier = Modifier.testTag(UserProfileScreenTestTags.DESCRIPTION))
-                      }*/
                     }
               }
             }
@@ -199,26 +193,32 @@ fun UserProfileScreen(
 }
 
 /**
- * Composable for displaying a tag chip.
+ * Composable for displaying an interest tag.
  *
- * @param tag The tag containing the text to display.
+ * @param text The text to display as the tag.
+ * @param testTagIndex The index of the test tag. Used to generate a unique test tag.
  */
 @Composable
-private fun TagChip(tag: Tag) {
-  Box(
-      modifier =
-          Modifier.background(Color(0xFF6650a4), shape = CircleShape).height(30.dp).width(80.dp)) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically) {
-              Text(text = tag.name)
-            }
+fun InterestTag(text: String, testTagIndex: Int) {
+  Surface(
+      color = MaterialTheme.colorScheme.primary,
+      shape = RoundedCornerShape(50),
+      tonalElevation = 1.dp) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.labelMedium,
+            modifier =
+                Modifier.testTag(UserProfileScreenTestTags.getTagTestTag(testTagIndex))
+                    .padding(horizontal = 12.dp, vertical = 6.dp))
       }
 }
 
+/* Preview should be commented out in production */
+/*
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
   UserProfileScreen(username = "emma")
 }
+ */

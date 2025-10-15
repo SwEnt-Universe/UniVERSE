@@ -34,7 +34,7 @@ class EventScreenTest {
               country = "USA",
               description = "Loves running",
               dateOfBirth = LocalDate.of(1990, 1, 1),
-              tags = listOf(Tag("Sport"))),
+              tags = setOf(Tag.SCULPTURE)),
           UserProfile(
               username = "bob456",
               firstName = "Bob",
@@ -42,7 +42,7 @@ class EventScreenTest {
               country = "USA",
               description = "Tech enthusiast",
               dateOfBirth = LocalDate.of(1985, 5, 12),
-              tags = listOf(Tag("Tech"))))
+              tags = setOf(Tag.TENNIS)))
 
   @Before
   fun setUp() {
@@ -57,14 +57,14 @@ class EventScreenTest {
                 title = "Morning Run at the Lake",
                 description = "Join us for a casual 5km run around the lake followed by coffee.",
                 date = LocalDateTime.of(2025, 10, 15, 7, 30),
-                tags = setOf(Tag("Sport"), Tag("Outdoor")),
+                tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
                 participants = setOf(sampleUsers[0], sampleUsers[1]),
                 creator = sampleUsers[0]),
             Event(
                 id = "event-002",
                 title = "Tech Hackathon 2025",
                 date = LocalDateTime.of(2025, 11, 3, 9, 0),
-                tags = setOf(Tag("Tech"), Tag("AI"), Tag("Innovation")),
+                tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
                 participants = emptySet(),
                 creator = sampleUsers[1]))
 
@@ -72,7 +72,7 @@ class EventScreenTest {
 
     viewModel = EventViewModel(fakeEventRepository)
 
-    composeTestRule.setContent { EventScreen(viewModel) }
+    composeTestRule.setContent { EventScreen(viewModel = viewModel) }
 
     // Wait until Compose settles
     composeTestRule.waitForIdle()
@@ -117,7 +117,7 @@ class EventScreenTest {
     // Add an event with 5 tags to the repository
     runBlocking {
       val tags =
-          setOf(Tag("Tech"), Tag("AI"), Tag("Innovation"), Tag("Workshop"), Tag("Networking"))
+          setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC)
       val extraEvent =
           Event(
               id = "event-100",

@@ -7,6 +7,7 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.api.tasks.testing.Test
 import java.io.File
+import java.util.Properties
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plugins
@@ -27,12 +28,24 @@ plugins {
 // - Single source of truth for JaCoCo engine version.
 // ─────────────────────────────────────────────────────────────────────────────
 val jacocoVer = libs.versions.jacoco.get()
-val tomtomApiKey: String by project
-
 // Keep the Gradle JaCoCo plugin aligned with the catalog engine version
 jacoco {
     toolVersion = jacocoVer
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Load local properties (for TomTom API key)
+// ─────────────────────────────────────────────────────────────────────────────
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val tomtomApiKey: String = System.getenv("TOMTOM_API_KEY")
+    ?: localProperties.getProperty("TOMTOM_API_KEY")
+    ?: throw GradleException("TOMTOM_API_KEY not found in environment or local.properties")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Android configuration
@@ -205,6 +218,10 @@ dependencies {
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
+    // Mockito for JVM unit tests (needed to mock FirebaseAuth.getInstance())
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")   // enables mockStatic(...)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 
     // Coroutines test (pick ONE version; 1.8.1 is current)
     testImplementation(libs.jetbrains.kotlinx.coroutines.test)

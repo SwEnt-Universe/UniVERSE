@@ -16,6 +16,8 @@ sealed class NavigationScreens(
 ) {
   object Map : NavigationScreens(route = "map", name = "Map", isTopLevelDestination = true)
 
+  object Event : NavigationScreens(route = "event", name = "Event", isTopLevelDestination = true)
+
   object Chat : NavigationScreens(route = "chat", name = "Chat", isTopLevelDestination = true)
 
   object Profile :
@@ -24,4 +26,8 @@ sealed class NavigationScreens(
   object SignIn : NavigationScreens(route = "signIn", name = "Sign In")
 
   object AddProfile : NavigationScreens(route = "addProfile", name = "Add Profile")
+
+  object Settings : NavigationScreens(route = "settings/{username}", name = "Settings")
+
+  object SelectTag : NavigationScreens(route = "selectTag", name = "Select Tag")
 }

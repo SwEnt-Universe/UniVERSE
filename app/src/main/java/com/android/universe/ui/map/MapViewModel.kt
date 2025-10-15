@@ -1,50 +1,112 @@
-// MapViewModel.kt
 package com.android.universe.ui.map
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.android.universe.model.location.Location
+import com.android.universe.model.location.LocationRepository
 import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+data class MapUiState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val isPermissionRequired: Boolean = false,
+    val location: Location? = null
+)
 
 /**
- * ViewModel for map-related UI logic.
+ * ViewModel for managing the map screen state and location tracking.
  *
- * Exposes a shared flow of camera commands (`CameraOptions`) that the UI observes to update the map
- * (position, zoom, tilt, rotation).
- *
- * The initial camera position is emitted from init.
+ * @property locationRepository Repository for accessing location data.
  */
-class MapViewModel : ViewModel() {
+class MapViewModel(private val locationRepository: LocationRepository) : ViewModel() {
 
-  // Use replay=1 so new collectors immediately get the latest camera command.
-  private val _cameraCommands =
-      MutableSharedFlow<CameraOptions>(replay = 1, extraBufferCapacity = 1)
+  private val _uiState = MutableStateFlow(MapUiState())
+  val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+
+  private val _cameraCommands = MutableSharedFlow<CameraOptions>(extraBufferCapacity = 1)
   val cameraCommands = _cameraCommands.asSharedFlow()
 
-  init {
-    // Emit initial camera once ViewModel is created (e.g., app entry to the screen).
-    // Replace with user location or injected defaults as needed.
-    centerOnLausanne()
-  }
+  val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
+
+  private var locationTrackingJob: Job? = null
 
   /**
-   * Centers the map on [point] at the given [zoom].
+   * Loads the last known location from the repository.
    *
-   * Emits a camera command with zero tilt and rotation (top-down, north-up).
-   * - [point] Geographic coordinate (WGS84, decimal degrees). Latitude in [-90, 90], longitude in
-   *   [-180, 180].
-   * - [zoom] Desired zoom level (higher = closer). Default is 10.0. Must be within the SDK’s
-   *   supported range.
+   * Updates UI state to Loading, then either Success with location or Error if unavailable.
    */
-  fun centerOn(point: GeoPoint, zoom: Double = 10.0) {
-    _cameraCommands.tryEmit(
-        CameraOptions(position = point, zoom = zoom, tilt = 0.0, rotation = 0.0))
+  fun loadLastKnownLocation() {
+    _uiState.update { it.copy(isLoading = true, error = null) }
+
+    locationRepository.getLastKnownLocation(
+        onSuccess = { location ->
+          _uiState.update { it.copy(isLoading = false, location = location) }
+          centerOn(location.toGeoPoint(), zoom = 15.0)
+        },
+        onFailure = {
+          _uiState.update { it.copy(isLoading = false, error = "No last known location available") }
+          centerOnLausanne()
+        })
   }
 
   /**
-   * Convenience method for development, to center the map on Lausanne, Switzerland. Coordinates:
-   * 46.5196° N, 6.5685° E Default zoom level is set to 10.0.
+   * Starts tracking the user's location in real-time.
+   *
+   * Collects location updates from the repository and updates the UI state accordingly.
    */
-  fun centerOnLausanne() = centerOn(GeoPoint(46.5196, 6.5685), zoom = 10.0)
+  fun startLocationTracking() {
+    locationTrackingJob?.cancel()
+    locationTrackingJob =
+        viewModelScope.launch {
+          locationRepository
+              .startLocationTracking()
+              .catch { exception ->
+                _uiState.update {
+                  it.copy(error = "Location tracking failed: ${exception.message}")
+                }
+              }
+              .collect { location ->
+                _uiState.update { it.copy(location = location, error = null) }
+                centerOn(location.toGeoPoint(), zoom = 15.0)
+              }
+        }
+  }
+
+  /** Stops tracking the user's location. */
+  fun stopLocationTracking() {
+    locationTrackingJob?.cancel()
+    locationTrackingJob = null
+  }
+
+  /**
+   * Centers the map camera on a specific location.
+   *
+   * @param position The geographic point to center on.
+   * @param zoom The zoom level for the camera.
+   */
+  fun centerOn(position: GeoPoint, zoom: Double) {
+    _cameraCommands.tryEmit(CameraOptions(position = position, zoom = zoom))
+  }
+
+  /** Centers the map on Lausanne as a fallback location. */
+  fun centerOnLausanne() {
+    val lausanne = GeoPoint(latitude = 46.5196535, longitude = 6.6322734)
+    centerOn(lausanne, zoom = 14.0)
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    stopLocationTracking()
+  }
 }

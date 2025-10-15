@@ -68,7 +68,7 @@ class EventViewModel(
                 title = event.title,
                 description = event.description ?: "",
                 date = formatEventDate(event.date),
-                tags = event.tags.map { it.name }.take(3),
+                tags = event.tags.map { it.displayName }.take(3),
                 creator = formatCreator(event.creator),
                 participants = event.participants.count())
           }
