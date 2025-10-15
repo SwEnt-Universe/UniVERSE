@@ -27,7 +27,7 @@ sealed class NavigationScreens(
 
   object AddProfile : NavigationScreens(route = "addProfile", name = "Add Profile")
 
-  object Settings : NavigationScreens(route = "settings/{username}", name = "Settings")
+  object Settings : NavigationScreens(route = "settings/{uid}", name = "Settings")
 
   object SelectTag : NavigationScreens(route = "selectTag", name = "Select Tag")
 }

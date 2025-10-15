@@ -85,7 +85,7 @@ fun UserProfileScreen(
             title = { Text("Profile") },
             actions = {
               IconButton(
-                  onClick = { onEditProfileClick(username) },
+                  onClick = { onEditProfileClick(uid) },
                   modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
                     Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
                   }

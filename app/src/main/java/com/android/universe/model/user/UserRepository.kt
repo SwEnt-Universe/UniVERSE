@@ -19,9 +19,10 @@ interface UserRepository {
    * Retrieves a single user by username.
    *
    * @param uid the unique uid of the user.
-   * @return the UserProfile associated with the given username, or null if not found.
+   * @return the UserProfile associated with the given username
+   * @throws java.lang.IllegalArgumentException() if no user with this uid is found.
    */
-  suspend fun getUser(uid: String): UserProfile?
+  suspend fun getUser(uid: String): UserProfile
 
   /**
    * Adds a new user to the repository.

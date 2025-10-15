@@ -229,5 +229,5 @@ fun SelectTagScreen(
 @Preview
 @Composable
 fun SelectTagPreview() {
-  SelectTagScreen(username = "emma")
+  SelectTagScreen(uid = "0")
 }

@@ -64,6 +64,7 @@ class SettingsViewModelTest {
         // Seed fake repository
         fakeRepo.addUser(
             UserProfile(
+                uid = "0",
                 username = "emma",
                 firstName = "Emma",
                 lastName = "Stone",
@@ -73,6 +74,7 @@ class SettingsViewModelTest {
                 tags = emptySet()))
         fakeRepo.addUser(
             UserProfile(
+                uid = "1",
                 username = "u",
                 firstName = "Ulysses",
                 lastName = "Grant",
@@ -111,7 +113,7 @@ class SettingsViewModelTest {
   @Test
   fun `loadUser populates UiState from repository`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
 
         val s = viewModel.uiState.value
@@ -128,11 +130,11 @@ class SettingsViewModelTest {
   @Test
   fun `loadUser sets errorMsg on repository failure`() =
       runTest(testDispatcher) {
-        coEvery { mockRepo.getUser("emma") } throws NoSuchElementException("No user found")
+        coEvery { mockRepo.getUser("0") } throws NoSuchElementException("No user found")
         UserRepositoryProvider.repository = mockRepo
         val viewModel = SettingsViewModel(UserRepositoryProvider)
 
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
 
         assertEquals("Failed to load user: No user found", viewModel.uiState.value.errorMsg)
@@ -142,11 +144,11 @@ class SettingsViewModelTest {
   @Test
   fun `clearErrorMsg resets errorMsg`() =
       runTest(testDispatcher) {
-        coEvery { mockRepo.getUser("emma") } throws NoSuchElementException("No user found")
+        coEvery { mockRepo.getUser("0") } throws NoSuchElementException("No user found")
         UserRepositoryProvider.repository = mockRepo
         val viewModel = SettingsViewModel(UserRepositoryProvider)
 
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         assertNotNull(viewModel.uiState.value.errorMsg)
 
@@ -160,7 +162,7 @@ class SettingsViewModelTest {
       runTest(testDispatcher) {
         viewModel.openModal("email")
         viewModel.updateTemp("tempValue", "invalid")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         assertNotNull(viewModel.uiState.value.modalError)
 
         viewModel.updateTemp("tempValue", "test@example.com")
@@ -176,7 +178,7 @@ class SettingsViewModelTest {
         viewModel.updateTemp("tempDay", "32")
         viewModel.updateTemp("tempMonth", "13")
         viewModel.updateTemp("tempYear", "1800")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         assertNotNull(viewModel.uiState.value.tempDayError)
 
         viewModel.updateTemp("tempDay", "15")
@@ -197,7 +199,7 @@ class SettingsViewModelTest {
   @Test
   fun `openModal prefills temp for text fields`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
 
         viewModel.openModal("email")
@@ -222,7 +224,7 @@ class SettingsViewModelTest {
   @Test
   fun `openModal prefills date triplet`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
 
         viewModel.openModal("date")
@@ -237,8 +239,9 @@ class SettingsViewModelTest {
       runTest(testDispatcher) {
         val interestTags = Tag.getTagsForCategory(Tag.Category.INTEREST).take(2)
         fakeRepo.updateUser(
-            "emma",
+            "0",
             UserProfile(
+                uid = "0",
                 username = "emma",
                 firstName = "Emma",
                 lastName = "Stone",
@@ -246,7 +249,7 @@ class SettingsViewModelTest {
                 description = "hello",
                 dateOfBirth = LocalDate.of(2000, 1, 5),
                 tags = interestTags.toSet()))
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
 
         viewModel.openModal(Tag.Category.INTEREST.fieldName)
@@ -261,8 +264,7 @@ class SettingsViewModelTest {
         viewModel.updateTemp("tempDay", "32")
         viewModel.updateTemp("tempMonth", "13")
         viewModel.updateTemp("tempYear", "1800")
-        viewModel.saveModal("emma")
-
+        viewModel.saveModal("0")
         viewModel.closeModal()
         val s = viewModel.uiState.value
         assertFalse(s.showModal)
@@ -315,11 +317,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates email when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
         viewModel.updateTemp("tempValue", "new@example.com")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals("new@example.com", viewModel.uiState.value.email)
@@ -330,11 +332,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets modalError for invalid email`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
         viewModel.updateTemp("tempValue", "invalid")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.modalError)
@@ -344,11 +346,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates password when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("password")
         viewModel.updateTemp("tempValue", "ValidPass123")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals("ValidPass123", viewModel.uiState.value.password)
@@ -359,11 +361,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets modalError for invalid password`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("password")
         viewModel.updateTemp("tempValue", "weak")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.modalError)
@@ -373,11 +375,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates firstName when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("firstName")
         viewModel.updateTemp("tempValue", "Emilia")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals("Emilia", viewModel.uiState.value.firstName)
@@ -388,11 +390,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets modalError for invalid firstName`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("firstName")
         viewModel.updateTemp("tempValue", "")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.modalError)
@@ -402,11 +404,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates lastName when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("lastName")
         viewModel.updateTemp("tempValue", "Smith")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals("Smith", viewModel.uiState.value.lastName)
@@ -417,11 +419,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets modalError for invalid lastName`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("lastName")
         viewModel.updateTemp("tempValue", "")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.modalError)
@@ -431,11 +433,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates description when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("description")
         viewModel.updateTemp("tempValue", "New bio")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals("New bio", viewModel.uiState.value.description)
@@ -446,11 +448,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets modalError for invalid description`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("description")
         viewModel.updateTemp("tempValue", "a".repeat(1000)) // Assuming too long
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.modalError)
@@ -460,11 +462,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates country when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("country")
         viewModel.updateTemp("tempValue", "Canada")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals("Canada", viewModel.uiState.value.country)
@@ -475,11 +477,11 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets modalError for empty country`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("country")
         viewModel.updateTemp("tempValue", "")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.value.modalError)
@@ -489,13 +491,13 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal updates date when valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("date")
         viewModel.updateTemp("tempDay", "10")
         viewModel.updateTemp("tempMonth", "12")
         viewModel.updateTemp("tempYear", "1999")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         val s = viewModel.uiState.value
@@ -511,13 +513,13 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal sets date errors for invalid date`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("date")
         viewModel.updateTemp("tempDay", "32")
         viewModel.updateTemp("tempMonth", "13")
         viewModel.updateTemp("tempYear", "1800")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         val s = viewModel.uiState.value
@@ -530,12 +532,12 @@ class SettingsViewModelTest {
   @Test
   fun `saveModal commits selected interest tags replacing category`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal(Tag.Category.INTEREST.fieldName)
         val picks = Tag.getTagsForCategory(Tag.Category.INTEREST).take(2)
         picks.forEach { viewModel.addTag(it) }
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         assertEquals(picks.toSet(), viewModel.uiState.value.selectedTags.toSet())
@@ -546,20 +548,20 @@ class SettingsViewModelTest {
   @Test
   fun `saveProfile updates repository when all valid`() =
       runTest(testDispatcher) {
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("firstName")
         viewModel.updateTemp("tempValue", "Emilia")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
         viewModel.openModal("date")
         viewModel.updateTemp("tempDay", "9")
         viewModel.updateTemp("tempMonth", "7")
         viewModel.updateTemp("tempYear", "1998")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
-        val updated = fakeRepo.getUser("emma")
+        val updated = fakeRepo.getUser("0")
         assertEquals("Emilia", updated.firstName)
         assertEquals(LocalDate.of(1998, 7, 9), updated.dateOfBirth)
         assertEquals("CH", updated.country)
@@ -574,11 +576,11 @@ class SettingsViewModelTest {
         every { fakeAuth.currentUser } returns mockFirebaseUser
         every { mockEmailTask.addOnFailureListener(any()) } answers { mockEmailTask }
 
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
         viewModel.updateTemp("tempValue", "new@example.com")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         verify { mockFirebaseUser.updateEmail("new@example.com") }
@@ -595,11 +597,9 @@ class SettingsViewModelTest {
 
         viewModel.openModal("email")
         viewModel.updateTemp("tempValue", "preview@example.com")
-        viewModel.saveModal("emma")
-
-        viewModel.saveProfile("emma")
+        viewModel.saveModal("0")
+        viewModel.saveProfile("0")
         advanceUntilIdle()
-
         verify(exactly = 0) { mockFirebaseUser.updateEmail(any()) }
       }
 
@@ -611,11 +611,11 @@ class SettingsViewModelTest {
         every { fakeAuth.currentUser } returns mockFirebaseUser
         every { mockPasswordTask.addOnFailureListener(any()) } answers { mockPasswordTask }
 
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("password")
         viewModel.updateTemp("tempValue", "NewPass123")
-        viewModel.saveModal("emma")
+        viewModel.saveModal("0")
         advanceUntilIdle()
 
         verify { mockFirebaseUser.updatePassword("NewPass123") }
@@ -629,9 +629,9 @@ class SettingsViewModelTest {
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
 
-        viewModel.loadUser("emma")
+        viewModel.loadUser("0")
         advanceUntilIdle()
-        viewModel.saveProfile("emma")
+        viewModel.saveProfile("0")
         advanceUntilIdle()
 
         verify(exactly = 0) { mockFirebaseUser.updatePassword(any()) }

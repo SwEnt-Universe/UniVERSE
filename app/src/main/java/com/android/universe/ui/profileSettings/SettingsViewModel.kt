@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
  * flags.
  */
 data class SettingsUiState(
+    val username: String = "",
     val email: String = "preview@example.com",
     val password: String = "",
     val firstName: String = "",
@@ -91,12 +92,13 @@ class SettingsViewModel(
    *
    * If loading fails, [SettingsUiState.errorMsg] is updated with an error message.
    */
-  fun loadUser(username: String) {
+  fun loadUser(uid: String) {
     viewModelScope.launch {
       try {
-        val userProfile = userRepository.repository.getUser(username)
+        val userProfile = userRepository.repository.getUser(uid)
         _uiState.value =
             _uiState.value.copy(
+                username = userProfile.username,
                 firstName = userProfile.firstName,
                 lastName = userProfile.lastName,
                 country = isoToCountryName[userProfile.country] ?: userProfile.country,
@@ -212,7 +214,7 @@ class SettingsViewModel(
    *
    * Finally, triggers [saveProfile] to persist all updates.
    */
-  fun saveModal(username: String) {
+  fun saveModal(uid: String) {
     val state = _uiState.value
     var modalError: String? = null
     when (state.currentField) {
@@ -309,7 +311,7 @@ class SettingsViewModel(
             tempDayError = null,
             tempMonthError = null,
             tempYearError = null)
-    saveProfile(username)
+    saveProfile(uid)
   }
 
   /**
@@ -323,7 +325,7 @@ class SettingsViewModel(
    *
    * Errors are reflected in the [SettingsUiState] fields.
    */
-  fun saveProfile(username: String) {
+  fun saveProfile(uid: String) {
     viewModelScope.launch {
       val state = _uiState.value
 
@@ -368,7 +370,8 @@ class SettingsViewModel(
 
         val updatedProfile =
             UserProfile(
-                username = username,
+                uid = uid,
+                username = _uiState.value.username,
                 firstName = cleanedFirstName,
                 lastName = cleanedLastName,
                 country = countryToIsoCode[state.country] ?: state.country,
@@ -377,7 +380,7 @@ class SettingsViewModel(
                     LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
                 tags = state.selectedTags.toSet())
 
-        userRepository.repository.updateUser(username, updatedProfile)
+        userRepository.repository.updateUser(uid, updatedProfile)
 
         // ─── 3. Firebase Email update ──────────────────────────────
         val currentUser = FirebaseAuth.getInstance().currentUser

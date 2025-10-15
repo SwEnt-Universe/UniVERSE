@@ -111,14 +111,14 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 /**
  * Top-level composable for the user Settings screen.
  *
- * @param username Logged-in user's username.
+ * @param uid Logged-in user's uid.
  * @param onBack Callback when back arrow pressed.
  * @param viewModel Shared [SettingsViewModel] for state and actions.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    username: String,
+    uid: String,
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
@@ -132,7 +132,7 @@ fun SettingsScreen(
     }
   }
 
-  LaunchedEffect(username) { viewModel.loadUser(username) }
+  LaunchedEffect(uid) { viewModel.loadUser(uid) }
 
   SettingsScreenContent(
       uiState = uiState,
@@ -143,7 +143,7 @@ fun SettingsScreen(
       onToggleCountryDropdown = viewModel::toggleCountryDropdown,
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
-      onSaveModal = { viewModel.saveModal(username) })
+      onSaveModal = { viewModel.saveModal(uid) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */

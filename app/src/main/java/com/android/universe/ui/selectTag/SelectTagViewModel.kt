@@ -70,7 +70,6 @@ class SelectTagViewModel(
    */
   suspend fun loadTags(uid: String) {
     val userProfile = userRepository.getUser(uid)
-    if (userProfile == null) return
     selectedTags.value = userProfile.tags.toList()
   }
 
@@ -81,7 +80,6 @@ class SelectTagViewModel(
    */
   suspend fun saveTags(uid: String) {
     val userProfile = userRepository.getUser(uid)
-    if (userProfile == null) return
     val newUserProfile = userProfile.copy(tags = selectedTags.value.toSet())
     userRepository.updateUser(uid, newUserProfile)
   }
