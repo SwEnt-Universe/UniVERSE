@@ -182,9 +182,9 @@ dependencies {
     implementation(libs.googleid)
 
     // ------------------- Firebase -------------------
-    val firebaseBom = platform(libs.firebase.bom)
-    implementation(firebaseBom)
-    globalTestImplementation(firebaseBom)
+    //val firebaseBom = platform(libs.firebase.bom)
+    //implementation(firebaseBom)
+    //globalTestImplementation(firebaseBom)
 
     // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
