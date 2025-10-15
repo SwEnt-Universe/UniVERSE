@@ -114,7 +114,6 @@ private fun CountryDropdown(
 @Composable
 fun SettingsScreen(
     username: String,
-    // onSaveSuccess: () -> Unit = {},
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
@@ -387,31 +386,66 @@ private fun ModalContentContentOnly(
         Spacer(modifier = Modifier.height(SettingsScreenPaddings.InternalSpacing))
 
         when (uiState.currentField) {
-          "email",
-          "password",
-          "firstName",
-          "lastName",
+          "email" -> {
+            OutlinedTextField(
+                value = uiState.tempValue,
+                onValueChange = { onUpdateTemp("tempValue", it) },
+                modifier = Modifier.fillMaxWidth().testTag(SettingsTestTags.EMAIL_FIELD),
+                isError = uiState.modalError != null,
+                supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
+                shape = RoundedCornerShape(12.dp),
+                maxLines = 1)
+          }
+          "password" -> {
+            OutlinedTextField(
+                value = uiState.tempValue,
+                onValueChange = { onUpdateTemp("tempValue", it) },
+                modifier = Modifier.fillMaxWidth().testTag(SettingsTestTags.PASSWORD_FIELD),
+                isError = uiState.modalError != null,
+                supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
+                shape = RoundedCornerShape(12.dp),
+                maxLines = 1)
+          }
+          "firstName" -> {
+            OutlinedTextField(
+                value = uiState.tempValue,
+                onValueChange = { onUpdateTemp("tempValue", it) },
+                modifier = Modifier.fillMaxWidth().testTag(SettingsTestTags.FIRST_NAME_FIELD),
+                isError = uiState.modalError != null,
+                supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
+                shape = RoundedCornerShape(12.dp),
+                maxLines = 1)
+          }
+          "lastName" -> {
+            OutlinedTextField(
+                value = uiState.tempValue,
+                onValueChange = { onUpdateTemp("tempValue", it) },
+                modifier = Modifier.fillMaxWidth().testTag(SettingsTestTags.LAST_NAME_FIELD),
+                isError = uiState.modalError != null,
+                supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
+                shape = RoundedCornerShape(12.dp),
+                maxLines = 1)
+          }
           "description" -> {
             OutlinedTextField(
                 value = uiState.tempValue,
                 onValueChange = { onUpdateTemp("tempValue", it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag(SettingsTestTags.DESCRIPTION_FIELD),
                 isError = uiState.modalError != null,
                 supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
                 shape = RoundedCornerShape(12.dp),
-                maxLines = if (uiState.currentField == "description") 3 else 1)
+                maxLines = 3)
           }
-
-          "country" ->
-              CountryDropdown(
-                  value = uiState.tempValue,
-                  expanded = uiState.showCountryDropdown,
-                  onExpandedChange = onToggleCountryDropdown,
-                  onPick = {
-                    onUpdateTemp("tempValue", it)
-                    onToggleCountryDropdown(false)
-                  })
-
+          "country" -> {
+            CountryDropdown(
+                value = uiState.tempValue,
+                expanded = uiState.showCountryDropdown,
+                onExpandedChange = onToggleCountryDropdown,
+                onPick = {
+                  onUpdateTemp("tempValue", it)
+                  onToggleCountryDropdown(false)
+                })
+          }
           "date" -> {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -421,7 +455,7 @@ private fun ModalContentContentOnly(
                       value = uiState.tempDay,
                       onValueChange = { onUpdateTemp("tempDay", it) },
                       label = { Text("Day") },
-                      modifier = Modifier.weight(1f),
+                      modifier = Modifier.weight(1f).testTag(SettingsTestTags.DAY_FIELD),
                       isError = uiState.tempDayError != null,
                       supportingText = { uiState.tempDayError?.let { msg -> Text(msg) } },
                       shape = RoundedCornerShape(12.dp))
@@ -429,7 +463,7 @@ private fun ModalContentContentOnly(
                       value = uiState.tempMonth,
                       onValueChange = { onUpdateTemp("tempMonth", it) },
                       label = { Text("Month") },
-                      modifier = Modifier.weight(1f),
+                      modifier = Modifier.weight(1f).testTag(SettingsTestTags.MONTH_FIELD),
                       isError = uiState.tempMonthError != null,
                       supportingText = { uiState.tempMonthError?.let { msg -> Text(msg) } },
                       shape = RoundedCornerShape(12.dp))
@@ -437,13 +471,12 @@ private fun ModalContentContentOnly(
                       value = uiState.tempYear,
                       onValueChange = { onUpdateTemp("tempYear", it) },
                       label = { Text("Year") },
-                      modifier = Modifier.weight(1.5f),
+                      modifier = Modifier.weight(1.5f).testTag(SettingsTestTags.YEAR_FIELD),
                       isError = uiState.tempYearError != null,
                       supportingText = { uiState.tempYearError?.let { msg -> Text(msg) } },
                       shape = RoundedCornerShape(12.dp))
                 }
           }
-
           "interest_tags" -> {
             TagGroup(
                 name = "",
@@ -454,7 +487,6 @@ private fun ModalContentContentOnly(
                 onTagReSelect = onRemoveTag,
                 modifier = Modifier.fillMaxWidth())
           }
-
           "sport_tags" -> {
             TagGroup(
                 name = "",
@@ -465,7 +497,6 @@ private fun ModalContentContentOnly(
                 onTagReSelect = onRemoveTag,
                 modifier = Modifier.fillMaxWidth())
           }
-
           "music_tags" -> {
             TagGroup(
                 name = "",
@@ -476,7 +507,6 @@ private fun ModalContentContentOnly(
                 onTagReSelect = onRemoveTag,
                 modifier = Modifier.fillMaxWidth())
           }
-
           "transport_tags" -> {
             TagGroup(
                 name = "",
@@ -487,7 +517,6 @@ private fun ModalContentContentOnly(
                 onTagReSelect = onRemoveTag,
                 modifier = Modifier.fillMaxWidth())
           }
-
           "canton_tags" -> {
             TagGroup(
                 name = "",
@@ -505,7 +534,7 @@ private fun ModalContentContentOnly(
 /* =========================================================
  * Previews (use stateless content only)
  * ========================================================= */
-private fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
+fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
     SettingsUiState(
         email = "preview@example.com",
         firstName = "Emma",
