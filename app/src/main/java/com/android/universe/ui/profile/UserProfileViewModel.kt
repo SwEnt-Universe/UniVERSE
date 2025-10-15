@@ -59,18 +59,6 @@ class UserProfileViewModel(
     }
   }
 
-  fun saveUser(username: String, userProfile: UserProfile) {
-    viewModelScope.launch {
-      try {
-        userRepository.updateUser(username, userProfile)
-        _userState.value = UserProfileUIState(userProfile)
-      } catch (e: Exception) {
-        Log.e("UserProfileViewModel", "Failed to save user: ${e.message}")
-        setErrorMsg("Failed to save profile: ${e.message}")
-      }
-    }
-  }
-
   /**
    * Calculates the age of a user based on their date of birth.
    *
