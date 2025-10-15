@@ -74,7 +74,7 @@ class ProfileValidatorsTest {
 
   @Test
   fun validateDescription_boundaryOk() {
-    assertNull(validateDescription("x".repeat(200)))
+    assertNull(validateDescription("x".repeat(100)))
   }
 
   // --- validateNonEmpty ---

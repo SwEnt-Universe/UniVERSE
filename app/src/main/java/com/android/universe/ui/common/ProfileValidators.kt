@@ -35,15 +35,35 @@ fun validateName(label: String, s: String, maxLength: Int = 25): String? =
     }
 
 /**
- * Validates email address format.
+ * Validates that the given email string is non-empty and follows a valid email address format.
  *
- * @param s The email string.
- * @return Error message or null if valid.
+ * The validation performs two checks:
+ * 1. The string must not be blank.
+ * 2. The string must match a simplified email pattern (`local-part@domain`).
+ *
+ * The pattern used is:
+ * ```
+ * ^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$
+ * ```
+ *
+ * This covers most common email formats but is not a strict RFC 5322 validator.
+ *
+ * @param s The email address to validate.
+ * @return A descriptive error message if invalid, or `null` if the email is valid.
+ *
+ * Example:
+ * ```
+ * validateEmail("")                     // → "Email cannot be empty"
+ * validateEmail("abc@")                 // → "Invalid email format"
+ * validateEmail("user@example.com")     // → null
+ * ```
  */
-fun validateEmail(s: String) =
+private val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
+
+fun validateEmail(s: String): String? =
     when {
       s.isBlank() -> "Email cannot be empty"
-      !s.contains('@') -> "Invalid email format"
+      !emailRegex.matches(s) -> "Invalid email format"
       else -> null
     }
 

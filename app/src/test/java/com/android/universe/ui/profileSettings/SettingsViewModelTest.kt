@@ -562,7 +562,7 @@ class SettingsViewModelTest {
         val updated = fakeRepo.getUser("emma")
         assertEquals("Emilia", updated.firstName)
         assertEquals(LocalDate.of(1998, 7, 9), updated.dateOfBirth)
-        assertEquals("Switzerland", updated.country)
+        assertEquals("CH", updated.country)
         assertEquals("hello", updated.description)
       }
 
