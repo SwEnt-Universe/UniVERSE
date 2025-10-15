@@ -259,7 +259,7 @@ class AddProfileViewModel(
               description = cleanedDescription?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()),
-              tags = emptyList())
+              tags = emptySet())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
     }
