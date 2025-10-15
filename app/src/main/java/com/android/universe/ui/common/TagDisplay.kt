@@ -13,6 +13,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+/**
+ * Displays a labeled group of selectable tags, rendered as clickable buttons in a responsive
+ * horizontal flow layout.
+ *
+ * Each tag button visually indicates its selection state:
+ * - Unselected tags use the given [color] background.
+ * - Selected tags appear gray with a checkmark icon and a highlighted border.
+ *
+ * When a tag is clicked:
+ * - If it was not previously selected, [onTagSelect] is invoked.
+ * - If it was already selected, [onTagReSelect] is invoked (allowing deselection or custom behavior).
+ *
+ * This composable is typically used to categorized tags such as user interests,
+ * hobbies, or filters within a profile or settings screen.
+ *
+ * ### Example:
+ * ```
+ * TagGroup(
+ *   name = "Interests",
+ *   tagList = listOf("Music", "Art", "Travel"),
+ *   selectedTags = listOf("Music"),
+ *   onTagSelect = { println("Selected tag: $it") },
+ *   onTagReSelect = { println("Deselected tag: $it") }
+ * )
+ * ```
+ *
+ * @param name Optional title displayed above the tag group (e.g., "Interests"). If empty, no title is shown.
+ * @param tagList The full list of tag names to display as buttons.
+ * @param selectedTags The subset of [tagList] that are currently selected.
+ * @param color The background color for unselected tag buttons. Defaults to a purple accent (0xFF6650a4).
+ * @param onTagSelect Callback triggered when a tag is newly selected.
+ * @param onTagReSelect Callback triggered when a selected tag is clicked again.
+ * @param modifier The [Modifier] to be applied to the root [FlowRow] container.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagGroup(
