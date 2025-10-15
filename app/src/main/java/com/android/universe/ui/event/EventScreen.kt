@@ -74,12 +74,15 @@ object EventScreenTestTags {
 }
 
 /**
- * Displays a scrollable list of events using a LazyColumn.
+ * The main screen for displaying a list of events.
  *
- * Each event in the ViewModel's [eventsState] is represented by an [EventCard]
+ * This composable function sets up a `Scaffold` with a bottom navigation bar and displays a
+ * `LazyColumn` of `EventCard` composables. The list of events is fetched from the `viewModel`.
  *
- * @param viewModel The [EventViewModel] providing the list of events. Defaults to a Compose-managed
- *   ViewModel instance.
+ * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
+ *   selected.
+ * @param viewModel The [EventViewModel] that provides the state for the screen, including the list
+ *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
  */
 @Composable
 fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = viewModel()) {

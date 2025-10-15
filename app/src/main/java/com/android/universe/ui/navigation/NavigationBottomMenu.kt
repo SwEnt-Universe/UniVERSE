@@ -39,6 +39,7 @@ sealed class Tab(
   /** Represents the 'Map' tab. */
   object Map : Tab(NavigationScreens.Map, Icons.Outlined.Explore, Icons.Filled.Explore)
 
+  /** Represents the 'Event' tab. */
   object Event : Tab(NavigationScreens.Event, Icons.Outlined.Event, Icons.Filled.Event)
 
   /** Represents the 'Profile' tab. */
