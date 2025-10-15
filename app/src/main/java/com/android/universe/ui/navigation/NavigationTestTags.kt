@@ -10,6 +10,7 @@ object NavigationTestTags {
 
   // SCREENS
   const val MAP_SCREEN = "MapScreen"
+  const val EVENT_SCREEN = "EventsScreen"
   const val CHAT_SCREEN = "ChatScreen"
   const val PROFILE_SCREEN = "ProfileScreen"
   const val SIGN_IN_SCREEN = "SignInScreen"
@@ -18,6 +19,7 @@ object NavigationTestTags {
   // BOTTOM NAVIGATION MENU
   const val BOTTOM_NAVIGATION_MENU = "BottomNavigationMenu"
   const val CHAT_TAB = "ChatTab"
+  const val EVENT_TAB = "EventsTab"
   const val MAP_TAB = "MapTab"
   const val PROFILE_TAB = "ProfileTab"
 
@@ -32,5 +34,16 @@ object NavigationTestTags {
         is Tab.Chat -> CHAT_TAB
         is Tab.Map -> MAP_TAB
         is Tab.Profile -> PROFILE_TAB
+        is Tab.Event -> EVENT_TAB
+      }
+
+  fun getScreenTestTag(screen: NavigationScreens): String =
+      when (screen) {
+        is NavigationScreens.Map -> MAP_SCREEN
+        is NavigationScreens.Event -> EVENT_SCREEN
+        is NavigationScreens.Chat -> CHAT_SCREEN
+        is NavigationScreens.Profile -> PROFILE_SCREEN
+        is NavigationScreens.SignIn -> SIGN_IN_SCREEN
+        is NavigationScreens.AddProfile -> ADD_PROFILE_SCREEN
       }
 }

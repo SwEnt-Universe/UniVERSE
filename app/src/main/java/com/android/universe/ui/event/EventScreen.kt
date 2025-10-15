@@ -19,6 +19,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.ui.navigation.NavigationBottomMenu
+import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.navigation.Tab
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -70,31 +74,39 @@ object EventScreenTestTags {
 }
 
 /**
- * Displays a scrollable list of events using a LazyColumn.
+ * The main screen for displaying a list of events.
  *
- * Each event in the ViewModel's [eventsState] is represented by an [EventCard]
+ * This composable function sets up a `Scaffold` with a bottom navigation bar and displays a
+ * `LazyColumn` of `EventCard` composables. The list of events is fetched from the `viewModel`.
  *
- * @param viewModel The [EventViewModel] providing the list of events. Defaults to a Compose-managed
- *   ViewModel instance.
+ * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
+ *   selected.
+ * @param viewModel The [EventViewModel] that provides the state for the screen, including the list
+ *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
  */
 @Composable
-fun EventScreen(viewModel: EventViewModel = viewModel()) {
+fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = viewModel()) {
   val events by viewModel.eventsState.collectAsState()
-
-  LazyColumn(
-      modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
-      contentPadding = PaddingValues(8.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(events) { event ->
-          EventCard(
-              title = event.title,
-              description = event.description,
-              date = event.date,
-              tags = event.tags,
-              creator = event.creator,
-              participants = event.participants)
+  Scaffold(
+      modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
+      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected) },
+  ) { paddingValues ->
+    LazyColumn(
+        modifier =
+            Modifier.fillMaxSize().padding(paddingValues).testTag(EventScreenTestTags.EVENTS_LIST),
+        contentPadding = PaddingValues(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          items(events) { event ->
+            EventCard(
+                title = event.title,
+                description = event.description,
+                date = event.date,
+                tags = event.tags,
+                creator = event.creator,
+                participants = event.participants)
+          }
         }
-      }
+  }
 }
 
 /**
@@ -240,5 +252,5 @@ fun TagCard(tag: String, testTag: String) {
 @Composable
 fun EventCardPreview() {
   val previewViewModel = EventViewModel(EventRepositoryProvider.repository)
-  EventScreen(previewViewModel)
+  EventScreen(viewModel = previewViewModel)
 }

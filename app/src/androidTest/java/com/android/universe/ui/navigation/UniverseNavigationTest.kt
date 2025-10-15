@@ -40,6 +40,17 @@ class UniverseAppNavigationTest : TestCase() {
   }
 
   @Test
+  fun navigation_toEventScreen() {
+    composeTestRule.setContent { UniverseApp() }
+
+    // Click on Event tab (simulate tab selection)
+    composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
+
+    // Verify that Event screen is displayed
+    composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_SCREEN).assertIsDisplayed()
+  }
+
+  @Test
   fun navigation_toProfileScreen() {
     composeTestRule.setContent { UniverseApp() }
 
@@ -48,5 +59,19 @@ class UniverseAppNavigationTest : TestCase() {
 
     // Verify that Profile screen is displayed
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
+  }
+
+  @Test
+  fun navigation_toAllTabs() {
+    composeTestRule.setContent { UniverseApp() }
+    // Verify that Map screen is displayed
+    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).assertIsDisplayed()
+    // Navigate to all tabs
+    tabs.forEach { tab ->
+      composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(tab)).performClick()
+      composeTestRule
+          .onNodeWithTag(NavigationTestTags.getScreenTestTag(tab.destination))
+          .assertIsDisplayed()
+    }
   }
 }

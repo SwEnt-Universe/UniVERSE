@@ -1,6 +1,7 @@
 package com.android.universe
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +18,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.android.universe.resources.C
+import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationPlaceholderScreen
@@ -27,7 +29,7 @@ import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
-class MainActivity : FragmentActivity() {
+class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
@@ -63,6 +65,13 @@ fun UniverseApp() {
         route = NavigationScreens.Map.name,
     ) {
       composable(NavigationScreens.Map.route) { MapScreen(onTabSelected) }
+    }
+
+    navigation(
+        startDestination = NavigationScreens.Event.route,
+        route = NavigationScreens.Event.name,
+    ) {
+      composable(NavigationScreens.Event.route) { EventScreen(onTabSelected) }
     }
 
     navigation(
