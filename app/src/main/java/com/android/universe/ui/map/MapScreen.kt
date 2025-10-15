@@ -29,7 +29,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
-import com.android.universe.model.event.FakeEventRepository
+import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -59,7 +59,7 @@ object MapScreenTestTags {
 fun MapScreen(onTabSelected: (Tab) -> Unit) {
   val context = LocalContext.current
   val viewModel: MapViewModel = viewModel {
-    MapViewModel(TomTomLocationRepository(context), FakeEventRepository())
+    MapViewModel(TomTomLocationRepository(context), EventRepositoryProvider.repository)
   }
   val uiState by viewModel.uiState.collectAsState()
 
