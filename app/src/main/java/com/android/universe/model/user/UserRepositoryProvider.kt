@@ -13,8 +13,8 @@ import kotlinx.coroutines.runBlocking
  */
 object UserRepositoryProvider {
   private val _repository: UserRepository = FakeUserRepository()
-  private val tag = Tag(name = "Metal")
-  private val tags = listOf<Tag>(tag)
+  private val tag = Tag.METAL
+  private val tags = setOf(tag)
 
   init {
     val sampleUsers =
@@ -34,7 +34,7 @@ object UserRepositoryProvider {
                 country = "FR",
                 description = "Hello, I'm Bob.",
                 dateOfBirth = LocalDate.of(2000, 8, 11),
-                tags = emptyList()),
+                tags = emptySet()),
             UserProfile(
                 username = "john",
                 firstName = "John",
