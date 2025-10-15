@@ -3,7 +3,7 @@ package com.android.universe.ui.profileSettings
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,11 +25,12 @@ internal fun CountryDropdown(
 	ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = onExpandedChange) {
 		OutlinedTextField(
 			value = value,
-			onValueChange = {},
+			onValueChange = { /* readOnly */ },
 			readOnly = true,
 			modifier = Modifier
 				.fillMaxWidth()
-				.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true),
+				.menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
+				.testTag(SettingsTestTags.COUNTRY_DROPDOWN_FIELD),
 			shape = RoundedCornerShape(12.dp)
 		)
 		ExposedDropdownMenu(
@@ -39,7 +40,11 @@ internal fun CountryDropdown(
 		) {
 			CountryData.allCountries.forEach { option ->
 				DropdownMenuItem(
-					text = { Text(if (option.length > 30) option.take(30) + "..." else option) },
+					modifier = Modifier.testTag("${SettingsTestTags.COUNTRY_OPTION_PREFIX}$option"),
+					text = {
+						val label = if (option.length > 30) option.take(30) + "..." else option
+						Text(label)
+					},
 					onClick = { onPick(option) }
 				)
 			}
@@ -58,6 +63,12 @@ internal fun ModalContent(
 	onClose: () -> Unit,
 	onSave: () -> Unit
 ) {
+	// Local mirrors keep the modal responsive without requiring immediate upstream state updates.
+	var localText by remember(uiState.currentField) { mutableStateOf(uiState.tempValue) }
+	var localDay by remember(uiState.currentField) { mutableStateOf(uiState.tempDay) }
+	var localMonth by remember(uiState.currentField) { mutableStateOf(uiState.tempMonth) }
+	var localYear by remember(uiState.currentField) { mutableStateOf(uiState.tempYear) }
+
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -71,7 +82,9 @@ internal fun ModalContent(
 			Text(
 				text = modalTitle(uiState.currentField),
 				style = MaterialTheme.typography.titleMedium,
-				modifier = Modifier.weight(1f)
+				modifier = Modifier
+					.weight(1f)
+					.testTag(SettingsTestTags.MODAL_TITLE)
 			)
 			Row(horizontalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
 				TextButton(
@@ -98,11 +111,19 @@ internal fun ModalContent(
 				}
 				val maxLines = if (uiState.currentField == "description") 3 else 1
 				OutlinedTextField(
-					value = uiState.tempValue,
-					onValueChange = { onUpdateTemp("tempValue", it) },
-					modifier = Modifier.fillMaxWidth().testTag(tag),
+					value = localText,
+					onValueChange = { newValue ->
+						localText = newValue
+						onUpdateTemp("tempValue", newValue)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.testTag(tag),
 					isError = uiState.modalError != null,
-					supportingText = { uiState.modalError?.let { msg -> Text(msg) } },
+					supportingText = {
+						val message = uiState.modalError
+						if (message != null) Text(message)
+					},
 					shape = RoundedCornerShape(12.dp),
 					maxLines = maxLines
 				)
@@ -112,9 +133,9 @@ internal fun ModalContent(
 				CountryDropdown(
 					value = uiState.tempValue,
 					expanded = uiState.showCountryDropdown,
-					onExpandedChange = onToggleCountryDropdown,
-					onPick = {
-						onUpdateTemp("tempValue", it)
+					onExpandedChange = { isExpanded -> onToggleCountryDropdown(isExpanded) },
+					onPick = { picked ->
+						onUpdateTemp("tempValue", picked)
 						onToggleCountryDropdown(false)
 					}
 				)
@@ -126,30 +147,54 @@ internal fun ModalContent(
 					horizontalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.DateFieldSpacing)
 				) {
 					OutlinedTextField(
-						value = uiState.tempDay,
-						onValueChange = { onUpdateTemp("tempDay", it) },
+						value = localDay,
+						onValueChange = { newDay ->
+							localDay = newDay
+							onUpdateTemp("tempDay", newDay)
+						},
 						label = { Text("Day") },
-						modifier = Modifier.weight(1f).testTag(SettingsTestTags.DAY_FIELD),
+						modifier = Modifier
+							.weight(1f)
+							.testTag(SettingsTestTags.DAY_FIELD),
 						isError = uiState.tempDayError != null,
-						supportingText = { uiState.tempDayError?.let { msg -> Text(msg) } },
+						supportingText = {
+							val message = uiState.tempDayError
+							if (message != null) Text(message)
+						},
 						shape = RoundedCornerShape(12.dp)
 					)
 					OutlinedTextField(
-						value = uiState.tempMonth,
-						onValueChange = { onUpdateTemp("tempMonth", it) },
+						value = localMonth,
+						onValueChange = { newMonth ->
+							localMonth = newMonth
+							onUpdateTemp("tempMonth", newMonth)
+						},
 						label = { Text("Month") },
-						modifier = Modifier.weight(1f).testTag(SettingsTestTags.MONTH_FIELD),
+						modifier = Modifier
+							.weight(1f)
+							.testTag(SettingsTestTags.MONTH_FIELD),
 						isError = uiState.tempMonthError != null,
-						supportingText = { uiState.tempMonthError?.let { msg -> Text(msg) } },
+						supportingText = {
+							val message = uiState.tempMonthError
+							if (message != null) Text(message)
+						},
 						shape = RoundedCornerShape(12.dp)
 					)
 					OutlinedTextField(
-						value = uiState.tempYear,
-						onValueChange = { onUpdateTemp("tempYear", it) },
+						value = localYear,
+						onValueChange = { newYear ->
+							localYear = newYear
+							onUpdateTemp("tempYear", newYear)
+						},
 						label = { Text("Year") },
-						modifier = Modifier.weight(1.5f).testTag(SettingsTestTags.YEAR_FIELD),
+						modifier = Modifier
+							.weight(1.5f)
+							.testTag(SettingsTestTags.YEAR_FIELD),
 						isError = uiState.tempYearError != null,
-						supportingText = { uiState.tempYearError?.let { msg -> Text(msg) } },
+						supportingText = {
+							val message = uiState.tempYearError
+							if (message != null) Text(message)
+						},
 						shape = RoundedCornerShape(12.dp)
 					)
 				}
@@ -168,8 +213,14 @@ internal fun ModalContent(
 							Tag.Category.TRANSPORT -> TagColors.Transport
 							Tag.Category.CANTON -> TagColors.Canton
 						},
-						onTagSelect = { displayName -> Tag.fromDisplayName(displayName)?.let(onAddTag) },
-						onTagReSelect = { displayName -> Tag.fromDisplayName(displayName)?.let(onRemoveTag) },
+						onTagSelect = { displayName ->
+							val tag = Tag.fromDisplayName(displayName)
+							if (tag != null) onAddTag(tag)
+						},
+						onTagReSelect = { displayName ->
+							val tag = Tag.fromDisplayName(displayName)
+							if (tag != null) onRemoveTag(tag)
+						},
 						modifier = Modifier.fillMaxWidth()
 					)
 				}

@@ -1,5 +1,7 @@
 package com.android.universe.ui.profileSettings
 
+import android.R.attr.tag
+
 object SettingsTestTags {
   const val EMAIL_BUTTON = "email_button"
   const val PASSWORD_BUTTON = "password_button"
@@ -13,6 +15,9 @@ object SettingsTestTags {
   const val MUSIC_TAGS_BUTTON = "music_tags_button"
   const val TRANSPORT_TAGS_BUTTON = "transport_tags_button"
   const val CANTON_TAGS_BUTTON = "canton_tags_button"
+  const val MODAL_TITLE = "MODAL_TITLE"
+  const val COUNTRY_DROPDOWN_FIELD = "COUNTRY_DROPDOWN_FIELD"
+  const val COUNTRY_OPTION_PREFIX = "COUNTRY_OPTION_"
   const val MODAL_CANCEL_BUTTON = "modal_cancel_button"
   const val MODAL_SAVE_BUTTON = "modal_save_button"
   const val DAY_FIELD = "day_field"
