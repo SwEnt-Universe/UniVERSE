@@ -58,9 +58,9 @@ fun UniverseApp(
 ) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
-  val startDestination = if (FirebaseAuth.getInstance().currentUser == null) NavigationScreens.SignIn.name
-    else NavigationScreens.Map.route
-  // TODO: verify that user is authenticated once the signIn is done.
+  val startDestination =
+      if (FirebaseAuth.getInstance().currentUser == null) NavigationScreens.SignIn.name
+      else NavigationScreens.Map.route
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
@@ -69,13 +69,12 @@ fun UniverseApp(
         route = NavigationScreens.SignIn.name,
         startDestination = NavigationScreens.SignIn.route,
     ) {
-        composable(NavigationScreens.SignIn.route) {
-            SignInScreen(
-                viewModel = SignInViewModel(),
-                onSignedIn = {navigationActions.navigateTo(NavigationScreens.Map)},
-                credentialManager = credentialManager
-            )
-        }
+      composable(NavigationScreens.SignIn.route) {
+        SignInScreen(
+            viewModel = SignInViewModel(),
+            onSignedIn = { navigationActions.navigateTo(NavigationScreens.Map) },
+            credentialManager = credentialManager)
+      }
     }
     navigation(
         startDestination = NavigationScreens.Map.route,

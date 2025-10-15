@@ -1,15 +1,22 @@
 package com.android.universe.ui.signIn
 
+/**
+ * Part of the code in this file is copy-pasted from the BootCamp solution provided by the SwEnt
+ * staff
+ */
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -22,12 +29,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
@@ -37,6 +47,7 @@ object SignInScreenTestTags {
   const val SIGN_IN_BUTTON = "signInButton"
   const val SIGN_IN_LOGO = "signInLogo"
   const val SIGN_IN_TITLE = "signInTitle"
+  const val SIGN_IN_PROGRESS_BAR = "signInProgressBar"
 }
 
 /**
@@ -56,60 +67,51 @@ fun SignInScreen(
   val uiState by viewModel.uiState.collectAsState()
 
   LaunchedEffect(uiState.errorMsg) {
-      uiState.errorMsg?.let { message ->
-          Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-          viewModel.clearErrorMsg()
-      }
+    uiState.errorMsg?.let { message ->
+      Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+      viewModel.clearErrorMsg()
+    }
   }
 
   LaunchedEffect(uiState.user) {
-      uiState.user?.let {
-          Toast.makeText(context, "Signed in successfully", Toast.LENGTH_SHORT).show()
-          onSignedIn()
-      }
+    uiState.user?.let {
+      Toast.makeText(context, "Signed in successfully", Toast.LENGTH_SHORT).show()
+      onSignedIn()
+    }
   }
 
-  Scaffold(
-      modifier = Modifier
-          .testTag(NavigationTestTags.SIGN_IN_SCREEN)
-          .fillMaxSize()
-  ) {
+  Scaffold(modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN).fillMaxSize()) {
       paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.app_logo_placeholder),
-                contentDescription = "App Logo",
-                modifier = Modifier
-                    .testTag(SignInScreenTestTags.SIGN_IN_LOGO)
-                    .size(256.dp)
-            )
+    Column(
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Text(
+          modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_TITLE),
+          text = "Welcome to",
+          style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
+          textAlign = TextAlign.Center,
+          fontWeight = FontWeight.Bold)
 
-            Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                modifier = Modifier
-                    .testTag(SignInScreenTestTags.SIGN_IN_TITLE),
-                text = "Welcome to UNIVerse !",
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
+      Image(
+          painter = painterResource(R.drawable.app_logo_placeholder),
+          contentDescription = "App Logo",
+          modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_LOGO).size(320.dp))
 
-            if (uiState.isLoading){
-                LinearProgressIndicator()
-            } else
-                SignInButton(onClick = {
-                    viewModel.signIn(
-                        context = context,
-                        credentialManager = credentialManager
-                    )
-                })
-        }
+      Spacer(modifier = Modifier.height(32.dp))
+
+      if (uiState.isLoading)
+          LinearProgressIndicator(
+              modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_PROGRESS_BAR))
+      else
+          GoogleSignInButton(
+              onClick = {
+                viewModel.signIn(context = context, credentialManager = credentialManager)
+              })
+    }
   }
 }
 
@@ -119,10 +121,34 @@ fun SignInScreen(
  * @param onClick The callback to be invoked when the button is clicked.
  */
 @Composable
-fun SignInButton(onClick: () -> Unit) {
+fun GoogleSignInButton(onClick: () -> Unit) {
   OutlinedButton(
-      onClick = onClick, modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
-        Text("Sign In")
+      onClick = onClick,
+      colors = ButtonDefaults.buttonColors(containerColor = Color.White), // Button color
+      modifier =
+          Modifier.padding(horizontal = 64.dp)
+              .height(48.dp) // Adjust height as needed
+              .testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()) {
+              // Load the Google logo from resources
+              Image(
+                  painter =
+                      painterResource(id = R.drawable.google_logo), // Ensure this drawable exists
+                  contentDescription = "Google Logo",
+                  modifier =
+                      Modifier.size(32.dp) // Size of the Google logo
+                          .padding(end = 8.dp))
+
+              // Text for the button
+              Text(
+                  text = "Sign in with Google",
+                  color = Color.Gray, // Text color
+                  fontSize = 16.sp, // Font size
+                  fontWeight = FontWeight.Medium)
+            }
       }
 }
 
