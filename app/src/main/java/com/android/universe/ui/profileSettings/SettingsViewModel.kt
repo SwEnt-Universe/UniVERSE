@@ -21,6 +21,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Represents all UI-related state for the user settings screen.
+ *
+ * It includes both persistent data (e.g., `email`, `firstName`, `tags`)
+ * and temporary modal values (`tempValue`, `tempDay`, etc.), as well as
+ * field-specific validation errors and modal visibility flags.
+ */
 data class SettingsUiState(
     val email: String = "preview@example.com",
     val password: String = "",
@@ -55,6 +62,15 @@ data class SettingsUiState(
     val errorMsg: String? = null
 )
 
+/**
+ * ViewModel that manages all state and business logic for the profile settings screen.
+ *
+ * Responsibilities:
+ * - Loading user data from [UserRepositoryProvider].
+ * - Managing UI state through [SettingsUiState].
+ * - Validating and sanitizing user input.
+ * - Persisting updates to Firebase Authentication and the local repository.
+ */
 class SettingsViewModel(
     private val userRepository: UserRepositoryProvider = UserRepositoryProvider
 ) : ViewModel() {
@@ -67,6 +83,12 @@ class SettingsViewModel(
     }
   }
 
+  /**
+   * Loads the full [UserProfile] for the given [username] from the repository
+   * and populates the state fields accordingly.
+   *
+   * If loading fails, [SettingsUiState.errorMsg] is updated with an error message.
+   */
   fun loadUser(username: String) {
     viewModelScope.launch {
       try {
@@ -87,10 +109,19 @@ class SettingsViewModel(
     }
   }
 
+  /**
+   * Clears any active global error message shown via toast or snackbar.
+   */
   fun clearErrorMsg() {
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
+  /**
+   * Updates a temporary modal field (e.g., `tempValue`, `tempDay`, etc.)
+   * based on the given [key].
+   *
+   * Also clears any existing validation errors for that temporary field.
+   */
   fun updateTemp(key: String, value: String) {
     _uiState.value =
         when (key) {
@@ -102,6 +133,12 @@ class SettingsViewModel(
         }
   }
 
+  /**
+   * Opens a modal bottom sheet for editing a specific field (e.g. `"email"`, `"country"`, `"date"`).
+   *
+   * Initializes all relevant temporary values (`tempValue`, `tempDay`, etc.)
+   * and resets modal error fields.
+   */
   fun openModal(field: String) {
     val state = _uiState.value
     _uiState.value =
@@ -132,6 +169,9 @@ class SettingsViewModel(
                     ?: emptyList())
   }
 
+  /**
+   * Closes the currently open modal and resets all temporary modal-related fields and errors.
+   */
   fun closeModal() {
     _uiState.value =
         _uiState.value.copy(
@@ -143,10 +183,16 @@ class SettingsViewModel(
             tempYearError = null)
   }
 
+  /**
+   * Toggles the visibility of the country dropdown within the modal.
+   */
   fun toggleCountryDropdown(show: Boolean) {
     _uiState.value = _uiState.value.copy(showCountryDropdown = show)
   }
 
+  /**
+   * Adds a [Tag] to the temporary selection list if it is not already selected.
+   */
   fun addTag(tag: Tag) {
     if (!_uiState.value.tempSelectedTags.contains(tag)) {
       _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags + tag)
@@ -155,6 +201,9 @@ class SettingsViewModel(
     }
   }
 
+  /**
+   * Removes a [Tag] from the temporary selection list if it exists.
+   */
   fun removeTag(tag: Tag) {
     if (_uiState.value.tempSelectedTags.contains(tag)) {
       _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags - tag)
@@ -163,6 +212,14 @@ class SettingsViewModel(
     }
   }
 
+  /**
+   * Validates and applies changes from the modal to the main state.
+   *
+   * Performs field-specific validation based on [SettingsUiState.currentField].
+   * If validation passes, updates the corresponding state field and closes the modal.
+   *
+   * Finally, triggers [saveProfile] to persist all updates.
+   */
   fun saveModal(username: String) {
     val state = _uiState.value
     var modalError: String? = null
@@ -256,6 +313,17 @@ class SettingsViewModel(
     saveProfile(username)
   }
 
+  /**
+   * Performs full form validation and persists the user profile.
+   *
+   * Steps:
+   * 1. Runs all validation checks via [validateAll].
+   * 2. Sanitizes text fields.
+   * 3. Updates user data in the repository.
+   * 4. Updates Firebase email/password if changed.
+   *
+   * Errors are reflected in the [SettingsUiState] fields.
+   */
   fun saveProfile(username: String) {
     viewModelScope.launch {
       val state = _uiState.value
