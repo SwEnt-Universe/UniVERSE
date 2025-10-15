@@ -46,7 +46,7 @@ class UserProfileViewModelTest {
             country = "CH",
             description = "Hi, I'm Alice.",
             dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = emptyList())
+            tags = emptySet())
 
     repository.addUser(profile)
 

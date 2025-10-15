@@ -37,7 +37,7 @@ class EventRepositoryProviderTest {
                           lastName = "Doe",
                           country = "US",
                           dateOfBirth = LocalDate.of(1990, 1, 1),
-                          tags = emptyList()))
+                          tags = emptySet()))
 
           override suspend fun addEvent(event: Event) {}
 
