@@ -5,11 +5,6 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.universe.model.Tag
-import com.android.universe.model.tagsCanton
-import com.android.universe.model.tagsInterest
-import com.android.universe.model.tagsMusic
-import com.android.universe.model.tagsSport
-import com.android.universe.model.tagsTransport
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDate
@@ -23,7 +18,7 @@ class UserProfileScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   // ---- helper data
-  private val allTags = tagsInterest + tagsSport + tagsMusic + tagsTransport + tagsCanton
+  private val allTags = Tag.Category.entries.flatMap { Tag.getTagsForCategory(it) }
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() = runTest {
@@ -72,7 +67,11 @@ class UserProfileScreenTest {
 
   @Test
   fun tooManyTagsImpliesScrollable() = runTest {
-    val manyTags = tagsInterest.union(tagsCanton).toSet()
+    val manyTags =
+        (Tag.getTagsForCategory(Tag.Category.INTEREST) +
+                Tag.getTagsForCategory(Tag.Category.CANTON))
+            .toSet()
+
     val profile =
         UserProfile(
             username = "overflow",

@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +33,8 @@ object UserProfileScreenTestTags {
   const val AGE = "userProfileAge"
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
+  const val TAG = "userProfileTag"
+  const val EDIT_BUTTON = "userProfileEditButton"
   const val TAGLIST = "userProfileTagList"
 
   fun getTagTestTag(index: Int): String {
@@ -52,6 +54,7 @@ object FieldFontSizes {
  *
  * @param username The username of the user to display.
  * @param onTabSelected Callback invoked when a tab is selected to switch between screens
+ * @param onEditProfileClick Callback when the edit profile button is clicked.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -59,6 +62,7 @@ object FieldFontSizes {
 fun UserProfileScreen(
     username: String,
     onTabSelected: (Tab) -> Unit = {},
+    onEditProfileClick: (String) -> Unit = {},
     userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
 
@@ -80,9 +84,11 @@ fun UserProfileScreen(
         TopAppBar(
             title = { Text("Profile") },
             actions = {
-              IconButton(onClick = { /* Handle edit profile action TODO */ }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
-              }
+              IconButton(
+                  onClick = { onEditProfileClick(username) },
+                  modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
+                    Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
+                  }
             })
       },
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->

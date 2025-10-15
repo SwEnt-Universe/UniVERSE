@@ -10,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.android.universe.resources.C
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.map.MapScreen
@@ -23,6 +25,7 @@ import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
+import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -88,7 +91,27 @@ fun UniverseApp() {
         startDestination = NavigationScreens.Profile.route,
         route = NavigationScreens.Profile.name,
     ) {
-      composable(NavigationScreens.Profile.route) { UserProfileScreen("emma", onTabSelected) }
+      composable(NavigationScreens.Profile.route) {
+        UserProfileScreen(
+            username = "emma",
+            onTabSelected = onTabSelected,
+            onEditProfileClick = { username ->
+              navController.navigate(
+                  NavigationScreens.Settings.route.replace("{username}", username))
+            })
+      }
     }
+    composable(
+        route = NavigationScreens.Settings.route,
+        arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
+          ->
+          val username = backStackEntry.arguments?.getString("username") ?: "emma"
+          SettingsScreen(
+              username = username,
+              onBack = {
+                navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+              },
+          )
+        }
   }
 }
