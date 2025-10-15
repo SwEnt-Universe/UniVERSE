@@ -1,5 +1,8 @@
 package com.android.universe.ui.profileSettings
 
+/**
+ * Centralized Compose test tag constants used across Settings UI components.
+ */
 object SettingsTestTags {
   const val EMAIL_BUTTON = "email_button"
   const val PASSWORD_BUTTON = "password_button"
