@@ -3,7 +3,9 @@ package com.android.universe.ui.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.Tag
+import com.android.universe.model.isoToCountryName
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.sanitize
@@ -97,7 +99,7 @@ class SettingsViewModel(
             _uiState.value.copy(
                 firstName = userProfile.firstName,
                 lastName = userProfile.lastName,
-                country = userProfile.country,
+                country = isoToCountryName[userProfile.country] ?: userProfile.country,
                 description = userProfile.description ?: "",
                 day = userProfile.dateOfBirth.dayOfMonth.toString(),
                 month = userProfile.dateOfBirth.monthValue.toString(),
@@ -369,7 +371,7 @@ class SettingsViewModel(
                 username = username,
                 firstName = cleanedFirstName,
                 lastName = cleanedLastName,
-                country = state.country,
+                country = countryToIsoCode[state.country] ?: state.country,
                 description = cleanedDescription,
                 dateOfBirth =
                     LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),

@@ -1,5 +1,7 @@
 package com.android.universe.model
 
+import com.android.universe.model.CountryData.countryToIsoCode
+
 /**
  * Provides static data related to countries and their ISO 3166-1 alpha-2 codes.
  *
@@ -423,3 +425,7 @@ object CountryData {
           "Zambia" to "ZM",
           "Zimbabwe" to "ZW")
 }
+
+/** Reverse map for converting ISO codes back to human-readable names. */
+val isoToCountryName = countryToIsoCode.entries.associate { (name, iso) -> iso to name }
+
