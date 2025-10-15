@@ -17,9 +17,9 @@ import com.android.universe.ui.selectTag.TagColors
 /**
  * A composable dropdown component used for selecting a country.
  *
- * Displayed inside the profile settings modal when the user edits their country.
- * The dropdown shows all available countries defined in [CountryData.allCountries] and updates
- * its selection via [onPick].
+ * Displayed inside the profile settings modal when the user edits their country. The dropdown shows
+ * all available countries defined in [CountryData.allCountries] and updates its selection via
+ * [onPick].
  *
  * @param value The currently selected country name.
  * @param expanded Whether the dropdown menu is currently expanded.
