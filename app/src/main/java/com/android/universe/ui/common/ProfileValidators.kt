@@ -63,10 +63,10 @@ fun validatePassword(s: String) =
  * Validates profile description length.
  *
  * @param s The user description.
- * @param maxLength Maximum character limit (default = 200).
+ * @param maxLength Maximum character limit (default = 100).
  * @return Error message or null.
  */
-fun validateDescription(s: String, maxLength: Int = 200) =
+fun validateDescription(s: String, maxLength: Int = 100) =
     if (s.length > maxLength) "Description too long" else null
 
 /**
