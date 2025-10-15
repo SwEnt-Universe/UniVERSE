@@ -46,7 +46,7 @@ class UniverseAppNavigationTest : TestCase() {
     // Click on Event tab (simulate tab selection)
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
 
-    // Verify Event Chat screen is displayed
+    // Verify that Event screen is displayed
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_SCREEN).assertIsDisplayed()
   }
 
