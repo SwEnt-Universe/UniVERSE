@@ -217,7 +217,7 @@ private fun TagChip(tag: Tag) {
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
-              Text(text = tag.name)
+              Text(text = tag.displayName)
             }
       }
 }

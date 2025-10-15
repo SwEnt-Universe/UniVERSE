@@ -45,7 +45,7 @@ class SelectTagScreenTest {
                     country = "FR",
                     description = "Hello, I'm Bob.",
                     dateOfBirth = LocalDate.of(2000, 8, 11),
-                    tags = emptyList()))
+                    tags = emptySet()))
           }
         }
     viewModel = SelectTagViewModel(userRepository)

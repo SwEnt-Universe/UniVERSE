@@ -13,8 +13,8 @@ import org.junit.Test
 class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
-  private val tag = Tag(name = "Metal")
-  private val tags = listOf<Tag>(tag)
+  private val tag = Tag.METAL
+  private val tags = setOf(tag)
 
   @Before
   fun setup() {

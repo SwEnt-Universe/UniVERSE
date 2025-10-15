@@ -12,6 +12,8 @@ import java.time.LocalDate
  * @property country country of the user (ISO 3166-1 alpha-2 code)
  * @property description optional short bio or "about me" text.
  * @property dateOfBirth date of birth of the user.
+ * @property tags Set of tags representing the user's interests, means of transportation, or Swiss
+ *   canton.
  */
 data class UserProfile(
     val username: String,
@@ -20,5 +22,5 @@ data class UserProfile(
     val country: String,
     val description: String? = null,
     val dateOfBirth: LocalDate,
-    val tags: List<Tag>
+    val tags: Set<Tag>
 )

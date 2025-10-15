@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.Tag
 import com.android.universe.model.tagsCanton
 import com.android.universe.model.tagsInterest
 import com.android.universe.model.tagsMusic
@@ -71,17 +72,19 @@ object SelectTagsScreenTestTags {
  * @param selectedTags A mutable state holding the list of currently selected tags. Clicking a tag
  *   will update this state.
  * @param color The color of unselected tags (default is purple).
+ * @param onTagSelect Callback invoked when a tag is selected.
+ * @param onTagReSelect Callback invoked when a tag is deselected.
  * @param modifier The modifier to apply to the composable
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagGroup(
     name: String,
-    tagList: List<String>,
-    selectedTags: List<String>,
+    tagList: List<Tag>,
+    selectedTags: List<Tag>,
     color: Color = Color(0xFF6650a4),
-    onTagSelect: (String) -> Unit = {},
-    onTagReSelect: (String) -> Unit = {},
+    onTagSelect: (Tag) -> Unit = {},
+    onTagReSelect: (Tag) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
   Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
@@ -98,11 +101,12 @@ private fun TagGroup(
             }
           },
           modifier =
-              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}$tag").padding(4.dp),
+              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}${tag.displayName}")
+                  .padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(tag)
+              Text(tag.displayName)
               if (isSelected) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
@@ -223,12 +227,13 @@ fun SelectTagScreen(
     }
     if (selectedTags.isNotEmpty()) {
       LazyRow(modifier = Modifier.testTag(SelectTagsScreenTestTags.SELECTED_TAGS)) {
-        items(selectedTags) { tag ->
+        items(selectedTags.toList()) { tag ->
           Button(
               onClick = {},
               modifier =
-                  Modifier.testTag("${SelectTagsScreenTestTags.SELECTED_TAG_BUTTON_PREFIX}$tag")) {
-                Text(tag)
+                  Modifier.testTag(
+                      "${SelectTagsScreenTestTags.SELECTED_TAG_BUTTON_PREFIX}${tag.displayName}")) {
+                Text(tag.displayName)
               }
           IconButton(
               onClick = { selectedTagOverview.deleteTag(tag) },
