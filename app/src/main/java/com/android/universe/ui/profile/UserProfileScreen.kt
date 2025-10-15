@@ -33,6 +33,7 @@ object UserProfileScreenTestTags {
   const val AGE = "userProfileAge"
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
+  const val TAGLIST = "userProfileTagList"
 
   fun getTagTestTag(index: Int): String {
     return "userProfileTag$index"
@@ -147,7 +148,10 @@ fun UserProfileScreen(
                           .background(Color.LightGray.copy(alpha = 0.3f)),
                   contentAlignment = Alignment.Center) {
                     FlowRow(
-                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                        modifier =
+                            Modifier.testTag(UserProfileScreenTestTags.TAGLIST)
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalArrangement = Arrangement.spacedBy(4.dp)) {
                           userUIState.userProfile.tags.toList().forEachIndexed { index, tag ->

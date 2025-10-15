@@ -71,7 +71,7 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun tooManyTagsShowsPartialContent() = runTest {
+  fun tooManyTagsImpliesScrollable() = runTest {
     val manyTags = tagsInterest.union(tagsCanton).toSet()
     val profile =
         UserProfile(
@@ -88,19 +88,7 @@ class UserProfileScreenTest {
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
 
     composeTestRule.waitForIdle()
-
-    val unDisplayedTag =
-        try {
-          for (i in 0 until manyTags.size) {
-            composeTestRule
-                .onNodeWithTag(UserProfileScreenTestTags.getTagTestTag(i))
-                .assertIsDisplayed()
-          }
-          false
-        } catch (assertionError: AssertionError) {
-          true
-        }
-    assertTrue(unDisplayedTag)
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assert(hasScrollAction())
 
     UserRepositoryProvider.repository.deleteUser(profile.username)
   }
