@@ -242,6 +242,7 @@ class SelectTagViewModelTest {
     // Check that loading user tags, update the uiStateTags value.
     val userProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -251,7 +252,7 @@ class SelectTagViewModelTest {
             tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
 
-    viewModel.loadTags("Jacquie")
+    viewModel.loadTags("0")
     assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
   }
 
@@ -273,6 +274,7 @@ class SelectTagViewModelTest {
     // Check that the saving of the tags, change the tags of the userProfile.
     val userProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -296,7 +298,7 @@ class SelectTagViewModelTest {
     for (tag in tags) {
       viewModel.addTag(tag)
     }
-    viewModel.saveTags("Jacquie")
+    viewModel.saveTags("0")
     val expectedTags =
         setOf(
             Tag.GENEVA,
@@ -311,6 +313,7 @@ class SelectTagViewModelTest {
             Tag.ROLE_PLAYING_GAMES)
     val expectedUserProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -318,7 +321,7 @@ class SelectTagViewModelTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = expectedTags)
-    assertEquals(expectedUserProfile, repository.getUser("Jacquie"))
+    assertEquals(expectedUserProfile, repository.getUser("0"))
   }
 
   @Test
@@ -326,6 +329,7 @@ class SelectTagViewModelTest {
     // Check that if we save, the tags that were already in the userProfile remains.
     val userProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -334,12 +338,12 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
-    viewModel.loadTags("Jacquie")
+    viewModel.loadTags("0")
 
     viewModel.addTag(Tag.HANDBALL)
-    viewModel.saveTags("Jacquie")
+    viewModel.saveTags("0")
 
-    val updatedUser = repository.getUser("Jacquie")
+    val updatedUser = repository.getUser("0")
     assertEquals(setOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
   }
 }

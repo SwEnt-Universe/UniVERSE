@@ -20,11 +20,12 @@ import org.junit.Test
 
 class AddProfileScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
+  val uid = "AddProfileScreenTest"
 
   @Before
   fun setUp() {
     UserRepositoryProvider.repository = FakeUserRepository()
-    composeTestRule.setContent { AddProfileScreen() }
+    composeTestRule.setContent { AddProfileScreen(uid) }
   }
 
   @Test

@@ -24,6 +24,7 @@ class UserProfileScreenTest {
   fun profileDisplaysBasicInformationCorrectly() = runTest {
     val profile =
         UserProfile(
+            uid = "profileDisplaysBasicInformationCorrectly",
             username = "emma",
             firstName = "Emma",
             lastName = "Rossi",
@@ -33,7 +34,7 @@ class UserProfileScreenTest {
             tags = setOf(Tag.METAL))
     UserRepositoryProvider.repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(username = profile.username) }
+    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
 
     // Wait for recomposition / viewmodel
     composeTestRule.waitForIdle()
@@ -62,7 +63,7 @@ class UserProfileScreenTest {
         .onNodeWithTag(UserProfileScreenTestTags.AGE)
         .assertIsDisplayed()
         .assertTextContains("Age:", ignoreCase = true, substring = true)
-    UserRepositoryProvider.repository.deleteUser(profile.username)
+    UserRepositoryProvider.repository.deleteUser(profile.uid)
   }
 
   @Test
@@ -74,6 +75,7 @@ class UserProfileScreenTest {
 
     val profile =
         UserProfile(
+            uid = "overflow",
             username = "overflow",
             firstName = "Overflow",
             lastName = "Tester",
@@ -84,12 +86,12 @@ class UserProfileScreenTest {
 
     UserRepositoryProvider.repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(username = profile.username) }
+    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assert(hasScrollAction())
 
-    UserRepositoryProvider.repository.deleteUser(profile.username)
+    UserRepositoryProvider.repository.deleteUser(profile.uid)
   }
 
   @Test
@@ -97,6 +99,7 @@ class UserProfileScreenTest {
     val testTags = setOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
     val profile =
         UserProfile(
+            uid = "music",
             username = "musiclover",
             firstName = "Alex",
             lastName = "Doe",
@@ -106,7 +109,7 @@ class UserProfileScreenTest {
             tags = testTags)
     UserRepositoryProvider.repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(username = profile.username) }
+    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
 
     composeTestRule.waitForIdle()
 
@@ -126,13 +129,14 @@ class UserProfileScreenTest {
           allTags.map { tag -> tag.displayName }.contains(tagText))
       assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
     }
-    UserRepositoryProvider.repository.deleteUser(profile.username)
+    UserRepositoryProvider.repository.deleteUser(profile.uid)
   }
 
   @Test
   fun descriptionDisplaysPlaceholderWhenNull() = runTest {
     val profile =
         UserProfile(
+            uid = "tester",
             username = "tester",
             firstName = "testname",
             lastName = "testee",
@@ -142,7 +146,7 @@ class UserProfileScreenTest {
             tags = emptySet())
     UserRepositoryProvider.repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(username = profile.username) }
+    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
 
     composeTestRule.waitForIdle()
 
@@ -157,6 +161,7 @@ class UserProfileScreenTest {
   fun descriptionDisplaysFullDescriptionWhenNotNull() = runTest {
     val profile =
         UserProfile(
+            uid = "tester",
             username = "tester",
             firstName = "testname",
             lastName = "testee",
@@ -166,7 +171,7 @@ class UserProfileScreenTest {
             tags = emptySet())
     UserRepositoryProvider.repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(username = profile.username) }
+    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
 
     composeTestRule.waitForIdle()
 
@@ -181,6 +186,7 @@ class UserProfileScreenTest {
   fun descriptionDisplaysNoDescriptionMessageWhenEmpty() = runTest {
     val profile =
         UserProfile(
+            uid = "tester",
             username = "tester",
             firstName = "testname",
             lastName = "testee",
@@ -190,7 +196,7 @@ class UserProfileScreenTest {
             tags = emptySet())
     UserRepositoryProvider.repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(username = profile.username) }
+    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
 
     composeTestRule.waitForIdle()
 

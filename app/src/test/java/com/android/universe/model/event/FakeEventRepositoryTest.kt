@@ -35,6 +35,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesEvent_andCanBeRetrieved() = runTest {
     val user1 =
         UserProfile(
+            uid = "0",
             username = "alice",
             firstName = "Alice",
             lastName = "Smith",
@@ -44,6 +45,7 @@ class FakeEventRepositoryTest {
             tags = setOf(Tag.MUSIC, Tag.RUNNING))
     val user2 =
         UserProfile(
+            uid = "1",
             username = "bob",
             firstName = "Bob",
             lastName = "Jones",
@@ -80,6 +82,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesEventWithNoDescription_andCanBeRetrieved() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
@@ -112,6 +115,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesEventWithNoParticipants_andCanBeRetrieved() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
@@ -146,6 +150,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesMultipleEvents_andAllCanBeRetrieved() = runTest {
     val user1 =
         UserProfile(
+            uid = "0",
             username = "alice",
             firstName = "Alice",
             lastName = "Smith",
@@ -155,6 +160,7 @@ class FakeEventRepositoryTest {
             tags = setOf(Tag.MUSIC, Tag.RUNNING))
     val user2 =
         UserProfile(
+            uid = "1",
             username = "bob",
             firstName = "Bob",
             lastName = "Jones",
@@ -206,6 +212,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesEvent_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
     val user1 =
         UserProfile(
+            uid = "0",
             username = "alice",
             firstName = "Alice",
             lastName = "Smith",
@@ -215,6 +222,7 @@ class FakeEventRepositoryTest {
             tags = setOf(Tag.MUSIC, Tag.RUNNING))
     val user2 =
         UserProfile(
+            uid = "1",
             username = "bob",
             firstName = "Bob",
             lastName = "Jones",
@@ -264,6 +272,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesEventWithNoDescription_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
@@ -310,6 +319,7 @@ class FakeEventRepositoryTest {
   fun addEvent_storesEventWithNoParticipants_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
@@ -359,6 +369,7 @@ class FakeEventRepositoryTest {
   fun updateEvent_throwsException_forNonExistentEvent() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
@@ -385,6 +396,7 @@ class FakeEventRepositoryTest {
   fun deleteEvent_existingEvent_shouldBeRemoved() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
@@ -427,6 +439,7 @@ class FakeEventRepositoryTest {
   fun deleteEvent_nonExistingEvent_shouldThrowException() = runTest {
     val user =
         UserProfile(
+            uid = "3",
             username = "charlie",
             firstName = "Charlie",
             lastName = "Brown",
