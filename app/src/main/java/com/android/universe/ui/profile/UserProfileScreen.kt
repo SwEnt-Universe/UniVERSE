@@ -34,7 +34,9 @@ object UserProfileScreenTestTags {
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
 
-  const val TAG = "userProfileTag"
+  fun getTagTestTag(index: Int): String {
+    return "userProfileTag$index"
+  }
 }
 
 object FieldFontSizes {
@@ -48,7 +50,7 @@ object FieldFontSizes {
  * Composable for displaying a user's profile.
  *
  * @param username The username of the user to display.
- * @param onTabSelected Callback invoked when a tab is selected to swtich between screens
+ * @param onTabSelected Callback invoked when a tab is selected to switch between screens
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -148,8 +150,8 @@ fun UserProfileScreen(
                         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                          userUIState.userProfile.tags.forEach { tag ->
-                            InterestTag(tag.displayName)
+                          userUIState.userProfile.tags.toList().forEachIndexed { index, tag ->
+                            InterestTag(tag.displayName, index)
                           }
                         }
                   }
@@ -184,9 +186,10 @@ fun UserProfileScreen(
  * Composable for displaying an interest tag.
  *
  * @param text The text to display as the tag.
+ * @param testTagIndex The index of the test tag. Used to generate a unique test tag.
  */
 @Composable
-fun InterestTag(text: String) {
+fun InterestTag(text: String, testTagIndex: Int) {
   Surface(
       color = MaterialTheme.colorScheme.primary,
       shape = RoundedCornerShape(50),
@@ -196,7 +199,7 @@ fun InterestTag(text: String) {
             color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.labelMedium,
             modifier =
-                Modifier.testTag(UserProfileScreenTestTags.TAG)
+                Modifier.testTag(UserProfileScreenTestTags.getTagTestTag(testTagIndex))
                     .padding(horizontal = 12.dp, vertical = 6.dp))
       }
 }

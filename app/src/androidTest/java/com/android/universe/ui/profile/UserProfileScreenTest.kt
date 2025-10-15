@@ -89,11 +89,18 @@ class UserProfileScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Fetch all tag nodes (visible + non-visible)
-    val allTagNodes =
-        composeTestRule.onAllNodesWithTag(UserProfileScreenTestTags.TAG, useUnmergedTree = true)
-    // At least 1 node shouldn't be displayed, especially the last one
-    allTagNodes.onLast().assertIsNotDisplayed()
+    val unDisplayedTag =
+        try {
+          for (i in 0 until manyTags.size) {
+            composeTestRule
+                .onNodeWithTag(UserProfileScreenTestTags.getTagTestTag(i))
+                .assertIsDisplayed()
+          }
+          false
+        } catch (assertionError: AssertionError) {
+          true
+        }
+    assertTrue(unDisplayedTag)
 
     UserRepositoryProvider.repository.deleteUser(profile.username)
   }
@@ -117,17 +124,21 @@ class UserProfileScreenTest {
     composeTestRule.waitForIdle()
 
     val seenTags = mutableSetOf<String>()
-    composeTestRule
-        .onAllNodesWithTag(UserProfileScreenTestTags.TAG)
-        .fetchSemanticsNodes()
-        .forEach { node ->
-          val tagText = node.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
-          assertNotNull("Tag text should not be null", tagText)
-          assertTrue(
-              "Tag text '$tagText' must be in allowed list",
-              allTags.map { tag -> tag.displayName }.contains(tagText))
-          assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
-        }
+    for (i in 0 until testTags.size) {
+      val tagText =
+          composeTestRule
+              .onNodeWithTag(UserProfileScreenTestTags.getTagTestTag(i))
+              .fetchSemanticsNode()
+              .config
+              .getOrNull(SemanticsProperties.Text)
+              ?.firstOrNull()
+              ?.text
+      assertNotNull("Tag text should not be null", tagText)
+      assertTrue(
+          "Tag text '$tagText' must be in allowed list",
+          allTags.map { tag -> tag.displayName }.contains(tagText))
+      assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
+    }
     UserRepositoryProvider.repository.deleteUser(profile.username)
   }
 
