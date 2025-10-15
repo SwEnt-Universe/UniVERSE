@@ -21,7 +21,7 @@ class FakeUserRepository : UserRepository {
   }
 
   /**
-   * Retrieves a user by their username.
+   * Retrieves a user by their uid.
    *
    * @param uid the unique uid of the user.
    * @return the [UserProfile] associated with the given uid.
@@ -29,7 +29,7 @@ class FakeUserRepository : UserRepository {
    */
   override suspend fun getUser(uid: String): UserProfile {
     return users.firstOrNull { it.uid == uid }
-        ?: throw NoSuchElementException("No user found with username: $uid")
+        ?: throw NoSuchElementException("No user found with uid: $uid")
   }
 
   /**

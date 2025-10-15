@@ -21,7 +21,7 @@ interface UserRepository {
    * @param uid the unique uid of the user.
    * @return the UserProfile associated with the given username, or null if not found.
    */
-  suspend fun getUser(uid: String): UserProfile
+  suspend fun getUser(uid: String): UserProfile?
 
   /**
    * Adds a new user to the repository.

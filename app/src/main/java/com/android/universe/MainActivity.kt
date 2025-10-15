@@ -93,7 +93,7 @@ fun UniverseApp() {
     ) {
       composable(NavigationScreens.Profile.route) {
         UserProfileScreen(
-            username = "emma",
+            uid = "0",
             onTabSelected = onTabSelected,
             onEditProfileClick = { username ->
               navController.navigate(
@@ -103,9 +103,9 @@ fun UniverseApp() {
     }
     composable(
         route = NavigationScreens.Settings.route,
-        arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
+        arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry
           ->
-          val username = backStackEntry.arguments?.getString("username") ?: "emma"
+          val username = backStackEntry.arguments?.getString("uid") ?: "0"
           SettingsScreen(
               username = username,
               onBack = {

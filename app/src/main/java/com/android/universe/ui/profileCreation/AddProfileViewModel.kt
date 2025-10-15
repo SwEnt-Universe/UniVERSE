@@ -143,7 +143,7 @@ class AddProfileViewModel(
    * If any check fails, [errorMsg] is updated with a user-friendly message. Otherwise, a
    * [UserProfile] is constructed and persisted via [repository]
    */
-  fun addProfile() {
+  fun addProfile(uid: String) {
     viewModelScope.launch(dispatcher) {
       val state = _uiState.value
 
@@ -253,6 +253,7 @@ class AddProfileViewModel(
 
       val userProfile =
           UserProfile(
+              uid = uid,
               username = username,
               firstName = cleanedFirstName,
               lastName = cleanedLastName,

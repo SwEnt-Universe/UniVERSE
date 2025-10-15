@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 data class UserProfileUIState(
     val userProfile: UserProfile =
         UserProfile(
+            uid = "",
             username = "",
             firstName = "",
             lastName = "",
@@ -44,14 +45,14 @@ class UserProfileViewModel(
   /**
    * Loads a user's profile from the repository.
    *
-   * @param username The username of the user to load. Silently fails if the user is not found which
-   *   should never happen.
+   * @param uid The uid of the user to load. Silently fails if the user is not found which should
+   *   never happen.
    */
-  fun loadUser(username: String) {
+  fun loadUser(uid: String) {
     viewModelScope.launch {
-      val userProfile = userRepository.getUser(username)
+      val userProfile = userRepository.getUser(uid)
       if (userProfile == null) {
-        Log.e("UserProfileViewModel", "User $username not found")
+        Log.e("UserProfileViewModel", "User $uid not found")
         setErrorMsg("Username not Found")
         return@launch
       }

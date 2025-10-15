@@ -34,7 +34,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
@@ -111,10 +110,9 @@ object AddProfileScreenTestTags {
  * @see AddProfileViewModel
  * @see AddProfileUIState
  */
-@Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
+fun AddProfileScreen(uid: String, addProfileViewModel: AddProfileViewModel = viewModel()) {
   val profileUIState by addProfileViewModel.uiState.collectAsState()
   val errorMsg = profileUIState.errorMsg
 
@@ -386,7 +384,7 @@ fun AddProfileScreen(addProfileViewModel: AddProfileViewModel = viewModel()) {
 
           // Save Button
           Button(
-              onClick = { addProfileViewModel.addProfile() },
+              onClick = { addProfileViewModel.addProfile(uid) },
               modifier =
                   Modifier.height(50.dp)
                       .fillMaxWidth()
