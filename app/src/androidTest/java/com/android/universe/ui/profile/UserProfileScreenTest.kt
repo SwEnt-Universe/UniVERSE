@@ -71,21 +71,8 @@ class UserProfileScreenTest {
   }
 
   @Test
-  fun moreThanEightTagsScrollsAndShowsPartialContent() = runTest {
-    val manyTags =
-        setOf(
-            Tag.METAL,
-            Tag.TABLE_TENNIS,
-            Tag.ARTIFICIAL_INTELLIGENCE,
-            Tag.CYCLING,
-            Tag.HANDBALL,
-            Tag.BASKETBALL,
-            Tag.MUSIC,
-            Tag.GENEVA,
-            Tag.AARGAU,
-            Tag.FOOT,
-            Tag.VAUD,
-            Tag.YOGA)
+  fun tooManyTagsShowsPartialContent() = runTest {
+    val manyTags = tagsInterest.union(tagsCanton).toSet()
     val profile =
         UserProfile(
             username = "overflow",
@@ -95,17 +82,19 @@ class UserProfileScreenTest {
             description = "Testing scrolling behavior.",
             dateOfBirth = LocalDate.of(1995, 1, 1),
             tags = manyTags)
+
     UserRepositoryProvider.repository.addUser(profile)
+
     composeTestRule.setContent { UserProfileScreen(username = profile.username) }
 
     composeTestRule.waitForIdle()
 
-    val visibleTags =
-        composeTestRule.onAllNodesWithTag(UserProfileScreenTestTags.TAG).fetchSemanticsNodes()
+    // Fetch all tag nodes (visible + non-visible)
+    val allTagNodes =
+        composeTestRule.onAllNodesWithTag(UserProfileScreenTestTags.TAG, useUnmergedTree = true)
+    // At least 1 node shouldn't be displayed, especially the last one
+    allTagNodes.onLast().assertIsNotDisplayed()
 
-    assertTrue(
-        "Should not display all tags at once when overflow occurs",
-        visibleTags.size < manyTags.size)
     UserRepositoryProvider.repository.deleteUser(profile.username)
   }
 
