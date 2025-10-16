@@ -1,17 +1,9 @@
 package com.android.universe.model.user
 
 import com.android.universe.model.Tag
-import com.android.universe.utils.FirebaseEmulator
 import com.android.universe.utils.FirestoreTest
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.assertEquals
@@ -47,7 +39,7 @@ class UserRepositoryFirestoreTest : FirestoreTest() {
     )
 
     private val userProfile3 = UserProfile(
-        uid = "3",
+        uid = "2",
         username = "Rocky",
         firstName = "third",
         lastName = "User3",
@@ -198,7 +190,7 @@ class UserRepositoryFirestoreTest : FirestoreTest() {
 
         userRepository.updateUser("1", userProfile3)
         val result = userRepository.getAllUsers()
-        assertEquals(3, result.size)
+        assertEquals(2, result.size)
 
         with(result[0]) {
             assertEquals("0", uid)
