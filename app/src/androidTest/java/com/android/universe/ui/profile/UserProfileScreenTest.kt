@@ -5,8 +5,8 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.universe.model.Tag
+import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
-import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -22,6 +22,7 @@ class UserProfileScreenTest {
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() = runTest {
+    val repository = FakeUserRepository()
     val profile =
         UserProfile(
             uid = "profileDisplaysBasicInformationCorrectly",
@@ -32,9 +33,12 @@ class UserProfileScreenTest {
             description = "Coffee aficionado.",
             dateOfBirth = LocalDate.of(1993, 6, 18),
             tags = setOf(Tag.METAL))
-    UserRepositoryProvider.repository.addUser(profile)
+    repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
+    }
 
     // Wait for recomposition / viewmodel
     composeTestRule.waitForIdle()
@@ -63,11 +67,12 @@ class UserProfileScreenTest {
         .onNodeWithTag(UserProfileScreenTestTags.AGE)
         .assertIsDisplayed()
         .assertTextContains("Age:", ignoreCase = true, substring = true)
-    UserRepositoryProvider.repository.deleteUser(profile.uid)
+    repository.deleteUser(profile.uid)
   }
 
   @Test
   fun tooManyTagsImpliesScrollable() = runTest {
+    val repository = FakeUserRepository()
     val manyTags =
         (Tag.getTagsForCategory(Tag.Category.INTEREST) +
                 Tag.getTagsForCategory(Tag.Category.CANTON))
@@ -84,18 +89,22 @@ class UserProfileScreenTest {
             dateOfBirth = LocalDate.of(1995, 1, 1),
             tags = manyTags)
 
-    UserRepositoryProvider.repository.addUser(profile)
+    repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assert(hasScrollAction())
 
-    UserRepositoryProvider.repository.deleteUser(profile.uid)
+    repository.deleteUser(profile.uid)
   }
 
   @Test
   fun tagsAreUniqueAndInAllowedList() = runTest {
+    val repository = FakeUserRepository()
     val testTags = setOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
     val profile =
         UserProfile(
@@ -107,9 +116,12 @@ class UserProfileScreenTest {
             description = "I love music!",
             dateOfBirth = LocalDate.of(1990, 1, 1),
             tags = testTags)
-    UserRepositoryProvider.repository.addUser(profile)
+    repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -129,11 +141,12 @@ class UserProfileScreenTest {
           allTags.map { tag -> tag.displayName }.contains(tagText))
       assertTrue("Duplicate tag detected: $tagText", seenTags.add(tagText!!))
     }
-    UserRepositoryProvider.repository.deleteUser(profile.uid)
+    repository.deleteUser(profile.uid)
   }
 
   @Test
   fun descriptionDisplaysPlaceholderWhenNull() = runTest {
+    val repository = FakeUserRepository()
     val profile =
         UserProfile(
             uid = "tester",
@@ -144,9 +157,12 @@ class UserProfileScreenTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = emptySet())
-    UserRepositoryProvider.repository.addUser(profile)
+    repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -154,11 +170,12 @@ class UserProfileScreenTest {
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
         .assertIsDisplayed()
         .assertTextEquals("No description")
-    UserRepositoryProvider.repository.deleteUser(profile.username)
+    repository.deleteUser(profile.username)
   }
 
   @Test
   fun descriptionDisplaysFullDescriptionWhenNotNull() = runTest {
+    val repository = FakeUserRepository()
     val profile =
         UserProfile(
             uid = "tester",
@@ -169,9 +186,12 @@ class UserProfileScreenTest {
             description = "Hello world",
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = emptySet())
-    UserRepositoryProvider.repository.addUser(profile)
+    repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -179,11 +199,12 @@ class UserProfileScreenTest {
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
         .assertIsDisplayed()
         .assertTextEquals("Hello world")
-    UserRepositoryProvider.repository.deleteUser(profile.username)
+    repository.deleteUser(profile.username)
   }
 
   @Test
   fun descriptionDisplaysNoDescriptionMessageWhenEmpty() = runTest {
+    val repository = FakeUserRepository()
     val profile =
         UserProfile(
             uid = "tester",
@@ -194,9 +215,12 @@ class UserProfileScreenTest {
             description = "",
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = emptySet())
-    UserRepositoryProvider.repository.addUser(profile)
+    repository.addUser(profile)
 
-    composeTestRule.setContent { UserProfileScreen(uid = profile.uid) }
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -204,6 +228,6 @@ class UserProfileScreenTest {
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
         .assertIsDisplayed()
         .assertTextEquals("No description")
-    UserRepositoryProvider.repository.deleteUser(profile.username)
+    repository.deleteUser(profile.username)
   }
 }

@@ -11,12 +11,12 @@ import com.google.firebase.firestore.firestore
  */
 object FirebaseEmulator {
 
-    val auth = Firebase.auth
+  val auth = Firebase.auth
 
-    val firestore = Firebase.firestore
+  val firestore = Firebase.firestore
 
-    init {
-        auth.useEmulator("10.0.2.2", 9099)
-        firestore.useEmulator("10.0.2.2", 8080)
-    }
+  init {
+    auth.useEmulator("10.0.2.2", 9099)
+    firestore.useEmulator("10.0.2.2", 8080)
+  }
 }
