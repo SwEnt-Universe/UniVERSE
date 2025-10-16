@@ -71,12 +71,16 @@ android {
     // ─────────────────────────────────────────────────────────────────────────
     signingConfigs {
         create("release") {
-            // The file is expected at project root: UniVERSE/release-keystore.jks
             val keystorePath = System.getenv("SIGNING_KEYSTORE_FILE") ?: "release-keystore.jks"
-            storeFile = file(keystorePath)
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            val file = file(keystorePath)
+            if (file.exists()) {
+                storeFile = file
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            } else {
+                println("⚠️ Warning: release-keystore.jks not found, skipping signing setup for release.")
+            }
         }
     }
 
