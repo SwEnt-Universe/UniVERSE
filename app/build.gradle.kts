@@ -257,18 +257,14 @@ dependencies {
     }
 
     // Firebase
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
 
-    implementation("com.google.protobuf:protobuf-javalite:3.24.0")
 
     implementation(libs.okhttp)
-}
-
-configurations.all {
-    resolutionStrategy.force("com.google.protobuf:protobuf-javalite:3.24.0")
 }
 
 
@@ -299,6 +295,11 @@ configurations.configureEach {
         "org.jacoco:org.jacoco.core:$jacocoVer",
         "org.jacoco:org.jacoco.report:$jacocoVer",
     )
+}
+configurations.forEach { configuration ->
+    // Exclude protobuf-lite from all configurations
+    // This fixes a fatal exception for tests interacting with Cloud Firestore
+    configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
