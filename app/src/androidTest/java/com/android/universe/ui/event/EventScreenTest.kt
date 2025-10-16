@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import com.android.universe.model.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.FakeEventRepository
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -59,14 +60,16 @@ class EventScreenTest {
                 date = LocalDateTime.of(2025, 10, 15, 7, 30),
                 tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
                 participants = setOf(sampleUsers[0], sampleUsers[1]),
-                creator = sampleUsers[0]),
+                creator = sampleUsers[0],
+                location = Location(latitude = 46.5196535, longitude = 6.6322734)),
             Event(
                 id = "event-002",
                 title = "Tech Hackathon 2025",
                 date = LocalDateTime.of(2025, 11, 3, 9, 0),
                 tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
                 participants = emptySet(),
-                creator = sampleUsers[1]))
+                creator = sampleUsers[1],
+                location = Location(latitude = 46.5196535, longitude = 6.6322734)))
 
     runBlocking { sampleEvents.forEach { fakeEventRepository.addEvent(it) } }
 
@@ -126,7 +129,8 @@ class EventScreenTest {
               date = LocalDateTime.of(2025, 12, 1, 10, 0),
               tags = tags,
               participants = setOf(sampleUsers[0], sampleUsers[1]),
-              creator = sampleUsers[0])
+              creator = sampleUsers[0],
+              location = Location(latitude = 46.5196535, longitude = 6.6322734))
       fakeEventRepository.addEvent(extraEvent)
     }
 

@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.rule.GrantPermissionRule
+import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.ui.navigation.Tab
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,12 +22,15 @@ class MapScreenTest {
   @get:Rule val permissionRule = GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
 
   private lateinit var fakeLocationRepository: FakeLocationRepository
+
+  private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var viewModel: MapViewModel
 
   @Test
   fun mapIsDisplayed() {
     fakeLocationRepository = FakeLocationRepository()
-    viewModel = MapViewModel(fakeLocationRepository)
+    fakeEventRepository = FakeEventRepository()
+    viewModel = MapViewModel(fakeLocationRepository, fakeEventRepository)
 
     composeTestRule.setContent { MapScreenTestWrapper(viewModel = viewModel, onTabSelected = {}) }
 
