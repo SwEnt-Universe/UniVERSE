@@ -7,10 +7,10 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
+import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
@@ -95,7 +95,6 @@ class UniverseAppNavigationTest : TestCase() {
 
   @Test
   fun navigation_toSettingsScreen() {
-    composeTestRule.setContent { UniverseApp() }
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).performClick()
