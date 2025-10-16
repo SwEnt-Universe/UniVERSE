@@ -30,7 +30,7 @@ jobs:
       - name: Decode Release Keystore
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
-        run: echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > release-keystore.jks
+        run: echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > app/release-keystore.jks
 
       # 🔥 Restore google-services.json (Firebase configuration)
       - name: Decode google-services.json
