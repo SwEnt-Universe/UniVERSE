@@ -2,6 +2,8 @@ package com.android.universe.ui.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.event.Event
+import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.tomtom.sdk.location.GeoPoint
@@ -28,8 +30,12 @@ data class MapUiState(
  * ViewModel for managing the map screen state and location tracking.
  *
  * @property locationRepository Repository for accessing location data.
+ * @property eventRepository Repository for accessing event data.
  */
-class MapViewModel(private val locationRepository: LocationRepository) : ViewModel() {
+class MapViewModel(
+    private val locationRepository: LocationRepository,
+    private val eventRepository: EventRepository
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
@@ -40,6 +46,13 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
   val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
 
   private var locationTrackingJob: Job? = null
+
+  private val _eventMarkers = MutableStateFlow<List<Event>>(emptyList())
+  val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
+
+  init {
+    loadAllEvents()
+  }
 
   /**
    * Loads the last known location from the repository.
@@ -108,5 +121,21 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
   override fun onCleared() {
     super.onCleared()
     stopLocationTracking()
+  }
+
+  /**
+   * Loads all event markers from the event repository.
+   *
+   * Updates the state flow with the list of events or an error message if loading fails.
+   */
+  fun loadAllEvents() {
+    viewModelScope.launch {
+      try {
+        val events = eventRepository.getAllEvents()
+        _eventMarkers.value = events
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      }
+    }
   }
 }

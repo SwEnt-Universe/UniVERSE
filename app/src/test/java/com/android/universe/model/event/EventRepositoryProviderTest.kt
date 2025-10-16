@@ -1,5 +1,6 @@
 package com.android.universe.model.event
 
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
@@ -38,7 +39,8 @@ class EventRepositoryProviderTest {
                           lastName = "Doe",
                           country = "US",
                           dateOfBirth = LocalDate.of(1990, 1, 1),
-                          tags = emptySet()))
+                          tags = emptySet()),
+                  location = Location(0.0, 0.0))
 
           override suspend fun addEvent(event: Event) {}
 

@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.Tag
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,7 +61,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
             participants = setOf(user1, user2),
-            creator = user1)
+            creator = user1,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
     val result = repository.getEvent("event-001")
@@ -96,7 +98,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
             participants = setOf(user),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
     val result = repository.getEvent("event-002")
@@ -130,7 +133,8 @@ class FakeEventRepositoryTest {
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
             tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
 
     val result = repository.getEvent("event-003")
@@ -175,14 +179,16 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
             participants = setOf(user1, user2),
-            creator = user1)
+            creator = user1,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     val event2 =
         Event(
             id = "event-002",
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
-            creator = user2)
+            creator = user2,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event1)
     repository.addEvent(event2)
 
@@ -237,7 +243,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
             participants = setOf(user1, user2),
-            creator = user1)
+            creator = user1,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
     val newEvent =
@@ -249,7 +256,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 10, 15, 8, 0),
             tags = setOf(Tag.RUNNING, Tag.FITNESS, Tag.YOGA),
             participants = setOf(user1),
-            creator = user1)
+            creator = user1,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-001", newEvent)
 
     val result1 = repository.getAllEvents()
@@ -286,7 +294,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
             participants = setOf(user),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
     val newEvent =
@@ -297,7 +306,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 11, 5, 18, 30),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY, Tag.PHOTOGRAPHY),
             participants = setOf(user),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-002", newEvent)
 
     val result1 = repository.getAllEvents()
@@ -334,7 +344,8 @@ class FakeEventRepositoryTest {
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
             tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
 
     val newEvent =
@@ -346,7 +357,8 @@ class FakeEventRepositoryTest {
             date = LocalDateTime.of(2025, 12, 1, 15, 0),
             tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.RUNNING),
             participants = setOf(user),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.updateEvent("event-003", newEvent)
 
     val result1 = repository.getAllEvents()
@@ -383,7 +395,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     try {
       repository.updateEvent("nonexistent", newEvent)
       fail("Expected NoSuchElementException to be thrown")
@@ -410,7 +423,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event1)
     val event2 =
         Event(
@@ -418,7 +432,8 @@ class FakeEventRepositoryTest {
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event2)
     val result1 = repository.getAllEvents()
     assertEquals(result1.size, 2)
@@ -453,7 +468,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            creator = user)
+            creator = user,
+            location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
     // verify initial state
