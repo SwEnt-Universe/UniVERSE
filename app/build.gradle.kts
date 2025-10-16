@@ -65,6 +65,25 @@ android {
         buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"")
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Release signing configuration (for CI / manual release builds)
+    // Reads from environment variables defined in GitHub Actions or locally
+    // ─────────────────────────────────────────────────────────────────────────
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("SIGNING_KEYSTORE_FILE") ?: "release-keystore.jks"
+            val file = file(keystorePath)
+            if (file.exists()) {
+                storeFile = file
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            } else {
+                println("⚠️ Warning: release-keystore.jks not found, skipping signing setup for release.")
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.android.universe"
         minSdk = 34
@@ -86,10 +105,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            signingConfig = signingConfigs.getByName("release")
         }
 
         debug {
-            // Turn coverage on in debug for both unit and connected tests
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
         }
