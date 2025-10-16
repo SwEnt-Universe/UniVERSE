@@ -2,11 +2,13 @@ package com.android.universe.ui.selectTag
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.android.universe.model.Tag
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel responsible for managing the SelectTag screen.
@@ -68,9 +70,11 @@ class SelectTagViewModel(
    *
    * @param uid the uid of the current user.
    */
-  suspend fun loadTags(uid: String) {
-    val userProfile = userRepository.getUser(uid)
-    selectedTags.value = userProfile.tags.toList()
+  fun loadTags(uid: String) {
+    viewModelScope.launch {
+      val userProfile = userRepository.getUser(uid)
+      selectedTags.value = userProfile.tags.toList()
+    }
   }
 
   /**
@@ -78,9 +82,11 @@ class SelectTagViewModel(
    *
    * @param uid the uid of the current user.
    */
-  suspend fun saveTags(uid: String) {
-    val userProfile = userRepository.getUser(uid)
-    val newUserProfile = userProfile.copy(tags = selectedTags.value.toSet())
-    userRepository.updateUser(uid, newUserProfile)
+  fun saveTags(uid: String) {
+    viewModelScope.launch {
+      val userProfile = userRepository.getUser(uid)
+      val newUserProfile = userProfile.copy(tags = selectedTags.value.toSet())
+      userRepository.updateUser(uid, newUserProfile)
+    }
   }
 }
