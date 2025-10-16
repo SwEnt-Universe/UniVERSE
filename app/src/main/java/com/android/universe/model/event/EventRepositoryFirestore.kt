@@ -2,6 +2,7 @@ package com.android.universe.model.event
 
 import android.util.Log
 import com.android.universe.model.Tag
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -58,6 +59,28 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   /**
+   * Converts a Location object to a Map<String, Any?>.
+   *
+   * @param location the location to convert.
+   * @return a map representation of the Location.
+   */
+  private fun locationToMap(location: Location): Map<String, Any?> {
+    return mapOf("latitude" to location.latitude, "longitude" to location.longitude)
+  }
+
+  /**
+   * Converts a Map<String, Any?> to a Location object.
+   *
+   * @param map the map to convert.
+   * @return the corresponding location object.
+   */
+  private fun mapToLocation(map: Map<String, Any?>): Location {
+    val latitude = map["latitude"] as? Double ?: 0.0
+    val longitude = map["longitude"] as? Double ?: 0.0
+    return Location(latitude, longitude)
+  }
+
+  /**
    * Converts an Event object to a Map<String, Any?>.
    *
    * @param event the Event to convert.
@@ -71,7 +94,8 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         "date" to event.date.toString(),
         "tags" to event.tags.map { it.ordinal },
         "participants" to event.participants.map { it -> userProfileToMap(it) },
-        "creator" to userProfileToMap(event.creator))
+        "creator" to userProfileToMap(event.creator),
+        "location" to locationToMap(event.location))
   }
 
   /**
@@ -98,7 +122,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
           participants =
               (doc.get("participants") as? List<Map<String, Any?>>)
                   ?.map { mapToUserProfile(it) }
-                  ?.toSet() ?: emptySet())
+                  ?.toSet() ?: emptySet(),
+          location =
+              (doc.get("location") as? Map<String, Any?>)?.let { mapToLocation(it) }
+                  ?: Location(0.0, 0.0))
     } catch (e: Exception) {
       Log.e("EventRepositoryFirestore", "Error converting document to Event", e)
       throw e
