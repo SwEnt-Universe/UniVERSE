@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.user.UserProfile
@@ -52,7 +53,10 @@ class UserProfileViewModel(
       try {
         val userProfile = userRepository.getUser(uid)
         _userState.value = UserProfileUIState(userProfile)
-      } catch (e: Exception) {}
+      } catch (e: Exception) {
+        Log.e("UserProfileViewModel", "User $uid not found")
+        setErrorMsg("Username not Found")
+      }
     }
   }
 
