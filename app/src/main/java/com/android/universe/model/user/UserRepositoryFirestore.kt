@@ -24,6 +24,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
      */
     private fun userProfileToMap(user: UserProfile): Map<String, Any?> {
         return mapOf(
+            "uid" to user.uid,
             "username" to user.username,
             "firstName" to user.firstName,
             "lastName" to user.lastName,
@@ -44,6 +45,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
         return try{
             UserProfile(
+                uid = doc.getString("uid") ?: "",
                 username = doc.getString("username") ?: "",
                 firstName = doc.getString("firstName") ?: "",
                 lastName = doc.getString("lastName") ?: "",
