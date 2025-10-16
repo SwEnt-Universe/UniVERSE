@@ -21,15 +21,15 @@ class FakeUserRepository : UserRepository {
   }
 
   /**
-   * Retrieves a user by their username.
+   * Retrieves a user by their uid.
    *
-   * @param username the unique username of the user.
-   * @return the [UserProfile] associated with the given username.
-   * @throws NoSuchElementException if no user with the given [username] exists.
+   * @param uid the unique uid of the user.
+   * @return the [UserProfile] associated with the given uid.
+   * @throws NoSuchElementException if no user with the given [uid] exists.
    */
-  override suspend fun getUser(username: String): UserProfile {
-    return users.firstOrNull { it.username == username }
-        ?: throw NoSuchElementException("No user found with username: $username")
+  override suspend fun getUser(uid: String): UserProfile {
+    return users.firstOrNull { it.uid == uid }
+        ?: throw NoSuchElementException("No user found with uid: $uid")
   }
 
   /**
@@ -44,29 +44,29 @@ class FakeUserRepository : UserRepository {
   /**
    * Updates an existing user profile identified by username.
    *
-   * @param username the username of the user to update.
+   * @param uid the uid of the user to update.
    * @param newUserProfile the new [UserProfile] to replace the old one.
-   * @throws NoSuchElementException if no user with the given [username] exists.
+   * @throws NoSuchElementException if no user with the given [uid] exists.
    */
-  override suspend fun updateUser(username: String, newUserProfile: UserProfile) {
-    val index = users.indexOfFirst { it.username == username }
+  override suspend fun updateUser(uid: String, newUserProfile: UserProfile) {
+    val index = users.indexOfFirst { it.uid == uid }
     if (index != -1) {
       users[index] = newUserProfile
     } else {
-      throw NoSuchElementException("No user found with username: $username")
+      throw NoSuchElementException("No user found with username: $uid")
     }
   }
 
   /**
-   * Deletes a user by username.
+   * Deletes a user by uid.
    *
-   * @param username the username of the user to remove. If no such user exists
-   * @throws NoSuchElementException if no user with the given [username] exists.
+   * @param uid the uid of the user to remove. If no such user exists
+   * @throws NoSuchElementException if no user with the given [uid] exists.
    */
-  override suspend fun deleteUser(username: String) {
-    val removed = users.removeIf { it.username == username }
+  override suspend fun deleteUser(uid: String) {
+    val removed = users.removeIf { it.uid == uid }
     if (!removed) {
-      throw NoSuchElementException("No user found with username: $username")
+      throw NoSuchElementException("No user found with username: $uid")
     }
   }
 

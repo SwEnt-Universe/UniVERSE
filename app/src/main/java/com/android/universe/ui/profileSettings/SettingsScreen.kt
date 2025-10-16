@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
+import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.profile.SettingsViewModel
 
@@ -111,14 +112,14 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 /**
  * Top-level composable for the user Settings screen.
  *
- * @param username Logged-in user's username.
+ * @param uid Logged-in user's uid.
  * @param onBack Callback when back arrow pressed.
  * @param viewModel Shared [SettingsViewModel] for state and actions.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    username: String,
+    uid: String,
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
@@ -132,7 +133,7 @@ fun SettingsScreen(
     }
   }
 
-  LaunchedEffect(username) { viewModel.loadUser(username) }
+  LaunchedEffect(uid) { viewModel.loadUser(uid) }
 
   SettingsScreenContent(
       uiState = uiState,
@@ -143,7 +144,7 @@ fun SettingsScreen(
       onToggleCountryDropdown = viewModel::toggleCountryDropdown,
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
-      onSaveModal = { viewModel.saveModal(username) })
+      onSaveModal = { viewModel.saveModal(uid) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -168,7 +169,8 @@ fun SettingsScreenContent(
               IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
-            })
+            },
+            modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
         LazyColumn(
             modifier =

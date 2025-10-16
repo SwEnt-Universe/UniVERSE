@@ -33,6 +33,7 @@ class EventRepositoryProviderTest {
                   participants = emptySet(),
                   creator =
                       UserProfile(
+                          uid = "0",
                           username = "john_doe",
                           firstName = "John",
                           lastName = "Doe",

@@ -2,12 +2,13 @@ package com.android.universe.ui.selectTag
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.android.universe.model.Tag
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel responsible for managing the SelectTag screen.
@@ -67,29 +68,25 @@ class SelectTagViewModel(
    * Updates the selectedTags value by replacing it with the tags already selected in the
    * userProfile.
    *
-   * @param username the username of the current user.
+   * @param uid the uid of the current user.
    */
-  suspend fun loadTags(username: String) {
-    val userProfile = userRepository.getUser(username)
-    selectedTags.value = userProfile.tags.toList()
+  fun loadTags(uid: String) {
+    viewModelScope.launch {
+      val userProfile = userRepository.getUser(uid)
+      selectedTags.value = userProfile.tags.toList()
+    }
   }
 
   /**
    * Saves the selected tags to the userProfile of the current User.
    *
-   * @param username the username of the current user.
+   * @param uid the uid of the current user.
    */
-  suspend fun saveTags(username: String) {
-    val userProfile = userRepository.getUser(username)
-    val newUserProfile =
-        UserProfile(
-            userProfile.username,
-            userProfile.firstName,
-            userProfile.lastName,
-            userProfile.country,
-            userProfile.description,
-            userProfile.dateOfBirth,
-            selectedTags.value.toSet())
-    userRepository.updateUser(username, newUserProfile)
+  fun saveTags(uid: String) {
+    viewModelScope.launch {
+      val userProfile = userRepository.getUser(uid)
+      val newUserProfile = userProfile.copy(tags = selectedTags.value.toSet())
+      userRepository.updateUser(uid, newUserProfile)
+    }
   }
 }

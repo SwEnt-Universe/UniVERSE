@@ -30,6 +30,7 @@ class EventViewModelTest {
   private val sampleUsers =
       listOf(
           UserProfile(
+              uid = "0",
               username = "alice_smith",
               firstName = "Alice",
               lastName = "Smith",
@@ -38,6 +39,7 @@ class EventViewModelTest {
               dateOfBirth = LocalDate.of(1990, 1, 1),
               tags = setOf(Tag.SCULPTURE)),
           UserProfile(
+              uid = "1",
               username = "bob_johnson",
               firstName = "Bob",
               lastName = "Johnson",
@@ -45,6 +47,7 @@ class EventViewModelTest {
               dateOfBirth = LocalDate.of(1985, 5, 12),
               tags = setOf(Tag.TENNIS)),
           UserProfile(
+              uid = "2",
               username = "charlie_brown",
               firstName = "Charlie",
               lastName = "Brown",

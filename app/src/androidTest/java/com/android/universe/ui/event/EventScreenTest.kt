@@ -29,6 +29,7 @@ class EventScreenTest {
   private val sampleUsers =
       listOf(
           UserProfile(
+              uid = "0",
               username = "alice123",
               firstName = "Alice",
               lastName = "Smith",
@@ -37,6 +38,7 @@ class EventScreenTest {
               dateOfBirth = LocalDate.of(1990, 1, 1),
               tags = setOf(Tag.SCULPTURE)),
           UserProfile(
+              uid = "1",
               username = "bob456",
               firstName = "Bob",
               lastName = "Johnson",

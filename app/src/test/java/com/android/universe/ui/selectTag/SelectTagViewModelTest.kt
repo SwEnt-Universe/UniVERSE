@@ -5,17 +5,25 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Before
 import org.junit.Test
 
 class SelectTagViewModelTest {
   // Define the parameters for the tests.
+  private val testDispatcher = StandardTestDispatcher()
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Before
   fun setup() {
+    Dispatchers.setMain(testDispatcher)
     repository = FakeUserRepository()
     viewModel = SelectTagViewModel(repository)
   }
@@ -242,6 +250,7 @@ class SelectTagViewModelTest {
     // Check that loading user tags, update the uiStateTags value.
     val userProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -250,8 +259,9 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
-
-    viewModel.loadTags("Jacquie")
+    testDispatcher.scheduler.advanceUntilIdle()
+    viewModel.loadTags("0")
+    testDispatcher.scheduler.advanceUntilIdle()
     assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
   }
 
@@ -273,6 +283,7 @@ class SelectTagViewModelTest {
     // Check that the saving of the tags, change the tags of the userProfile.
     val userProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -281,6 +292,7 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = emptySet())
     repository.addUser(userProfile)
+    testDispatcher.scheduler.advanceUntilIdle()
     val tags =
         listOf(
             Tag.GENEVA,
@@ -296,7 +308,8 @@ class SelectTagViewModelTest {
     for (tag in tags) {
       viewModel.addTag(tag)
     }
-    viewModel.saveTags("Jacquie")
+    viewModel.saveTags("0")
+    testDispatcher.scheduler.advanceUntilIdle()
     val expectedTags =
         setOf(
             Tag.GENEVA,
@@ -311,6 +324,7 @@ class SelectTagViewModelTest {
             Tag.ROLE_PLAYING_GAMES)
     val expectedUserProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -318,14 +332,18 @@ class SelectTagViewModelTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = expectedTags)
-    assertEquals(expectedUserProfile, repository.getUser("Jacquie"))
+    val actual = repository.getUser("0")
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals(expectedUserProfile, actual)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun loadThenAddThenSave_preservesExistingTagsAndAddsNewTag() = runTest {
     // Check that if we save, the tags that were already in the userProfile remains.
     val userProfile =
         UserProfile(
+            uid = "0",
             username = "Jacquie",
             firstName = "Bob",
             lastName = "Maurice",
@@ -334,12 +352,14 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
-    viewModel.loadTags("Jacquie")
-
+    testDispatcher.scheduler.advanceUntilIdle()
+    viewModel.loadTags("0")
+    testDispatcher.scheduler.advanceUntilIdle()
     viewModel.addTag(Tag.HANDBALL)
-    viewModel.saveTags("Jacquie")
-
-    val updatedUser = repository.getUser("Jacquie")
+    viewModel.saveTags("0")
+    testDispatcher.scheduler.advanceUntilIdle()
+    val updatedUser = repository.getUser("0")
+    testDispatcher.scheduler.advanceUntilIdle()
     assertEquals(setOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
   }
 }

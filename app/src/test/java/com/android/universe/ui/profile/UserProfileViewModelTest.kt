@@ -40,6 +40,7 @@ class UserProfileViewModelTest {
   fun loadsUserDataCorrectlyForExistingUser() = runTest {
     val profile =
         UserProfile(
+            uid = "0",
             username = "alice",
             firstName = "Alice",
             lastName = "Smith",
@@ -50,7 +51,7 @@ class UserProfileViewModelTest {
 
     repository.addUser(profile)
 
-    viewModel.loadUser("alice")
+    viewModel.loadUser(profile.uid)
 
     testDispatcher.scheduler.advanceUntilIdle()
     val state = viewModel.userState.value

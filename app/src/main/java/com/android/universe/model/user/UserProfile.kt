@@ -6,16 +6,17 @@ import java.time.LocalDate
 /**
  * Represents a user profile in the app.
  *
- * @property username unique identifier chosen by the user.
- * @property firstName given name of the user.
- * @property lastName family name of the user.
- * @property country country of the user (ISO 3166-1 alpha-2 code)
- * @property description optional short bio or "about me" text.
- * @property dateOfBirth date of birth of the user.
- * @property tags Set of tags representing the user's interests, means of transportation, or Swiss
- *   canton.
+ * @property uid The unique, system-generated identifier for the user.
+ * @property username The user's unique identifier.
+ * @property firstName The user's first name.
+ * @property lastName The user's last name.
+ * @property country The user's country, represented as an ISO 3166-1 alpha-2 code.
+ * @property description An optional short bio or "about me" text.
+ * @property dateOfBirth The user's date of birth.
+ * @property tags A set of [Tag]s representing the user's interests.
  */
 data class UserProfile(
+    val uid: String,
     val username: String,
     val firstName: String,
     val lastName: String,

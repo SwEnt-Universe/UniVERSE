@@ -165,7 +165,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -187,7 +187,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -209,7 +209,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -231,7 +231,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -253,7 +253,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -275,7 +275,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("hello")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -297,7 +297,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -319,7 +319,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("hello")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -341,7 +341,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -363,7 +363,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -385,7 +385,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("2")
     viewModel.setYear("2001")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -407,7 +407,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("1")
     viewModel.setYear("2025")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -429,7 +429,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("13")
     viewModel.setYear("2025")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -451,7 +451,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("11")
     viewModel.setYear("2025")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -473,7 +473,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     val users = repository.getAllUsers()
@@ -496,7 +496,7 @@ class AddProfileViewModelTest {
     viewModel.setMonth("8")
     viewModel.setYear("1990")
 
-    viewModel.addProfile()
+    viewModel.addProfile("0")
 
     advanceUntilIdle()
 
@@ -659,7 +659,7 @@ class AddProfileViewModelTest {
     vm.setMonth("8")
     vm.setYear("1990")
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -680,7 +680,7 @@ class AddProfileViewModelTest {
     vm.setMonth("8")
     vm.setYear("1990")
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -701,7 +701,7 @@ class AddProfileViewModelTest {
     vm.setMonth("8")
     vm.setYear("1990")
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -722,7 +722,7 @@ class AddProfileViewModelTest {
     vm.setMonth("8")
     vm.setYear("1990")
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -743,7 +743,7 @@ class AddProfileViewModelTest {
     vm.setMonth("8")
     vm.setYear("1990")
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -765,7 +765,7 @@ class AddProfileViewModelTest {
     vm.setYear("1990")
     vm.setDescription("A".repeat(InputLimits.DESCRIPTION + 20))
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -787,12 +787,13 @@ class AddProfileViewModelTest {
     vm.setYear("1995")
     vm.setDescription("  asds  ad  ")
 
-    vm.addProfile()
+    vm.addProfile("0")
     advanceUntilIdle()
     val users = repository.getAllUsers()
 
     assertEquals(1, users.size)
     val user = users.first()
+    assertEquals("0", user.uid)
     assertEquals("john_doe", user.username)
     assertEquals("Jean Luc", user.firstName)
     assertEquals("De Silva", user.lastName)

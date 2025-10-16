@@ -10,6 +10,7 @@ import com.android.universe.UniverseApp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
@@ -90,5 +91,14 @@ class UniverseAppNavigationTest : TestCase() {
           .onNodeWithTag(NavigationTestTags.getScreenTestTag(tab.destination))
           .assertIsDisplayed()
     }
+  }
+
+  @Test
+  fun navigation_toSettingsScreen() {
+    composeTestRule.setContent { UniverseApp() }
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.SETTINGS_SCREEN).assertIsDisplayed()
   }
 }
