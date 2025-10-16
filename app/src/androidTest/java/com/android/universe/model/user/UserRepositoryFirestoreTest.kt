@@ -2,6 +2,7 @@ package com.android.universe.model.user
 
 import com.android.universe.model.Tag
 import com.android.universe.utils.FirebaseEmulator
+import com.android.universe.utils.FirestoreTest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,11 +16,16 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.assertEquals
 
-class UserRepositoryFirestoreTest {
-    private lateinit var userRepository: UserRepository
+class UserRepositoryFirestoreTest : FirestoreTest() {
+    var userRepository = createInitializedRepository()
+
+    @Before
+    override fun setUp() = runBlocking {
+        super.setUp()
+    }
 
     private val userProfile1 = UserProfile(
-        uid = "Bob",
+        uid = "0",
         username = "Bobbb",
         firstName = "Test",
         lastName = "User",
@@ -30,7 +36,7 @@ class UserRepositoryFirestoreTest {
     )
 
     private val userProfile2 = UserProfile(
-        uid = "Alice",
+        uid = "1",
         username = "Al",
         firstName = "second",
         lastName = "User2",
@@ -41,7 +47,7 @@ class UserRepositoryFirestoreTest {
     )
 
     private val userProfile3 = UserProfile(
-        uid = "Pierre",
+        uid = "3",
         username = "Rocky",
         firstName = "third",
         lastName = "User3",
@@ -51,28 +57,13 @@ class UserRepositoryFirestoreTest {
         tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE)
     )
 
-    suspend fun clearUsersCollection() {
-        val snapshot = FirebaseEmulator.firestore
-                        .collection("users")
-                        .get()
-                        .await()
-
-        val batch = FirebaseEmulator.firestore.batch()
-        snapshot.documents.forEach { batch.delete(it.reference) }
-        batch.commit().await()
-    }
-
-    @After
-    fun tearDown() = runBlocking {
-        clearUsersCollection()
-    }
 
     @Test
     fun canAddUserAndRetrieve() = runTest{
         userRepository.addUser(userProfile1)
-        val resultUser = userRepository.getUser("Bob")
+        val resultUser = userRepository.getUser("0")
         with(resultUser){
-            assertEquals("Bob", uid)
+            assertEquals(userProfile1.uid, uid)
             assertEquals("Bobbb", username)
             assertEquals("Test", firstName)
             assertEquals("User", lastName)
@@ -89,12 +80,12 @@ class UserRepositoryFirestoreTest {
         userRepository.addUser(userProfile2)
         userRepository.addUser(userProfile3)
 
-        val resultUser1 = userRepository.getUser("Bob")
-        val resultUser2 = userRepository.getUser("Alice")
-        val resultUser3 = userRepository.getUser("Pierre")
+        val resultUser1 = userRepository.getUser("0")
+        val resultUser2 = userRepository.getUser("1")
+        val resultUser3 = userRepository.getUser("2")
 
         with(resultUser1) {
-            assertEquals("Bob", uid)
+            assertEquals("0", uid)
             assertEquals("Bobbb", username)
             assertEquals("Test", firstName)
             assertEquals("User", lastName)
@@ -104,7 +95,7 @@ class UserRepositoryFirestoreTest {
             assertEquals(setOf(Tag.MUSIC, Tag.METAL), tags)
         }
         with(resultUser2) {
-            assertEquals("Alice", uid)
+            assertEquals("1", uid)
             assertEquals("Al", username)
             assertEquals("second", firstName)
             assertEquals("User2", lastName)
@@ -115,7 +106,7 @@ class UserRepositoryFirestoreTest {
         }
 
         with(resultUser3) {
-            assertEquals("Pierre", uid)
+            assertEquals("2", uid)
             assertEquals("Rocky", username)
             assertEquals("third", firstName)
             assertEquals("User3", lastName)
@@ -138,7 +129,7 @@ class UserRepositoryFirestoreTest {
         assertEquals(3, result.size)
 
         with(result[0]) {
-            assertEquals("Bob", uid)
+            assertEquals("0", uid)
             assertEquals("Bobbb", username)
             assertEquals("Test", firstName)
             assertEquals("User", lastName)
@@ -149,7 +140,7 @@ class UserRepositoryFirestoreTest {
         }
 
         with(result[1]) {
-            assertEquals("Alice", uid)
+            assertEquals("1", uid)
             assertEquals("Al", username)
             assertEquals("second", firstName)
             assertEquals("User2", lastName)
@@ -160,7 +151,7 @@ class UserRepositoryFirestoreTest {
         }
 
         with(result[2]) {
-            assertEquals("Pierre", uid)
+            assertEquals("2", uid)
             assertEquals("Rocky", username)
             assertEquals("third", firstName)
             assertEquals("User3", lastName)
@@ -186,10 +177,10 @@ class UserRepositoryFirestoreTest {
     @Test
     fun updateUserReplacesExistingUserCompletely() = runTest {
         userRepository.addUser(userProfile1)
-        userRepository.updateUser("Bob", userProfile2)
-        val resultUser = userRepository.getUser("Alice")
+        userRepository.updateUser("0", userProfile2)
+        val resultUser = userRepository.getUser("0")
         with(resultUser) {
-            assertEquals("Alice", uid)
+            assertEquals("1", uid)
             assertEquals("Al", username)
             assertEquals("second", firstName)
             assertEquals("User2", lastName)
@@ -205,12 +196,12 @@ class UserRepositoryFirestoreTest {
         userRepository.addUser(userProfile1)
         userRepository.addUser(userProfile2)
 
-        userRepository.updateUser("Alice", userProfile3)
+        userRepository.updateUser("1", userProfile3)
         val result = userRepository.getAllUsers()
         assertEquals(3, result.size)
 
         with(result[0]) {
-            assertEquals("Bob", uid)
+            assertEquals("0", uid)
             assertEquals("Bobbb", username)
             assertEquals("Test", firstName)
             assertEquals("User", lastName)
@@ -221,7 +212,7 @@ class UserRepositoryFirestoreTest {
         }
 
         with(result[1]) {
-            assertEquals("Pierre", uid)
+            assertEquals("2", uid)
             assertEquals("Rocky", username)
             assertEquals("third", firstName)
             assertEquals("User3", lastName)
@@ -247,7 +238,7 @@ class UserRepositoryFirestoreTest {
     @Test
     fun deleteUserProfile() = runTest {
         userRepository.addUser(userProfile1)
-        userRepository.deleteUser("Bob")
+        userRepository.deleteUser("0")
         val result = userRepository.getAllUsers()
         assertEquals(0, result.size)
     }
@@ -258,12 +249,12 @@ class UserRepositoryFirestoreTest {
         userRepository.addUser(userProfile2)
         userRepository.addUser(userProfile3)
 
-        userRepository.deleteUser("Alice")
+        userRepository.deleteUser("1")
         val result = userRepository.getAllUsers()
         assertEquals(2, result.size)
 
         with(result[0]) {
-            assertEquals("Bob", uid)
+            assertEquals("0", uid)
             assertEquals("Bobbb", username)
             assertEquals("Test", firstName)
             assertEquals("User", lastName)
@@ -274,7 +265,7 @@ class UserRepositoryFirestoreTest {
         }
 
         with(result[1]) {
-            assertEquals("Pierre", uid)
+            assertEquals("2", uid)
             assertEquals("Rocky", username)
             assertEquals("third", firstName)
             assertEquals("User3", lastName)
