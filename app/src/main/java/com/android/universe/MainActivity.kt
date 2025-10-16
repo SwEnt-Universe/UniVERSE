@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
@@ -32,7 +31,6 @@ import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.signIn.SignInScreen
-import com.android.universe.ui.signIn.SignInViewModel
 import com.android.universe.ui.theme.SampleAppTheme
 import com.google.firebase.auth.FirebaseAuth
 
@@ -66,8 +64,7 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   var user = FirebaseAuth.getInstance().currentUser
   val startDestination =
-      if (user == null) NavigationScreens.SignIn.name
-      else NavigationScreens.Map.route
+      if (user == null) NavigationScreens.SignIn.name else NavigationScreens.Map.route
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
@@ -79,19 +76,18 @@ fun UniverseApp(
       composable(NavigationScreens.SignIn.route) {
         SignInScreen(
             onSignedIn = {
-                            user = FirebaseAuth.getInstance().currentUser
-                            if (!user!!.isAnonymous) navigationActions.navigateTo(NavigationScreens.AddProfile)
-                            else navigationActions.navigateTo(NavigationScreens.Map)
-                         },
+              user = FirebaseAuth.getInstance().currentUser
+              if (!user!!.isAnonymous) navigationActions.navigateTo(NavigationScreens.AddProfile)
+              else navigationActions.navigateTo(NavigationScreens.Map)
+            },
             credentialManager = credentialManager)
       }
     }
     navigation(
         startDestination = NavigationScreens.AddProfile.route,
         route = NavigationScreens.AddProfile.name,
-    )
-    {
-       composable(NavigationScreens.AddProfile.route) { AddProfileScreen(user!!.uid) }
+    ) {
+      composable(NavigationScreens.AddProfile.route) { AddProfileScreen(user!!.uid) }
     }
     navigation(
         startDestination = NavigationScreens.Map.route,
