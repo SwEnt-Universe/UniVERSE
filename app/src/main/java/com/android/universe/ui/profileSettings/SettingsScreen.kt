@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
+import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.profile.SettingsViewModel
 
@@ -168,7 +169,8 @@ fun SettingsScreenContent(
               IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
-            })
+            },
+            modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
         LazyColumn(
             modifier =
