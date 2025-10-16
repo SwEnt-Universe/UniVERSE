@@ -9,9 +9,7 @@ import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -22,6 +20,7 @@ import org.junit.runner.RunWith
 
 object Emulator {
   val auth = Firebase.auth
+
   init {
     auth.useEmulator("10.0.2.2", 9099)
   }
