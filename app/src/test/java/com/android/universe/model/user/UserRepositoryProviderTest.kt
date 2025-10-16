@@ -21,14 +21,14 @@ class UserRepositoryProviderTest {
         object : UserRepository {
           override suspend fun getAllUsers() = emptyList<UserProfile>()
 
-          override suspend fun getUser(username: String) =
-              UserProfile("", "", "", "", dateOfBirth = LocalDate.now(), tags = emptySet())
+          override suspend fun getUser(uid: String) =
+              UserProfile("", "", "", "", "", dateOfBirth = LocalDate.now(), tags = emptySet())
 
           override suspend fun addUser(userProfile: UserProfile) {}
 
-          override suspend fun updateUser(username: String, newUserProfile: UserProfile) {}
+          override suspend fun updateUser(uid: String, newUserProfile: UserProfile) {}
 
-          override suspend fun deleteUser(username: String) {}
+          override suspend fun deleteUser(uid: String) {}
 
           override suspend fun isUsernameUnique(username: String) = true
         }

@@ -52,7 +52,7 @@ object FieldFontSizes {
 /**
  * Composable for displaying a user's profile.
  *
- * @param username The username of the user to display.
+ * @param uid The uid of the user to display.
  * @param onTabSelected Callback invoked when a tab is selected to switch between screens
  * @param onEditProfileClick Callback when the edit profile button is clicked.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
@@ -60,7 +60,7 @@ object FieldFontSizes {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun UserProfileScreen(
-    username: String,
+    uid: String,
     onTabSelected: (Tab) -> Unit = {},
     onEditProfileClick: (String) -> Unit = {},
     userProfileViewModel: UserProfileViewModel = viewModel()
@@ -68,7 +68,7 @@ fun UserProfileScreen(
 
   val userUIState by userProfileViewModel.userState.collectAsState()
   val errorMsg = userUIState.errorMsg
-  userProfileViewModel.loadUser(username)
+  userProfileViewModel.loadUser(uid)
 
   val context = LocalContext.current
   // Observe and display asynchronous validation errors as Toast messages.
@@ -85,7 +85,7 @@ fun UserProfileScreen(
             title = { Text("Profile") },
             actions = {
               IconButton(
-                  onClick = { onEditProfileClick(username) },
+                  onClick = { onEditProfileClick(uid) },
                   modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
                     Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
                   }
@@ -219,6 +219,6 @@ fun InterestTag(text: String, testTagIndex: Int) {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UserProfileScreen(username = "emma")
+  UserProfileScreen(uid = "0")
 }
  */

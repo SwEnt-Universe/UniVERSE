@@ -93,21 +93,19 @@ fun UniverseApp() {
     ) {
       composable(NavigationScreens.Profile.route) {
         UserProfileScreen(
-            username = "emma",
+            uid = "0",
             onTabSelected = onTabSelected,
-            onEditProfileClick = { username ->
-              navController.navigate(
-                  NavigationScreens.Settings.route.replace("{username}", username))
+            onEditProfileClick = { uid ->
+              navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
             })
       }
     }
     composable(
         route = NavigationScreens.Settings.route,
-        arguments = listOf(navArgument("username") { type = NavType.StringType })) { backStackEntry
-          ->
-          val username = backStackEntry.arguments?.getString("username") ?: "emma"
+        arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry ->
+          val uid = backStackEntry.arguments?.getString("uid") ?: "0"
           SettingsScreen(
-              username = username,
+              uid = uid,
               onBack = {
                 navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
               },

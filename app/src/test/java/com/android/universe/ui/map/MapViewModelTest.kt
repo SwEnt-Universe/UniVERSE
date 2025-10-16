@@ -49,6 +49,7 @@ class MapViewModelTest {
               tags = setOf(Tag.JAZZ, Tag.COUNTRY),
               creator =
                   UserProfile(
+                      uid = "0",
                       username = "alice_smith",
                       firstName = "Alice",
                       lastName = "Smith",
@@ -64,6 +65,7 @@ class MapViewModelTest {
               tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
               creator =
                   UserProfile(
+                      uid = "0",
                       username = "alice_smith",
                       firstName = "Alice",
                       lastName = "Smith",
@@ -80,6 +82,7 @@ class MapViewModelTest {
               tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
               creator =
                   UserProfile(
+                      uid = "0",
                       username = "alice_smith",
                       firstName = "Alice",
                       lastName = "Smith",

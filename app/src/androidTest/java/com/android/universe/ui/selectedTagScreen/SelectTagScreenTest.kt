@@ -39,6 +39,7 @@ class SelectTagScreenTest {
           runBlocking {
             addUser(
                 UserProfile(
+                    uid = "1",
                     username = "bob",
                     firstName = "Bob",
                     lastName = "Jones",
@@ -49,7 +50,7 @@ class SelectTagScreenTest {
           }
         }
     viewModel = SelectTagViewModel(userRepository)
-    composeTestRule.setContent { SelectTagScreen(viewModel, username = "bob") }
+    composeTestRule.setContent { SelectTagScreen(viewModel, uid = "1") }
   }
 
   @Test

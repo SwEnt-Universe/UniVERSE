@@ -7,6 +7,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
+import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import org.junit.Rule
 import org.junit.Test
@@ -73,5 +74,14 @@ class UniverseAppNavigationTest : TestCase() {
           .onNodeWithTag(NavigationTestTags.getScreenTestTag(tab.destination))
           .assertIsDisplayed()
     }
+  }
+
+  @Test
+  fun navigation_toSettingsScreen() {
+    composeTestRule.setContent { UniverseApp() }
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.SETTINGS_SCREEN).assertIsDisplayed()
   }
 }

@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
-import kotlinx.coroutines.launch
 
 object SelectTagsScreenTestTags {
   const val INTEREST_TAGS = "InterestTags"
@@ -155,10 +153,10 @@ object TagColors {
 @Composable
 fun SelectTagScreen(
     selectedTagOverview: SelectTagViewModel = viewModel(),
-    username: String,
+    uid: String,
     navigateOnSave: () -> Unit = {}
 ) {
-  LaunchedEffect(username) { selectedTagOverview.loadTags(username) }
+  LaunchedEffect(uid) { selectedTagOverview.loadTags(uid) }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
     LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
@@ -211,13 +209,10 @@ fun SelectTagScreen(
         }
       }
     }
-    val scope = rememberCoroutineScope()
     Button(
         onClick = {
-          scope.launch {
-            selectedTagOverview.saveTags(username)
-            navigateOnSave()
-          }
+          selectedTagOverview.saveTags(uid)
+          navigateOnSave()
         },
         modifier =
             Modifier.testTag(SelectTagsScreenTestTags.SAVE_BUTTON).fillMaxWidth().padding(4.dp)) {
@@ -229,5 +224,5 @@ fun SelectTagScreen(
 @Preview
 @Composable
 fun SelectTagPreview() {
-  SelectTagScreen(username = "emma")
+  SelectTagScreen(uid = "0")
 }
