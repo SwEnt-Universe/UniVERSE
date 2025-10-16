@@ -1,5 +1,6 @@
 package com.android.universe
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,8 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.credentials.CredentialManager
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,8 +28,11 @@ import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
+import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
+import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.SampleAppTheme
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,15 +56,39 @@ class MainActivity : ComponentActivity() {
  * This composable sets up the navigation for the app using a [NavHost].
  */
 @Composable
-fun UniverseApp() {
+fun UniverseApp(
+    context: Context = LocalContext.current,
+    credentialManager: CredentialManager = CredentialManager.create(context)
+) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
-  val startDestination = NavigationScreens.Map.route
-  // TODO: verify that user is authenticated once the signIn is done.
+  var user = FirebaseAuth.getInstance().currentUser
+  val startDestination =
+      if (user == null) NavigationScreens.SignIn.name else NavigationScreens.Map.route
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
   NavHost(navController = navController, startDestination = startDestination) {
+    navigation(
+        route = NavigationScreens.SignIn.name,
+        startDestination = NavigationScreens.SignIn.route,
+    ) {
+      composable(NavigationScreens.SignIn.route) {
+        SignInScreen(
+            onSignedIn = {
+              user = FirebaseAuth.getInstance().currentUser
+              if (!user!!.isAnonymous) navigationActions.navigateTo(NavigationScreens.AddProfile)
+              else navigationActions.navigateTo(NavigationScreens.Map)
+            },
+            credentialManager = credentialManager)
+      }
+    }
+    navigation(
+        startDestination = NavigationScreens.AddProfile.route,
+        route = NavigationScreens.AddProfile.name,
+    ) {
+      composable(NavigationScreens.AddProfile.route) { AddProfileScreen(user!!.uid) }
+    }
     navigation(
         startDestination = NavigationScreens.Map.route,
         route = NavigationScreens.Map.name,

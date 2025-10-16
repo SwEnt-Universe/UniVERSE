@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.os.bundleOf
 import androidx.credentials.Credential
 import androidx.test.core.app.ApplicationProvider
-import com.android.universe.util.FakeJwtGenerator
+import com.android.universe.utils.FakeJwtGenerator
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.AuthCredential
