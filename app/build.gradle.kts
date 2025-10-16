@@ -165,7 +165,6 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
     testImplementation(dep)
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Dependencies
 // - use /gradle/wrapper/libs.versions.tomtom when available
@@ -262,14 +261,17 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
+
+    implementation("com.google.protobuf:protobuf-javalite:3.24.0")
+
+    implementation(libs.okhttp)
 }
+
 configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "com.google.protobuf" && requested.name.contains("lite")) {
-            useVersion("3.25.5")
-        }
-    }
+    resolutionStrategy.force("com.google.protobuf:protobuf-javalite:3.24.0")
 }
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // JaCoCo agent tuning for ALL test tasks
 // - include no-location classes
