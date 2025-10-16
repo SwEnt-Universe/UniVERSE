@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.Tag
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.FirestoreEventTest
 import java.time.LocalDateTime
@@ -59,7 +60,8 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
           date = LocalDateTime.of(2025, 10, 15, 7, 30),
           tags = setOf(Tag.JAZZ, Tag.COUNTRY),
           participants = setOf(userProfile1, userProfile2),
-          creator = userProfile1)
+          creator = userProfile1,
+          location = Location(latitude = 46.5196535, longitude = 6.6322734))
 
   private val event2 =
       Event(
@@ -68,7 +70,8 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
           date = LocalDateTime.of(2025, 11, 3, 9, 0),
           tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
           participants = setOf(userProfile3),
-          creator = userProfile3)
+          creator = userProfile3,
+          location = Location(latitude = 46.5196535, longitude = 6.6322734))
 
   private val event3 =
       Event(
@@ -78,7 +81,8 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
           date = LocalDateTime.of(2025, 10, 22, 19, 0),
           tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
           participants = setOf(userProfile2),
-          creator = userProfile2)
+          creator = userProfile2,
+          location = Location(latitude = 46.5196535, longitude = 6.6322734))
 
   private fun userProfileEquals(userA: UserProfile?, userB: UserProfile?): Boolean {
     if (userA == null || userB == null) return false
