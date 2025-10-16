@@ -7,7 +7,14 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,17 +27,30 @@ class UniverseAppNavigationTest : TestCase() {
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
+  // This is a placeholder setup for the test to correctly launch while the FirebaseEmulator is in
+  // development
+  @Before
+  fun setup() {
+    runTest { Firebase.auth.signInAnonymously().await() }
+    composeTestRule.setContent { UniverseApp() }
+  }
+
+  @After
+  fun tearDown() {
+    runTest {
+      FirebaseAuth.getInstance().currentUser?.delete()
+      Firebase.auth.signOut()
+    }
+  }
+
   @Test
   fun app_startsAtMapScreen() {
-    composeTestRule.setContent { UniverseApp() }
-
     // Verify that Map screen is displayed
     composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).assertIsDisplayed()
   }
 
   @Test
   fun navigation_toChatScreen() {
-    composeTestRule.setContent { UniverseApp() }
 
     // Click on Chat tab (simulate tab selection)
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
@@ -41,7 +61,6 @@ class UniverseAppNavigationTest : TestCase() {
 
   @Test
   fun navigation_toEventScreen() {
-    composeTestRule.setContent { UniverseApp() }
 
     // Click on Event tab (simulate tab selection)
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
@@ -52,7 +71,6 @@ class UniverseAppNavigationTest : TestCase() {
 
   @Test
   fun navigation_toProfileScreen() {
-    composeTestRule.setContent { UniverseApp() }
 
     // Click on Profile tab (simulate tab selection)
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
@@ -63,7 +81,6 @@ class UniverseAppNavigationTest : TestCase() {
 
   @Test
   fun navigation_toAllTabs() {
-    composeTestRule.setContent { UniverseApp() }
     // Verify that Map screen is displayed
     composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).assertIsDisplayed()
     // Navigate to all tabs
