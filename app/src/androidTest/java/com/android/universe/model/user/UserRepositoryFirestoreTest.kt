@@ -1,8 +1,12 @@
 package com.android.universe.model.user
 
 import com.android.universe.model.Tag
+import com.android.universe.utils.FirebaseEmulator
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
@@ -13,7 +17,6 @@ import org.junit.Assert.assertEquals
 
 class UserRepositoryFirestoreTest {
     private lateinit var userRepository: UserRepository
-    private lateinit var db: FirebaseFirestore
 
     private val userProfile1 = UserProfile(
         uid = "Bob",
@@ -47,33 +50,16 @@ class UserRepositoryFirestoreTest {
         dateOfBirth = java.time.LocalDate.of(2012, 9, 12),
         tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE)
     )
-    suspend fun checkEmulator(){
-        FirebaseAuth.getInstance().signInAnonymously().await()
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        assert(currentUser != null) { "Firebase Auth Emulator doesn't work" }
-    }
 
     suspend fun clearUsersCollection() {
-        val snapshot = db
+        val snapshot = FirebaseEmulator.firestore
                         .collection("users")
                         .get()
                         .await()
 
-        val batch = db.batch()
+        val batch = FirebaseEmulator.firestore.batch()
         snapshot.documents.forEach { batch.delete(it.reference) }
         batch.commit().await()
-    }
-
-    @Before
-    fun setUp() = runBlocking{
-        db = FirebaseFirestore.getInstance()
-        db.useEmulator("10.0.2.2", 8080)
-
-        val auth = FirebaseAuth.getInstance()
-        auth.useEmulator("10.0.2.2", 9099)
-
-        checkEmulator()
-        userRepository = UserRepositoryFirestore(db)
     }
 
     @After
