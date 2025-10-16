@@ -28,9 +28,9 @@ import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
+import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.signIn.SignInViewModel
-import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.theme.SampleAppTheme
 import com.google.firebase.auth.FirebaseAuth
 
