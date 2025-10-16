@@ -20,8 +20,16 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+object Emulator {
+  val auth = Firebase.auth
+  init {
+    auth.useEmulator("10.0.2.2", 9099)
+  }
+}
+
 @RunWith(AndroidJUnit4::class)
-class UniverseAppNavigationTest : TestCase() {
+class UniverseAppNavigationTest {
+  val emulator = Emulator
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule
@@ -32,15 +40,15 @@ class UniverseAppNavigationTest : TestCase() {
   // development
   @Before
   fun setup() {
-    runTest { Firebase.auth.signInAnonymously().await() }
+    runTest { emulator.auth.signInAnonymously().await() }
     composeTestRule.setContent { UniverseApp() }
   }
 
   @After
   fun tearDown() {
     runTest {
-      FirebaseAuth.getInstance().currentUser?.delete()
-      Firebase.auth.signOut()
+      emulator.auth.currentUser?.delete()
+      emulator.auth.signOut()
     }
   }
 
