@@ -13,9 +13,14 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.tomtom.sdk.map.display.common.coroutines.DispatchersConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.time.LocalDate
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -30,8 +35,11 @@ object Emulator {
   }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class UniverseAppNavigationTest {
+
+  private val dispatcher = UnconfinedTestDispatcher()
   val emulator = Emulator
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -43,6 +51,7 @@ class UniverseAppNavigationTest {
   // development
   @Before
   fun setup() {
+    Dispatchers.setMain(dispatcher)
     runTest {
       emulator.auth.signInAnonymously().await()
 
