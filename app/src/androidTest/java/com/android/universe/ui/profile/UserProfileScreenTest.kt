@@ -5,15 +5,16 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.universe.model.Tag
-import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserRepositoryFirestore
+import com.android.universe.utils.FirestoreUserTest
 import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 
-class UserProfileScreenTest {
+class UserProfileScreenTest : FirestoreUserTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -22,7 +23,7 @@ class UserProfileScreenTest {
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() = runTest {
-    val repository = FakeUserRepository()
+    val repository = UserRepositoryFirestore(emulator.firestore)
     val profile =
         UserProfile(
             uid = "profileDisplaysBasicInformationCorrectly",
@@ -72,7 +73,7 @@ class UserProfileScreenTest {
 
   @Test
   fun tooManyTagsImpliesScrollable() = runTest {
-    val repository = FakeUserRepository()
+    val repository = UserRepositoryFirestore(emulator.firestore)
     val manyTags =
         (Tag.getTagsForCategory(Tag.Category.INTEREST) +
                 Tag.getTagsForCategory(Tag.Category.CANTON))
@@ -104,7 +105,7 @@ class UserProfileScreenTest {
 
   @Test
   fun tagsAreUniqueAndInAllowedList() = runTest {
-    val repository = FakeUserRepository()
+    val repository = UserRepositoryFirestore(emulator.firestore)
     val testTags = setOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
     val profile =
         UserProfile(
@@ -146,7 +147,7 @@ class UserProfileScreenTest {
 
   @Test
   fun descriptionDisplaysPlaceholderWhenNull() = runTest {
-    val repository = FakeUserRepository()
+    val repository = UserRepositoryFirestore(emulator.firestore)
     val profile =
         UserProfile(
             uid = "tester",
@@ -175,7 +176,7 @@ class UserProfileScreenTest {
 
   @Test
   fun descriptionDisplaysFullDescriptionWhenNotNull() = runTest {
-    val repository = FakeUserRepository()
+    val repository = UserRepositoryFirestore(emulator.firestore)
     val profile =
         UserProfile(
             uid = "tester",
@@ -204,7 +205,7 @@ class UserProfileScreenTest {
 
   @Test
   fun descriptionDisplaysNoDescriptionMessageWhenEmpty() = runTest {
-    val repository = FakeUserRepository()
+    val repository = UserRepositoryFirestore(emulator.firestore)
     val profile =
         UserProfile(
             uid = "tester",

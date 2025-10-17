@@ -33,14 +33,9 @@ import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.SampleAppTheme
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-      Firebase.firestore.useEmulator("10.0.2.2", 8080)
-      Firebase.auth.useEmulator("10.0.2.2", 9099)
     super.onCreate(savedInstanceState)
     setContent {
       SampleAppTheme {

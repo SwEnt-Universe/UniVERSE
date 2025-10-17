@@ -4,11 +4,12 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserRepositoryFirestore
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
+import com.android.universe.utils.FirestoreUserTest
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -16,7 +17,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class SelectTagScreenTest {
+class SelectTagScreenTest : FirestoreUserTest() {
   /**
    * Private function scrollAndClick that is used in the tests to perform a scroll to an element and
    * click on it
@@ -28,14 +29,15 @@ class SelectTagScreenTest {
 
   // Define the parameters for the tests.
   @get:Rule val composeTestRule = createComposeRule()
-  private lateinit var userRepository: FakeUserRepository
+  private lateinit var userRepository: UserRepositoryFirestore
   private lateinit var viewModel: SelectTagViewModel
 
   @Before
-  fun setUp() {
+  override fun setUp() {
+    super.setUp()
     // Set up a fake repository for testing
     userRepository =
-        FakeUserRepository().apply {
+        UserRepositoryFirestore(emulator.firestore).apply {
           runBlocking {
             addUser(
                 UserProfile(
