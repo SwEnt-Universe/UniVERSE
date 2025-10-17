@@ -13,7 +13,9 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import java.time.LocalDate
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -24,14 +26,17 @@ import org.junit.runner.RunWith
 
 object Emulator {
   val auth = Firebase.auth
+  val firestore = Firebase.firestore
 
   init {
     auth.useEmulator("10.0.2.2", 9099)
   }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class UniverseAppNavigationTest {
+
   val emulator = Emulator
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -76,7 +81,6 @@ class UniverseAppNavigationTest {
 
   @Test
   fun navigation_toChatScreen() {
-
     // Click on Chat tab (simulate tab selection)
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
 

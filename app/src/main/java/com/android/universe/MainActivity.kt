@@ -33,7 +33,11 @@ import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.SampleAppTheme
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +69,8 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   var user = FirebaseAuth.getInstance().currentUser
   val startDestination =
-      if (user == null) NavigationScreens.SignIn.name else NavigationScreens.Map.route
+      if (user != null && user.isAnonymous) NavigationScreens.Map.route
+      else NavigationScreens.SignIn.name
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
@@ -78,8 +83,20 @@ fun UniverseApp(
         SignInScreen(
             onSignedIn = {
               user = FirebaseAuth.getInstance().currentUser
-              if (!user!!.isAnonymous) navigationActions.navigateTo(NavigationScreens.AddProfile)
-              else navigationActions.navigateTo(NavigationScreens.Map)
+              runBlocking {
+                val profileExists =
+                    Firebase.firestore
+                        .collection("users")
+                        .document(user!!.uid)
+                        .get()
+                        .await()
+                        .exists()
+                if (profileExists) {
+                  navigationActions.navigateTo(NavigationScreens.Map)
+                } else {
+                  navigationActions.navigateTo(NavigationScreens.AddProfile)
+                }
+              }
             },
             credentialManager = credentialManager)
       }
