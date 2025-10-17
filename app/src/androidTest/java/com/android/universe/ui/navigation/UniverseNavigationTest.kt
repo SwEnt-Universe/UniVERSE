@@ -17,7 +17,8 @@ import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -38,7 +39,7 @@ object Emulator {
 @RunWith(AndroidJUnit4::class)
 class UniverseAppNavigationTest {
 
-  private val dispatcher = UnconfinedTestDispatcher()
+  private val dispatcher = StandardTestDispatcher()
   val emulator = Emulator
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -66,10 +67,12 @@ class UniverseAppNavigationTest {
           ))
     }
     composeTestRule.setContent { UniverseApp() }
+    dispatcher.scheduler.advanceUntilIdle()
   }
 
   @After
   fun tearDown() {
+    Dispatchers.resetMain()
     runTest {
       emulator.auth.currentUser?.delete()
       emulator.auth.signOut()

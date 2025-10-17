@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
@@ -37,7 +36,7 @@ import com.android.universe.ui.theme.SampleAppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
 class MainActivity : ComponentActivity() {
@@ -69,7 +68,8 @@ fun UniverseApp(
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   var user = FirebaseAuth.getInstance().currentUser
-  val startDestination = NavigationScreens.SignIn.name
+  val startDestination =
+      if (user != null && user.isAnonymous) NavigationScreens.Map else NavigationScreens.SignIn.name
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
@@ -79,25 +79,21 @@ fun UniverseApp(
         startDestination = NavigationScreens.SignIn.route,
     ) {
       composable(NavigationScreens.SignIn.route) {
-        val scope = rememberCoroutineScope()
         SignInScreen(
             onSignedIn = {
               user = FirebaseAuth.getInstance().currentUser
-              if (user!!.isAnonymous) navigationActions.navigateTo(NavigationScreens.Map)
-              else {
-                scope.launch {
-                  val profileExists =
-                      Firebase.firestore
-                          .collection("users")
-                          .document(user!!.uid)
-                          .get()
-                          .await()
-                          .exists()
-                  if (profileExists) {
-                    navigationActions.navigateTo(NavigationScreens.Map)
-                  } else {
-                    navigationActions.navigateTo(NavigationScreens.AddProfile)
-                  }
+              runBlocking {
+                val profileExists =
+                    Firebase.firestore
+                        .collection("users")
+                        .document(user!!.uid)
+                        .get()
+                        .await()
+                        .exists()
+                if (profileExists) {
+                  navigationActions.navigateTo(NavigationScreens.Map)
+                } else {
+                  navigationActions.navigateTo(NavigationScreens.AddProfile)
                 }
               }
             },
