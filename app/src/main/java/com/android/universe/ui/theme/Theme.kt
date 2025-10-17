@@ -1,7 +1,5 @@
 package com.android.universe.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -9,54 +7,66 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
-
-private val DarkColorScheme =
-    darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
-
-private val LightColorScheme =
-    lightColorScheme(
-        primary = Purple40, secondary = PurpleGrey40, tertiary = Pink40
-
-        /* Other default colors to override
-        background = Color(0xFFFFFBFE),
-        surface = Color(0xFFFFFBFE),
-        onPrimary = Color.White,
-        onSecondary = Color.White,
-        onTertiary = Color.White,
-        onBackground = Color(0xFF1C1B1F),
-        onSurface = Color(0xFF1C1B1F),
-        */
-        )
 
 @Composable
-fun SampleAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+fun UniverseTheme(
+  darkTheme: Boolean = isSystemInDarkTheme(), // From androidx.compose.foundation.isSystemInDarkTheme
+  dynamicColor: Boolean = true, // Support Android 12+ dynamic colors
+  content: @Composable () -> Unit
 ) {
-  val colorScheme =
-      when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-          val context = LocalContext.current
-          if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-      }
-  val view = LocalView.current
-  if (!view.isInEditMode) {
-    SideEffect {
-      val window = (view.context as Activity).window
-      window.statusBarColor = colorScheme.primary.toArgb()
-      WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+  val colorScheme = when {
+    dynamicColor -> {
+      val context = LocalContext.current
+      if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     }
+    darkTheme -> darkColorScheme(
+      primary = PrimaryDark,
+      primaryContainer = PrimaryVariantDark,
+      secondary = SecondaryDark,
+      secondaryContainer = SecondaryVariantDark,
+      background = BackgroundDark,
+      surface = SurfaceDark,
+      error = ErrorDark,
+      onPrimary = OnPrimaryDark,
+      onSecondary = OnSecondaryDark,
+      onBackground = OnBackgroundDark,
+      onSurface = OnSurfaceDark,
+      onError = OnErrorDark
+    )
+    else -> lightColorScheme(
+      primary = PrimaryLight,
+      primaryContainer = PrimaryVariantLight,
+      secondary = SecondaryLight,
+      secondaryContainer = SecondaryVariantLight,
+      background = BackgroundLight,
+      surface = SurfaceLight,
+      error = ErrorLight,
+      onPrimary = OnPrimaryLight,
+      onSecondary = OnSecondaryLight,
+      onBackground = OnBackgroundLight,
+      onSurface = OnSurfaceLight,
+      onError = OnErrorLight
+    )
   }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+  MaterialTheme(
+    colorScheme = colorScheme,
+    typography = Typography,
+    content = content
+  )
+}
+
+// Extension to access tag colors dynamically by category
+@Composable
+fun tagColor(category: String, isSelected: Boolean = false, darkTheme: Boolean = isSystemInDarkTheme()): Color {
+  return when (category) {
+    "INTEREST" -> if (isSelected) TagSelectedDark else if (darkTheme) TagInterestDark else TagInterestLight
+    "SPORT" -> if (isSelected) TagSelectedDark else if (darkTheme) TagSportDark else TagSportLight
+    "MUSIC" -> if (isSelected) TagSelectedDark else if (darkTheme) TagMusicDark else TagMusicLight
+    "TRANSPORT" -> if (isSelected) TagSelectedDark else if (darkTheme) TagTransportDark else TagTransportLight
+    "CANTON" -> if (isSelected) TagSelectedDark else if (darkTheme) TagCantonDark else TagCantonLight
+    else -> MaterialTheme.colorScheme.primary
+  }
 }
