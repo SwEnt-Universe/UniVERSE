@@ -12,8 +12,12 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun UniverseTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(), // From androidx.compose.foundation.isSystemInDarkTheme
-  dynamicColor: Boolean = true, // Support Android 12+ dynamic colors
+  darkTheme: Boolean = isSystemInDarkTheme(),
+
+  // Setting this to true overrides custom colors with dynamic colors (?) on supported devices
+  // Can be explored, but for now we keep it false to use our custom color schemes
+  dynamicColor: Boolean = false,
+
   content: @Composable () -> Unit
 ) {
   val colorScheme = when {

@@ -24,6 +24,7 @@ import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.profile.SettingsViewModel
+import com.android.universe.ui.theme.UniverseTheme
 
 /* =========================================================
  * Padding/style constants
@@ -301,7 +302,6 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
 /* =========================================================
  * Previews (use stateless content only)
  * ========================================================= */
-/** Preview for Settings screen without modal. */
 fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
     SettingsUiState(
         email = "preview@example.com",
@@ -320,7 +320,7 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
 @Preview(showBackground = true, name = "Settings")
 @Composable
 private fun SettingsScreenContent_Preview() {
-  MaterialTheme {
+  UniverseTheme {
     SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
   }
 }
