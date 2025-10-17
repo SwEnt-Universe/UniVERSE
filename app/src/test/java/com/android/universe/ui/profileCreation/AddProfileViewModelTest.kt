@@ -16,7 +16,6 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddProfileViewModelTest {
 
-
   private val testDispatcher = UnconfinedTestDispatcher()
 
   private lateinit var repository: FakeUserRepository

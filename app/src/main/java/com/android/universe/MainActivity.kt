@@ -82,12 +82,24 @@ fun UniverseApp(
         val scope = rememberCoroutineScope()
         SignInScreen(
             onSignedIn = {
-
-                if (user!!.isAnonymous) {
-                  navigationActions.navigateTo(NavigationScreens.Map)
-                } else {
-                  navigationActions.navigateTo(NavigationScreens.AddProfile)
+              user = FirebaseAuth.getInstance().currentUser
+              if (user!!.isAnonymous) navigationActions.navigateTo(NavigationScreens.Map)
+              else {
+                scope.launch {
+                  val profileExists =
+                      Firebase.firestore
+                          .collection("users")
+                          .document(user!!.uid)
+                          .get()
+                          .await()
+                          .exists()
+                  if (profileExists) {
+                    navigationActions.navigateTo(NavigationScreens.Map)
+                  } else {
+                    navigationActions.navigateTo(NavigationScreens.AddProfile)
+                  }
                 }
+              }
             },
             credentialManager = credentialManager)
       }

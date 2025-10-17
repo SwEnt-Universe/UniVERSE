@@ -13,10 +13,9 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.tomtom.sdk.map.display.common.coroutines.DispatchersConfig
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import java.time.LocalDate
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
