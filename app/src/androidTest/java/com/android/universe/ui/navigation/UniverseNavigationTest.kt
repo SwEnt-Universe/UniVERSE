@@ -7,9 +7,13 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
+import com.android.universe.model.Tag
+import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import java.time.LocalDate
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -39,7 +43,20 @@ class UniverseAppNavigationTest {
   // development
   @Before
   fun setup() {
-    runTest { emulator.auth.signInAnonymously().await() }
+    runTest {
+      emulator.auth.signInAnonymously().await()
+
+      UserRepositoryProvider.repository.addUser(
+          UserProfile(
+              uid = emulator.auth.currentUser!!.uid,
+              username = "tester",
+              firstName = "testa",
+              lastName = "testo",
+              country = "testastan",
+              dateOfBirth = LocalDate.of(2003, 12, 3),
+              tags = setOf(Tag.TABLE_TENNIS),
+          ))
+    }
     composeTestRule.setContent { UniverseApp() }
   }
 

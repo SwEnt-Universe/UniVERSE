@@ -145,7 +145,7 @@ class AddProfileViewModel(
    *
    * @param uid The user's unique identifier.
    */
-  fun addProfile(uid: String) {
+  fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
     viewModelScope.launch(dispatcher) {
       val state = _uiState.value
 
@@ -265,6 +265,7 @@ class AddProfileViewModel(
               tags = emptySet())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
+      onSuccess()
     }
   }
 

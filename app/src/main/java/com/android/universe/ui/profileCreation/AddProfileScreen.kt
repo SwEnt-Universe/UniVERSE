@@ -113,7 +113,11 @@ object AddProfileScreenTestTags {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProfileScreen(uid: String, addProfileViewModel: AddProfileViewModel = viewModel()) {
+fun AddProfileScreen(
+    uid: String,
+    addProfileViewModel: AddProfileViewModel = viewModel(),
+    navigateOnSave: () -> Unit = {}
+) {
   val profileUIState by addProfileViewModel.uiState.collectAsState()
   val errorMsg = profileUIState.errorMsg
 
@@ -385,7 +389,7 @@ fun AddProfileScreen(uid: String, addProfileViewModel: AddProfileViewModel = vie
 
           // Save Button
           Button(
-              onClick = { addProfileViewModel.addProfile(uid) },
+              onClick = { addProfileViewModel.addProfile(uid, onSuccess = navigateOnSave) },
               modifier =
                   Modifier.height(50.dp)
                       .fillMaxWidth()
