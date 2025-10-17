@@ -389,10 +389,7 @@ fun AddProfileScreen(
 
           // Save Button
           Button(
-              onClick = {
-                addProfileViewModel.addProfile(uid)
-                navigateOnSave()
-              },
+              onClick = { addProfileViewModel.addProfile(uid, onSuccess = navigateOnSave) },
               modifier =
                   Modifier.height(50.dp)
                       .fillMaxWidth()
