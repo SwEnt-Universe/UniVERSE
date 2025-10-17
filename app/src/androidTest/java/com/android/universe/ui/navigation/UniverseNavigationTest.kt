@@ -13,14 +13,11 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import java.time.LocalDate
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -29,6 +26,7 @@ import org.junit.runner.RunWith
 
 object Emulator {
   val auth = Firebase.auth
+  val firestore = Firebase.firestore
 
   init {
     auth.useEmulator("10.0.2.2", 9099)
@@ -39,7 +37,6 @@ object Emulator {
 @RunWith(AndroidJUnit4::class)
 class UniverseAppNavigationTest {
 
-  private val dispatcher = StandardTestDispatcher()
   val emulator = Emulator
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -51,7 +48,6 @@ class UniverseAppNavigationTest {
   // development
   @Before
   fun setup() {
-    Dispatchers.setMain(dispatcher)
     runTest {
       emulator.auth.signInAnonymously().await()
 
@@ -67,12 +63,10 @@ class UniverseAppNavigationTest {
           ))
     }
     composeTestRule.setContent { UniverseApp() }
-    dispatcher.scheduler.advanceUntilIdle()
   }
 
   @After
   fun tearDown() {
-    Dispatchers.resetMain()
     runTest {
       emulator.auth.currentUser?.delete()
       emulator.auth.signOut()
@@ -87,7 +81,6 @@ class UniverseAppNavigationTest {
 
   @Test
   fun navigation_toChatScreen() {
-
     // Click on Chat tab (simulate tab selection)
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
 
