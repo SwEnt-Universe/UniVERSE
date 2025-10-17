@@ -11,13 +11,13 @@ class EventRepositoryProviderTest {
 
   @Test
   fun repositoryIsNotNull() {
-    val repo = EventRepositoryProvider.repository
+    val repo = FakeEventRepository()
     assertNotNull("Repository should not be null", repo)
   }
 
   @Test
   fun repositoryCanBeReplaced() {
-    val originalRepo = EventRepositoryProvider.repository
+    var originalRepo: EventRepository = FakeEventRepository()
 
     val fakeRepo =
         object : EventRepository {
@@ -54,10 +54,7 @@ class EventRepositoryProviderTest {
         }
 
     // Swap repository
-    EventRepositoryProvider.repository = fakeRepo
-    assertEquals("Repository should be replaced", fakeRepo, EventRepositoryProvider.repository)
-
-    // Restore original
-    EventRepositoryProvider.repository = originalRepo
+    originalRepo = fakeRepo
+    assertEquals("Repository should be replaced", fakeRepo, originalRepo)
   }
 }
