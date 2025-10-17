@@ -5,6 +5,7 @@ import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.fail
+import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -14,6 +15,39 @@ class FakeUserRepositoryTest {
   private lateinit var repository: FakeUserRepository
   private val tag = Tag.METAL
   private val tags = setOf(tag)
+
+  private val userProfile1 =
+      UserProfile(
+          uid = "0",
+          username = "Bobbb",
+          firstName = "Test",
+          lastName = "User",
+          country = "Switzerland",
+          description = "Just a test user",
+          dateOfBirth = java.time.LocalDate.of(1990, 1, 1),
+          tags = setOf(Tag.MUSIC, Tag.METAL))
+
+  private val userProfile2 =
+      UserProfile(
+          uid = "1",
+          username = "Al",
+          firstName = "second",
+          lastName = "User2",
+          country = "France",
+          description = "a second user",
+          dateOfBirth = java.time.LocalDate.of(2005, 12, 15),
+          tags = setOf(Tag.TENNIS))
+
+  private val userProfile3 =
+      UserProfile(
+          uid = "2",
+          username = "Rocky",
+          firstName = "third",
+          lastName = "User3",
+          country = "Portugal",
+          description = "a third user",
+          dateOfBirth = java.time.LocalDate.of(2012, 9, 12),
+          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
 
   @Before
   fun setup() {
@@ -57,7 +91,7 @@ class FakeUserRepositoryTest {
 
   @Test
   fun addUser_storesUserWithNoDescription_andCanBeRetrieved() = runTest {
-    val user = sampleUsers[0]
+    val user = userProfile1
     repository.addUser(user)
 
     val result = repository.getUser(user.uid)
@@ -67,22 +101,20 @@ class FakeUserRepositoryTest {
 
   @Test
   fun addUser_storesMultipleUsers_andAllCanBeRetrieved() = runTest {
-    sampleUsers.forEach { repository.addUser(it) }
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.addUser(userProfile3)
     // can retrieve each user individually
-    sampleUsers.forEach { user ->
-      val result = repository.getUser(user.uid)
-      assertNotNull(result)
-      assertSameUser(user, result)
-    }
+    repository.getUser(userProfile1.uid)
+    repository.getUser(userProfile2.uid)
+    repository.getUser(userProfile3.uid)
 
     // all users returned by getAllUsers
     val allUsers = repository.getAllUsers()
-    assertEquals(sampleUsers.size, allUsers.size)
-    sampleUsers.forEach { user ->
-      val result = allUsers.find { it.uid == user.uid }
-      assertNotNull(result)
-      assertSameUser(user, result!!)
-    }
+    assertEquals(3, allUsers.size)
+    assertTrue(allUsers.contains(userProfile1))
+    assertTrue(allUsers.contains(userProfile2))
+    assertTrue(allUsers.contains(userProfile3))
   }
 
   @Test

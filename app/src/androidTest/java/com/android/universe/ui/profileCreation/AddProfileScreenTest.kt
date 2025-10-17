@@ -12,19 +12,21 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.model.user.UserRepositoryFirestore
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.utils.FirestoreUserTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class AddProfileScreenTest {
+class AddProfileScreenTest : FirestoreUserTest() {
   @get:Rule val composeTestRule = createComposeRule()
   val uid = "AddProfileScreenTest"
 
   @Before
-  fun setUp() {
-    UserRepositoryProvider.repository = FakeUserRepository()
+  override fun setUp() {
+    super.setUp()
+    UserRepositoryProvider.repository = UserRepositoryFirestore(emulator.firestore)
     composeTestRule.setContent { AddProfileScreen(uid) }
   }
 

@@ -202,11 +202,9 @@ dependencies {
     implementation(libs.googleid)
 
     // ------------------- Firebase -------------------
-    val firebaseBom = platform(libs.firebase.bom)
-    implementation(firebaseBom)
-    globalTestImplementation(firebaseBom)
-
-    implementation(libs.firebase.auth)
+    //val firebaseBom = platform(libs.firebase.bom)
+    //implementation(firebaseBom)
+    //globalTestImplementation(firebaseBom)
 
     // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
@@ -265,11 +263,30 @@ dependencies {
     // Robolectric (from catalog)
     testImplementation(libs.robolectric)
 
-    // TomTom SDK
-    implementation(libs.tomtomMap)
-    implementation(libs.tomtomLocation)
-    implementation(libs.tomtomSearch)
+    implementation(libs.tomtomMap) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtomLocation) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtomSearch) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.auth)
+
+
+    implementation(libs.okhttp)
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // JaCoCo agent tuning for ALL test tasks
@@ -298,6 +315,11 @@ configurations.configureEach {
         "org.jacoco:org.jacoco.core:$jacocoVer",
         "org.jacoco:org.jacoco.report:$jacocoVer",
     )
+}
+configurations.forEach { configuration ->
+    // Exclude protobuf-lite from all configurations
+    // This fixes a fatal exception for tests interacting with Cloud Firestore
+    configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

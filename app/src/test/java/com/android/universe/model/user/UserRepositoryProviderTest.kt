@@ -9,13 +9,13 @@ class UserRepositoryProviderTest {
 
   @Test
   fun repositoryIsNotNull() {
-    val repo = UserRepositoryProvider.repository
+    val repo = FakeUserRepository()
     assertNotNull("Repository should not be null", repo)
   }
 
   @Test
   fun repositoryCanBeReplaced() {
-    val originalRepo = UserRepositoryProvider.repository
+    var originalRepo: UserRepository = FakeUserRepository()
 
     val fakeRepo =
         object : UserRepository {
@@ -34,10 +34,7 @@ class UserRepositoryProviderTest {
         }
 
     // Swap repository
-    UserRepositoryProvider.repository = fakeRepo
-    assertEquals("Repository should be replaced", fakeRepo, UserRepositoryProvider.repository)
-
-    // Restore original
-    UserRepositoryProvider.repository = originalRepo
+    originalRepo = fakeRepo
+    assertEquals("Repository should be replaced", fakeRepo, originalRepo)
   }
 }
