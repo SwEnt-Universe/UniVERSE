@@ -1,4 +1,4 @@
-package com.android.universe.ui.profile
+package com.android.universe.ui.profileSettings
 
 import android.util.Log
 import com.android.universe.model.Tag
@@ -6,9 +6,11 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.profile.SettingsViewModel
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import io.mockk.*
 import java.time.LocalDate
 import junit.framework.TestCase.*
@@ -37,57 +39,70 @@ class SettingsViewModelTest {
   private lateinit var viewModel: SettingsViewModel
 
   @Before
-  fun setUp() =
-      runTest(testDispatcher) {
-        // Mock FirebaseAuth
-        mockkStatic(FirebaseAuth::class)
-        val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
-        every { FirebaseAuth.getInstance() } returns fakeAuth
-        every { fakeAuth.currentUser } returns null
+  fun setUp() {
 
-        // Mock Log for tag error cases
-        mockkStatic(Log::class)
-        every { Log.e(any(), any()) } returns 0
 
-        // Initialize repositories
-        fakeRepo = FakeUserRepository()
-        mockRepo = mockk<UserRepository>(relaxed = true)
 
-        // Mock Firebase user and tasks
-        mockFirebaseUser = mockk()
-        mockEmailTask = mockk(relaxed = true)
-        mockPasswordTask = mockk(relaxed = true)
-        every { mockFirebaseUser.email } returns "old@example.com"
-        every { mockFirebaseUser.updateEmail(any()) } returns mockEmailTask
-        every { mockFirebaseUser.updatePassword(any()) } returns mockPasswordTask
+    runTest(testDispatcher) {
+      // Mock FirebaseAuth
+      mockkStatic(FirebaseAuth::class)
+      val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
+      every { FirebaseAuth.getInstance() } returns fakeAuth
+      every { fakeAuth.currentUser } returns null
 
-        // Seed fake repository
-        fakeRepo.addUser(
-            UserProfile(
-                uid = "0",
-                username = "emma",
-                firstName = "Emma",
-                lastName = "Stone",
-                country = "Switzerland",
-                description = "hello",
-                dateOfBirth = LocalDate.of(2000, 1, 5),
-                tags = emptySet()))
-        fakeRepo.addUser(
-            UserProfile(
-                uid = "1",
-                username = "u",
-                firstName = "Ulysses",
-                lastName = "Grant",
-                country = "United States",
-                description = "bio",
-                dateOfBirth = LocalDate.of(1990, 8, 12),
-                tags = emptySet()))
+      mockkStatic(FirebaseFirestore::class)
+      every { FirebaseFirestore.getInstance() } returns mockk(relaxed = true)
 
-        // Set up ViewModel
-        UserRepositoryProvider.repository = fakeRepo
-        viewModel = SettingsViewModel(UserRepositoryProvider)
-      }
+      fakeRepo = FakeUserRepository()
+      mockkObject(UserRepositoryProvider)
+      every { UserRepositoryProvider.repository } returns fakeRepo
 
+      // Mock Log for tag error cases
+      mockkStatic(Log::class)
+      every { Log.e(any(), any()) } returns 0
+
+      // Initialize repositories
+      mockRepo = mockk<UserRepository>(relaxed = true)
+
+      // Mock Firebase user and tasks
+      mockFirebaseUser = mockk()
+      mockEmailTask = mockk(relaxed = true)
+      mockPasswordTask = mockk(relaxed = true)
+
+      every { mockFirebaseUser.email } returns "old@example.com"
+      every { mockFirebaseUser.updateEmail(any()) } returns mockEmailTask
+      every { mockFirebaseUser.updatePassword(any()) } returns mockPasswordTask
+
+      // Seed fake repository
+      fakeRepo.addUser(
+        UserProfile(
+          uid = "0",
+          username = "emma",
+          firstName = "Emma",
+          lastName = "Stone",
+          country = "Switzerland",
+          description = "hello",
+          dateOfBirth = LocalDate.of(2000, 1, 5),
+          tags = emptySet()
+        )
+      )
+      fakeRepo.addUser(
+        UserProfile(
+          uid = "1",
+          username = "u",
+          firstName = "Ulysses",
+          lastName = "Grant",
+          country = "United States",
+          description = "bio",
+          dateOfBirth = LocalDate.of(1990, 8, 12),
+          tags = emptySet()
+        )
+      )
+
+      // Set up ViewModel
+      viewModel = SettingsViewModel(UserRepositoryProvider)
+    }
+  }
   @After
   fun tearDown() {
     unmockkAll()
@@ -131,7 +146,7 @@ class SettingsViewModelTest {
   fun `loadUser sets errorMsg on repository failure`() =
       runTest(testDispatcher) {
         coEvery { mockRepo.getUser("0") } throws NoSuchElementException("No user found")
-        UserRepositoryProvider.repository = mockRepo
+        every { UserRepositoryProvider.repository } returns mockRepo
         val viewModel = SettingsViewModel(UserRepositoryProvider)
 
         viewModel.loadUser("0")
@@ -145,7 +160,7 @@ class SettingsViewModelTest {
   fun `clearErrorMsg resets errorMsg`() =
       runTest(testDispatcher) {
         coEvery { mockRepo.getUser("0") } throws NoSuchElementException("No user found")
-        UserRepositoryProvider.repository = mockRepo
+        every { UserRepositoryProvider.repository } returns mockRepo
         val viewModel = SettingsViewModel(UserRepositoryProvider)
 
         viewModel.loadUser("0")

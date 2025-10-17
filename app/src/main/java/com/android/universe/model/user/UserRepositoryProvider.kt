@@ -1,8 +1,7 @@
 package com.android.universe.model.user
 
 import com.android.universe.model.Tag
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
 
 /**
@@ -13,7 +12,7 @@ import java.time.LocalDate
  * application.
  */
 object UserRepositoryProvider {
-  private val _repository: UserRepository by lazy { UserRepositoryFirestore(Firebase.firestore) }
+  private val _repository: UserRepository by lazy { UserRepositoryFirestore(FirebaseFirestore.getInstance()) }
 
   /** Public repository instance (read-only) */
   var repository: UserRepository = _repository
