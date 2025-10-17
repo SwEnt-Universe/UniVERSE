@@ -41,8 +41,6 @@ class SettingsViewModelTest {
   @Before
   fun setUp() {
 
-
-
     runTest(testDispatcher) {
       // Mock FirebaseAuth
       mockkStatic(FirebaseAuth::class)
@@ -75,34 +73,31 @@ class SettingsViewModelTest {
 
       // Seed fake repository
       fakeRepo.addUser(
-        UserProfile(
-          uid = "0",
-          username = "emma",
-          firstName = "Emma",
-          lastName = "Stone",
-          country = "Switzerland",
-          description = "hello",
-          dateOfBirth = LocalDate.of(2000, 1, 5),
-          tags = emptySet()
-        )
-      )
+          UserProfile(
+              uid = "0",
+              username = "emma",
+              firstName = "Emma",
+              lastName = "Stone",
+              country = "Switzerland",
+              description = "hello",
+              dateOfBirth = LocalDate.of(2000, 1, 5),
+              tags = emptySet()))
       fakeRepo.addUser(
-        UserProfile(
-          uid = "1",
-          username = "u",
-          firstName = "Ulysses",
-          lastName = "Grant",
-          country = "United States",
-          description = "bio",
-          dateOfBirth = LocalDate.of(1990, 8, 12),
-          tags = emptySet()
-        )
-      )
+          UserProfile(
+              uid = "1",
+              username = "u",
+              firstName = "Ulysses",
+              lastName = "Grant",
+              country = "United States",
+              description = "bio",
+              dateOfBirth = LocalDate.of(1990, 8, 12),
+              tags = emptySet()))
 
       // Set up ViewModel
       viewModel = SettingsViewModel(UserRepositoryProvider)
     }
   }
+
   @After
   fun tearDown() {
     unmockkAll()
