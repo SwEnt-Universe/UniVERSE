@@ -23,7 +23,8 @@ sealed class NavigationScreens(
   object Profile :
       NavigationScreens(route = "profile", name = "Profile", isTopLevelDestination = true)
 
-  object SignIn : NavigationScreens(route = "signIn", name = "Sign In")
+  object SignIn :
+      NavigationScreens(route = "signIn", name = "Sign In", isTopLevelDestination = true)
 
   object AddProfile : NavigationScreens(route = "addProfile", name = "Add Profile")
 

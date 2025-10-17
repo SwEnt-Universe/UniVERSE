@@ -30,6 +30,7 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
+import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.SampleAppTheme
 import com.google.firebase.auth.FirebaseAuth
@@ -87,8 +88,21 @@ fun UniverseApp(
         startDestination = NavigationScreens.AddProfile.route,
         route = NavigationScreens.AddProfile.name,
     ) {
-      composable(NavigationScreens.AddProfile.route) { AddProfileScreen(user!!.uid) }
+      composable(NavigationScreens.AddProfile.route) {
+        AddProfileScreen(
+            uid = user!!.uid,
+            navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTag) })
+      }
     }
+    navigation(
+        route = NavigationScreens.SelectTag.name,
+        startDestination = NavigationScreens.SelectTag.route) {
+          composable(NavigationScreens.SelectTag.route) {
+            SelectTagScreen(
+                uid = user!!.uid,
+                navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
+          }
+        }
     navigation(
         startDestination = NavigationScreens.Map.route,
         route = NavigationScreens.Map.name,
@@ -123,7 +137,7 @@ fun UniverseApp(
     ) {
       composable(NavigationScreens.Profile.route) {
         UserProfileScreen(
-            uid = "0",
+            uid = user!!.uid,
             onTabSelected = onTabSelected,
             onEditProfileClick = { uid ->
               navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
