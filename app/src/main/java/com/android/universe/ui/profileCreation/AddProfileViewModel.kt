@@ -265,6 +265,7 @@ class AddProfileViewModel(
               tags = emptySet())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
+      onSuccess()
     }
   }
 
