@@ -69,7 +69,7 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   var user = FirebaseAuth.getInstance().currentUser
   val startDestination =
-      if (user != null && user.isAnonymous) NavigationScreens.Map else NavigationScreens.SignIn.name
+      if (user != null && user.isAnonymous) NavigationScreens.Map.route else NavigationScreens.SignIn.name
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
