@@ -420,3 +420,48 @@ registerInstrumentedSuite(
     ),
     "Runs instrumentation tests for both Profile and Profile Settings screens"
 )
+// ---------------------------------------------------------------------------
+// Additional screen-based test suites
+// ---------------------------------------------------------------------------
+
+// Event List only
+registerInstrumentedSuite(
+    "EventRelatedConnectedCheck",
+    listOf("com.android.universe.ui.event"),
+    "Runs instrumentation tests for the Event screen"
+)
+
+// Global Navigation only
+registerInstrumentedSuite(
+    "GlobalNavRelatedConnectedCheck",
+    listOf("com.android.universe.ui.navigation"),
+    "Runs instrumentation tests for the Global Navigation screen"
+)
+
+// Profile Creation only
+registerInstrumentedSuite(
+    "ProfileCreationRelatedConnectedCheck",
+    listOf("com.android.universe.ui.profileCreation"),
+    "Runs instrumentation tests for the Profile Creation screen"
+)
+
+// Map only
+registerInstrumentedSuite(
+    "MapRelatedConnectedCheck",
+    listOf("com.android.universe.ui.map"),
+    "Runs instrumentation tests for the Map screen"
+)
+
+// Select Tag screen only
+registerInstrumentedSuite(
+    "TagScreenRelatedConnectedCheck",
+    listOf("com.android.universe.ui.selectedTagScreen"),
+    "Runs instrumentation tests for the Selected Tag screen"
+)
+
+// Common composables only
+registerInstrumentedSuite(
+    "CommonComposableConnectedCheck",
+    listOf("com.android.universe.ui.common"),
+    "Runs instrumentation tests for common reusable UI composables"
+)
