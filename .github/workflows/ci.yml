@@ -105,33 +105,49 @@ jobs:
             exit 1
           fi
 
-      # ------------------ 🧹 Code Quality ------------------
+            # ------------------ 🧹 Code Quality ------------------
       - name: KTFmt Check
         run: ./gradlew ktfmtCheck
 
+      # ------------------ 🚪 Skip heavy tasks for [Docs] PRs ------------------
+      - name: Detect [Docs]-only changes
+        id: skip-heavy
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "PR title: $TITLE"
+          if [[ "$TITLE" == *"[Docs]"* || "$TITLE" == *"[docs]"* ]]; then
+            echo "📝 [Docs] detected → skipping build, tests, and Sonar steps"
+            echo "skip=true" >> $GITHUB_ENV
+          else
+            echo "skip=false" >> $GITHUB_ENV
+          fi
+
       # ------------------ 🔨 Build & Lint ------------------
       - name: Assemble Debug APK (PRs only)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && env.skip != 'true'
         run: ./gradlew assembleDebug --build-cache
 
       - name: Assemble + Lint (main branch)
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && env.skip != 'true'
         run: ./gradlew assembleDebug lintDebug --build-cache
 
-      # ------------------  Unit Tests ------------------
+      # ------------------ 🧪 Unit Tests ------------------
       - name: Run unit tests
+        if: env.skip != 'true'
         run: ./gradlew testDebugUnitTest --build-cache
 
-      # ------------------  Firebase Emulators ------------------
+      # ------------------ 🔥 Firebase Emulators ------------------
       - name: Start Firebase emulators
+        if: env.skip != 'true'
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
             nohup firebase emulators:start --only auth,firestore --project demo-project > firebase-emulator.log 2>&1 &
             sleep 20
           fi
 
-            # ------------------ Decide test target ------------------
+      # ------------------ 🧠 Decide test target ------------------
       - name: Determine test suite
+        if: env.skip != 'true'
         id: select-tests
         run: |
           EVENT_NAME="${{ github.event_name }}"
@@ -154,6 +170,7 @@ jobs:
 
       # ------------------ 📱 Run instrumentation tests ------------------
       - name: Run instrumentation tests (${{ env.mode }})
+        if: env.skip != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -164,13 +181,14 @@ jobs:
           disable-animations: true
           script: ./gradlew ${{ env.mode }} --build-cache
 
-
-
       # ------------------ 📈 Coverage + Sonar ------------------
       - name: Generate JaCoCo Coverage Report
+        if: env.skip != 'true'
         run: ./gradlew jacocoTestReport --build-cache
 
       - name: Upload report to SonarCloud
+        if: env.skip != 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar --parallel --build-cache
+
