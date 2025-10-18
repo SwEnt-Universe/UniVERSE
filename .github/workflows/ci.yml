@@ -145,28 +145,37 @@ jobs:
             sleep 20
           fi
 
-      # ------------------ 🧠 Decide test target ------------------
-      - name: Determine test suite
+            # ------------------ 🧠 Decide test target ------------------
+      - name: Determine test suite(s)
         if: env.skip != 'true'
         id: select-tests
         run: |
           EVENT_NAME="${{ github.event_name }}"
           REF="${{ github.ref }}"
           TITLE="${{ github.event.pull_request.title }}"
+
           echo "Event: $EVENT_NAME"
           echo "Ref: $REF"
           echo "PR title: $TITLE"
 
+          # Load tag-to-suite mappings
+          source test-suites.sh
+
           if [[ "$EVENT_NAME" == "push" && "$REF" == "refs/heads/main" ]]; then
-            echo "mode=connectedCheck" >> $GITHUB_ENV
+            modes="connectedCheck"
             echo "➡️ Main branch → full connectedCheck"
-          elif [[ "$TITLE" == *"[Profile]"* ]]; then
-            echo "mode=ProfileRelatedConnectedCheck" >> $GITHUB_ENV
-            echo "🧩 [Profile] detected → profile suite only"
           else
-            echo "mode=connectedCheck" >> $GITHUB_ENV
-            echo "🧪 Default → full connectedCheck"
+            modes=$(get_suites_from_title "$TITLE")
+            if [[ -z "$modes" ]]; then
+              modes="connectedCheck"
+              echo "🧪 No matching tags → running full connectedCheck"
+            else
+              echo "🎯 Selected suites:$modes"
+            fi
           fi
+
+          echo "modes=$modes" >> $GITHUB_ENV
+
 
       # ------------------ 📱 Run instrumentation tests ------------------
       - name: Run instrumentation tests (${{ env.mode }})
