@@ -118,11 +118,11 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: ./gradlew assembleDebug lintDebug --build-cache
 
-      # ------------------ 🧪 Unit Tests ------------------
+      # ------------------  Unit Tests ------------------
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --build-cache
 
-      # ------------------ 🔥 Firebase Emulators ------------------
+      # ------------------  Firebase Emulators ------------------
       - name: Start Firebase emulators
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
@@ -130,7 +130,7 @@ jobs:
             sleep 20
           fi
 
-            # ------------------ 🧠 Decide test target ------------------
+            # ------------------ Decide test target ------------------
       - name: Determine test suite
         id: select-tests
         run: |
