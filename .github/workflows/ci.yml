@@ -159,7 +159,7 @@ jobs:
           echo "PR title: $TITLE"
 
           # Load tag-to-suite mappings
-          source test-suites.sh
+          source .github/workflows/test-suites.sh
 
           if [[ "$EVENT_NAME" == "push" && "$REF" == "refs/heads/main" ]]; then
             modes="connectedCheck"
