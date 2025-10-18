@@ -322,6 +322,9 @@ configurations.forEach { configuration ->
     configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
 
+// One global constant
+val gradlewCmd = if (System.getProperty("os.name").lowercase().contains("windows")) "gradlew.bat" else "./gradlew"
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Coverage report task (unit + connected)
 // - Produces XML for Sonar + HTML for humans
@@ -363,3 +366,57 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         }
     )
 }
+// ---------------------------------------------------------------------------
+// 🧪 Run filtered instrumentation tests directly via Gradle
+// ---------------------------------------------------------------------------
+
+// Determine the correct Gradle wrapper path
+val rootGradlew = project.rootDir.resolve(
+    if (System.getProperty("os.name").lowercase().contains("windows")) "gradlew.bat" else "./gradlew"
+).absolutePath
+
+fun registerInstrumentedSuite(taskName: String, packageNames: List<String>, description: String) {
+    tasks.register<Exec>(taskName) {
+        group = "verification"
+        this.description = description
+
+        val packageArgs = packageNames.joinToString(" ") {
+            "-Pandroid.testInstrumentationRunnerArguments.package=$it"
+        }
+
+        // Run connectedDebugAndroidTest directly with filtering
+        commandLine("cmd", "/c", "$rootGradlew connectedDebugAndroidTest $packageArgs")
+        // For macOS/Linux, use this instead:
+        if (!System.getProperty("os.name").lowercase().contains("windows")) {
+            commandLine("bash", "-c", "$rootGradlew connectedDebugAndroidTest $packageArgs")
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Suites
+// ---------------------------------------------------------------------------
+
+// Profile only
+registerInstrumentedSuite(
+    "profileConnectedCheck",
+    listOf("com.android.universe.ui.profile"),
+    "Runs instrumentation tests for the Profile screen"
+)
+
+// Profile Settings only
+registerInstrumentedSuite(
+    "profileSettingsConnectedCheck",
+    listOf("com.android.universe.ui.profileSettings"),
+    "Runs instrumentation tests for the Profile Settings screen"
+)
+
+// Combined profile + settings
+registerInstrumentedSuite(
+    "ProfileRelatedConnectedCheck",
+    listOf(
+        "com.android.universe.ui.profile",
+        "com.android.universe.ui.profileSettings"
+    ),
+    "Runs instrumentation tests for both Profile and Profile Settings screens"
+)
