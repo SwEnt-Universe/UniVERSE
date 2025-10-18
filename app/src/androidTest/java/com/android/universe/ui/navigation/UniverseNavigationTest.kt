@@ -30,6 +30,7 @@ object Emulator {
 
   init {
     auth.useEmulator("10.0.2.2", 9099)
+    firestore.useEmulator("10.0.2.2", 8080)
   }
 }
 
