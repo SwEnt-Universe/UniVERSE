@@ -119,16 +119,21 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
           script: |
+            EVENT_NAME="${{ github.event_name }}"
+            REF="${{ github.ref }}"
             TITLE="${{ github.event.pull_request.title }}"
+            echo "Event: $EVENT_NAME"
+            echo "Ref: $REF"
             echo "PR title: $TITLE"
-            if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
-              echo "Main branch → running full connectedCheck"
+            
+            if [[ "$EVENT_NAME" == "push" && "$REF" == "refs/heads/main" ]]; then
+              echo "➡️ Main branch push → running full connectedCheck"
               ./gradlew connectedCheck --parallel --build-cache
             elif [[ "$TITLE" == *"[Profile]"* ]]; then
-              echo "Detected [Profile] in PR title → running Profile suite only"
+              echo "🧩 [Profile] detected in PR title → running profile suite only"
               ./gradlew ProfileRelatedConnectedCheck --build-cache
             else
-              echo "No special keyword → running full connectedCheck"
+              echo "🧪 No special keyword → running full connectedCheck"
               ./gradlew connectedCheck --parallel --build-cache
             fi
 
