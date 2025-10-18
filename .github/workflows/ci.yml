@@ -143,20 +143,23 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
           script: |
-            echo "Event: $EVENT_NAME"
-            echo "Ref: $REF"
-            echo "PR title: $TITLE"
+            bash -c '
+              echo "Event: $EVENT_NAME"
+              echo "Ref: $REF"
+              echo "PR title: $TITLE"
 
-            if [[ "$EVENT_NAME" == "push" && "$REF" == "refs/heads/main" ]]; then
-              echo "➡️ Main branch push → running full connectedCheck"
-              ./gradlew connectedCheck --parallel --build-cache
-            elif [[ "$TITLE" == *"[Profile]"* ]]; then
-              echo "🧩 [Profile] detected in PR title → running Profile suite only"
-              ./gradlew ProfileRelatedConnectedCheck --build-cache
-            else
-              echo "🧪 No special keyword → running full connectedCheck"
-              ./gradlew connectedCheck --parallel --build-cache
-            fi
+              if [[ "$EVENT_NAME" == "push" && "$REF" == "refs/heads/main" ]]; then
+                echo "➡️ Main branch push → running full connectedCheck"
+                ./gradlew connectedCheck --parallel --build-cache
+              elif [[ "$TITLE" == *"[Profile]"* ]]; then
+                echo "🧩 [Profile] detected in PR title → running profile suite only"
+                ./gradlew ProfileRelatedConnectedCheck --build-cache
+              else
+                echo "🧪 No special keyword → running full connectedCheck"
+                ./gradlew connectedCheck --parallel --build-cache
+              fi
+            '
+      
 
       # ------------------ 📈 Coverage + Sonar ------------------
       - name: Generate JaCoCo Coverage Report
