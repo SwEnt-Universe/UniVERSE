@@ -2,73 +2,83 @@ name: CI - Test Runner
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     env:
       TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
-    outputs:
-      skip: ${{ steps.skip-heavy.outputs.skip }}
+
     steps:
-      - uses: actions/checkout@v4
+      # ------------------ 📦 Checkout ------------------
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
-      - uses: actions/setup-java@v4
+
+      # ------------------ ⚙️ System Setup ------------------
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-      - uses: actions/setup-node@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # ------------------ 🗄️ Cache npm ------------------
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
-      - uses: gradle/actions/setup-gradle@v3
-      - run: chmod +x ./gradlew
-      - name: Decode google-services.json
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          fi
-      - name: Validate TOMTOM_API_KEY
-        run: test -n "$TOMTOM_API_KEY"
-      - name: KTFmt Check
-        run: ./gradlew ktfmtCheck
-      - name: Detect [Docs]-only changes
-        id: skip-heavy
-        run: |
-          TITLE="${{ github.event.pull_request.title }}"
-          if [[ "$TITLE" == *"[Docs]"* || "$TITLE" == *"[docs]"* ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Assemble + Unit Tests
-        if: steps.skip-heavy.outputs.skip != 'true'
-        run: ./gradlew assembleDebug testDebugUnitTest --build-cache
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-  connected-tests-A:
-    needs: build
-    if: needs.build.outputs.skip != 'true'
-    runs-on: ubuntu-latest
-    env:
-      TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # ------------------ Gradle Cache ------------------
+      - name: Cache Gradle files
+        uses: actions/cache@v4
         with:
-          node-version: 22
-      - run: npm install -g firebase-tools
-      - uses: gradle/actions/setup-gradle@v3
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
-      # Cache AVD (API 30)
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      # ------------------ Build Output Cache ------------------
+      - name: Cache Gradle build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/build
+            .gradle
+          key: build-${{ github.ref_name }}
+          restore-keys: |
+            build-
+
+      # ------------------ 🧰 AVD Setup ------------------
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -76,97 +86,117 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-30
+          key: avd-34
+          restore-keys: |
+            avd-
 
       - name: Create AVD snapshot (if cache miss)
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 34
           target: google_apis
           arch: x86_64
-          force-avd-creation: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
-          script: echo "Generated snapshot for cache."
+          script: echo "Generated AVD snapshot for caching."
 
-      - name: Start Firebase emulators
+      # ------------------  Secrets ------------------
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
         run: |
-          nohup firebase emulators:start --only auth,firestore --project demo-project > firebase-emulator.log 2>&1 &
-          sleep 20
+          if [ -n "$GOOGLE_SERVICES" ]; then
+            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES secret not set."
+          fi
 
-      - name: Run Connected Tests (Suite A)
+      - name: Validate TOMTOM_API_KEY
+        run: |
+          if [ -z "$TOMTOM_API_KEY" ]; then
+            echo "::error::TOMTOM_API_KEY secret is not set"
+            exit 1
+          fi
+
+      # ------------------ 🧹 Code Quality ------------------
+      - name: KTFmt Check
+        run: ./gradlew ktfmtCheck
+
+      # ------------------ 🚪 Skip heavy tasks for [Docs] PRs ------------------
+      - name: Detect [Docs]-only changes
+        id: skip-heavy
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "PR title: $TITLE"
+          if [[ "$TITLE" == *"[Docs]"* || "$TITLE" == *"[docs]"* ]]; then
+            echo "📝 [Docs] detected → skipping build, tests, and Sonar steps"
+            echo "skip=true" >> $GITHUB_ENV
+          else
+            echo "skip=false" >> $GITHUB_ENV
+          fi
+
+      # ------------------  Build & Lint ------------------
+      - name: Assemble Debug APK (PRs only)
+        if: github.event_name == 'pull_request' && env.skip != 'true'
+        run: ./gradlew assembleDebug --build-cache
+
+      - name: Assemble + Lint (main branch)
+        if: github.ref == 'refs/heads/main' && env.skip != 'true'
+        run: ./gradlew assembleDebug lintDebug --build-cache
+
+      # ------------------  Unit Tests ------------------
+      - name: Run unit tests
+        if: env.skip != 'true'
+        run: ./gradlew testDebugUnitTest --build-cache
+
+      # ------------------  Firebase Emulators ------------------
+      - name: Start Firebase emulators
+        if: env.skip != 'true'
+        run: |
+          if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
+            nohup firebase emulators:start --only auth,firestore --project demo-project > firebase-emulator.log 2>&1 &
+            sleep 20
+          fi
+
+      # ------------------  Decide test target ------------------
+      - name: Determine test suite
+        if: env.skip != 'true'
+        id: select-tests
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          REF="${{ github.ref }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "Event: $EVENT_NAME"
+          echo "Ref: $REF"
+          echo "PR title: $TITLE"
+          echo "mode=connectedCheck" >> $GITHUB_ENV
+          echo "Default → full connectedCheck"
+
+      # ------------------ Run instrumentation tests ------------------
+      - name: Run instrumentation tests (${{ env.mode }})
+        if: env.skip != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 34
           target: google_apis
           arch: x86_64
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
-          script: ./gradlew connectedSuiteAConnectedCheck --build-cache
+          script: ./gradlew ${{ env.mode }} --build-cache
 
-      - name: Upload Firebase Emulator Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: firebase-emulator-logs-suiteA
-          path: firebase-emulator.log
+      # ------------------ 📈 Coverage + Sonar ------------------
+      - name: Generate JaCoCo Coverage Report
+        if: env.skip != 'true'
+        run: ./gradlew jacocoTestReport --build-cache
 
-
-  connected-tests-B:
-    needs: build
-    if: needs.build.outputs.skip != 'true'
-    runs-on: ubuntu-latest
-    env:
-      TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm install -g firebase-tools
-      - uses: gradle/actions/setup-gradle@v3
-
-      # Reuse AVD cache
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-30
-
-      - name: Start Firebase emulators
-        run: |
-          nohup firebase emulators:start --only auth,firestore --project demo-project > firebase-emulator.log 2>&1 &
-          sleep 20
-
-      - name: Run Connected Tests (Suite B)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          arch: x86_64
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          disable-animations: true
-          script: ./gradlew connectedSuiteBConnectedCheck --build-cache
-
-      - name: Upload Firebase Emulator Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: firebase-emulator-logs-suiteB
-          path: firebase-emulator.log
-
-
-  report:
-    needs: [connected-tests-A, connected-tests-B]
-    if: needs.build.outputs.skip != 'true'
-    runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew jacocoTestReport --build-cache
-      - run: ./gradlew sonar --parallel --build-cache
+      - name: Upload report to SonarCloud
+        if: env.skip != 'true'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar --parallel --build-cache
