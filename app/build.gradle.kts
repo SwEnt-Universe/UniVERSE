@@ -90,6 +90,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -192,15 +193,16 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 dependencies {
     // Import the Bill of Materials (BOMs) to manage library versions.
     // This removes the need to specify versions for individual Compose and Firebase libraries.
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(platform(libs.firebase.bom))
-    androidTestImplementation(platform(libs.androidx.compose.bom)) // Make BOM available for Android tests
+    val composeBom = platform(libs.androidx.compose.bom)
+    val firebaseBom = platform(libs.firebase.bom)
+    implementation(composeBom)
+    globalTestImplementation(composeBom)
+    implementation(firebaseBom)
 
     // --------------------- Core & Runtime ---------------------
-    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.multidex)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // --------------------- Auth ---------------------
     implementation(libs.google.credentials)
@@ -209,6 +211,7 @@ dependencies {
     // ------------------- Firebase -------------------
     // Version is controlled by the firebase-bom
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     // ----------------- Jetpack Compose ------------------
     // Versions are controlled by the androidx-compose-bom
@@ -224,13 +227,22 @@ dependencies {
 
     // ------------------- Navigation -------------------
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
-
+    implementation(libs.androidx.navigation.ui)
+    implementation(libs.androidx.navigation.fragment)
     // ----------------- TomTom SDK -----------------
-    implementation(libs.tomtom.maps)
-    implementation(libs.tomtom.location)
-    implementation(libs.tomtom.search)
+    implementation(libs.tomtom.maps) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtom.location) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtom.search) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+
 
     // ==========================================================================
     // TESTING
@@ -240,6 +252,7 @@ dependencies {
     globalTestImplementation(libs.kotlin.test)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.junit4)
+    globalTestImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.turbine)
@@ -252,7 +265,6 @@ dependencies {
     // ----------------- PlaceHolder -----------------
     // This fixes import issue in the second screen test, imo the test class should be moved to
     // a different package (androidTest). If it should not maybe debugImplementation is the way
-    testImplementation(libs.androidx.compose.ui.test)
     testImplementation(libs.io.github.kakaocup)
 
     // ----------------- Instrumented Testing (androidTest/) -----------------
@@ -260,7 +272,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.core)
     // Compose UI Tests (versions managed by compose-bom)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // ----------------- Kaspresso (UI Automation) -----------------
