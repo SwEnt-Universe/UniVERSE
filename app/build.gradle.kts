@@ -98,6 +98,16 @@ android {
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE.md",
+                "META-INF/LICENSE-notice.md"
+            )
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
