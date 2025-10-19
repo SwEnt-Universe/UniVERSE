@@ -9,6 +9,7 @@ on:
 
 jobs:
   ci:
+    name: CI
     runs-on: ubuntu-latest
     env:
       TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
