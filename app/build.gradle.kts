@@ -233,7 +233,8 @@ dependencies {
 
     // Testing
     testImplementation(libs.logback) // logback for logging mockK
-    testImplementation(libs.junit)
+    testImplementation(libs.junit5.api)
+    testImplementation(libs.junit5.engine)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
     // Mockito for JVM unit tests (needed to mock FirebaseAuth.getInstance())
@@ -250,7 +251,7 @@ dependencies {
     testImplementation(libs.mockk.agent)
     testImplementation(libs.mockk.android)
     // Kotlin test bridge
-    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.jetbrains.kotlin.test.junit)
     androidTestImplementation(libs.jetbrains.kotlin.test.junit)
 
     // AndroidX test core (explicit if needed)
