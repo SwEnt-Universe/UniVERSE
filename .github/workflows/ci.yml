@@ -14,14 +14,14 @@ jobs:
       TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
 
     steps:
-      # ------------------ 📦 Checkout ------------------
+      # ------------------ Checkout ------------------
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # ------------------ ⚙️ System Setup ------------------
+      # ------------------ System Setup ------------------
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -39,7 +39,7 @@ jobs:
         with:
           node-version: 22
 
-      # ------------------ 🗄️ Cache npm ------------------
+      # ------------------  Cache npm ------------------
       - name: Cache npm
         uses: actions/cache@v4
         with:
@@ -123,11 +123,11 @@ jobs:
             exit 1
           fi
 
-      # ------------------ 🧹 Code Quality ------------------
+      # ------------------ Code Quality ------------------
       - name: KTFmt Check
         run: ./gradlew ktfmtCheck
 
-      # ------------------ 🚪 Skip heavy tasks for [Docs] PRs ------------------
+      # ------------------ Skip heavy tasks for [Docs] PRs ------------------
       - name: Detect [Docs]-only changes
         id: skip-heavy
         run: |
