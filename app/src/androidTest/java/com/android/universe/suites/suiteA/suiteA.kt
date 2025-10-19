@@ -12,6 +12,5 @@ import org.junit.runners.Suite
     UniverseAppNavigationTest::class,
     MapScreenTest::class,
     EventScreenTest::class,
-    SelectTagScreenTest::class
-)
+    SelectTagScreenTest::class)
 class ConnectedSuiteA
