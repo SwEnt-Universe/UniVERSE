@@ -322,9 +322,6 @@ configurations.forEach { configuration ->
     configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
 
-// One global constant
-val gradlewCmd = if (System.getProperty("os.name").lowercase().contains("windows")) "gradlew.bat" else "./gradlew"
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Coverage report task (unit + connected)
 // - Produces XML for Sonar + HTML for humans
@@ -397,71 +394,15 @@ fun registerInstrumentedSuite(taskName: String, packageNames: List<String>, desc
 // Suites
 // ---------------------------------------------------------------------------
 
-// Profile only
+
 registerInstrumentedSuite(
-    "profileConnectedCheck",
-    listOf("com.android.universe.ui.profile"),
-    "Runs instrumentation tests for the Profile screen"
+    "connectedSuiteAConnectedCheck",
+    listOf("com.android.universe.suites.suiteA"),
+    "Runs selected tests via suite class"
 )
 
-// Profile Settings only
 registerInstrumentedSuite(
-    "profileSettingsConnectedCheck",
-    listOf("com.android.universe.ui.profileSettings"),
-    "Runs instrumentation tests for the Profile Settings screen"
-)
-
-// Combined profile + settings
-registerInstrumentedSuite(
-    "ProfileRelatedConnectedCheck",
-    listOf(
-        "com.android.universe.ui.profile",
-        "com.android.universe.ui.profileSettings"
-    ),
-    "Runs instrumentation tests for both Profile and Profile Settings screens"
-)
-// ---------------------------------------------------------------------------
-// Additional screen-based test suites
-// ---------------------------------------------------------------------------
-
-// Event List only
-registerInstrumentedSuite(
-    "EventRelatedConnectedCheck",
-    listOf("com.android.universe.ui.event"),
-    "Runs instrumentation tests for the Event screen"
-)
-
-// Global Navigation only
-registerInstrumentedSuite(
-    "GlobalNavRelatedConnectedCheck",
-    listOf("com.android.universe.ui.navigation"),
-    "Runs instrumentation tests for the Global Navigation screen"
-)
-
-// Profile Creation only
-registerInstrumentedSuite(
-    "ProfileCreationRelatedConnectedCheck",
-    listOf("com.android.universe.ui.profileCreation"),
-    "Runs instrumentation tests for the Profile Creation screen"
-)
-
-// Map only
-registerInstrumentedSuite(
-    "MapRelatedConnectedCheck",
-    listOf("com.android.universe.ui.map"),
-    "Runs instrumentation tests for the Map screen"
-)
-
-// Select Tag screen only
-registerInstrumentedSuite(
-    "TagScreenRelatedConnectedCheck",
-    listOf("com.android.universe.ui.selectedTagScreen"),
-    "Runs instrumentation tests for the Selected Tag screen"
-)
-
-// Common composables only
-registerInstrumentedSuite(
-    "CommonComposableConnectedCheck",
-    listOf("com.android.universe.ui.common"),
-    "Runs instrumentation tests for common reusable UI composables"
+    "connectedSuiteBConnectedCheck",
+    listOf("com.android.universe.suites.suiteB"),
+    "Runs selected tests via suite class"
 )
