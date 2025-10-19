@@ -129,6 +129,8 @@ jobs:
         run: ./gradlew ktfmtCheck
 
       # ------------------ Skip heavy tasks for [Docs] PRs ------------------
+      # IMPORTANT the [Docs] tag is only meant to be used if a previous CI passes
+      # and only documentation / non source code changes have been made
       - name: Detect [Docs]-only changes
         id: skip-heavy
         run: |
