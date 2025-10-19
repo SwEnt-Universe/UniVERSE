@@ -12,6 +12,5 @@ import org.junit.runners.Suite
     UserProfileScreenTest::class,
     AddProfileScreenTest::class,
     SettingsModalTest::class,
-    SettingsScreenTest::class
-)
+    SettingsScreenTest::class)
 class ConnectedSuiteA
