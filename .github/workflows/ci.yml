@@ -144,16 +144,16 @@ jobs:
       # ------------------  Build & Lint ------------------
       - name: Assemble Debug APK (PRs only)
         if: github.event_name == 'pull_request' && env.skip != 'true'
-        run: ./gradlew assembleDebug --build-cache
+        run: ./gradlew assembleDebug
 
       - name: Assemble + Lint (main branch)
         if: github.ref == 'refs/heads/main' && env.skip != 'true'
-        run: ./gradlew assembleDebug lintDebug --build-cache
+        run: ./gradlew assembleDebug lintDebug
 
       # ------------------  Unit Tests ------------------
       - name: Run unit tests
         if: env.skip != 'true'
-        run: ./gradlew testDebugUnitTest --build-cache
+        run: ./gradlew testDebugUnitTest
 
       # ------------------  Firebase Emulators ------------------
       - name: Start Firebase emulators
@@ -189,15 +189,15 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
-          script: ./gradlew ${{ env.mode }} --build-cache
+          script: ./gradlew ${{ env.mode }}
 
       # ------------------ 📈 Coverage + Sonar ------------------
       - name: Generate JaCoCo Coverage Report
         if: env.skip != 'true'
-        run: ./gradlew jacocoTestReport --build-cache
+        run: ./gradlew jacocoTestReport
 
       - name: Upload report to SonarCloud
         if: env.skip != 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar --parallel --build-cache
+        run: ./gradlew sonar --parallel
