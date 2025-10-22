@@ -106,7 +106,16 @@ android {
                 "proguard-rules.pro"
             )
 
-            signingConfig = signingConfigs.getByName("release")
+            // BYPASS RELEASE IF NO SIGNING CREDENTIALS (build without keystore.jks)
+            if (
+                System.getenv("SIGNING_STORE_PASSWORD") != null &&
+                System.getenv("SIGNING_KEY_ALIAS") != null &&
+                System.getenv("SIGNING_KEY_PASSWORD") != null
+            ) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                println("⚠️ No signing credentials found; building unsigned release APK.")
+            }
         }
 
         debug {

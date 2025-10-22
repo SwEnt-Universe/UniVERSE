@@ -27,31 +27,27 @@ fun UniverseTheme(
         }
         darkTheme ->
             darkColorScheme(
-                primary = PrimaryDark,
-                primaryContainer = PrimaryVariantDark,
-                secondary = SecondaryDark,
-                secondaryContainer = SecondaryVariantDark,
-                background = BackgroundDark,
                 surface = SurfaceDark,
-                error = ErrorDark,
-                onPrimary = OnPrimaryDark,
-                onSecondary = OnSecondaryDark,
-                onBackground = OnBackgroundDark,
                 onSurface = OnSurfaceDark,
+                background = BackgroundDark,
+                onBackground = OnBackgroundDark,
+                primary = PrimaryDark,
+                onPrimary = OnPrimaryDark,
+                secondary = SecondaryDark,
+                onSecondary = OnSecondaryDark,
+                error = ErrorDark,
                 onError = OnErrorDark)
         else ->
             lightColorScheme(
-                primary = PrimaryLight,
-                primaryContainer = PrimaryVariantLight,
-                secondary = SecondaryLight,
-                secondaryContainer = SecondaryVariantLight,
-                background = BackgroundLight,
                 surface = SurfaceLight,
-                error = ErrorLight,
-                onPrimary = OnPrimaryLight,
-                onSecondary = OnSecondaryLight,
-                onBackground = OnBackgroundLight,
                 onSurface = OnSurfaceLight,
+                background = BackgroundLight,
+                onBackground = OnBackgroundLight,
+                primary = PrimaryLight,
+                onPrimary = OnPrimaryLight,
+                secondary = SecondaryLight,
+                onSecondary = OnSecondaryLight,
+                error = ErrorLight,
                 onError = OnErrorLight)
       }
 

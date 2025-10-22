@@ -19,10 +19,10 @@ val OnErrorLight = Color(0xFFFFFFFF) // White
 val OnErrorDark = Color(0xFF000000) // Black
 
 // Primary colors
-val PrimaryLight = Color(0xFF6200EE) // Purple for light theme
-val PrimaryDark = Color(0xFFBB86FC) // Lighter purple for dark theme
+val PrimaryLight = Color(0xFF009688) // Purple for light theme
+val PrimaryDark = Color(0xFF009688) // Lighter purple for dark theme
 val PrimaryVariantLight = Color(0xFF3700B3)
-val PrimaryVariantDark = Color(0xFF3700B3)
+val PrimaryVariantDark = Color(0xFF009688)
 
 // Secondary colors
 val SecondaryLight = Color(0xFF03DAC6) // Teal

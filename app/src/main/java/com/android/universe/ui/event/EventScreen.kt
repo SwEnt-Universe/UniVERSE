@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,7 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.UniverseTheme
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -139,7 +141,7 @@ fun EventCard(
       modifier = Modifier.fillMaxWidth().padding(8.dp).testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(16.dp),
       elevation = CardDefaults.cardElevation(48.dp)) {
-        Column(modifier = Modifier.background(Color.White)) {
+        Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
           // Image with overlay
           Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
             Image(
@@ -152,12 +154,12 @@ fun EventCard(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(
                       text = date,
-                      color = Color.Black,
+                      color = MaterialTheme.colorScheme.onSurface,
                       style = MaterialTheme.typography.labelSmall,
                       fontWeight = FontWeight.Bold)
                 }
@@ -176,8 +178,7 @@ fun EventCard(
           Text(
               text = title,
               style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = Color.Black,
+              color = MaterialTheme.colorScheme.onSurface,
               modifier =
                   Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                       .testTag(EventScreenTestTags.EVENT_TITLE),
@@ -188,7 +189,7 @@ fun EventCard(
           Text(
               text = description,
               style = MaterialTheme.typography.bodyMedium,
-              color = Color.DarkGray,
+              color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
               modifier =
                   Modifier.padding(horizontal = 16.dp)
                       .testTag(EventScreenTestTags.EVENT_DESCRIPTION),
@@ -206,14 +207,15 @@ fun EventCard(
                 Text(
                     text = "$participants joined • by $creator",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha=0.7f)
+                )
 
                 Button(
                     onClick = {},
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.testTag(EventScreenTestTags.EVENT_JOIN_BUTTON)) {
-                      Text(text = "Join In", color = Color.White)
+                      Text(text = "Join In", color = MaterialTheme.colorScheme.onPrimary)
                     }
               }
         }
@@ -231,13 +233,14 @@ fun EventCard(
 fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
-          Modifier.background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+          Modifier
+              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
               .padding(horizontal = 8.dp, vertical = 4.dp)
               .testTag(testTag)) {
         Text(
             text = tag,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold)
       }
 }
@@ -252,5 +255,7 @@ fun TagCard(tag: String, testTag: String) {
 @Composable
 fun EventCardPreview() {
   val previewViewModel = EventViewModel(EventRepositoryProvider.repository)
-  EventScreen(viewModel = previewViewModel)
+  UniverseTheme {
+    EventScreen(viewModel = previewViewModel)
+  }
 }
