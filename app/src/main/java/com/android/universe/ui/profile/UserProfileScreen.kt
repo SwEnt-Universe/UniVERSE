@@ -80,6 +80,7 @@ fun UserProfileScreen(
   }
   val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
   Scaffold(
+      modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
       topBar = {
         TopAppBar(
             title = { Text("Profile") },
@@ -93,11 +94,7 @@ fun UserProfileScreen(
       },
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
         Column(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
-                    .testTag(NavigationTestTags.PROFILE_SCREEN),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
               Row(
                   modifier = Modifier.fillMaxWidth(),
