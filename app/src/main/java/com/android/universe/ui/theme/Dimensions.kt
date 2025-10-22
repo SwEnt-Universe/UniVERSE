@@ -10,7 +10,6 @@ object Dimensions {
   val PaddingExtraLarge = 20.dp // ContentHorizontalPadding, DividerPadding
   val PaddingErrorIndent = 8.dp // ErrorIndent
   val PaddingFieldIconSpacing = 10.dp // FieldIconSpacing
-  val PaddingDateFieldSpacing = 8.dp // DateFieldSpacing
 
   // Icon sizes (from TagGroup, SelectTagScreen)
   val IconSizeSmall = 16.dp // Delete icon

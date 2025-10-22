@@ -24,18 +24,19 @@ import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.profile.SettingsViewModel
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 
 /* =========================================================
  * Padding/style constants
  * ========================================================= */
 object SettingsScreenPaddings {
-  val InternalSpacing = 4.dp
-  val DividerPadding = 20.dp
-  val ContentHorizontalPadding = 20.dp
-  val ErrorIndent = 8.dp
-  val FieldIconSpacing = 10.dp
-  val DateFieldSpacing = 8.dp
+  val InternalSpacing = Dimensions.PaddingSmall
+  val DividerPadding = Dimensions.PaddingExtraLarge
+  val ContentHorizontalPadding = Dimensions.PaddingExtraLarge
+  val ErrorIndent = Dimensions.PaddingMedium
+  val FieldIconSpacing = Dimensions.PaddingFieldIconSpacing
+  val DateFieldSpacing = Dimensions.PaddingMedium
 }
 
 object SettingsScreenStyles {
@@ -177,6 +178,7 @@ fun SettingsScreenContent(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(padding)
+                    .padding(top = Dimensions.PaddingLarge)
                     .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)) {
               item { GeneralSection(uiState = uiState, open = onOpenField) }
               item { ProfileSection(uiState = uiState, open = onOpenField) }
