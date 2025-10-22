@@ -12,65 +12,68 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun UniverseTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = isSystemInDarkTheme(),
 
-  // Setting this to true overrides custom colors with dynamic colors (?) on supported devices
-  // Can be explored, but for now we keep it false to use our custom color schemes
-  dynamicColor: Boolean = false,
-
-  content: @Composable () -> Unit
+    // Setting this to true overrides custom colors with dynamic colors (?) on supported devices
+    // Can be explored, but for now we keep it false to use our custom color schemes
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
 ) {
-  val colorScheme = when {
-    dynamicColor -> {
-      val context = LocalContext.current
-      if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    }
-    darkTheme -> darkColorScheme(
-      primary = PrimaryDark,
-      primaryContainer = PrimaryVariantDark,
-      secondary = SecondaryDark,
-      secondaryContainer = SecondaryVariantDark,
-      background = BackgroundDark,
-      surface = SurfaceDark,
-      error = ErrorDark,
-      onPrimary = OnPrimaryDark,
-      onSecondary = OnSecondaryDark,
-      onBackground = OnBackgroundDark,
-      onSurface = OnSurfaceDark,
-      onError = OnErrorDark
-    )
-    else -> lightColorScheme(
-      primary = PrimaryLight,
-      primaryContainer = PrimaryVariantLight,
-      secondary = SecondaryLight,
-      secondaryContainer = SecondaryVariantLight,
-      background = BackgroundLight,
-      surface = SurfaceLight,
-      error = ErrorLight,
-      onPrimary = OnPrimaryLight,
-      onSecondary = OnSecondaryLight,
-      onBackground = OnBackgroundLight,
-      onSurface = OnSurfaceLight,
-      onError = OnErrorLight
-    )
-  }
+  val colorScheme =
+      when {
+        dynamicColor -> {
+          val context = LocalContext.current
+          if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme ->
+            darkColorScheme(
+                primary = PrimaryDark,
+                primaryContainer = PrimaryVariantDark,
+                secondary = SecondaryDark,
+                secondaryContainer = SecondaryVariantDark,
+                background = BackgroundDark,
+                surface = SurfaceDark,
+                error = ErrorDark,
+                onPrimary = OnPrimaryDark,
+                onSecondary = OnSecondaryDark,
+                onBackground = OnBackgroundDark,
+                onSurface = OnSurfaceDark,
+                onError = OnErrorDark)
+        else ->
+            lightColorScheme(
+                primary = PrimaryLight,
+                primaryContainer = PrimaryVariantLight,
+                secondary = SecondaryLight,
+                secondaryContainer = SecondaryVariantLight,
+                background = BackgroundLight,
+                surface = SurfaceLight,
+                error = ErrorLight,
+                onPrimary = OnPrimaryLight,
+                onSecondary = OnSecondaryLight,
+                onBackground = OnBackgroundLight,
+                onSurface = OnSurfaceLight,
+                onError = OnErrorLight)
+      }
 
-  MaterialTheme(
-    colorScheme = colorScheme,
-    typography = Typography,
-    content = content
-  )
+  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
 }
 
 // Extension to access tag colors dynamically by category
 @Composable
-fun tagColor(category: String, isSelected: Boolean = false, darkTheme: Boolean = isSystemInDarkTheme()): Color {
+fun tagColor(
+    category: String,
+    isSelected: Boolean = false,
+    darkTheme: Boolean = isSystemInDarkTheme()
+): Color {
   return when (category) {
-    "INTEREST" -> if (isSelected) TagSelectedDark else if (darkTheme) TagInterestDark else TagInterestLight
+    "INTEREST" ->
+        if (isSelected) TagSelectedDark else if (darkTheme) TagInterestDark else TagInterestLight
     "SPORT" -> if (isSelected) TagSelectedDark else if (darkTheme) TagSportDark else TagSportLight
     "MUSIC" -> if (isSelected) TagSelectedDark else if (darkTheme) TagMusicDark else TagMusicLight
-    "TRANSPORT" -> if (isSelected) TagSelectedDark else if (darkTheme) TagTransportDark else TagTransportLight
-    "CANTON" -> if (isSelected) TagSelectedDark else if (darkTheme) TagCantonDark else TagCantonLight
+    "TRANSPORT" ->
+        if (isSelected) TagSelectedDark else if (darkTheme) TagTransportDark else TagTransportLight
+    "CANTON" ->
+        if (isSelected) TagSelectedDark else if (darkTheme) TagCantonDark else TagCantonLight
     else -> MaterialTheme.colorScheme.primary
   }
 }

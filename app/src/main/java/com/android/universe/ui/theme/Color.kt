@@ -63,23 +63,15 @@ val TagSelectedBorderDark = Color(0xFF455A64)
 @Preview(showBackground = true)
 @Composable
 private fun Preview_LightMode() {
-	UniverseTheme(darkTheme = false) {
-		SettingsScreenContent(
-			uiState = sampleSettingsState(),
-			onOpenField = {},
-			onBack = {}
-		)
-	}
+  UniverseTheme(darkTheme = false) {
+    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
+  }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun Preview_DarkMode() {
-	UniverseTheme(darkTheme = true) {
-		SettingsScreenContent(
-			uiState = sampleSettingsState(),
-			onOpenField = {},
-			onBack = {}
-		)
-	}
+  UniverseTheme(darkTheme = true) {
+    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
+  }
 }
