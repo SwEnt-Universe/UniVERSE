@@ -3,7 +3,6 @@ package com.android.universe.ui.event
 import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +27,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -157,9 +155,8 @@ fun EventCard(
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
                         .background(
-                          color = MaterialTheme.colorScheme.surface,
-                          shape = RoundedCornerShape(Dimensions.RoundedCorner)
-                        )
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(Dimensions.RoundedCorner))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(
@@ -212,13 +209,14 @@ fun EventCard(
                 Text(
                     text = "$participants joined • by $creator",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha=0.7f)
-                )
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
 
                 Button(
                     onClick = {},
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.testTag(EventScreenTestTags.EVENT_JOIN_BUTTON)) {
                       Text(text = "Join In", color = MaterialTheme.colorScheme.onPrimary)
                     }
@@ -238,8 +236,9 @@ fun EventCard(
 fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
-          Modifier
-              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+          Modifier.background(
+                  MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                  RoundedCornerShape(8.dp))
               .padding(horizontal = 8.dp, vertical = 4.dp)
               .testTag(testTag)) {
         Text(
@@ -260,7 +259,5 @@ fun TagCard(tag: String, testTag: String) {
 @Composable
 fun EventCardPreview() {
   val previewViewModel = EventViewModel(EventRepositoryProvider.repository)
-  UniverseTheme {
-    EventScreen(viewModel = previewViewModel)
-  }
+  UniverseTheme { EventScreen(viewModel = previewViewModel) }
 }

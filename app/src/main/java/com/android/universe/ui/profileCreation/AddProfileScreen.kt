@@ -33,11 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
-import com.android.universe.ui.theme.UniverseTheme
 
 object AddProfileScreenTestTags {
   // Username
@@ -405,8 +403,7 @@ fun AddProfileScreen(
               colors =
                   ButtonDefaults.buttonColors(
                       containerColor = MaterialTheme.colorScheme.primary,
-                      contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
+                      contentColor = MaterialTheme.colorScheme.onPrimary),
               shape = RoundedCornerShape(12.dp)) {
                 Text(text = "Save")
               }

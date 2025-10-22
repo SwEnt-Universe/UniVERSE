@@ -29,7 +29,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -125,7 +124,9 @@ fun SignInScreen(
 fun GoogleSignInButton(onClick: () -> Unit) {
   OutlinedButton(
       onClick = onClick,
-      colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface), // Button color
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.surface), // Button color
       modifier =
           Modifier.padding(horizontal = 64.dp)
               .height(48.dp) // Adjust height as needed
@@ -157,7 +158,5 @@ fun GoogleSignInButton(onClick: () -> Unit) {
 @Preview
 @Composable
 fun SignInScreenPreview() {
-  UniverseTheme {
-    SignInScreen()
-  }
+  UniverseTheme { SignInScreen() }
 }

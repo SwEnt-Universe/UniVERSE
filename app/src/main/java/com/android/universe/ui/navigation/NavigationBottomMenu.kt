@@ -76,24 +76,23 @@ fun NavigationBottomMenu(
 ) {
   NavigationBar(
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
-      containerColor = MaterialTheme.colorScheme.surface
-  ) {
-    tabs.forEach { tab ->
-      val selected = tab == selectedTab
-      NavigationBarItem(
-          icon = {
-            Icon(
-                imageVector = if (selected) tab.iconSelected else tab.icon,
-                contentDescription = null,
-                modifier = Modifier.size(Dimensions.IconSizeLarge))
-          },
-          selected = false,
-          // false to hide an highlight around the icon if it's selected, since we visualize the
-          // selected tab with an filled icon
-          onClick = { onTabSelected(tab) },
-          modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
-    }
-  }
+      containerColor = MaterialTheme.colorScheme.surface) {
+        tabs.forEach { tab ->
+          val selected = tab == selectedTab
+          NavigationBarItem(
+              icon = {
+                Icon(
+                    imageVector = if (selected) tab.iconSelected else tab.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(Dimensions.IconSizeLarge))
+              },
+              selected = false,
+              // false to hide an highlight around the icon if it's selected, since we visualize the
+              // selected tab with an filled icon
+              onClick = { onTabSelected(tab) },
+              modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
+        }
+      }
 }
 
 /**

@@ -17,10 +17,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,8 +26,6 @@ import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.UniverseTheme
-import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener
 
 object UserProfileScreenTestTags {
   const val FIRSTNAME = "userProfileFirstName"
@@ -91,12 +87,11 @@ fun UserProfileScreen(
             actions = {
               IconButton(
                   onClick = { onEditProfileClick(uid) },
-                  modifier = Modifier
-                      .testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
+                  modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
                     Icon(
-                      Icons.Default.Settings,
-                      contentDescription = "Edit Profile",
-                      modifier = Modifier.size(Dimensions.IconSizeLarge))
+                        Icons.Default.Settings,
+                        contentDescription = "Edit Profile",
+                        modifier = Modifier.size(Dimensions.IconSizeLarge))
                   }
             })
       },
@@ -110,9 +105,9 @@ fun UserProfileScreen(
                   horizontalArrangement = Arrangement.SpaceAround) {
                     // Profile picture placeholder
                     Box(
-                        modifier = Modifier
-                          .size(80.dp)
-                          .background(MaterialTheme.colorScheme.surface, CircleShape),
+                        modifier =
+                            Modifier.size(80.dp)
+                                .background(MaterialTheme.colorScheme.surface, CircleShape),
                         contentAlignment = Alignment.Center) {
                           Text("Img", color = MaterialTheme.colorScheme.onSurface)
                         }
@@ -159,9 +154,8 @@ fun UserProfileScreen(
                       Modifier.fillMaxWidth()
                           .height(100.dp)
                           .background(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(Dimensions.RoundedCorner)
-                          ),
+                              color = MaterialTheme.colorScheme.surface,
+                              shape = RoundedCornerShape(Dimensions.RoundedCorner)),
                   contentAlignment = Alignment.Center) {
                     FlowRow(
                         modifier =
@@ -186,9 +180,8 @@ fun UserProfileScreen(
                         Modifier.fillMaxWidth()
                             .height(descriptionSize.dp)
                             .background(
-                              color = MaterialTheme.colorScheme.surface,
-                              shape = RoundedCornerShape(Dimensions.RoundedCorner)
-                            ),
+                                color = MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(Dimensions.RoundedCorner)),
                     contentAlignment = Alignment.Center) {
                       val descriptionText =
                           userUIState.userProfile.description.takeUnless { it.isNullOrBlank() }
