@@ -27,10 +27,10 @@ fun UniverseTheme(
         }
         darkTheme ->
             darkColorScheme(
-                surface = SurfaceDark,
-                onSurface = OnSurfaceDark,
                 background = BackgroundDark,
                 onBackground = OnBackgroundDark,
+                surface = SurfaceDark, // cards, sheets, (things that go on top of background)
+                onSurface = OnSurfaceDark, // things that go on top of surface
                 primary = PrimaryDark,
                 onPrimary = OnPrimaryDark,
                 secondary = SecondaryDark,
@@ -39,10 +39,10 @@ fun UniverseTheme(
                 onError = OnErrorDark)
         else ->
             lightColorScheme(
-                surface = SurfaceLight,
-                onSurface = OnSurfaceLight,
                 background = BackgroundLight,
                 onBackground = OnBackgroundLight,
+                surface = SurfaceLight, // cards, sheets, (things that go on top of background)
+                onSurface = OnSurfaceLight, // things that go on top of surface
                 primary = PrimaryLight,
                 onPrimary = OnPrimaryLight,
                 secondary = SecondaryLight,
