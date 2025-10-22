@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
@@ -75,6 +76,7 @@ fun NavigationBottomMenu(
 ) {
   NavigationBar(
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
+      containerColor = MaterialTheme.colorScheme.surface
   ) {
     tabs.forEach { tab ->
       val selected = tab == selectedTab
