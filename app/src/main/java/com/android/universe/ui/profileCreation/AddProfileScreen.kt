@@ -31,12 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
+import com.android.universe.ui.theme.UniverseTheme
 
 object AddProfileScreenTestTags {
   // Username
@@ -149,7 +150,7 @@ fun AddProfileScreen(
           // Username field
           Text(
               text = "Username",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_TEXT))
           OutlinedTextField(
               value = profileUIState.username,
@@ -168,7 +169,7 @@ fun AddProfileScreen(
           if (hasTouchedUsername && profileUIState.usernameError != null) {
             Text(
                 text = profileUIState.usernameError!!,
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_ERROR))
           }
@@ -176,7 +177,7 @@ fun AddProfileScreen(
           // First name field
           Text(
               text = "First Name",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_TEXT))
           OutlinedTextField(
               value = profileUIState.firstName,
@@ -195,7 +196,7 @@ fun AddProfileScreen(
           if (hasTouchedFirstName && profileUIState.firstNameError != null) {
             Text(
                 text = profileUIState.firstNameError!!,
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_ERROR))
           }
@@ -203,7 +204,7 @@ fun AddProfileScreen(
           // Last name field
           Text(
               text = "Last Name",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_TEXT))
           OutlinedTextField(
               value = profileUIState.lastName,
@@ -222,7 +223,7 @@ fun AddProfileScreen(
           if (hasTouchedLastName && profileUIState.lastNameError != null) {
             Text(
                 text = profileUIState.lastNameError!!,
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_ERROR))
           }
@@ -230,7 +231,7 @@ fun AddProfileScreen(
           // Description field
           Text(
               text = "Description",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_TEXT))
           OutlinedTextField(
               value = profileUIState.description ?: "",
@@ -244,7 +245,7 @@ fun AddProfileScreen(
           if (profileUIState.descriptionError != null) {
             Text(
                 text = profileUIState.descriptionError!!,
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_ERROR))
           }
@@ -252,7 +253,7 @@ fun AddProfileScreen(
           // Country selector
           Text(
               text = "Country",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.testTag(AddProfileScreenTestTags.COUNTRY_TEXT))
           ExposedDropdownMenuBox(
               expanded = showDropDown, onExpandedChange = { showDropDown = !showDropDown }) {
@@ -260,7 +261,6 @@ fun AddProfileScreen(
                     value = profileUIState.country,
                     onValueChange = { addProfileViewModel.setCountry(it) },
                     readOnly = true,
-                    label = { Text(text = "Country") },
                     placeholder = { Text("Country") },
                     modifier =
                         Modifier.menuAnchor()
@@ -294,7 +294,7 @@ fun AddProfileScreen(
           // Date of Birth section
           Text(
               text = "Date of Birth",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT))
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
@@ -322,7 +322,7 @@ fun AddProfileScreen(
                       if (hasTouchedDay && profileUIState.dayError != null) {
                         Text(
                             text = profileUIState.dayError!!,
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag(AddProfileScreenTestTags.DAY_ERROR))
                       }
@@ -350,7 +350,7 @@ fun AddProfileScreen(
                       if (hasTouchedMonth && profileUIState.monthError != null) {
                         Text(
                             text = profileUIState.monthError!!,
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR))
                       }
@@ -378,7 +378,7 @@ fun AddProfileScreen(
                       if (hasTouchedYear && profileUIState.yearError != null) {
                         Text(
                             text = profileUIState.yearError!!,
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.testTag(AddProfileScreenTestTags.YEAR_ERROR))
                       }
@@ -404,10 +404,32 @@ fun AddProfileScreen(
                       profileUIState.yearError == null,
               colors =
                   ButtonDefaults.buttonColors(
-                      containerColor = Color.Black, contentColor = Color.White),
+                      containerColor = MaterialTheme.colorScheme.primary,
+                      contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
               shape = RoundedCornerShape(12.dp)) {
                 Text(text = "Save")
               }
         }
       })
 }
+
+/* Preview should be commented out in production
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun AddProfileScreenPreview() {
+  UniverseTheme {
+    // A no-op fake ViewModel substitute
+    val dummyViewModel = object : AddProfileViewModel() {
+    }
+
+    // Just render the UI (no real logic, safe for preview)
+    AddProfileScreen(
+      uid = "preview_user_001",
+      addProfileViewModel = dummyViewModel,
+      navigateOnSave = {},
+    )
+  }
+}
+*/
