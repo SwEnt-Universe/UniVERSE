@@ -98,6 +98,7 @@ android {
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
+    val hasReleaseKeys = System.getenv("SIGNING_STORE_PASSWORD") != null
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -105,8 +106,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseKeys)
+                signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
 
         debug {
