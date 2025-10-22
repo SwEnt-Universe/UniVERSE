@@ -227,10 +227,7 @@ fun InterestTag(text: String, testTagIndex: Int) {
       }
 }
 
-/* Preview should be commented out in production */
-/*
-
- */
+/* Preview should be commented out in production
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
@@ -238,3 +235,4 @@ fun UserProfileScreenPreview() {
     UserProfileScreen(uid = "1")
   }
 }
+*/
