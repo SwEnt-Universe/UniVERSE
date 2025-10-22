@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.Dimensions
 
 /**
  * Represents a tab in the bottom navigation bar. Each tab has a destination screen, an icon for its
@@ -83,7 +83,7 @@ fun NavigationBottomMenu(
             Icon(
                 imageVector = if (selected) tab.iconSelected else tab.icon,
                 contentDescription = null,
-                modifier = Modifier.size(36.dp))
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
           },
           selected = false,
           // false to hide an highlight around the icon if it's selected, since we visualize the

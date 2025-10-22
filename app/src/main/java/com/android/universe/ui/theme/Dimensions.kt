@@ -15,7 +15,7 @@ object Dimensions {
   // Icon sizes (from TagGroup, SelectTagScreen)
   val IconSizeSmall = 16.dp // Delete icon
   val IconSizeMedium = 18.dp // Check icon in tags
-  val IconSizeLarge = 24.dp // General icons (e.g., Edit, ArrowBack)
+  val IconSizeLarge = 36.dp // General icons (e.g., Edit, ArrowBack)
 
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
