@@ -21,14 +21,10 @@ val OnErrorDark = Color(0xFF000000) // Black
 // Primary colors
 val PrimaryLight = Color(0xFF009688) // Purple for light theme
 val PrimaryDark = Color(0xFF009688) // Lighter purple for dark theme
-val PrimaryVariantLight = Color(0xFF3700B3)
-val PrimaryVariantDark = Color(0xFF009688)
 
 // Secondary colors
-val SecondaryLight = Color(0xFF03DAC6) // Teal
+val SecondaryLight = Color(0xFF03DAC6)
 val SecondaryDark = Color(0xFF03DAC6)
-val SecondaryVariantLight = Color(0xFF018786)
-val SecondaryVariantDark = Color(0xFF018786)
 
 // Background and surface
 val BackgroundLight = Color(0xFFFFFFFF)
@@ -38,9 +34,9 @@ val SurfaceDark = Color(0xFF1F1F1F)
 
 // Semantic colors
 val ErrorLight = Color(0xFFB00020)
-val ErrorDark = Color(0xFFCF6679)
+val ErrorDark = Color(0xFFB00020)
 val SuccessLight = Color(0xFF4CAF50)
-val SuccessDark = Color(0xFF388E3C)
+val SuccessDark = Color(0xFF4CAF50)
 
 // Tag category colors (from TagColors in SelectTagScreen.kt)
 val TagInterestLight = Color(0xFFB39DDB) // Light purple
