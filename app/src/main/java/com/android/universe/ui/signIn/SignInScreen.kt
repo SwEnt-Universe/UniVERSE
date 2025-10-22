@@ -42,6 +42,7 @@ import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.theme.UniverseTheme
 
 object SignInScreenTestTags {
   const val SIGN_IN_BUTTON = "signInButton"
@@ -124,7 +125,7 @@ fun SignInScreen(
 fun GoogleSignInButton(onClick: () -> Unit) {
   OutlinedButton(
       onClick = onClick,
-      colors = ButtonDefaults.buttonColors(containerColor = Color.White), // Button color
+      colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface), // Button color
       modifier =
           Modifier.padding(horizontal = 64.dp)
               .height(48.dp) // Adjust height as needed
@@ -145,7 +146,7 @@ fun GoogleSignInButton(onClick: () -> Unit) {
               // Text for the button
               Text(
                   text = "Sign in with Google",
-                  color = Color.Gray, // Text color
+                  color = MaterialTheme.colorScheme.onSurface,
                   fontSize = 16.sp, // Font size
                   fontWeight = FontWeight.Medium)
             }
@@ -156,5 +157,7 @@ fun GoogleSignInButton(onClick: () -> Unit) {
 @Preview
 @Composable
 fun SignInScreenPreview() {
-  SignInScreen()
+  UniverseTheme {
+    SignInScreen()
+  }
 }
