@@ -28,7 +28,7 @@ object Dimensions {
   val ElevationCard = 4.dp
 
   // Corner radii
-  val CornerRadiusButton = 8.dp // Tag buttons
+  val RoundedCorner = 8.dp // General rounded corners
 
   // Spacer sizes
   val SpacerSmall = 4.dp // Between text and icons in tags

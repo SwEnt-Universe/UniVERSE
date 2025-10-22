@@ -28,6 +28,8 @@ import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
+import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener
 
 object UserProfileScreenTestTags {
   const val FIRSTNAME = "userProfileFirstName"
@@ -108,9 +110,11 @@ fun UserProfileScreen(
                   horizontalArrangement = Arrangement.SpaceAround) {
                     // Profile picture placeholder
                     Box(
-                        modifier = Modifier.size(80.dp).background(Color.Gray, CircleShape),
+                        modifier = Modifier
+                          .size(80.dp)
+                          .background(MaterialTheme.colorScheme.surface, CircleShape),
                         contentAlignment = Alignment.Center) {
-                          Text("Img", color = Color.White)
+                          Text("Img", color = MaterialTheme.colorScheme.onSurface)
                         }
 
                     Column(
@@ -121,13 +125,13 @@ fun UserProfileScreen(
                           Text(
                               text = userUIState.userProfile.firstName,
                               fontSize = FieldFontSizes.NAMES.sp,
-                              color = Color.Blue,
+                              color = MaterialTheme.colorScheme.onBackground,
                               modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
                           Spacer(modifier = Modifier.width(4.dp))
                           Text(
                               text = userUIState.userProfile.lastName,
                               fontSize = FieldFontSizes.NAMES.sp,
-                              color = Color.Blue,
+                              color = MaterialTheme.colorScheme.onBackground,
                               modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
 
                           // Age and country (split for tagging, same line)
@@ -137,13 +141,13 @@ fun UserProfileScreen(
                                 Text(
                                     text = "Age: $userAge",
                                     fontSize = FieldFontSizes.AGE.sp,
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Country: ${userUIState.userProfile.country}",
                                     fontSize = FieldFontSizes.COUNTRY.sp,
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
                               }
                         }
@@ -154,7 +158,10 @@ fun UserProfileScreen(
                   modifier =
                       Modifier.fillMaxWidth()
                           .height(100.dp)
-                          .background(Color.LightGray.copy(alpha = 0.3f)),
+                          .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(Dimensions.RoundedCorner)
+                          ),
                   contentAlignment = Alignment.Center) {
                     FlowRow(
                         modifier =
@@ -178,7 +185,10 @@ fun UserProfileScreen(
                     modifier =
                         Modifier.fillMaxWidth()
                             .height(descriptionSize.dp)
-                            .background(Color.LightGray.copy(alpha = 0.3f)),
+                            .background(
+                              color = MaterialTheme.colorScheme.surface,
+                              shape = RoundedCornerShape(Dimensions.RoundedCorner)
+                            ),
                     contentAlignment = Alignment.Center) {
                       val descriptionText =
                           userUIState.userProfile.description.takeUnless { it.isNullOrBlank() }
@@ -224,5 +234,7 @@ fun InterestTag(text: String, testTagIndex: Int) {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UserProfileScreen(uid = "0")
+  UniverseTheme {
+    UserProfileScreen(uid = "1")
+  }
 }

@@ -3,6 +3,7 @@ package com.android.universe.ui.event
 import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 
 object EventScreenTestTags {
@@ -140,7 +142,7 @@ fun EventCard(
   Card(
       modifier = Modifier.fillMaxWidth().padding(8.dp).testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(16.dp),
-      elevation = CardDefaults.cardElevation(48.dp)) {
+      elevation = CardDefaults.cardElevation(10.dp)) {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
           // Image with overlay
           Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
@@ -154,7 +156,10 @@ fun EventCard(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                        .background(
+                          color = MaterialTheme.colorScheme.surface,
+                          shape = RoundedCornerShape(Dimensions.RoundedCorner)
+                        )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(

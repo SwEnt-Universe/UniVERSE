@@ -29,7 +29,7 @@ val SecondaryDark = Color(0xFF03DAC6)
 // Background and surface
 val BackgroundLight = Color(0xFFFFFFFF)
 val BackgroundDark = Color(0xFF121212)
-val SurfaceLight = Color(0xFFFFFFFF)
+val SurfaceLight = Color(0xFFE3E3E3)
 val SurfaceDark = Color(0xFF1F1F1F)
 
 // Semantic colors
