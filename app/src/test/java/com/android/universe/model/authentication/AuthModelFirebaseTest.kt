@@ -12,10 +12,10 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.*
-import junit.framework.TestCase.assertNull
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before

@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.signIn.SignInScreenTestTags.SIGN_IN_BUTTON
 import com.android.universe.ui.signIn.SignInScreenTestTags.SIGN_IN_LOGO
@@ -20,9 +21,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class SignInScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
