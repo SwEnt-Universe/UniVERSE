@@ -99,6 +99,7 @@ android {
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
+    val hasReleaseKeys = System.getenv("SIGNING_STORE_PASSWORD") != null
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -107,12 +108,15 @@ android {
                 "proguard-rules.pro"
             )
 
-            signingConfig = signingConfigs.getByName("release")
+
+            signingConfig = if (hasReleaseKeys)
+                signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
 
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -243,17 +247,13 @@ dependencies {
         exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
     }
 
-
     // ==========================================================================
     // TESTING
     // ==========================================================================
 
     // ----------------- Unit Testing (test/) -----------------
-    globalTestImplementation(libs.kotlin.test)
-    testImplementation(libs.androidx.test.core)
     testImplementation(libs.junit4)
     globalTestImplementation(libs.androidx.compose.ui.test.junit4)
-    testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
@@ -268,14 +268,14 @@ dependencies {
     testImplementation(libs.io.github.kakaocup)
 
     // ----------------- Instrumented Testing (androidTest/) -----------------
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation(libs.androidx.test.core)
     // Compose UI Tests (versions managed by compose-bom)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // ----------------- Kaspresso (UI Automation) -----------------
-    androidTestImplementation(libs.kaspresso)
     androidTestImplementation(libs.kaspresso.compose)
 }
 
