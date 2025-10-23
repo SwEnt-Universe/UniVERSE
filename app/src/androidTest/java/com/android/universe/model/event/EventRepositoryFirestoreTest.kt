@@ -5,12 +5,11 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.FirestoreEventTest
 import java.time.LocalDateTime
-import junit.framework.TestCase
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -246,6 +245,6 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
       assert(!ids.contains(id)) // Ensure uniqueness
       ids.add(id)
     }
-    TestCase.assertEquals(100, ids.size) // Ensure all IDs are unique
+    assertEquals(100, ids.size) // Ensure all IDs are unique
   }
 }
