@@ -3,11 +3,10 @@ package com.android.universe.ui.theme
 import androidx.compose.ui.unit.dp
 
 /**
- * Centralized design constants for spacing, sizing, borders, and elevation
- * across the **UniVERSE** app.
+ * Centralized design constants for spacing, sizing, borders, and elevation across the **UniVERSE**
+ * app.
  *
- * These values unify margins, paddings, icon sizes, border widths, and corner
- * radii
+ * These values unify margins, paddings, icon sizes, border widths, and corner radii
  *
  * ### Design Philosophy
  * - Promotes **visual consistency** across screens.
@@ -15,6 +14,7 @@ import androidx.compose.ui.unit.dp
  * - Enables **responsive refactoring** by defining spacing constants in one place.
  *
  * ### Usage Example
+ *
  * ```
  * Column(
  *     modifier = Modifier.padding(Dimensions.PaddingLarge)

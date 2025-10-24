@@ -6,9 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/**
- * Defines the **UniVERSE** typography scale used across the app.
- */
+/** Defines the **UniVERSE** typography scale used across the app. */
 val Typography =
     Typography(
         // Display styles (large headers)
