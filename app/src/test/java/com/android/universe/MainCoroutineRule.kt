@@ -1,6 +1,4 @@
-@file:Suppress("unused")
-
-package testMain
+package com.android.universe
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,7 +16,7 @@ import org.junit.runner.Description
  * runTest(mainDispatcherRule.dispatcher) { ... }
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainDispatcherRule(val dispatcher: TestDispatcher = StandardTestDispatcher()) :
+class MainCoroutineRule(val dispatcher: TestDispatcher = StandardTestDispatcher()) :
     TestWatcher() {
 
   override fun starting(description: Description) {

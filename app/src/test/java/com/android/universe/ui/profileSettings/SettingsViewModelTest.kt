@@ -21,14 +21,14 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import testMain.MainDispatcherRule
+import com.android.universe.MainCoroutineRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
-  @get:Rule val mainDispatcherRule = MainDispatcherRule()
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
   private val testDispatcher
-    get() = mainDispatcherRule.dispatcher
+    get() = mainCoroutineRule.dispatcher
 
   private lateinit var fakeRepo: FakeUserRepository
   private lateinit var mockRepo: UserRepository
