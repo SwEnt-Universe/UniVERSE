@@ -2,6 +2,29 @@ package com.android.universe.ui.theme
 
 import androidx.compose.ui.unit.dp
 
+/**
+ * Centralized design constants for spacing, sizing, borders, and elevation
+ * across the **UniVERSE** app.
+ *
+ * These values unify margins, paddings, icon sizes, border widths, and corner
+ * radii
+ *
+ * ### Design Philosophy
+ * - Promotes **visual consistency** across screens.
+ * - Encourages **scalable** and **readable** UI definitions by avoiding magic numbers.
+ * - Enables **responsive refactoring** by defining spacing constants in one place.
+ *
+ * ### Usage Example
+ * ```
+ * Column(
+ *     modifier = Modifier.padding(Dimensions.PaddingLarge)
+ * ) {
+ *     Text("Settings")
+ *     Spacer(Modifier.height(Dimensions.SpacerMedium))
+ *     Divider(thickness = Dimensions.DividerThickness)
+ * }
+ * ```
+ */
 object Dimensions {
   // Paddings (consolidating SettingsScreenPaddings, TagGroup, SelectTagScreen)
   val PaddingSmall = 4.dp // InternalSpacing, tag padding
