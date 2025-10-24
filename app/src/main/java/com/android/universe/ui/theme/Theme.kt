@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.LocalContext
  * typography, and surface defaults consistent with UniVERSE’s design language.
  *
  * ### Behavior
- * - Chooses **light** or **dark** color schemes automatically based on [darkTheme], or system theme
- *   when not explicitly specified.
+ * - Chooses light or dark color schemes automatically based on [darkTheme], or system theme when
+ *   not explicitly specified.
  * - Optionally uses **dynamic color schemes** on Android 12+ devices when [dynamicColor] is true.
  *   (Dynamic colors override the app’s custom palette using system-generated tones.)
  *
