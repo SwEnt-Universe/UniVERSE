@@ -6,7 +6,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Default Material 3 typography scale, customized for UniVERSE
+/**
+ * Defines the **UniVERSE** typography scale used across the app.
+ */
 val Typography =
     Typography(
         // Display styles (large headers)
