@@ -11,25 +11,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * This composable wraps the given [content] in a [MaterialTheme] configuration, providing
- * colors, typography, and surface defaults consistent with UniVERSE’s design language.
+ * This composable wraps the given [content] in a [MaterialTheme] configuration, providing colors,
+ * typography, and surface defaults consistent with UniVERSE’s design language.
  *
  * ### Behavior
- * - Chooses **light** or **dark** color schemes automatically based on [darkTheme],
- *   or system theme when not explicitly specified.
+ * - Chooses **light** or **dark** color schemes automatically based on [darkTheme], or system theme
+ *   when not explicitly specified.
  * - Optionally uses **dynamic color schemes** on Android 12+ devices when [dynamicColor] is true.
  *   (Dynamic colors override the app’s custom palette using system-generated tones.)
  *
  * ### Parameters
- * @param darkTheme Whether to enable the dark color scheme.
- * Defaults to the system theme via [isSystemInDarkTheme].
  *
- * @param dynamicColor Enables Material You dynamic color extraction on supported devices
- * (Android 12+). When true, custom UniVERSE colors are overridden by system-derived tones.
- *
+ * @param darkTheme Whether to enable the dark color scheme. Defaults to the system theme via
+ *   [isSystemInDarkTheme].
+ * @param dynamicColor Enables Material You dynamic color extraction on supported devices (Android
+ *   12+). When true, custom UniVERSE colors are overridden by system-derived tones.
  * @param content The composable UI content to which the UniVERSE theme is applied.
  *
  * ### Notice that it can be applied to previews as well
+ *
  * ```
  * UniverseTheme {
  *     thingToPreview {
