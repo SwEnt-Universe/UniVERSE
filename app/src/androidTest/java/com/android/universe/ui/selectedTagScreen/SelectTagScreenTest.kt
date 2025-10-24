@@ -90,16 +90,16 @@ class SelectTagScreenTest : FirestoreUserTest() {
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsNotDisplayed()
   }
-/** UNDETERMINISTIC TEST - COMMENTED OUT
-  @Test
-  fun selectedTagsShownWhenInterestTagClicked() {
-    // Check that when the user selects a tag, it appears in the selected section with its trash
-    // icon.
-    composeTestRule.onNodeWithTag("Button_Reading").performClick()
-    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
-  }
-*/
+
+  /**
+   * UNDETERMINISTIC TEST - COMMENTED OUT
+   *
+   * @Test fun selectedTagsShownWhenInterestTagClicked() { // Check that when the user selects a
+   *   tag, it appears in the selected section with its trash // icon.
+   *   composeTestRule.onNodeWithTag("Button_Reading").performClick()
+   *   composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
+   *   composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed() }
+   */
   @Test
   fun selectedTagsShownWhenSportTagClicked() {
     // Check that when the user selects a tag, it appears in the selected section with its trash
