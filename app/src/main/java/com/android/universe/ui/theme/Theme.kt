@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
  *
  * @param darkTheme Whether to enable the dark color scheme. Defaults to the system theme via
  *   [isSystemInDarkTheme].
- * @param dynamicColor Enables Material You dynamic color extraction on supported devices (Android
+ * @param dynamicColor Enables Material You dynamic color on supported devices (Android
  *   12+). When true, custom UniVERSE colors are overridden by system-derived tones.
  * @param content The composable to which the UniVERSE theme is applied.
  *
