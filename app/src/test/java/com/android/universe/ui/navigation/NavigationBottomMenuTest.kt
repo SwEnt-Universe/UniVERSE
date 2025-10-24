@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,7 +38,7 @@ class NavigationBottomMenuTest {
     // Assert: selected tab is the one clicked on
     tabs.forEach { tab ->
       composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(tab)).performClick()
-      assert(selectedTab.value == tab)
+      assertEquals(tab, selectedTab.value )
     }
   }
 }
