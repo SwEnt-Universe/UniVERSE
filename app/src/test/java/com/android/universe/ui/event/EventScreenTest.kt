@@ -6,19 +6,17 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
-import com.android.universe.model.Tag
-import com.android.universe.model.event.Event
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.commonTest.EventTestData
 import com.android.universe.model.event.FakeEventRepository
-import com.android.universe.model.location.Location
-import com.android.universe.model.user.UserProfile
-import java.time.LocalDate
-import java.time.LocalDateTime
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class EventScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -26,54 +24,22 @@ class EventScreenTest {
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var viewModel: EventViewModel
 
-  private val sampleUsers =
-      listOf(
-          UserProfile(
-              uid = "0",
-              username = "alice123",
-              firstName = "Alice",
-              lastName = "Smith",
-              country = "USA",
-              description = "Loves running",
-              dateOfBirth = LocalDate.of(1990, 1, 1),
-              tags = setOf(Tag.SCULPTURE)),
-          UserProfile(
-              uid = "1",
-              username = "bob456",
-              firstName = "Bob",
-              lastName = "Johnson",
-              country = "USA",
-              description = "Tech enthusiast",
-              dateOfBirth = LocalDate.of(1985, 5, 12),
-              tags = setOf(Tag.TENNIS)))
+  companion object {
+    private val firstEvent = EventTestData.FullDescriptionEvent
+    private val secondEvent = EventTestData.NullDescriptionEvent
+    private val thirdEvent = EventTestData.NoTagsEvent
+    private val megaTagEvent = EventTestData.SomeTagsEvent
+    private val sampleEvents = listOf(firstEvent, secondEvent, thirdEvent)
+
+    private const val THREE_TAG_MESSAGE = "Expected at least 3 visible tag nodes but found"
+  }
 
   @Before
   fun setUp() {
     // Create a fresh fake repository for every test (isolated)
     fakeEventRepository = FakeEventRepository()
 
-    // Preload two sample events
-    val sampleEvents =
-        listOf(
-            Event(
-                id = "event-001",
-                title = "Morning Run at the Lake",
-                description = "Join us for a casual 5km run around the lake followed by coffee.",
-                date = LocalDateTime.of(2025, 10, 15, 7, 30),
-                tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-                participants = setOf(sampleUsers[0], sampleUsers[1]),
-                creator = sampleUsers[0],
-                location = Location(latitude = 46.5196535, longitude = 6.6322734)),
-            Event(
-                id = "event-002",
-                title = "Tech Hackathon 2025",
-                date = LocalDateTime.of(2025, 11, 3, 9, 0),
-                tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
-                participants = emptySet(),
-                creator = sampleUsers[1],
-                location = Location(latitude = 46.5196535, longitude = 6.6322734)))
-
-    runBlocking { sampleEvents.forEach { fakeEventRepository.addEvent(it) } }
+    runTest { sampleEvents.forEach { fakeEventRepository.addEvent(it) } }
 
     viewModel = EventViewModel(fakeEventRepository)
 
@@ -84,7 +50,7 @@ class EventScreenTest {
   }
 
   @Test
-  fun displayAllCoreComponents() {
+  fun displayAllCoreComponents() = runTest {
     // LazyColumn list is displayed
     composeTestRule.onNodeWithTag(EventScreenTestTags.EVENTS_LIST).assertIsDisplayed()
 
@@ -111,7 +77,7 @@ class EventScreenTest {
   }
 
   @Test
-  fun tagsAreDisplayedInEachEventCard() {
+  fun tagsAreDisplayedInEachEventCard() = runTest {
     // Get all tag nodes and assert there is at least one tag shown anywhere
     val tags = composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG)
     assertTrue(tags.fetchSemanticsNodes().isNotEmpty())
@@ -119,41 +85,24 @@ class EventScreenTest {
 
   @Test
   fun eventsWithMoreThanThreeTagsAreCropped() {
-    // Add an event with 5 tags to the repository
-    runBlocking {
-      val tags =
-          setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC)
-      val extraEvent =
-          Event(
-              id = "event-100",
-              title = "Mega Tag Event",
-              description = "Event with too many tags",
-              date = LocalDateTime.of(2025, 12, 1, 10, 0),
-              tags = tags,
-              participants = setOf(sampleUsers[0], sampleUsers[1]),
-              creator = sampleUsers[0],
-              location = Location(latitude = 46.5196535, longitude = 6.6322734))
-      fakeEventRepository.addEvent(extraEvent)
-    }
+    // Add an event with 6 tags to the repository
+    runTest {
+      fakeEventRepository.addEvent(megaTagEvent)
+      // Reload events in the ViewModel (suspending call)
+      viewModel.loadEvents()
 
-    // Reload events in the ViewModel (suspending call)
-    runBlocking { viewModel.loadEvents() }
-
-    // Let Compose update. Wait until at least one tag node appears (timeout guards flakiness).
-    composeTestRule.waitUntil(timeoutMillis = 2_000) {
+      // Let Compose update. Wait until at least one tag node appears (timeout guards flakiness).
       composeTestRule
           .onAllNodesWithTag(EventScreenTestTags.EVENT_TAG)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
-
     // Now fetch all tag nodes that belong to the UI.
     val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG)
     val totalVisibleTags = tagNodes.fetchSemanticsNodes().size
 
     // We expect at least 3 visible tags overall (the Mega Tag Event should contribute 3).
-    assertTrue(
-        "Expected at least 3 visible tag nodes but found $totalVisibleTags", totalVisibleTags >= 3)
+    assertTrue("$THREE_TAG_MESSAGE $totalVisibleTags", totalVisibleTags >= 3)
   }
 
   @Test
