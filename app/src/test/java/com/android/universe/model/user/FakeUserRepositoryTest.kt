@@ -2,11 +2,11 @@ package com.android.universe.model.user
 
 import com.android.universe.model.Tag
 import java.time.LocalDate
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.fail
-import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 

@@ -13,8 +13,8 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
-import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

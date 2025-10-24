@@ -1,7 +1,9 @@
 package com.android.universe.utils
 
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 
 /**
@@ -11,9 +13,11 @@ import com.google.firebase.firestore.firestore
  */
 object FirebaseEmulator {
 
-  val auth = Firebase.auth
+  val auth: FirebaseAuth
+    get() = Firebase.auth
 
-  val firestore = Firebase.firestore
+  val firestore: FirebaseFirestore
+    get() = Firebase.firestore
 
   init {
     auth.useEmulator("10.0.2.2", 9099)

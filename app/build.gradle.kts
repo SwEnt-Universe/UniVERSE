@@ -14,13 +14,13 @@ import java.util.Properties
 // - JaCoCo is a core Gradle plugin: apply with id("jacoco") (no version).
 // ─────────────────────────────────────────────────────────────────────────────
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ktfmt)
-    alias(libs.plugins.sonar)
-    alias(libs.plugins.gms)
-    id("jacoco")
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.google.services)
+    jacoco
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -90,6 +90,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -98,6 +99,7 @@ android {
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
+    val hasReleaseKeys = System.getenv("SIGNING_STORE_PASSWORD") != null
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -106,12 +108,15 @@ android {
                 "proguard-rules.pro"
             )
 
-            signingConfig = signingConfigs.getByName("release")
+
+            signingConfig = if (hasReleaseKeys)
+                signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
 
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -187,104 +192,91 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dependencies
-// - use /gradle/wrapper/libs.versions.tomtom when available
+// - Aliases are defined in /gradle/libs.versions.toml
 // ─────────────────────────────────────────────────────────────────────────────
 dependencies {
-    // Runtime
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    globalTestImplementation(libs.androidx.junit)
-
-    // --------------------- Auth ---------------------
-    implementation(libs.credentials)
-    implementation(libs.googleid)
-
-    // ------------------- Firebase -------------------
-    //val firebaseBom = platform(libs.firebase.bom)
-    //implementation(firebaseBom)
-    //globalTestImplementation(firebaseBom)
-
-    // ------------- Jetpack Compose ------------------
-    val composeBom = platform(libs.compose.bom)
+    // Import the Bill of Materials (BOMs) to manage library versions.
+    // This removes the need to specify versions for individual Compose and Firebase libraries.
+    val composeBom = platform(libs.androidx.compose.bom)
+    val firebaseBom = platform(libs.firebase.bom)
     implementation(composeBom)
     globalTestImplementation(composeBom)
+    implementation(firebaseBom)
 
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.graphics)
-    // Material Design 3
-    implementation(libs.compose.material3)
-    implementation(libs.androidx.material.icons.extended)
-    // Integration with activities
-    implementation(libs.compose.activity)
-    // Integration with ViewModels
-    implementation(libs.compose.viewmodel)
-    // Android Studio Preview support
-    implementation(libs.compose.preview)
-    debugImplementation(libs.compose.tooling)
-    // Navigation
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
-    // UI Tests
-    globalTestImplementation(libs.compose.test.junit)
-    debugImplementation(libs.compose.test.manifest)
+    // --------------------- Core & Runtime ---------------------
+    implementation(libs.androidx.multidex)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
 
-    // Testing
-    testImplementation(libs.logback) // logback for logging mockK
-    testImplementation(libs.junit)
-    globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
-    // Mockito for JVM unit tests (needed to mock FirebaseAuth.getInstance())
-    testImplementation("org.mockito:mockito-core:5.12.0")
-    testImplementation("org.mockito:mockito-inline:5.2.0")   // enables mockStatic(...)
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    // --------------------- Auth ---------------------
+    implementation(libs.google.credentials)
+    implementation(libs.google.id)
 
-    // Coroutines test (pick ONE version; 1.8.1 is current)
-    testImplementation(libs.jetbrains.kotlinx.coroutines.test)
-    // Turbine for Flow testing
-    testImplementation(libs.turbine)
-    // MockK
-    testImplementation(libs.mockk)
-    testImplementation(libs.mockk.agent)
-    testImplementation(libs.mockk.android)
-    // Kotlin test bridge
-    testImplementation(libs.kotlin.test.junit)
-    androidTestImplementation(libs.jetbrains.kotlin.test.junit)
-
-    // AndroidX test core (explicit if needed)
-    androidTestImplementation(libs.androidx.core)
-
-    // Kaspresso
-    globalTestImplementation(libs.kaspresso)
-    globalTestImplementation(libs.kaspresso.compose)
-
-    // Robolectric (from catalog)
-    testImplementation(libs.robolectric)
-
-    implementation(libs.tomtomMap) {
-        exclude(group = "com.google.protobuf", module = "protobuf-java")
-        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
-    }
-    implementation(libs.tomtomLocation) {
-        exclude(group = "com.google.protobuf", module = "protobuf-java")
-        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
-    }
-    implementation(libs.tomtomSearch) {
-        exclude(group = "com.google.protobuf", module = "protobuf-java")
-        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
-    }
-
-    // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.database.ktx)
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.auth.ktx)
+    // ------------------- Firebase -------------------
+    // Version is controlled by the firebase-bom
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
+    // ----------------- Jetpack Compose ------------------
+    // Versions are controlled by the androidx-compose-bom
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Android Studio Preview support
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
 
-    implementation(libs.okhttp)
+    // ------------------- Navigation -------------------
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.ui)
+    implementation(libs.androidx.navigation.fragment)
+    // ----------------- TomTom SDK -----------------
+    implementation(libs.tomtom.maps) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtom.location) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+    implementation(libs.tomtom.search) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+        exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+    }
+
+    // ==========================================================================
+    // TESTING
+    // ==========================================================================
+
+    // ----------------- Unit Testing (test/) -----------------
+    testImplementation(libs.junit4)
+    globalTestImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.kotlin.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
+    testImplementation(libs.mockk.agent)
+    testImplementation(libs.robolectric)
+    // WARNING: logback can only be used in local tests, not instrumented tests.
+    testImplementation(libs.logback)
+
+    // ----------------- PlaceHolder -----------------
+    // This fixes import issue in the second screen test, imo the test class should be moved to
+    // a different package (androidTest). If it should not maybe debugImplementation is the way
+    testImplementation(libs.io.github.kakaocup)
+
+    // ----------------- Instrumented Testing (androidTest/) -----------------
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    // Compose UI Tests (versions managed by compose-bom)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // ----------------- Kaspresso (UI Automation) -----------------
+    androidTestImplementation(libs.kaspresso.compose)
 }
 
 

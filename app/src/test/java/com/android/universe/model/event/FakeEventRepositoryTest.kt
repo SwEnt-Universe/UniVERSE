@@ -5,11 +5,11 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.fail
-import kotlin.test.assertNotNull
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
