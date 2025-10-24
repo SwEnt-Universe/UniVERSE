@@ -1,4 +1,4 @@
-package com.android.universe.commonTest
+package com.android.universe.utils
 
 import com.android.universe.model.Tag
 import com.android.universe.model.user.UserProfile
