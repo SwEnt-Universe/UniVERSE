@@ -54,7 +54,7 @@ object UserTestData {
           firstName = "Desc",
           lastName = "Ription",
           country = "FR",
-          description = null,
+          description = "",
           dateOfBirth = DummyDate,
           tags = manyTags)
   val SomeTagsUser =
@@ -64,7 +64,7 @@ object UserTestData {
           firstName = "Desc",
           lastName = "Ription",
           country = "FR",
-          description = null,
+          description = "",
           dateOfBirth = DummyDate,
           tags = someTags)
 
@@ -75,7 +75,7 @@ object UserTestData {
           firstName = "Desc",
           lastName = "Ription",
           country = "FR",
-          description = null,
+          description = "",
           dateOfBirth = DummyDate,
           tags = noTag)
 }
