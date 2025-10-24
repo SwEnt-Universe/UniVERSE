@@ -1,11 +1,16 @@
 package com.android.universe.ui.common
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -14,7 +19,9 @@ class TagGroupTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private val sampleTags = listOf("Reading", "Running", "Music")
+    companion object {
+        private val sampleTags = listOf("Reading", "Running", "Music")
+    }
 
   @Test
   fun displaysTitle_whenNameIsProvided() {
@@ -47,7 +54,7 @@ class TagGroupTest {
     }
 
     composeTestRule.onNodeWithText("Running").performClick()
-    assert(selectedTag == "Running")
+    assertEquals("Running", selectedTag)
   }
 
   @Test
@@ -63,7 +70,7 @@ class TagGroupTest {
     }
 
     composeTestRule.onNodeWithText("Running").performClick()
-    assert(reselectedTag == "Running")
+    assertEquals("Running", reselectedTag)
   }
 
   @Test
@@ -73,26 +80,6 @@ class TagGroupTest {
     }
 
     // Verify that the icon appears for the selected tag
-    composeTestRule.onNodeWithContentDescription("Selected").assertIsDisplayed()
-  }
-
-  @Test
-  fun selectedTag_hasBorderAndGrayColor() {
-    // UI border and color verification is partial, but we can still check layout effects.
-    val selected = listOf("Music")
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        TagGroup(
-            name = "Category",
-            tagList = sampleTags,
-            selectedTags = selected,
-            color = Color(0xFF6650a4))
-      }
-    }
-
-    // Confirm both the tag text and check icon appear
-    composeTestRule.onNodeWithText("Music").assertIsDisplayed()
     composeTestRule.onNodeWithContentDescription("Selected").assertIsDisplayed()
   }
 
@@ -119,12 +106,12 @@ class TagGroupTest {
 
     // Select "Reading"
     composeTestRule.onNodeWithText("Reading").performClick()
-    assert(lastSelected == "Reading")
-    assert("Reading" in selectedTags)
+    assertEquals("Reading", lastSelected )
+    assertTrue("Reading" in selectedTags)
 
     // Deselect "Reading"
     composeTestRule.onNodeWithText("Reading").performClick()
-    assert(lastReselected == "Reading")
-    assert("Reading" !in selectedTags)
+    assertEquals("Reading", lastReselected )
+    assertTrue("Reading" !in selectedTags)
   }
 }
