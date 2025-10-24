@@ -12,8 +12,8 @@ import androidx.compose.ui.test.performTextInput
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
 import com.android.universe.ui.profile.SettingsUiState
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
