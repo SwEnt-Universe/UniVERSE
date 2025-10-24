@@ -1,6 +1,7 @@
 package com.android.universe.ui.profileSettings
 
 import android.util.Log
+import com.android.universe.MainCoroutineRule
 import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
@@ -21,7 +22,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import com.android.universe.MainCoroutineRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {

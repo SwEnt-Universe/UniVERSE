@@ -4,6 +4,7 @@ import com.android.universe.MainCoroutineRule
 import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -11,14 +12,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SelectTagViewModelTest {
   // Define the parameters for the tests.
-  @get:Rule
-  val mainCoroutineRule = MainCoroutineRule()
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
