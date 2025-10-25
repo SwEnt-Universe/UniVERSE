@@ -264,6 +264,8 @@ dependencies {
     testFixturesImplementation(libs.junit4)
     testFixturesImplementation(composeBom)
     testFixturesImplementation(libs.androidx.compose.runtime)
+    testFixturesImplementation(libs.androidx.test.core)
+
     // ----------------- Unit Testing (test/) -----------------
     testImplementation(libs.junit4)
     globalTestImplementation(libs.androidx.compose.ui.test.junit4)

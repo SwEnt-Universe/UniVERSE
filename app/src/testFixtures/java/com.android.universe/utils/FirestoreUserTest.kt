@@ -1,19 +1,19 @@
 package com.android.universe.utils
 
 import android.util.Log
+import androidx.test.core.app.ApplicationProvider
 import com.android.universe.model.user.USERS_COLLECTION_PATH
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryFirestore
+import com.google.firebase.FirebaseApp
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 
 open class FirestoreUserTest() {
-  val testDispatcher = StandardTestDispatcher()
   val emulator = FirebaseEmulator
 
   suspend fun getUserCount(): Int {
@@ -38,6 +38,8 @@ open class FirestoreUserTest() {
 
   @Before
   open fun setUp() {
+    FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
+    emulator.connect()
     val url = URL("http://10.0.2.2:8080") // Firestore emulator host for Android
     val connection = url.openConnection() as HttpURLConnection
     connection.connectTimeout = 2000
@@ -56,7 +58,5 @@ open class FirestoreUserTest() {
 
   @After
   open fun tearDown() {
-    runTest { // clearTestCollection()
-    }
   }
 }
