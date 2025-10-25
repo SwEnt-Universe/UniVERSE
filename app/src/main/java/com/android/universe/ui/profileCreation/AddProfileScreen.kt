@@ -18,7 +18,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -83,6 +85,17 @@ object AddProfileScreenTestTags {
   const val SAVE_BUTTON = "save_button"
 }
 
+private data class ProfileInputConfig(
+    val label: String,
+    val placeholder: String,
+    val testTagLabel: String,
+    val testTagField: String,
+    val testTagError: String,
+    val showErrorOnTouchOnly: Boolean = true,
+    val maxLines: Int = 1
+)
+
+
 /**
  * Composable screen that allows a user to create a new Profile.
  *
@@ -120,15 +133,6 @@ fun AddProfileScreen(
 ) {
   val profileUIState by addProfileViewModel.uiState.collectAsState()
   val errorMsg = profileUIState.errorMsg
-
-  var hasTouchedUsername by remember { mutableStateOf(false) }
-  var hasTouchedFirstName by remember { mutableStateOf(false) }
-  var hasTouchedLastName by remember { mutableStateOf(false) }
-  var hasTouchedDay by remember { mutableStateOf(false) }
-  var hasTouchedMonth by remember { mutableStateOf(false) }
-  var hasTouchedYear by remember { mutableStateOf(false) }
-  var showDropDown by remember { mutableStateOf(false) }
-
   val context = LocalContext.current
 
   // Observe and display asynchronous validation errors as Toast messages.
@@ -147,243 +151,74 @@ fun AddProfileScreen(
         ) {
 
           // Username field
-          Text(
-              text = "Username",
-              style = MaterialTheme.typography.bodyLarge,
-              modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_TEXT))
-          OutlinedTextField(
-              value = profileUIState.username,
-              onValueChange = { addProfileViewModel.setUsername(it) },
-              placeholder = { Text("Username") },
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag(AddProfileScreenTestTags.USERNAME_FIELD)
-                      .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                          hasTouchedUsername = true
-                        }
-                      },
-              shape = RoundedCornerShape(12.dp),
-              singleLine = true)
-          if (hasTouchedUsername && profileUIState.usernameError != null) {
-            Text(
-                text = profileUIState.usernameError!!,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.testTag(AddProfileScreenTestTags.USERNAME_ERROR))
-          }
+            ProfileInputField(
+                config = ProfileInputConfig(
+                    label = "Username",
+                    placeholder = "Username",
+                    testTagLabel = AddProfileScreenTestTags.USERNAME_TEXT,
+                    testTagField = AddProfileScreenTestTags.USERNAME_FIELD,
+                    testTagError = AddProfileScreenTestTags.USERNAME_ERROR,
+                ),
+                value = profileUIState.username,
+                onValueChange = { addProfileViewModel.setUsername(it) },
+                error = profileUIState.usernameError,
+            )
 
           // First name field
-          Text(
-              text = "First Name",
-              style = MaterialTheme.typography.bodyLarge,
-              modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_TEXT))
-          OutlinedTextField(
-              value = profileUIState.firstName,
-              onValueChange = { addProfileViewModel.setFirstName(it) },
-              placeholder = { Text("First Name") },
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag(AddProfileScreenTestTags.FIRST_NAME_FIELD)
-                      .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                          hasTouchedFirstName = true
-                        }
-                      },
-              shape = RoundedCornerShape(12.dp),
-              singleLine = true)
-          if (hasTouchedFirstName && profileUIState.firstNameError != null) {
-            Text(
-                text = profileUIState.firstNameError!!,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.testTag(AddProfileScreenTestTags.FIRST_NAME_ERROR))
-          }
+            ProfileInputField(
+                config = ProfileInputConfig(
+                    label = "First Name",
+                    placeholder = "First Name",
+                    testTagLabel = AddProfileScreenTestTags.FIRST_NAME_TEXT,
+                    testTagField = AddProfileScreenTestTags.FIRST_NAME_FIELD,
+                    testTagError = AddProfileScreenTestTags.FIRST_NAME_ERROR
+                ),
+                value = profileUIState.firstName,
+                onValueChange = { addProfileViewModel.setFirstName(it) },
+                error = profileUIState.firstNameError,
+            )
 
           // Last name field
-          Text(
-              text = "Last Name",
-              style = MaterialTheme.typography.bodyLarge,
-              modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_TEXT))
-          OutlinedTextField(
-              value = profileUIState.lastName,
-              onValueChange = { addProfileViewModel.setLastName(it) },
-              placeholder = { Text("Last Name") },
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag(AddProfileScreenTestTags.LAST_NAME_FIELD)
-                      .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                          hasTouchedLastName = true
-                        }
-                      },
-              shape = RoundedCornerShape(12.dp),
-              singleLine = true)
-          if (hasTouchedLastName && profileUIState.lastNameError != null) {
-            Text(
-                text = profileUIState.lastNameError!!,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.testTag(AddProfileScreenTestTags.LAST_NAME_ERROR))
-          }
+            ProfileInputField(
+                config = ProfileInputConfig(
+                    label = "Last Name",
+                    placeholder = "Last Name",
+                    testTagLabel = AddProfileScreenTestTags.LAST_NAME_TEXT,
+                    testTagField = AddProfileScreenTestTags.LAST_NAME_FIELD,
+                    testTagError = AddProfileScreenTestTags.LAST_NAME_ERROR
+                ),
+                value = profileUIState.lastName,
+                onValueChange = { addProfileViewModel.setLastName(it) },
+                error = profileUIState.lastNameError,
+            )
 
           // Description field
-          Text(
-              text = "Description",
-              style = MaterialTheme.typography.bodyLarge,
-              modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_TEXT))
-          OutlinedTextField(
+          ProfileInputField(
+              config = ProfileInputConfig(
+                label = "Description",
+                placeholder = "Description",
+                testTagLabel = AddProfileScreenTestTags.DESCRIPTION_TEXT,
+                testTagField = AddProfileScreenTestTags.DESCRIPTION_FIELD,
+                testTagError = AddProfileScreenTestTags.DESCRIPTION_ERROR,
+                  showErrorOnTouchOnly = false,
+                maxLines = 3
+              ),
               value = profileUIState.description ?: "",
               onValueChange = { addProfileViewModel.setDescription(it) },
-              placeholder = { Text("Description") },
-              modifier =
-                  Modifier.fillMaxWidth().testTag(AddProfileScreenTestTags.DESCRIPTION_FIELD),
-              shape = RoundedCornerShape(12.dp),
-              maxLines = 3,
-              singleLine = false)
-          if (profileUIState.descriptionError != null) {
-            Text(
-                text = profileUIState.descriptionError!!,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.testTag(AddProfileScreenTestTags.DESCRIPTION_ERROR))
-          }
+              error = profileUIState.descriptionError,
+          )
 
           // Country selector
-          Text(
-              text = "Country",
-              style = MaterialTheme.typography.bodyLarge,
-              modifier = Modifier.testTag(AddProfileScreenTestTags.COUNTRY_TEXT))
-          ExposedDropdownMenuBox(
-              expanded = showDropDown, onExpandedChange = { showDropDown = !showDropDown }) {
-                OutlinedTextField(
-                    value = profileUIState.country,
-                    onValueChange = { addProfileViewModel.setCountry(it) },
-                    readOnly = true,
-                    label = { Text(text = "Country") },
-                    placeholder = { Text("Country") },
-                    modifier =
-                        Modifier.menuAnchor()
-                            .fillMaxWidth()
-                            .testTag(AddProfileScreenTestTags.COUNTRY_FIELD),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true)
-                ExposedDropdownMenu(
-                    expanded = showDropDown,
-                    onDismissRequest = { showDropDown = false },
-                    modifier =
-                        Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
-                      allCountries.forEach { country ->
-                        DropdownMenuItem(
-                            text = {
-                              Text(
-                                  text = country.take(30) + if (country.length > 30) "..." else "",
-                                  maxLines = 1)
-                            },
-                            onClick = {
-                              addProfileViewModel.setCountry(country)
-                              showDropDown = false
-                            },
-                            modifier =
-                                Modifier.padding(8.dp)
-                                    .testTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX))
-                      }
-                    }
-              }
+            CountrySelectorField(
+                value = profileUIState.country,
+                onValueChange = { addProfileViewModel.setCountry(it) }
+            )
 
           // Date of Birth section
-          Text(
-              text = "Date of Birth",
-              style = MaterialTheme.typography.bodyLarge,
-              modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT))
-          Row(
-              modifier = Modifier.fillMaxWidth().padding(paddingValues),
-              horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-
-                // Day input
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                      OutlinedTextField(
-                          value = profileUIState.day,
-                          onValueChange = { addProfileViewModel.setDay(it) },
-                          label = { Text(text = "Day") },
-                          placeholder = { Text("Day") },
-                          modifier =
-                              Modifier.fillMaxWidth()
-                                  .testTag(AddProfileScreenTestTags.DAY_FIELD)
-                                  .onFocusChanged { focusState ->
-                                    if (focusState.isFocused) {
-                                      hasTouchedDay = true
-                                    }
-                                  },
-                          shape = RoundedCornerShape(12.dp),
-                          singleLine = true)
-                      if (hasTouchedDay && profileUIState.dayError != null) {
-                        Text(
-                            text = profileUIState.dayError!!,
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.DAY_ERROR))
-                      }
-                    }
-
-                // Month input
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                      OutlinedTextField(
-                          value = profileUIState.month,
-                          onValueChange = { addProfileViewModel.setMonth(it) },
-                          label = { Text(text = "Month") },
-                          placeholder = { Text("Month") },
-                          modifier =
-                              Modifier.fillMaxWidth()
-                                  .testTag(AddProfileScreenTestTags.MONTH_FIELD)
-                                  .onFocusChanged { focusState ->
-                                    if (focusState.isFocused) {
-                                      hasTouchedMonth = true
-                                    }
-                                  },
-                          shape = RoundedCornerShape(12.dp),
-                          singleLine = true)
-                      if (hasTouchedMonth && profileUIState.monthError != null) {
-                        Text(
-                            text = profileUIState.monthError!!,
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.MONTH_ERROR))
-                      }
-                    }
-
-                // Year input
-                Column(
-                    modifier = Modifier.weight(1.5f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                      OutlinedTextField(
-                          value = profileUIState.year,
-                          onValueChange = { addProfileViewModel.setYear(it) },
-                          label = { Text(text = "Year") },
-                          placeholder = { Text("Year") },
-                          modifier =
-                              Modifier.fillMaxWidth()
-                                  .testTag(AddProfileScreenTestTags.YEAR_FIELD)
-                                  .onFocusChanged { focusState ->
-                                    if (focusState.isFocused) {
-                                      hasTouchedYear = true
-                                    }
-                                  },
-                          shape = RoundedCornerShape(12.dp),
-                          singleLine = true)
-                      if (hasTouchedYear && profileUIState.yearError != null) {
-                        Text(
-                            text = profileUIState.yearError!!,
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.testTag(AddProfileScreenTestTags.YEAR_ERROR))
-                      }
-                    }
-              }
+            DateOfBirthFields(
+                uiState = profileUIState,
+                viewModel = addProfileViewModel
+            )
 
           Spacer(modifier = Modifier.size(8.dp))
 
@@ -410,4 +245,172 @@ fun AddProfileScreen(
               }
         }
       })
+}
+
+@Composable
+private fun ProfileInputField(
+    config: ProfileInputConfig,
+    value: String,
+    onValueChange: (String) -> Unit,
+    error: String?,
+    modifier: Modifier = Modifier,
+) {
+    var hasBeenTouched by remember { mutableStateOf(false) }
+
+    val showError = if (config.showErrorOnTouchOnly) {
+        hasBeenTouched && error != null
+    } else {
+        error != null
+    }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = config.label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.testTag(config.testTagLabel)
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text(config.placeholder) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(config.testTagField)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused && !hasBeenTouched) {
+                        hasBeenTouched = true
+                    }
+                },
+            shape = RoundedCornerShape(12.dp),
+            singleLine = config.maxLines == 1,
+            maxLines = config.maxLines,
+            isError = showError
+        )
+        if (showError) {
+            Text(
+                text = error!!,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(config.testTagError)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CountrySelectorField(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    var showDropDown by remember { mutableStateOf(false) }
+
+    Text(
+        text = "Country",
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier.testTag(AddProfileScreenTestTags.COUNTRY_TEXT)
+    )
+    ExposedDropdownMenuBox(
+        expanded = showDropDown,
+        onExpandedChange = { showDropDown = !showDropDown }
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {}, // Not needed, read-only
+            readOnly = true,
+            placeholder = { Text("Country") },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+                .testTag(AddProfileScreenTestTags.COUNTRY_FIELD),
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showDropDown) }
+        )
+        ExposedDropdownMenu(
+            expanded = showDropDown,
+            onDismissRequest = { showDropDown = false },
+            modifier = Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState())
+        ) {
+            allCountries.forEach { country ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = country.take(30) + if (country.length > 30) "..." else "",
+                            maxLines = 1
+                        )
+                    },
+                    onClick = {
+                        onValueChange(country)
+                        showDropDown = false
+                    },
+                    modifier = Modifier.testTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX + country)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DateOfBirthFields(
+    uiState: AddProfileUIState,
+    viewModel: AddProfileViewModel
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Date of Birth",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT)
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Day input
+            ProfileInputField(
+                config = ProfileInputConfig(
+                    label = "Day",
+                    placeholder = "DD",
+                    testTagLabel = "ignored",
+                    testTagField = AddProfileScreenTestTags.DAY_FIELD,
+                    testTagError = AddProfileScreenTestTags.DAY_ERROR
+                ),
+                value = uiState.day,
+                onValueChange = { viewModel.setDay(it) },
+                error = uiState.dayError
+            )
+
+            // Month input
+            ProfileInputField(
+                config = ProfileInputConfig(
+                    label = "Month",
+                    placeholder = "MM",
+                    testTagLabel = "ignored",
+                    testTagField = AddProfileScreenTestTags.MONTH_FIELD,
+                    testTagError = AddProfileScreenTestTags.MONTH_ERROR
+                ),
+                value = uiState.month,
+                onValueChange = { viewModel.setMonth(it) },
+                error = uiState.monthError
+            )
+
+            // Year input
+            ProfileInputField(
+                config = ProfileInputConfig(
+                    label = "Year",
+                    placeholder = "YYYY",
+                    testTagLabel = "ignored",
+                    testTagField = AddProfileScreenTestTags.YEAR_FIELD,
+                    testTagError = AddProfileScreenTestTags.YEAR_ERROR
+                ),
+                value = uiState.year,
+                onValueChange = { viewModel.setYear(it) },
+                error = uiState.yearError,
+            )
+        }
+    }
 }
