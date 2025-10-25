@@ -15,6 +15,39 @@ object UserTestData {
 
   private val DummyDate = LocalDate.of(2000, 8, 11)
 
+  val Alice =
+      UserProfile(
+          uid = "1",
+          username = "Alice",
+          firstName = "second",
+          lastName = "User2",
+          country = "France",
+          description = "a second user",
+          dateOfBirth = LocalDate.of(2005, 12, 15),
+          tags = setOf(Tag.TENNIS))
+
+  val Bob =
+      UserProfile(
+          uid = "0",
+          username = "Bob",
+          firstName = "Test",
+          lastName = "User",
+          country = "Switzerland",
+          description = "Just a test user",
+          dateOfBirth = LocalDate.of(1990, 1, 1),
+          tags = setOf(Tag.MUSIC, Tag.METAL))
+
+  val Rocky =
+      UserProfile(
+          uid = "2",
+          username = "Rocky",
+          firstName = "third",
+          lastName = "User3",
+          country = "Portugal",
+          description = "a third user",
+          dateOfBirth = LocalDate.of(2012, 9, 12),
+          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
+
   val FullDescription =
       UserProfile(
           uid = "20",
