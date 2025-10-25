@@ -93,7 +93,7 @@ object InputLimits {
  * It validates user input, handles error messages, and communicates with the [UserRepository] to
  * persist the new [UserProfile].
  *
- * UI should collet [uiState] to observe changes in real time.
+ * UI should collect [uiState] to observe changes in real time.
  *
  * @param repository The data source handling user-related operations.
  * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
@@ -105,7 +105,8 @@ object InputLimits {
 class AddProfileViewModel(
     private val repository: UserRepository = UserRepositoryProvider.repository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
@@ -140,147 +141,152 @@ class AddProfileViewModel(
    * - Enforces a maximum length for each field.
    * - Removes any leading or trailing spaces from the input before adding the profile.
    *
-   * If any check fails, [errorMsg] is updated with a user-friendly message. Otherwise, a
+   * If any check fails, errorMsg is updated with a user-friendly message. Otherwise, a
    * [UserProfile] is constructed and persisted via [repository]
    *
    * @param uid The user's unique identifier.
    */
   fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
     viewModelScope.launch(dispatcher) {
+      if (!validateAllInputs()) {
+        return@launch
+      }
+
       val state = _uiState.value
-
-      val firstName = state.firstName
-      if (firstName.isBlank()) {
-        setErrorMsg("First name cannot be empty")
-        return@launch
-      }
-
-      if (!nameRegex.matches(firstName)) {
-        setErrorMsg("Invalid first name format")
-        return@launch
-      }
-
-      if (firstName.length > InputLimits.FIRST_NAME) {
-        setErrorMsg("First name is too long")
-        return@launch
-      }
-
-      val cleanedFirstName = sanitize(firstName)
-
-      val lastName = state.lastName
-      if (state.lastName.isBlank()) {
-        setErrorMsg("Last name cannot be empty")
-        return@launch
-      }
-
-      if (!nameRegex.matches(lastName)) {
-        setErrorMsg("Invalid last name format")
-        return@launch
-      }
-
-      if (lastName.length > InputLimits.LAST_NAME) {
-        setErrorMsg("Last name is too long")
-        return@launch
-      }
-
-      val cleanedLastName = sanitize(lastName)
-
-      val description = state.description
-      if (description != null && description.length > InputLimits.DESCRIPTION) {
-        setErrorMsg("Description is too long")
-        return@launch
-      }
-
-      val cleanedDescription = description?.let { sanitize(it) }
-      val day = state.day
-      if (day.toIntOrNull() == null) {
-        setErrorMsg("Day is not a number")
-        return@launch
-      }
-
-      val month = state.month
-      if (month.toIntOrNull() == null) {
-        setErrorMsg("Month is not a number")
-        return@launch
-      }
-
-      val year = state.year
-      if (year.toIntOrNull() == null) {
-        setErrorMsg("Year is not a number")
-        return@launch
-      }
-
-      val country = state.country
-      if (country.isBlank()) {
-        setErrorMsg("Country cannot be empty")
-        return@launch
-      }
-
-      val isoCode = countryToIsoCode[state.country]
-      if (isoCode == null) {
-        setErrorMsg("Invalid country")
-        return@launch
-      }
-
-      if (!isValidDate(day.toInt(), month.toInt(), year.toInt())) {
-        setErrorMsg("Invalid date")
-        return@launch
-      }
-
-      if (!userOldEnough(LocalDate.of(year.toInt(), month.toInt(), day.toInt()))) {
-        setErrorMsg("At least 13 years old required")
-        return@launch
-      }
-
-      val username = state.username
-      if (username.isBlank()) {
-        setErrorMsg("Username cannot be empty")
-        return@launch
-      }
-
-      if (!usernameRegex.matches(username)) {
-        setErrorMsg("Invalid username format")
-        return@launch
-      }
-
-      if (username.length > InputLimits.USERNAME) {
-        setErrorMsg("Username is too long")
-        return@launch
-      }
-
-      if (!repository.isUsernameUnique(username)) {
-        setErrorMsg("Username already exists")
-        return@launch
-      }
+      val dateOfBirth = LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt())
+      val isoCode = countryToIsoCode[state.country]!!
 
       val userProfile =
           UserProfile(
               uid = uid,
-              username = username,
-              firstName = cleanedFirstName,
-              lastName = cleanedLastName,
-              description = cleanedDescription?.takeIf { it.isNotBlank() },
+              username = sanitize(state.username),
+              firstName = sanitize(state.firstName),
+              lastName = sanitize(state.lastName),
+              description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
               country = isoCode,
-              dateOfBirth = LocalDate.of(year.toInt(), month.toInt(), day.toInt()),
+              dateOfBirth = dateOfBirth,
               tags = emptySet())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
-      withContext(Dispatchers.Main) { onSuccess() }
+      withContext(mainDispatcher) { onSuccess() }
     }
   }
 
   /**
-   * Validates whether a combination of [day], [month], and [year] forms a valid calendar date.
+   * Validates all user inputs from the UI state.
    *
-   * @return true if the date is valid, false otherwise.
+   * @return `true` if all inputs are valid, `false` otherwise.
    */
-  private fun isValidDate(day: Int, month: Int, year: Int): Boolean {
+  private suspend fun validateAllInputs(): Boolean {
+    val state = _uiState.value
+    return validate(state.firstName, "First name", InputLimits.FIRST_NAME, nameRegex) &&
+        validate(state.lastName, "Last name", InputLimits.LAST_NAME, nameRegex) &&
+        validateDescription(state.description) &&
+        validateDate(state.day, state.month, state.year) &&
+        validateCountry(state.country) &&
+        validateUsername(state.username)
+  }
+
+  /**
+   * Generic validation function for text fields.
+   *
+   * @return `true` if valid, `false` otherwise, setting an error message on failure.
+   */
+  private fun validate(value: String, fieldName: String, maxLength: Int, regex: Regex): Boolean {
+    return when {
+      value.isBlank() -> {
+        setErrorMsg("$fieldName cannot be empty")
+        false
+      }
+      value.length > maxLength -> {
+        setErrorMsg("$fieldName is too long")
+        false
+      }
+      !regex.matches(value) -> {
+        setErrorMsg("Invalid $fieldName format")
+        false
+      }
+      else -> true
+    }
+  }
+
+  /**
+   * Validates the description field.
+   *
+   * @return `true` if valid, `false` otherwise, setting an error message on failure.
+   */
+  private fun validateDescription(description: String?): Boolean {
+    if (description != null && description.length > InputLimits.DESCRIPTION) {
+      setErrorMsg("Description is too long")
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Validates the date fields and the user's age.
+   *
+   * @return `true` if valid, `false` otherwise, setting an error message on failure.
+   */
+  private fun validateDate(dayStr: String, monthStr: String, yearStr: String): Boolean {
+    val day = dayStr.toIntOrNull()
+    val month = monthStr.toIntOrNull()
+    val year = yearStr.toIntOrNull()
+
+    if (day == null || month == null || year == null) {
+      setErrorMsg("Date fields must be numbers")
+      return false
+    }
+
     return try {
-      LocalDate.of(year, month, day)
-      true
+      val dateOfBirth = LocalDate.of(year, month, day)
+      if (!userOldEnough(dateOfBirth)) {
+        setErrorMsg("You must be at least 13 years old")
+        false
+      } else {
+        true
+      }
     } catch (_: DateTimeException) {
+      setErrorMsg("Invalid date")
       false
     }
+  }
+
+  /**
+   * Validates the country field.
+   *
+   * @return `true` if valid, `false` otherwise, setting an error message on failure.
+   */
+  private fun validateCountry(country: String): Boolean {
+    return when {
+      country.isBlank() -> {
+        setErrorMsg("Country cannot be empty")
+        false
+      }
+      countryToIsoCode[country] == null -> {
+        setErrorMsg("Invalid country")
+        false
+      }
+      else -> true
+    }
+  }
+
+  /**
+   * Validates the username for format, length, and uniqueness.
+   *
+   * @return `true` if valid, `false` otherwise, setting an error message on failure.
+   */
+  private suspend fun validateUsername(username: String): Boolean {
+    if (!validate(username, "Username", InputLimits.USERNAME, usernameRegex)) {
+      return false
+    }
+
+    if (!repository.isUsernameUnique(username)) {
+      setErrorMsg("Username already exists")
+      return false
+    }
+
+    return true
   }
 
   /**

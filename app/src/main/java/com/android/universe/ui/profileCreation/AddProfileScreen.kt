@@ -306,7 +306,7 @@ private fun ProfileInputField(
         placeholder = { Text(config.placeholder) },
         modifier =
             Modifier.fillMaxWidth().testTag(config.testTagField).onFocusChanged { focusState ->
-              if (!focusState.isFocused && !hasBeenTouched) {
+              if (focusState.isFocused && !hasBeenTouched) {
                 hasBeenTouched = true
               }
             },

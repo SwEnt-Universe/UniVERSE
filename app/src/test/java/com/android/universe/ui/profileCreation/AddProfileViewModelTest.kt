@@ -219,7 +219,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Day is not a number", viewModel.uiState.value.errorMsg)
+    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -241,7 +241,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Day is not a number", viewModel.uiState.value.errorMsg)
+    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -263,7 +263,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Month is not a number", viewModel.uiState.value.errorMsg)
+    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -285,7 +285,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Month is not a number", viewModel.uiState.value.errorMsg)
+    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -307,7 +307,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Year is not a number", viewModel.uiState.value.errorMsg)
+    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -329,7 +329,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Year is not a number", viewModel.uiState.value.errorMsg)
+    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -461,7 +461,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("At least 13 years old required", viewModel.uiState.value.errorMsg)
+    assertEquals("You must be at least 13 years old", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -668,7 +668,7 @@ class AddProfileViewModelTest {
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
-    assertEquals("Invalid username format", vm.uiState.value.errorMsg)
+    assertEquals("Invalid Username format", vm.uiState.value.errorMsg)
   }
 
   @Test
@@ -710,7 +710,7 @@ class AddProfileViewModelTest {
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
-    assertEquals("Invalid first name format", vm.uiState.value.errorMsg)
+    assertEquals("Invalid First name format", vm.uiState.value.errorMsg)
   }
 
   @Test
