@@ -1,14 +1,12 @@
 package com.android.universe.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.model.Tag
-import com.android.universe.model.location.Location
-import com.android.universe.model.user.UserProfile
+import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirestoreEventTest
-import java.time.LocalDate
-import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,105 +21,17 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository = createInitializedRepository()
   }
 
-  private val userProfile1 =
-      UserProfile(
-          uid = "0",
-          username = "Bobbb",
-          firstName = "Test",
-          lastName = "User",
-          country = "Switzerland",
-          description = "Just a test user",
-          dateOfBirth = LocalDate.of(1990, 1, 1),
-          tags = setOf(Tag.MUSIC, Tag.METAL))
-
-  private val userProfile2 =
-      UserProfile(
-          uid = "1",
-          username = "Al",
-          firstName = "second",
-          lastName = "User2",
-          country = "France",
-          description = "a second user",
-          dateOfBirth = LocalDate.of(2005, 12, 15),
-          tags = setOf(Tag.TENNIS))
-
-  private val userProfile3 =
-      UserProfile(
-          uid = "2",
-          username = "Rocky",
-          firstName = "third",
-          lastName = "User3",
-          country = "Portugal",
-          description = "a third user",
-          dateOfBirth = LocalDate.of(2012, 9, 12),
-          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
-
-  private val event1 =
-      Event(
-          id = "1",
-          title = "Morning Run at the Lake",
-          description = "Join us for a casual 5km run around the lake followed by coffee.",
-          date = LocalDateTime.of(2025, 10, 15, 7, 30),
-          tags = setOf(Tag.JAZZ, Tag.COUNTRY),
-          participants = setOf(userProfile1, userProfile2),
-          creator = userProfile1,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
-
-  private val event2 =
-      Event(
-          id = "2",
-          title = "Tech Hackathon 2025",
-          date = LocalDateTime.of(2025, 11, 3, 9, 0),
-          tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
-          participants = setOf(userProfile3),
-          creator = userProfile3,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
-
-  private val event3 =
-      Event(
-          id = "3",
-          title = "Art & Wine Evening",
-          description = "Relaxed evening mixing painting, wine, and music.",
-          date = LocalDateTime.of(2025, 10, 22, 19, 0),
-          tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
-          participants = setOf(userProfile2),
-          creator = userProfile2,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
-
-  private fun userProfileEquals(userA: UserProfile?, userB: UserProfile?): Boolean {
-    if (userA == null || userB == null) return false
-    return userA.uid == userB.uid &&
-        userA.username == userB.username &&
-        userA.firstName == userB.firstName &&
-        userA.lastName == userB.lastName &&
-        userA.country == userB.country &&
-        userA.description == userB.description &&
-        userA.dateOfBirth == userB.dateOfBirth &&
-        userA.tags == userB.tags
-  }
-
-  private fun participantsEqual(setA: Set<UserProfile>?, setB: Set<UserProfile>?): Boolean {
-    if (setA == null || setB == null) return false
-    if (setA.size != setB.size) return false
-    return setA.all { a -> setB.any { b -> userProfileEquals(a, b) } }
-  }
-
-  private fun eventEquals(eventA: Event?, eventB: Event?): Boolean {
-    if (eventA == null || eventB == null) return false
-    return eventA.id == eventB.id &&
-        eventA.title == eventB.title &&
-        eventA.description == eventB.description &&
-        eventA.date == eventB.date &&
-        eventA.tags == eventB.tags &&
-        userProfileEquals(eventA.creator, eventB.creator) &&
-        participantsEqual(eventA.participants, eventB.participants)
+  companion object {
+    private val event1 = EventTestData.dummyEvent1
+    private val event2 = EventTestData.dummyEvent2
+    private val event3 = EventTestData.dummyEvent3
   }
 
   @Test
   fun canAddEventAndRetrieve() = runTest {
     eventRepository.addEvent(event1)
-    val resultEvent = eventRepository.getEvent("1")
-    Assert.assertTrue(eventEquals(event1, resultEvent))
+    val resultEvent = eventRepository.getEvent(event1.id)
+    assertEquals(event1, resultEvent)
   }
 
   @Test
@@ -130,13 +40,13 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
 
-    val resultEvent1 = eventRepository.getEvent("1")
-    val resultEvent2 = eventRepository.getEvent("2")
-    val resultEvent3 = eventRepository.getEvent("3")
+    val resultEvent1 = eventRepository.getEvent(event1.id)
+    val resultEvent2 = eventRepository.getEvent(event2.id)
+    val resultEvent3 = eventRepository.getEvent(event3.id)
 
-    Assert.assertTrue(eventEquals(event1, resultEvent1))
-    Assert.assertTrue(eventEquals(event2, resultEvent2))
-    Assert.assertTrue(eventEquals(event3, resultEvent3))
+    assertEquals(event1, resultEvent1)
+    assertEquals(event2, resultEvent2)
+    assertEquals(event3, resultEvent3)
   }
 
   @Test
@@ -147,11 +57,11 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
 
     val result = eventRepository.getAllEvents()
 
-    Assert.assertEquals(3, result.size)
+    assertEquals(3, result.size)
 
-    Assert.assertTrue(eventEquals(event1, result[0]))
-    Assert.assertTrue(eventEquals(event2, result[1]))
-    Assert.assertTrue(eventEquals(event3, result[2]))
+    assertEquals(event1, result[0])
+    assertEquals(event2, result[1])
+    assertEquals(event3, result[2])
   }
 
   @Test
@@ -169,9 +79,9 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   @Test
   fun updateEventReplacesExistingEventCompletely() = runTest {
     eventRepository.addEvent(event1)
-    eventRepository.updateEvent("1", event2)
-    val resultUser = eventRepository.getEvent("1")
-    Assert.assertTrue(eventEquals(event2, resultUser))
+    eventRepository.updateEvent(event1.id, event2)
+    val resultEvent = eventRepository.getEvent(event1.id)
+    assertEquals(event2.copy(id = event1.id), resultEvent)
   }
 
   @Test
@@ -179,12 +89,12 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event1)
     eventRepository.addEvent(event2)
 
-    eventRepository.updateEvent("1", event3)
+    eventRepository.updateEvent(event1.id, event3)
     val result = eventRepository.getAllEvents()
-    Assert.assertEquals(2, result.size)
+    assertEquals(2, result.size)
 
-    Assert.assertTrue(eventEquals(event3, result[0]))
-    Assert.assertTrue(eventEquals(event2, result[1]))
+    assertEquals(event3.copy(id = event1.id), result[0])
+    assertEquals(event2, result[1])
   }
 
   @Test
@@ -204,7 +114,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event1)
     eventRepository.deleteEvent("1")
     val result = eventRepository.getAllEvents()
-    Assert.assertEquals(0, result.size)
+    assertEquals(0, result.size)
   }
 
   @Test
@@ -213,12 +123,12 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
 
-    eventRepository.deleteEvent("2")
+    eventRepository.deleteEvent(event2.id)
     val result = eventRepository.getAllEvents()
-    Assert.assertEquals(2, result.size)
+    assertEquals(2, result.size)
 
-    Assert.assertTrue(eventEquals(event1, result[0]))
-    Assert.assertTrue(eventEquals(event3, result[1]))
+    assertEquals(event1, result[0])
+    assertEquals(event3, result[1])
   }
 
   @Test
@@ -236,7 +146,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   @Test
   fun getNewID_returnsAString() = runTest {
     val id = eventRepository.getNewID()
-    Assert.assertNotNull(id)
+    assertNotNull(id)
     assert(id.isNotEmpty())
   }
 
@@ -245,11 +155,11 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     val ids = mutableSetOf<String>()
     repeat(100) {
       val id = eventRepository.getNewID()
-      Assert.assertNotNull(id)
-      assert(id.isNotEmpty())
-      assert(!ids.contains(id)) // Ensure uniqueness
+      assertNotNull(id)
+      assertTrue(id.isNotEmpty())
+      assertTrue(!ids.contains(id)) // Ensure uniqueness
       ids.add(id)
     }
-    Assert.assertEquals(100, ids.size) // Ensure all IDs are unique
+    assertEquals(100, ids.size) // Ensure all IDs are unique
   }
 }
