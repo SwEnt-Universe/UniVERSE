@@ -38,7 +38,7 @@ class NavigationBottomMenuTest {
     // Assert: selected tab is the one clicked on
     tabs.forEach { tab ->
       composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(tab)).performClick()
-      assertEquals(tab, selectedTab.value )
+      assertEquals(tab, selectedTab.value)
     }
   }
 }

@@ -22,9 +22,9 @@ class TagGroupTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-    companion object {
-        private val sampleTags = listOf("Reading", "Running", "Music")
-    }
+  companion object {
+    private val sampleTags = listOf("Reading", "Running", "Music")
+  }
 
   @Test
   fun displaysTitle_whenNameIsProvided() {
@@ -109,12 +109,12 @@ class TagGroupTest {
 
     // Select "Reading"
     composeTestRule.onNodeWithText("Reading").performClick()
-    assertEquals("Reading", lastSelected )
+    assertEquals("Reading", lastSelected)
     assertTrue("Reading" in selectedTags)
 
     // Deselect "Reading"
     composeTestRule.onNodeWithText("Reading").performClick()
-    assertEquals("Reading", lastReselected )
+    assertEquals("Reading", lastReselected)
     assertTrue("Reading" !in selectedTags)
   }
 }

@@ -36,8 +36,7 @@ class SelectTagScreenTest : FirestoreUserTest() {
   }
 
   // Define the parameters for the tests.
-  @get:Rule
-  val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
   private lateinit var userRepository: UserRepositoryFirestore
   private lateinit var viewModel: SelectTagViewModel
 
@@ -61,10 +60,10 @@ class SelectTagScreenTest : FirestoreUserTest() {
   override fun setUp() {
     super.setUp()
     // Set up a fake repository for testing
-      runTest {
-          userRepository = UserRepositoryFirestore(emulator.firestore)
-          userRepository.addUser(dummyUser)
-      }
+    runTest {
+      userRepository = UserRepositoryFirestore(emulator.firestore)
+      userRepository.addUser(dummyUser)
+    }
     viewModel = SelectTagViewModel(userRepository)
     composeTestRule.setContent { SelectTagScreen(viewModel, uid = dummyUser.uid) }
   }
@@ -203,7 +202,7 @@ class SelectTagScreenTest : FirestoreUserTest() {
         selectedTagNodes.mapNotNull {
           it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
         }
-      Assert.assertEquals(listOf("Bern", "Handball", "Metal"), displayedTags)
+    Assert.assertEquals(listOf("Bern", "Handball", "Metal"), displayedTags)
   }
 
   @Test
@@ -223,7 +222,7 @@ class SelectTagScreenTest : FirestoreUserTest() {
         selectedTagNodes.mapNotNull {
           it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
         }
-      Assert.assertEquals(listOf("Bern", "Handball", "Car"), displayedTags)
+    Assert.assertEquals(listOf("Bern", "Handball", "Car"), displayedTags)
   }
 
   @Test

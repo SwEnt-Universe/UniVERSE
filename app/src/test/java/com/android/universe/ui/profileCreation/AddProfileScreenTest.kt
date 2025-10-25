@@ -23,8 +23,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class AddProfileScreenTest : FirestoreUserTest() {
-  @get:Rule
-  val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
   val uid = "AddProfileScreenTest"
 
   @Before

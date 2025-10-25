@@ -95,7 +95,7 @@ class SettingsScreenTest {
     setUpScreen(onOpenField = { opened = it })
 
     composeTestRule.onNodeWithTag(SettingsTestTags.EMAIL_BUTTON).performClick()
-    assertEquals("email", opened )
+    assertEquals("email", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON).performClick()
     assertEquals("password", opened)
@@ -104,7 +104,7 @@ class SettingsScreenTest {
     assertEquals("firstName", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.LAST_NAME_BUTTON).performClick()
-    assertEquals( "lastName", opened)
+    assertEquals("lastName", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.DESCRIPTION_BUTTON).performClick()
     assertEquals("description", opened)

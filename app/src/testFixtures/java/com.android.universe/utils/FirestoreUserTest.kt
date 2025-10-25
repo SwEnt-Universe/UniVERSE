@@ -56,7 +56,5 @@ open class FirestoreUserTest() {
     }
   }
 
-  @After
-  open fun tearDown() {
-  }
+  @After open fun tearDown() {}
 }

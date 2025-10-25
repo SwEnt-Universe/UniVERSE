@@ -69,9 +69,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                    hasTestTag(SettingsTestTags.EMAIL_FIELD),
-            useUnmergedTree = true)
+            hasSetTextAction() and hasTestTag(SettingsTestTags.EMAIL_FIELD), useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
     field.performTextInput("newemail@example.com")
@@ -88,8 +86,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                    hasTestTag(SettingsTestTags.PASSWORD_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.PASSWORD_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
@@ -106,8 +103,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                    hasTestTag(SettingsTestTags.FIRST_NAME_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.FIRST_NAME_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
@@ -124,8 +120,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                    hasTestTag(SettingsTestTags.LAST_NAME_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.LAST_NAME_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
@@ -146,8 +141,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                    hasTestTag(SettingsTestTags.DESCRIPTION_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.DESCRIPTION_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
