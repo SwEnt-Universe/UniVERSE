@@ -1,11 +1,12 @@
 package com.android.universe.model.user
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.model.Tag
 import com.android.universe.utils.FirestoreUserTest
-import java.time.LocalDate
+import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,96 +21,17 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository = createInitializedRepository()
   }
 
-  private val userProfile1 =
-      UserProfile(
-          uid = "0",
-          username = "Bobbb",
-          firstName = "Test",
-          lastName = "User",
-          country = "Switzerland",
-          description = "Just a test user",
-          dateOfBirth = LocalDate.of(1990, 1, 1),
-          tags = setOf(Tag.MUSIC, Tag.METAL))
-
-  private val userProfile2 =
-      UserProfile(
-          uid = "1",
-          username = "Al",
-          firstName = "second",
-          lastName = "User2",
-          country = "France",
-          description = "a second user",
-          dateOfBirth = LocalDate.of(2005, 12, 15),
-          tags = setOf(Tag.TENNIS))
-
-  private val userProfile3 =
-      UserProfile(
-          uid = "2",
-          username = "Rocky",
-          firstName = "third",
-          lastName = "User3",
-          country = "Portugal",
-          description = "a third user",
-          dateOfBirth = LocalDate.of(2012, 9, 12),
-          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
+  companion object {
+    private val userProfile1 = UserTestData.Bob
+    private val userProfile2 = UserTestData.Alice
+    private val userProfile3 = UserTestData.Rocky
+  }
 
   @Test
   fun canAddUserAndRetrieve() = runTest {
     userRepository.addUser(userProfile1)
     val resultUser = userRepository.getUser("0")
-    with(resultUser) {
-      Assert.assertEquals(userProfile1.uid, uid)
-      Assert.assertEquals("Bobbb", username)
-      Assert.assertEquals("Test", firstName)
-      Assert.assertEquals("User", lastName)
-      Assert.assertEquals("Switzerland", country)
-      Assert.assertEquals("Just a test user", description)
-      Assert.assertEquals(LocalDate.of(1990, 1, 1), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.MUSIC, Tag.METAL), tags)
-    }
-  }
-
-  @Test
-  fun canAddMultipleUserAndRetrieveAll() = runTest {
-    userRepository.addUser(userProfile1)
-    userRepository.addUser(userProfile2)
-    userRepository.addUser(userProfile3)
-
-    val resultUser1 = userRepository.getUser("0")
-    val resultUser2 = userRepository.getUser("1")
-    val resultUser3 = userRepository.getUser("2")
-
-    with(resultUser1) {
-      Assert.assertEquals("0", uid)
-      Assert.assertEquals("Bobbb", username)
-      Assert.assertEquals("Test", firstName)
-      Assert.assertEquals("User", lastName)
-      Assert.assertEquals("Switzerland", country)
-      Assert.assertEquals("Just a test user", description)
-      Assert.assertEquals(LocalDate.of(1990, 1, 1), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.MUSIC, Tag.METAL), tags)
-    }
-    with(resultUser2) {
-      Assert.assertEquals("1", uid)
-      Assert.assertEquals("Al", username)
-      Assert.assertEquals("second", firstName)
-      Assert.assertEquals("User2", lastName)
-      Assert.assertEquals("France", country)
-      Assert.assertEquals("a second user", description)
-      Assert.assertEquals(LocalDate.of(2005, 12, 15), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.TENNIS), tags)
-    }
-
-    with(resultUser3) {
-      Assert.assertEquals("2", uid)
-      Assert.assertEquals("Rocky", username)
-      Assert.assertEquals("third", firstName)
-      Assert.assertEquals("User3", lastName)
-      Assert.assertEquals("Portugal", country)
-      Assert.assertEquals("a third user", description)
-      Assert.assertEquals(LocalDate.of(2012, 9, 12), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE), tags)
-    }
+    assertEquals(userProfile1, resultUser)
   }
 
   @Test
@@ -120,40 +42,10 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
 
     val result = userRepository.getAllUsers()
 
-    Assert.assertEquals(3, result.size)
-
-    with(result[0]) {
-      Assert.assertEquals("0", uid)
-      Assert.assertEquals("Bobbb", username)
-      Assert.assertEquals("Test", firstName)
-      Assert.assertEquals("User", lastName)
-      Assert.assertEquals("Switzerland", country)
-      Assert.assertEquals("Just a test user", description)
-      Assert.assertEquals(LocalDate.of(1990, 1, 1), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.MUSIC, Tag.METAL), tags)
-    }
-
-    with(result[1]) {
-      Assert.assertEquals("1", uid)
-      Assert.assertEquals("Al", username)
-      Assert.assertEquals("second", firstName)
-      Assert.assertEquals("User2", lastName)
-      Assert.assertEquals("France", country)
-      Assert.assertEquals("a second user", description)
-      Assert.assertEquals(LocalDate.of(2005, 12, 15), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.TENNIS), tags)
-    }
-
-    with(result[2]) {
-      Assert.assertEquals("2", uid)
-      Assert.assertEquals("Rocky", username)
-      Assert.assertEquals("third", firstName)
-      Assert.assertEquals("User3", lastName)
-      Assert.assertEquals("Portugal", country)
-      Assert.assertEquals("a third user", description)
-      Assert.assertEquals(LocalDate.of(2012, 9, 12), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE), tags)
-    }
+    assertEquals(3, result.size)
+    assertEquals(userProfile1, result[0])
+    assertEquals(userProfile2, result[1])
+    assertEquals(userProfile3, result[2])
   }
 
   @Test
@@ -173,16 +65,7 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository.addUser(userProfile1)
     userRepository.updateUser("0", userProfile2)
     val resultUser = userRepository.getUser("0")
-    with(resultUser) {
-      Assert.assertEquals("1", uid)
-      Assert.assertEquals("Al", username)
-      Assert.assertEquals("second", firstName)
-      Assert.assertEquals("User2", lastName)
-      Assert.assertEquals("France", country)
-      Assert.assertEquals("a second user", description)
-      Assert.assertEquals(LocalDate.of(2005, 12, 15), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.TENNIS), tags)
-    }
+    assertEquals(userProfile2.copy(uid = userProfile1.uid), resultUser)
   }
 
   @Test
@@ -192,29 +75,10 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
 
     userRepository.updateUser("1", userProfile3)
     val result = userRepository.getAllUsers()
-    Assert.assertEquals(2, result.size)
 
-    with(result[0]) {
-      Assert.assertEquals("0", uid)
-      Assert.assertEquals("Bobbb", username)
-      Assert.assertEquals("Test", firstName)
-      Assert.assertEquals("User", lastName)
-      Assert.assertEquals("Switzerland", country)
-      Assert.assertEquals("Just a test user", description)
-      Assert.assertEquals(LocalDate.of(1990, 1, 1), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.MUSIC, Tag.METAL), tags)
-    }
-
-    with(result[1]) {
-      Assert.assertEquals("2", uid)
-      Assert.assertEquals("Rocky", username)
-      Assert.assertEquals("third", firstName)
-      Assert.assertEquals("User3", lastName)
-      Assert.assertEquals("Portugal", country)
-      Assert.assertEquals("a third user", description)
-      Assert.assertEquals(LocalDate.of(2012, 9, 12), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE), tags)
-    }
+    assertEquals(2, result.size)
+    assertEquals(userProfile1, result[0])
+    assertEquals(userProfile3.copy(uid = userProfile2.uid), result[1])
   }
 
   @Test
@@ -234,7 +98,7 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository.addUser(userProfile1)
     userRepository.deleteUser("0")
     val result = userRepository.getAllUsers()
-    Assert.assertEquals(0, result.size)
+    assertEquals(0, result.size)
   }
 
   @Test
@@ -245,29 +109,10 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
 
     userRepository.deleteUser("1")
     val result = userRepository.getAllUsers()
-    Assert.assertEquals(2, result.size)
+    assertEquals(2, result.size)
 
-    with(result[0]) {
-      Assert.assertEquals("0", uid)
-      Assert.assertEquals("Bobbb", username)
-      Assert.assertEquals("Test", firstName)
-      Assert.assertEquals("User", lastName)
-      Assert.assertEquals("Switzerland", country)
-      Assert.assertEquals("Just a test user", description)
-      Assert.assertEquals(LocalDate.of(1990, 1, 1), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.MUSIC, Tag.METAL), tags)
-    }
-
-    with(result[1]) {
-      Assert.assertEquals("2", uid)
-      Assert.assertEquals("Rocky", username)
-      Assert.assertEquals("third", firstName)
-      Assert.assertEquals("User3", lastName)
-      Assert.assertEquals("Portugal", country)
-      Assert.assertEquals("a third user", description)
-      Assert.assertEquals(LocalDate.of(2012, 9, 12), dateOfBirth)
-      Assert.assertEquals(setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE), tags)
-    }
+    assertEquals(userProfile1, result[0])
+    assertEquals(userProfile3, result[1])
   }
 
   @Test
@@ -285,12 +130,12 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
   @Test
   fun checkUserAlreadyExistsTrue() = runTest {
     userRepository.addUser(userProfile1)
-    Assert.assertEquals(false, userRepository.isUsernameUnique("Bobbb"))
+    assertFalse(userRepository.isUsernameUnique(userProfile1.username))
   }
 
   @Test
   fun checkUserAlreadyExistsFalse() = runTest {
     userRepository.addUser(userProfile1)
-    Assert.assertEquals(true, userRepository.isUsernameUnique("Al"))
+    assertTrue(userRepository.isUsernameUnique(userProfile2.username))
   }
 }

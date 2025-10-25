@@ -122,7 +122,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     if (user.exists()) {
       db.collection(USERS_COLLECTION_PATH)
           .document(uid)
-          .set(userProfileToMap(newUserProfile))
+          .set(userProfileToMap(newUserProfile.copy(uid = uid)))
           .await()
     } else {
       throw NoSuchElementException("No user with username $uid found")
