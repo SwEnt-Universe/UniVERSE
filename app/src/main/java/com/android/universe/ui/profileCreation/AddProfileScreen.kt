@@ -40,6 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
 
+/**
+ * Defines constants for use in UI tests to identify specific composables
+ * within the AddProfileScreen. This helps create robust and readable tests.
+ */
 object AddProfileScreenTestTags {
   // Username
   const val USERNAME_TEXT = "username_text"
@@ -85,6 +89,23 @@ object AddProfileScreenTestTags {
   const val SAVE_BUTTON = "save_button"
 }
 
+/**
+ * A data class that holds the configuration for a [ProfileInputField].
+ *
+ * This class was created to reduce the number of parameters passed to the
+ * [ProfileInputField] composable, improving readability and satisfying code
+ * quality metrics (e.g,. Sonar's max parameter rule). It groups related
+ * display and testing parameters into a single, logical unit.
+ *
+ * @param label The Text displayed above the input field.
+ * @param placeholder The hint text displayed inside the field when it's empty.
+ * @param testTagLabel The test tag for the label Text.
+ * @param testTagField The test tag for the outlinedTextField.
+ * @param testTagError The test tag for the error message Text.
+ * @param showErrorOnTouchOnly If true, the error message is only shown after the field has been focused
+ * and then unfocused. If false, the error is shown immediately.
+ * @param maxLines The maximum number of lines the input field can have.
+ */
 private data class ProfileInputConfig(
     val label: String,
     val placeholder: String,
@@ -105,22 +126,17 @@ private data class ProfileInputConfig(
  * results.
  *
  * The composable is reactive: it observes [AddProfileViewModel.uiState] using [collectAsState] and
- * automatically updates the UI when state changes.
+ * automatically updates the UI when state changes. It is structured using reusable child
+ * composables like [ProfileInputField], [CountrySelectorField], and [DateOfBirthFields]
+ * to improve modularity and reduce complexity.
  *
- * Structure
- * - Username / First name / last name / description fields are implemented using
- *   [OutlinedTextField] with local touch-tracking for validation messages.
- * - Country selection uses an [ExposedDropdownMenuBox].
- * - Date of birth fields (day, month, year) are validated individually.
- * - A Save button triggers profile creation through [AddProfileViewModel.addProfile].
  *
- * Validation
- * - Inline errors are shown once a field has been focused ("touched").
- * - Errors from the ViewModel are displayed as Toast messages.
+ *
  *
  * @param uid The user's unique identifier.
  * @param addProfileViewModel The [AddProfileViewModel] that manages the screen's state and business
  *   logic. Defaults to [ViewModel()] for preview and runtime injection.
+ * @param navigateOnSave A callback function to be invoked upon successful profile creation to handle navigation.
  * @see AddProfileViewModel
  * @see AddProfileUIState
  */
@@ -247,6 +263,20 @@ fun AddProfileScreen(
       })
 }
 
+
+/**
+ * A generic, reusable composable for displaying a labeled text input field.
+ *
+ * This component encapsulates the common UI pattern of a `Text` label, an `OutlinedTextField`,
+ * and a `Text` for displaying validation errors. It manages its own "touched" state to control
+ * when validation errors become visible, making the main screen's logic cleaner.
+ *
+ * @param config The [ProfileInputConfig] containing display and testing parameters.
+ * @param value The current text value of the input field.
+ * @param onValueChange The callback invoked when the user types in the field.
+ * @param error The validation error message to display. If null, no error is shown.
+ * @param modifier The modifier to be applied to the `Column` wrapping the component.
+ */
 @Composable
 private fun ProfileInputField(
     config: ProfileInputConfig,
@@ -300,6 +330,15 @@ private fun ProfileInputField(
     }
 }
 
+/**
+ * A specialized composable for selecting a country from a dropdown menu.
+ *
+ * It uses an [ExposedDropdownMenuBox] to present a list of countries from [allCountries].
+ * This component manages its own expanded state (`showDropDown`).
+ *
+ * @param value The currently selected country name.
+ * @param onValueChange A callback invoked when the user selects a new country.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CountrySelectorField(
@@ -354,6 +393,16 @@ private fun CountrySelectorField(
     }
 }
 
+
+/**
+ * A composable that groups the Day, Month, and Year input fields for the date of birth.
+ *
+ * This component provides a clear structural grouping for the date fields and uses the
+ * reusable [ProfileInputField] for each part of the date, laid out in a [Row].
+ *
+ * @param uiState The current [AddProfileUIState] containing the date values and their errors.
+ * @param viewModel The [AddProfileViewModel] to call for updating date values.
+ */
 @Composable
 private fun DateOfBirthFields(
     uiState: AddProfileUIState,
