@@ -154,7 +154,11 @@ class AddProfileViewModel(
 
       val state = _uiState.value
       val dateOfBirth = LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt())
-      val isoCode = countryToIsoCode[state.country]!!
+      val isoCode = countryToIsoCode[state.country]
+      if (isoCode == null) {
+        setErrorMsg("Invalid country")
+        return@launch
+      }
 
       val userProfile =
           UserProfile(
