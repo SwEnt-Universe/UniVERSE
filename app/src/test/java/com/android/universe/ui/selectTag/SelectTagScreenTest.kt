@@ -14,8 +14,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.model.user.UserRepositoryFirestore
-import com.android.universe.utils.FirestoreUserTest
+import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -25,7 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class SelectTagScreenTest : FirestoreUserTest() {
+class SelectTagScreenTest {
   /**
    * Private function scrollAndClick that is used in the tests to perform a scroll to an element and
    * click on it
@@ -37,7 +37,7 @@ class SelectTagScreenTest : FirestoreUserTest() {
 
   // Define the parameters for the tests.
   @get:Rule val composeTestRule = createComposeRule()
-  private lateinit var userRepository: UserRepositoryFirestore
+  private lateinit var userRepository: UserRepository
   private lateinit var viewModel: SelectTagViewModel
 
   companion object {
@@ -57,15 +57,15 @@ class SelectTagScreenTest : FirestoreUserTest() {
   }
 
   @Before
-  override fun setUp() {
-    super.setUp()
+  fun setUp() {
     // Set up a fake repository for testing
-    runTest {
-      userRepository = UserRepositoryFirestore(emulator.firestore)
-      userRepository.addUser(dummyUser)
-    }
+    userRepository = FakeUserRepository()
+    runTest { userRepository.addUser(dummyUser) }
     viewModel = SelectTagViewModel(userRepository)
-    composeTestRule.setContent { SelectTagScreen(viewModel, uid = dummyUser.uid) }
+    // Set the content for the compose test rule
+    composeTestRule.setContent {
+      SelectTagScreen(selectedTagOverview = viewModel, uid = dummyUser.uid)
+    }
   }
 
   @Test
@@ -175,7 +175,7 @@ class SelectTagScreenTest : FirestoreUserTest() {
     // Check that if we click again on the tag, it is deselected and does not appear in the selected
     // tag section.
     scrollAndClick(BUTTON_BERN)
-    composeTestRule.onNodeWithTag(BUTTON_BERN).performClick()
+    scrollAndClick(BUTTON_BERN)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsNotDisplayed()
 

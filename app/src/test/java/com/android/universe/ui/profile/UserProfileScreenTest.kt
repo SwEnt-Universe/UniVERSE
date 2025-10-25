@@ -8,15 +8,18 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
+import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryFirestore
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,6 +40,24 @@ class UserProfileScreenTest : FirestoreUserTest() {
     private const val NO_DESC = "No description"
   }
 
+  private fun waitForDisplay(user: UserProfile) {
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithTag(UserProfileScreenTestTags.FIRSTNAME)
+          .fetchSemanticsNodes()
+          .firstOrNull() // Get the first node
+          ?.config
+          ?.getOrNull(SemanticsProperties.Text) // Get its text property
+          ?.firstOrNull()
+          ?.text == user.firstName // Check if the text matches
+    }
+  }
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+  }
+
   @Test
   fun profileDisplaysBasicInformationCorrectly() = runTest {
     val repository = UserRepositoryFirestore(emulator.firestore)
@@ -46,6 +67,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
+    waitForDisplay(dummyUser)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME)
@@ -83,6 +105,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
+    waitForDisplay(dummyUser2)
 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assert(hasScrollAction())
   }
@@ -96,6 +119,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
+    waitForDisplay(dummyUser2)
 
     val seenTags = mutableSetOf<String>()
     for (i in 0 until UserTestData.manyTags.size) {
@@ -124,6 +148,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
+    waitForDisplay(dummyUser3)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
@@ -141,6 +166,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
     }
+    waitForDisplay(dummyUser4)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
@@ -157,6 +183,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }
+    waitForDisplay(dummyUser5)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
