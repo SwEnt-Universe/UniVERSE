@@ -39,7 +39,6 @@ open class FirestoreUserTest() {
   @Before
   open fun setUp() {
     FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
-    emulator.connect()
     val url = URL("http://10.0.2.2:8080") // Firestore emulator host for Android
     val connection = url.openConnection() as HttpURLConnection
     connection.connectTimeout = 2000
