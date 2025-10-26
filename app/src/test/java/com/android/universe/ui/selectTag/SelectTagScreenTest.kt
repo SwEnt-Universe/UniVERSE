@@ -14,11 +14,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,17 +43,18 @@ class SelectTagScreenTest {
 
   companion object {
     private val dummyUser = UserTestData.NoTagsUser
-    private const val BUTTON_BERN = "Button_Bern"
-    private const val BUTTON_HANDBALL = "Button_Handball"
-    private const val BUTTON_SURFING = "Button_Surfing"
-    private const val BUTTON_METAL = "Button_Metal"
-    private const val BUTTON_CAR = "Button_Car"
-    private const val BUTTON_TRAIN = "Button_Train"
-    private const val BUTTON_BOAT = "Button_Boat"
-    private const val BUTTON_BUS = "Button_Bus"
-    private const val BUTTON_BICYCLE = "Button_Bicycle"
-    private const val BUTTON_FOOT = "Button_Foot"
-    private const val BUTTON_PLANE = "Button_Plane"
+    private val BUTTON_READING = SelectTagsScreenTestTags.unselectedTag(Tag.READING)
+    private val BUTTON_BERN = SelectTagsScreenTestTags.unselectedTag(Tag.BERN)
+    private val BUTTON_HANDBALL = SelectTagsScreenTestTags.unselectedTag(Tag.HANDBALL)
+    private val BUTTON_SURFING = SelectTagsScreenTestTags.unselectedTag(Tag.SURFING)
+    private val BUTTON_METAL = SelectTagsScreenTestTags.unselectedTag(Tag.METAL)
+    private val BUTTON_CAR = SelectTagsScreenTestTags.unselectedTag(Tag.CAR)
+    private val BUTTON_TRAIN = SelectTagsScreenTestTags.unselectedTag(Tag.TRAIN)
+    private val BUTTON_BOAT = SelectTagsScreenTestTags.unselectedTag(Tag.BOAT)
+    private val BUTTON_BUS = SelectTagsScreenTestTags.unselectedTag(Tag.BUS)
+    private val BUTTON_BICYCLE = SelectTagsScreenTestTags.unselectedTag(Tag.BICYCLE)
+    private val BUTTON_FOOT = SelectTagsScreenTestTags.unselectedTag(Tag.FOOT)
+    private val BUTTON_PLANE = SelectTagsScreenTestTags.unselectedTag(Tag.PLANE)
     private const val LAZY_COLUMN_TAGS = "LazyColumnTags"
   }
 
@@ -108,7 +110,7 @@ class SelectTagScreenTest {
   fun selectedTagsShownWhenInterestTagClicked() {
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    composeTestRule.onNodeWithTag("Button_Reading").performClick()
+    composeTestRule.onNodeWithTag(BUTTON_READING).performClick()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -202,7 +204,9 @@ class SelectTagScreenTest {
         selectedTagNodes.mapNotNull {
           it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
         }
-    Assert.assertEquals(listOf("Bern", "Handball", "Metal"), displayedTags)
+    assertEquals(
+        listOf(Tag.BERN.displayName, Tag.HANDBALL.displayName, Tag.METAL.displayName),
+        displayedTags)
   }
 
   @Test
@@ -222,7 +226,8 @@ class SelectTagScreenTest {
         selectedTagNodes.mapNotNull {
           it.config.getOrNull(SemanticsProperties.Text)?.firstOrNull()?.text
         }
-    Assert.assertEquals(listOf("Bern", "Handball", "Car"), displayedTags)
+    assertEquals(
+        listOf(Tag.BERN.displayName, Tag.HANDBALL.displayName, Tag.CAR.displayName), displayedTags)
   }
 
   @Test
@@ -272,7 +277,7 @@ class SelectTagScreenTest {
 
     composeTestRule
         .onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS)
-        .performScrollToNode(hasTestTag("Button_Selected_Plane"))
+        .performScrollToNode(hasTestTag(SelectTagsScreenTestTags.selectedTag(Tag.PLANE)))
         .assertIsDisplayed()
   }
 }
