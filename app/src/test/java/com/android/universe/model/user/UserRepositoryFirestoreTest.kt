@@ -48,16 +48,9 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     assertEquals(userProfile3, result[2])
   }
 
-  @Test
+  @Test(expected = NoSuchElementException::class)
   fun getUserThrowsExceptionWhenUserNotFound() = runTest {
-    try {
-      userRepository.getUser("NonExistentUser")
-      assert(false) { "Expected NoSuchElementException was not thrown" }
-    } catch (e: NoSuchElementException) {
-      assert(true)
-    } catch (e: Exception) {
-      assert(false) { "Unexpected exception type: ${e::class.java}" }
-    }
+    userRepository.getUser("NonExistentUser")
   }
 
   @Test
@@ -81,16 +74,9 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     assertEquals(userProfile3.copy(uid = userProfile2.uid), result[1])
   }
 
-  @Test
+  @Test(expected = NoSuchElementException::class)
   fun updateNonExistentUserThrowsException() = runTest {
-    try {
-      userRepository.updateUser("NonExistentUser", userProfile1)
-      assert(false) { "Expected NoSuchElementException was not thrown" }
-    } catch (e: NoSuchElementException) {
-      assert(true)
-    } catch (e: Exception) {
-      assert(false) { "Unexpected exception type: ${e::class.java}" }
-    }
+    userRepository.updateUser("NonExistentUser", userProfile1)
   }
 
   @Test
@@ -115,16 +101,9 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     assertEquals(userProfile3, result[1])
   }
 
-  @Test
+  @Test(expected = NoSuchElementException::class)
   fun deleteNonExistentUserThrowsException() = runTest {
-    try {
-      userRepository.deleteUser("NonExistentUser")
-      assert(false) { "Expected NoSuchElementException was not thrown" }
-    } catch (e: NoSuchElementException) {
-      assert(true)
-    } catch (e: Exception) {
-      assert(false) { "Unexpected exception type: ${e::class.java}" }
-    }
+    userRepository.deleteUser("NonExistentUser")
   }
 
   @Test
