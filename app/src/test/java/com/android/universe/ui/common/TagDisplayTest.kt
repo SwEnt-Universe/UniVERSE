@@ -10,6 +10,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.Tag
+import com.android.universe.model.Tag.Category
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -23,16 +25,22 @@ class TagGroupTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   companion object {
-    private val sampleTags = listOf("Reading", "Running", "Music")
+    private val READING = Tag.READING.displayName
+    private val RUNNING = Tag.RUNNING.displayName
+    private val MUSIC = Tag.MUSIC.displayName
+    private val INTERESTS = Category.INTEREST.displayName
+    private val sampleTags = listOf(READING, RUNNING, MUSIC)
+
+    private const val SELECTED = "Selected"
   }
 
   @Test
   fun displaysTitle_whenNameIsProvided() {
     composeTestRule.setContent {
-      TagGroup(name = "Interests", tagList = sampleTags, selectedTags = emptyList())
+      TagGroup(name = INTERESTS, tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onNodeWithText("Interests").assertIsDisplayed()
+    composeTestRule.onNodeWithText(INTERESTS).assertIsDisplayed()
   }
 
   @Test
@@ -41,7 +49,7 @@ class TagGroupTest {
       TagGroup(name = "", tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onAllNodesWithText("Interests").assertCountEquals(0)
+    composeTestRule.onAllNodesWithText(INTERESTS).assertCountEquals(0)
   }
 
   @Test
@@ -56,8 +64,8 @@ class TagGroupTest {
           onTagSelect = { selectedTag = it })
     }
 
-    composeTestRule.onNodeWithText("Running").performClick()
-    assertEquals("Running", selectedTag)
+    composeTestRule.onNodeWithText(RUNNING).performClick()
+    assertEquals(RUNNING, selectedTag)
   }
 
   @Test
@@ -68,22 +76,22 @@ class TagGroupTest {
       TagGroup(
           name = "Test",
           tagList = sampleTags,
-          selectedTags = listOf("Running"),
+          selectedTags = listOf(RUNNING),
           onTagReSelect = { reselectedTag = it })
     }
 
-    composeTestRule.onNodeWithText("Running").performClick()
-    assertEquals("Running", reselectedTag)
+    composeTestRule.onNodeWithText(RUNNING).performClick()
+    assertEquals(RUNNING, reselectedTag)
   }
 
   @Test
   fun selectedTag_showsCheckIcon() {
     composeTestRule.setContent {
-      TagGroup(name = "Test", tagList = sampleTags, selectedTags = listOf("Reading"))
+      TagGroup(name = "Test", tagList = sampleTags, selectedTags = listOf(READING))
     }
 
     // Verify that the icon appears for the selected tag
-    composeTestRule.onNodeWithContentDescription("Selected").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription(SELECTED).assertIsDisplayed()
   }
 
   @Test
@@ -108,13 +116,13 @@ class TagGroupTest {
     }
 
     // Select "Reading"
-    composeTestRule.onNodeWithText("Reading").performClick()
-    assertEquals("Reading", lastSelected)
-    assertTrue("Reading" in selectedTags)
+    composeTestRule.onNodeWithText(READING).performClick()
+    assertEquals(READING, lastSelected)
+    assertTrue(READING in selectedTags)
 
     // Deselect "Reading"
-    composeTestRule.onNodeWithText("Reading").performClick()
-    assertEquals("Reading", lastReselected)
-    assertTrue("Reading" !in selectedTags)
+    composeTestRule.onNodeWithText(READING).performClick()
+    assertEquals(READING, lastReselected)
+    assertTrue(READING !in selectedTags)
   }
 }
