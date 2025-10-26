@@ -30,7 +30,7 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
   @Test
   fun canAddUserAndRetrieve() = runTest {
     userRepository.addUser(userProfile1)
-    val resultUser = userRepository.getUser("0")
+    val resultUser = userRepository.getUser(userProfile1.uid)
     assertEquals(userProfile1, resultUser)
   }
 
@@ -40,12 +40,12 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository.addUser(userProfile2)
     userRepository.addUser(userProfile3)
 
-    val result = userRepository.getAllUsers()
+    val result = userRepository.getAllUsers().toSet()
 
     assertEquals(3, result.size)
-    assertEquals(userProfile1, result[0])
-    assertEquals(userProfile2, result[1])
-    assertEquals(userProfile3, result[2])
+
+    val expectedSet = setOf(userProfile1, userProfile2, userProfile3)
+    assertEquals(expectedSet, result)
   }
 
   @Test(expected = NoSuchElementException::class)
@@ -56,8 +56,8 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
   @Test
   fun updateUserReplacesExistingUserCompletely() = runTest {
     userRepository.addUser(userProfile1)
-    userRepository.updateUser("0", userProfile2)
-    val resultUser = userRepository.getUser("0")
+    userRepository.updateUser(userProfile1.uid, userProfile2)
+    val resultUser = userRepository.getUser(userProfile1.uid)
     assertEquals(userProfile2.copy(uid = userProfile1.uid), resultUser)
   }
 
@@ -66,12 +66,13 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository.addUser(userProfile1)
     userRepository.addUser(userProfile2)
 
-    userRepository.updateUser("1", userProfile3)
-    val result = userRepository.getAllUsers()
+    userRepository.updateUser(userProfile2.uid, userProfile3)
+    val result = userRepository.getAllUsers().toSet()
 
     assertEquals(2, result.size)
-    assertEquals(userProfile1, result[0])
-    assertEquals(userProfile3.copy(uid = userProfile2.uid), result[1])
+
+    val expectedSet = setOf(userProfile1, userProfile3.copy(uid = userProfile2.uid))
+    assertEquals(expectedSet, result)
   }
 
   @Test(expected = NoSuchElementException::class)
@@ -82,7 +83,7 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
   @Test
   fun deleteUserProfile() = runTest {
     userRepository.addUser(userProfile1)
-    userRepository.deleteUser("0")
+    userRepository.deleteUser(userProfile1.uid)
     val result = userRepository.getAllUsers()
     assertEquals(0, result.size)
   }
@@ -93,12 +94,12 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository.addUser(userProfile2)
     userRepository.addUser(userProfile3)
 
-    userRepository.deleteUser("1")
-    val result = userRepository.getAllUsers()
+    userRepository.deleteUser(userProfile2.uid)
+    val result = userRepository.getAllUsers().toSet()
     assertEquals(2, result.size)
 
-    assertEquals(userProfile1, result[0])
-    assertEquals(userProfile3, result[1])
+    val expectedSet = setOf(userProfile1, userProfile3)
+    assertEquals(expectedSet, result)
   }
 
   @Test(expected = NoSuchElementException::class)

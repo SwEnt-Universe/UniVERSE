@@ -55,13 +55,13 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
 
-    val result = eventRepository.getAllEvents()
+    val result = eventRepository.getAllEvents().toSet()
 
     assertEquals(3, result.size)
 
-    assertEquals(event1, result[0])
-    assertEquals(event2, result[1])
-    assertEquals(event3, result[2])
+    val expectedSet = setOf(event1, event2, event3)
+
+    assertEquals(expectedSet, result)
   }
 
   @Test(expected = NoSuchElementException::class)
@@ -83,11 +83,11 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
 
     eventRepository.updateEvent(event1.id, event3)
-    val result = eventRepository.getAllEvents()
+    val result = eventRepository.getAllEvents().toSet()
     assertEquals(2, result.size)
 
-    assertEquals(event3.copy(id = event1.id), result[0])
-    assertEquals(event2, result[1])
+    val expectedSet = setOf(event3.copy(id = event1.id), event2)
+    assertEquals(expectedSet, result)
   }
 
   @Test(expected = NoSuchElementException::class)
@@ -98,7 +98,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   @Test
   fun deleteEvent() = runTest {
     eventRepository.addEvent(event1)
-    eventRepository.deleteEvent("1")
+    eventRepository.deleteEvent(event1.id)
     val result = eventRepository.getAllEvents()
     assertEquals(0, result.size)
   }
@@ -110,11 +110,11 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event3)
 
     eventRepository.deleteEvent(event2.id)
-    val result = eventRepository.getAllEvents()
+    val result = eventRepository.getAllEvents().toSet()
     assertEquals(2, result.size)
 
-    assertEquals(event1, result[0])
-    assertEquals(event3, result[1])
+    val expectedSet = setOf(event1, event3)
+    assertEquals(expectedSet, result)
   }
 
   @Test(expected = NoSuchElementException::class)
@@ -126,7 +126,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   fun getNewID_returnsAString() = runTest {
     val id = eventRepository.getNewID()
     assertNotNull(id)
-    assert(id.isNotEmpty())
+    assertTrue(id.isNotEmpty())
   }
 
   @Test
