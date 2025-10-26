@@ -51,7 +51,9 @@ class EventScreenTest {
     viewModel = EventViewModel(fakeEventRepository)
 
     composeTestRule.setContent { EventScreen(viewModel = viewModel) }
+    viewModel.loadEvents()
 
+    runTest { advanceUntilIdle() }
     // Wait until Compose settles
     composeTestRule.waitForIdle()
   }
@@ -98,7 +100,6 @@ class EventScreenTest {
       fakeEventRepository.addEvent(megaTagEvent)
       // Reload events in the ViewModel (suspending call)
       viewModel.loadEvents()
-      advanceUntilIdle()
 
       // Let Compose update. Wait until at least one tag node appears (timeout guards flakiness).
       composeTestRule
