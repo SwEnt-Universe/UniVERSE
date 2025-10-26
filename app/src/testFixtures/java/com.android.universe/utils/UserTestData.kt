@@ -14,9 +14,19 @@ object UserTestData {
           .toSet()
 
   private val DummyDate = LocalDate.of(2000, 8, 11)
+  private val BaseUser =
+      UserProfile(
+          uid = "0",
+          username = "Test",
+          firstName = "Test",
+          lastName = "User",
+          country = "Switzerland",
+          description = "Just a test user",
+          dateOfBirth = DummyDate,
+          tags = twoTags)
 
   val Alice =
-      UserProfile(
+      BaseUser.copy(
           uid = "1",
           username = "Alice",
           firstName = "second",
@@ -27,18 +37,13 @@ object UserTestData {
           tags = setOf(Tag.TENNIS))
 
   val Bob =
-      UserProfile(
-          uid = "0",
+      BaseUser.copy(
           username = "Bob",
-          firstName = "Test",
-          lastName = "User",
-          country = "Switzerland",
-          description = "Just a test user",
           dateOfBirth = LocalDate.of(1990, 1, 1),
           tags = setOf(Tag.MUSIC, Tag.METAL))
 
   val Rocky =
-      UserProfile(
+      BaseUser.copy(
           uid = "2",
           username = "Rocky",
           firstName = "third",
@@ -48,67 +53,13 @@ object UserTestData {
           dateOfBirth = LocalDate.of(2012, 9, 12),
           tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
 
-  val FullDescription =
-      UserProfile(
-          uid = "20",
-          username = "desc",
-          firstName = "Desc",
-          lastName = "Ription",
-          country = "FR",
-          description = "Maxime the goat",
-          dateOfBirth = DummyDate,
-          tags = noTag)
+  val FullDescription = BaseUser.copy(uid = "20")
 
-  val EmptyDescription =
-      UserProfile(
-          uid = "20",
-          username = "desc",
-          firstName = "Desc",
-          lastName = "Ription",
-          country = "FR",
-          description = "",
-          dateOfBirth = DummyDate,
-          tags = noTag)
+  val EmptyDescription = BaseUser.copy(uid = "20", description = "")
 
-  val NullDescription =
-      UserProfile(
-          uid = "21",
-          username = "desc",
-          firstName = "Desc",
-          lastName = "Ription",
-          country = "FR",
-          description = null,
-          dateOfBirth = DummyDate,
-          tags = noTag)
-  val ManyTagsUser =
-      UserProfile(
-          uid = "22",
-          username = "desc",
-          firstName = "Desc",
-          lastName = "Ription",
-          country = "FR",
-          description = "desc",
-          dateOfBirth = DummyDate,
-          tags = manyTags)
-  val SomeTagsUser =
-      UserProfile(
-          uid = "23",
-          username = "desc",
-          firstName = "Desc",
-          lastName = "Ription",
-          country = "FR",
-          description = "desc",
-          dateOfBirth = DummyDate,
-          tags = someTags)
+  val NullDescription = BaseUser.copy(uid = "21", description = null)
+  val ManyTagsUser = BaseUser.copy(uid = "22", tags = manyTags)
+  val SomeTagsUser = BaseUser.copy(uid = "23", tags = someTags)
 
-  val NoTagsUser =
-      UserProfile(
-          uid = "23",
-          username = "desc",
-          firstName = "Desc",
-          lastName = "Ription",
-          country = "FR",
-          description = "desc",
-          dateOfBirth = DummyDate,
-          tags = noTag)
+  val NoTagsUser = BaseUser.copy(uid = "23", tags = noTag)
 }
