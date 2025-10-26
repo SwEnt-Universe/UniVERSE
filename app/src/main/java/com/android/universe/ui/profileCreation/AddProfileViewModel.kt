@@ -6,9 +6,11 @@ import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import java.time.DateTimeException
+import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.validateDateTriple
+import com.android.universe.ui.common.validateDescription
+import com.android.universe.ui.common.validateName
 import java.time.LocalDate
-import java.time.Period
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,42 +35,42 @@ import kotlinx.coroutines.withContext
  * @property year The year of birth as a string.
  * @property errorMsg Optional error message displayed on validation failure.
  * @property usernameError Optional error message for the username field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
+ * initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ * change if the user didn't enter anything and clicked away from the field.
  * @property firstNameError Optional error message for the first name field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
+ * initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ * change if the user didn't enter anything and clicked away from the field.
  * @property lastNameError Optional error message for the last name field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
+ * initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ * change if the user didn't enter anything and clicked away from the field.
  * @property descriptionError Optional error message for the description field.
  * @property yearError Optional error message for the year field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
+ * "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ * change if the user didn't enter anything and clicked away from the field.
  * @property monthError Optional error message for the month field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
+ * "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ * change if the user didn't enter anything and clicked away from the field.
  * @property dayError Optional error message for the day field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
+ * "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ * change if the user didn't enter anything and clicked away from the field.
  */
 data class AddProfileUIState(
-    val username: String = "",
-    val firstName: String = "",
-    val lastName: String = "",
-    val description: String? = null,
-    val country: String = "",
-    val day: String = "",
-    val month: String = "",
-    val year: String = "",
-    val errorMsg: String? = null,
-    val usernameError: String? = "Username cannot be empty",
-    val firstNameError: String? = "First name cannot be empty",
-    val lastNameError: String? = "Last name cannot be empty",
-    val descriptionError: String? = null,
-    val yearError: String? = "Year cannot be empty",
-    val monthError: String? = "Month cannot be empty",
-    val dayError: String? = "Day cannot be empty"
+  val username: String = "",
+  val firstName: String = "",
+  val lastName: String = "",
+  val description: String? = null,
+  val country: String = "",
+  val day: String = "",
+  val month: String = "",
+  val year: String = "",
+  val errorMsg: String? = null,
+  val usernameError: String? = "Username cannot be empty",
+  val firstNameError: String? = "First name cannot be empty",
+  val lastNameError: String? = "Last name cannot be empty",
+  val descriptionError: String? = null,
+  val yearError: String? = "Year cannot be empty",
+  val monthError: String? = "Month cannot be empty",
+  val dayError: String? = "Day cannot be empty"
 )
 
 /**
@@ -97,16 +99,16 @@ object InputLimits {
  *
  * @param repository The data source handling user-related operations.
  * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
- *   Defaults to [Dispatchers.Default].
+ * Defaults to [Dispatchers.Default].
  * @param repositoryDispatcher The [CoroutineDispatcher] used for executing repository operations.
- *   Defaults to [Dispatchers.IO].
+ * Defaults to [Dispatchers.IO].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 class AddProfileViewModel(
-    private val repository: UserRepository = UserRepositoryProvider.repository,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
+  private val repository: UserRepository = UserRepositoryProvider.repository,
+  private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+  private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
+  private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
@@ -115,15 +117,7 @@ class AddProfileViewModel(
   /** Publicly exposed state of the Add Profile UI. */
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
-  private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
-
   private val usernameRegex = "^[A-Za-z0-9._-]+$".toRegex()
-
-  private val oldestYear = 1900
-
-  private val currentDate = LocalDate.now()
-
-  private val minimumUserAge = 13
 
   /** Clears the current error message from the UI state. */
   fun clearErrorMsg() {
@@ -154,22 +148,18 @@ class AddProfileViewModel(
 
       val state = _uiState.value
       val dateOfBirth = LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt())
-      val isoCode = countryToIsoCode[state.country]
-      if (isoCode == null) {
-        setErrorMsg("Invalid country")
-        return@launch
-      }
+      val isoCode = countryToIsoCode[state.country]!!
 
       val userProfile =
-          UserProfile(
-              uid = uid,
-              username = sanitize(state.username),
-              firstName = sanitize(state.firstName),
-              lastName = sanitize(state.lastName),
-              description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
-              country = isoCode,
-              dateOfBirth = dateOfBirth,
-              tags = emptySet())
+        UserProfile(
+          uid = uid,
+          username = sanitize(state.username),
+          firstName = sanitize(state.firstName),
+          lastName = sanitize(state.lastName),
+          description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
+          country = isoCode,
+          dateOfBirth = dateOfBirth,
+          tags = emptySet())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
       withContext(mainDispatcher) { onSuccess() }
@@ -177,83 +167,50 @@ class AddProfileViewModel(
   }
 
   /**
-   * Validates all user inputs from the UI state.
+   * Validates all user inputs from the UI state. Sets errorMsg on the first failure.
    *
    * @return `true` if all inputs are valid, `false` otherwise.
    */
   private suspend fun validateAllInputs(): Boolean {
     val state = _uiState.value
-    return validate(state.firstName, "First name", InputLimits.FIRST_NAME, nameRegex) &&
-        validate(state.lastName, "Last name", InputLimits.LAST_NAME, nameRegex) &&
-        validateDescription(state.description) &&
-        validateDate(state.day, state.month, state.year) &&
-        validateCountry(state.country) &&
-        validateUsername(state.username)
-  }
 
-  /**
-   * Generic validation function for text fields.
-   *
-   * @return `true` if valid, `false` otherwise, setting an error message on failure.
-   */
-  private fun validate(value: String, fieldName: String, maxLength: Int, regex: Regex): Boolean {
-    return when {
-      value.isBlank() -> {
-        setErrorMsg("$fieldName cannot be empty")
-        false
-      }
-      value.length > maxLength -> {
-        setErrorMsg("$fieldName is too long")
-        false
-      }
-      !regex.matches(value) -> {
-        setErrorMsg("Invalid $fieldName format")
-        false
-      }
-      else -> true
-    }
-  }
-
-  /**
-   * Validates the description field.
-   *
-   * @return `true` if valid, `false` otherwise, setting an error message on failure.
-   */
-  private fun validateDescription(description: String?): Boolean {
-    if (description != null && description.length > InputLimits.DESCRIPTION) {
-      setErrorMsg("Description is too long")
+    // Validate Name
+    val firstNameError = validateName("First name", state.firstName, InputLimits.FIRST_NAME)
+    if (firstNameError != null) {
+      setErrorMsg(firstNameError)
       return false
     }
+    val lastNameError = validateName("Last name", state.lastName, InputLimits.LAST_NAME)
+    if (lastNameError != null) {
+      setErrorMsg(lastNameError)
+      return false
+    }
+
+    // Validate Description
+    val descriptionError = validateDescription(state.description ?: "", InputLimits.DESCRIPTION)
+    if (descriptionError != null) {
+      setErrorMsg(descriptionError)
+      return false
+    }
+
+    // Validate Date
+    val (dayErr, monthErr, yearErr) = validateDateTriple(state.day, state.month, state.year)
+    if (dayErr != null || monthErr != null || yearErr != null) {
+      setErrorMsg(dayErr ?: monthErr ?: yearErr ?: "Invalid date")
+      return false
+    }
+
+    // Validate Country (sets its own error)
+    if (!validateCountry(state.country)) {
+      return false
+    }
+
+    // Validate Username (sets its own error)
+    if (!validateUsername(state.username)) {
+      return false
+    }
+
     return true
-  }
-
-  /**
-   * Validates the date fields and the user's age.
-   *
-   * @return `true` if valid, `false` otherwise, setting an error message on failure.
-   */
-  private fun validateDate(dayStr: String, monthStr: String, yearStr: String): Boolean {
-    val day = dayStr.toIntOrNull()
-    val month = monthStr.toIntOrNull()
-    val year = yearStr.toIntOrNull()
-
-    if (day == null || month == null || year == null) {
-      setErrorMsg("Date fields must be numbers")
-      return false
-    }
-
-    return try {
-      val dateOfBirth = LocalDate.of(year, month, day)
-      if (!userOldEnough(dateOfBirth)) {
-        setErrorMsg("You must be at least 13 years old")
-        false
-      } else {
-        true
-      }
-    } catch (_: DateTimeException) {
-      setErrorMsg("Invalid date")
-      false
-    }
   }
 
   /**
@@ -281,26 +238,25 @@ class AddProfileViewModel(
    * @return `true` if valid, `false` otherwise, setting an error message on failure.
    */
   private suspend fun validateUsername(username: String): Boolean {
-    if (!validate(username, "Username", InputLimits.USERNAME, usernameRegex)) {
-      return false
+    when {
+      username.isBlank() -> {
+        setErrorMsg("Username cannot be empty")
+        return false
+      }
+      username.length > InputLimits.USERNAME -> {
+        setErrorMsg("Username is too long")
+        return false
+      }
+      !usernameRegex.matches(username) -> {
+        setErrorMsg("Invalid Username format")
+        return false
+      }
     }
-
-    if (!repository.isUsernameUnique(username)) {
+    if (!withContext(repositoryDispatcher) { repository.isUsernameUnique(username) }) {
       setErrorMsg("Username already exists")
       return false
     }
-
     return true
-  }
-
-  /**
-   * Tests if a user is old enough to use the app.
-   *
-   * @param dateOfBirth The user's date of birth.
-   */
-  private fun userOldEnough(dateOfBirth: LocalDate): Boolean {
-    // Number of whole years between dob and today
-    return Period.between(dateOfBirth, currentDate).years.coerceAtLeast(0) >= minimumUserAge
   }
 
   /**
@@ -311,13 +267,13 @@ class AddProfileViewModel(
     val trimmed = username.take(InputLimits.USERNAME + 1)
 
     val error =
-        when {
-          trimmed.isBlank() -> "Username cannot be empty"
-          trimmed.length > InputLimits.USERNAME -> "Username is too long"
-          !usernameRegex.matches(trimmed) ->
-              "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes"
-          else -> null
-        }
+      when {
+        trimmed.isBlank() -> "Username cannot be empty"
+        trimmed.length > InputLimits.USERNAME -> "Username is too long"
+        !usernameRegex.matches(trimmed) ->
+          "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes"
+        else -> null
+      }
     _uiState.value = _uiState.value.copy(username = trimmed, usernameError = error)
   }
 
@@ -327,7 +283,7 @@ class AddProfileViewModel(
    */
   fun setFirstName(firstName: String) {
     val cleaned = trimAndCleanInput(firstName, InputLimits.FIRST_NAME + 1)
-    val error = validateName(cleaned, "First name", InputLimits.FIRST_NAME)
+    val error = validateName(label = "First name", s = cleaned, maxLength = InputLimits.FIRST_NAME)
     _uiState.value = _uiState.value.copy(firstName = cleaned, firstNameError = error)
   }
 
@@ -337,7 +293,7 @@ class AddProfileViewModel(
    */
   fun setLastName(lastName: String) {
     val cleaned = trimAndCleanInput(lastName, InputLimits.LAST_NAME + 1)
-    val error = validateName(cleaned, "Last name", InputLimits.LAST_NAME)
+    val error = validateName(label = "Last name", s = cleaned, maxLength = InputLimits.LAST_NAME)
     _uiState.value = _uiState.value.copy(lastName = cleaned, lastNameError = error)
   }
 
@@ -348,11 +304,7 @@ class AddProfileViewModel(
    */
   fun setDescription(description: String) {
     val cleaned = trimAndCleanInput(description, InputLimits.DESCRIPTION + 1)
-    val error =
-        when {
-          cleaned.length > InputLimits.DESCRIPTION -> "Description is too long"
-          else -> null
-        }
+    val error = validateDescription(s = cleaned, maxLength = InputLimits.DESCRIPTION)
     _uiState.value = _uiState.value.copy(description = cleaned, descriptionError = error)
   }
 
@@ -361,46 +313,55 @@ class AddProfileViewModel(
     _uiState.value = _uiState.value.copy(country = country)
   }
 
-  /** Updates the day field and sets the error if it is invalid */
+  /**
+   * Updates the day field and re-validates the entire date (day, month, year) including logical
+   * checks (e.g. Feb 30) and age constraints.
+   */
   fun setDay(day: String) {
     val number = day.filter { it.isDigit() }
-    val trimmed = number.take(InputLimits.DAY)
-    val error =
-        when {
-          trimmed.isBlank() -> "Day cannot be empty"
-          trimmed.toInt() < 1 -> "Day needs to be after 1"
-          trimmed.toInt() > 31 -> "Day needs to be before 31"
-          else -> null
-        }
-    _uiState.value = _uiState.value.copy(day = trimmed, dayError = error)
+    val trimmedDay = number.take(InputLimits.DAY)
+    val state = _uiState.value
+
+    val (dayErr, monthErr, yearErr) =
+      validateDateTriple(day = trimmedDay, month = state.month, year = state.year)
+
+    _uiState.value =
+      state.copy(
+        day = trimmedDay, dayError = dayErr, monthError = monthErr, yearError = yearErr)
   }
 
-  /** Updates the month field and sets the error if it is invalid */
+  /**
+   * Updates the month field and re-validates the entire date (day, month, year) including logical
+   * checks (e.g. Feb 30) and age constraints.
+   */
   fun setMonth(month: String) {
     val number = month.filter { it.isDigit() }
-    val trimmed = number.take(InputLimits.MONTH)
-    val error =
-        when {
-          trimmed.isBlank() -> "Month cannot be empty"
-          trimmed.toInt() < 1 -> "Month needs to be after 1"
-          trimmed.toInt() > 12 -> "Month needs to be before 12"
-          else -> null
-        }
-    _uiState.value = _uiState.value.copy(month = trimmed, monthError = error)
+    val trimmedMonth = number.take(InputLimits.MONTH)
+    val state = _uiState.value
+
+    val (dayErr, monthErr, yearErr) =
+      validateDateTriple(day = state.day, month = trimmedMonth, year = state.year)
+
+    _uiState.value =
+      state.copy(
+        month = trimmedMonth, dayError = dayErr, monthError = monthErr, yearError = yearErr)
   }
 
-  /** Updates the year field and sets the error if it is invalid */
+  /**
+   * Updates the year field and re-validates the entire date (day, month, year) including logical
+   * checks (e.g. Feb 30) and age constraints.
+   */
   fun setYear(year: String) {
     val number = year.filter { it.isDigit() }
-    val trimmed = number.take(InputLimits.YEAR)
-    val error =
-        when {
-          trimmed.isBlank() -> "Year cannot be empty"
-          trimmed.toInt() < oldestYear -> "Year needs to be after $oldestYear"
-          trimmed.toInt() > currentDate.year -> "Year needs to be before ${currentDate.year}"
-          else -> null
-        }
-    _uiState.value = _uiState.value.copy(year = trimmed, yearError = error)
+    val trimmedYear = number.take(InputLimits.YEAR)
+    val state = _uiState.value
+
+    val (dayErr, monthErr, yearErr) =
+      validateDateTriple(day = state.day, month = state.month, year = trimmedYear)
+
+    _uiState.value =
+      state.copy(
+        year = trimmedYear, dayError = dayErr, monthError = monthErr, yearError = yearErr)
   }
 
   /**
@@ -423,38 +384,5 @@ class AddProfileViewModel(
     val singleSpaced = input.replace(Regex("\\s+"), " ")
     val trimmed = singleSpaced.take(limit)
     return trimmed
-  }
-
-  /**
-   * Sanitizes a name string by:
-   * - Replacing multiple spaces with a single one
-   * - Trimming leading and trailing spaces Note this function should not be used in live user input
-   *   handling as trimming user input prevents users from entering spaces.
-   *
-   * @param input The string to sanitize.
-   * @return The sanitized string.
-   */
-  private fun sanitize(input: String): String {
-    val singleSpaced = input.replace(Regex("\\s+"), " ")
-    val trimmed = singleSpaced.trim()
-    return trimmed
-  }
-
-  /**
-   * Validates a name for the UI by returning the possible error message.
-   *
-   * @param name The name to validate.
-   * @param label The label for the name.
-   * @param limit The maximum length of the name.
-   * @return The error message if the name is invalid, null otherwise.
-   */
-  private fun validateName(name: String, label: String, limit: Int): String? {
-    return when {
-      name.isBlank() -> "$label cannot be empty"
-      name.length > limit -> "$label is too long"
-      !nameRegex.matches(name) ->
-          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces"
-      else -> null
-    }
   }
 }

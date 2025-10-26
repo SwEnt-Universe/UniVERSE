@@ -219,7 +219,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
+    assertEquals("Day cannot be empty", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -241,7 +241,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
+    assertEquals("Day cannot be empty", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -263,7 +263,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
+    assertEquals("Month cannot be empty", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -285,7 +285,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
+    assertEquals("Month cannot be empty", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -307,7 +307,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
+    assertEquals("Year cannot be empty", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -329,7 +329,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Date fields must be numbers", viewModel.uiState.value.errorMsg)
+    assertEquals("Year cannot be empty", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -395,7 +395,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+    assertEquals("Invalid day", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -417,7 +417,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+    assertEquals("Invalid day", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -439,7 +439,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("Invalid date", viewModel.uiState.value.errorMsg)
+    assertEquals("Invalid month", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -461,7 +461,7 @@ class AddProfileViewModelTest {
 
     val users = repository.getAllUsers()
     assertEquals(0, users.size)
-    assertEquals("You must be at least 13 years old", viewModel.uiState.value.errorMsg)
+    assertEquals("Must be at least 13 years old", viewModel.uiState.value.errorMsg)
   }
 
   @Test
@@ -591,7 +591,7 @@ class AddProfileViewModelTest {
       viewModel.setFirstName(it)
       val result = viewModel.uiState.value.firstNameError
       assertEquals(
-          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces",
+          "Invalid First name format",
           result)
     }
   }
@@ -621,7 +621,7 @@ class AddProfileViewModelTest {
       viewModel.setLastName(it)
       val result = viewModel.uiState.value.lastNameError
       assertEquals(
-          "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces",
+          "Invalid Last name format",
           result)
     }
   }
@@ -645,7 +645,7 @@ class AddProfileViewModelTest {
   fun descriptionTooLongFailsValidation() = runTest {
     viewModel.setDescription("A".repeat(InputLimits.DESCRIPTION + 5))
     val result = viewModel.uiState.value.descriptionError
-    assertEquals("Description is too long", result)
+    assertEquals("Description too long", result)
   }
 
   // ---------- ADD PROFILE INTEGRATION TESTS ----------
@@ -731,7 +731,7 @@ class AddProfileViewModelTest {
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
-    assertEquals("First name is too long", vm.uiState.value.errorMsg)
+    assertEquals("First name too long", vm.uiState.value.errorMsg)
   }
 
   @Test
@@ -752,7 +752,7 @@ class AddProfileViewModelTest {
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
-    assertEquals("Last name is too long", vm.uiState.value.errorMsg)
+    assertEquals("Last name too long", vm.uiState.value.errorMsg)
   }
 
   @Test
@@ -774,7 +774,7 @@ class AddProfileViewModelTest {
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
-    assertEquals("Description is too long", vm.uiState.value.errorMsg)
+    assertEquals("Description too long", vm.uiState.value.errorMsg)
   }
 
   @Test
