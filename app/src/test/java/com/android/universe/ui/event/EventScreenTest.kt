@@ -1,4 +1,3 @@
-
 package com.android.universe.ui.event
 
 import androidx.compose.ui.test.assertHasClickAction
