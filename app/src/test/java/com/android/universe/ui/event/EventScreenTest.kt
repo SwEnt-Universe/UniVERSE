@@ -2,6 +2,7 @@ package com.android.universe.ui.event
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
@@ -87,6 +88,7 @@ class EventScreenTest {
   fun eventsWithMoreThanThreeTagsAreCropped() {
     // Add an event with 6 tags to the repository
     runTest {
+      fakeEventRepository.getAllEvents().forEach { fakeEventRepository.deleteEvent(it.id) }
       fakeEventRepository.addEvent(megaTagEvent)
       // Reload events in the ViewModel (suspending call)
       viewModel.loadEvents()
@@ -99,10 +101,13 @@ class EventScreenTest {
     }
     // Now fetch all tag nodes that belong to the UI.
     val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG)
-    val totalVisibleTags = tagNodes.fetchSemanticsNodes().size
-
+    val totalReachableTags = tagNodes.fetchSemanticsNodes().size
+    var totalVisibleTags = 0
+    for (i in 0 until totalReachableTags) {
+      if (tagNodes[i].isDisplayed()) totalVisibleTags++
+    }
     // We expect at least 3 visible tags overall (the Mega Tag Event should contribute 3).
-    assertTrue("$THREE_TAG_MESSAGE $totalVisibleTags", totalVisibleTags >= 3)
+    assertTrue("$THREE_TAG_MESSAGE $totalVisibleTags", totalVisibleTags == 3)
   }
 
   @Test
