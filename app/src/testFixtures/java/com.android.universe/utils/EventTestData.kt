@@ -1,6 +1,5 @@
 package com.android.universe.utils
 
-import com.android.universe.model.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
 import java.time.LocalDateTime
@@ -16,97 +15,58 @@ object EventTestData {
 
   private val DummyDate = LocalDateTime.of(2025, 10, 15, 7, 30)
 
-  val dummyEvent1 =
+  private val BaseEvent =
       Event(
-          id = "1",
+          id = "0",
           title = "Morning Run at the Lake",
           description = "Join us for a casual 5km run around the lake followed by coffee.",
-          date = LocalDateTime.of(2025, 10, 15, 7, 30),
-          tags = setOf(Tag.JAZZ, Tag.COUNTRY),
-          participants = setOf(UserTestData.Bob, UserTestData.Alice),
-          creator = UserTestData.Bob,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
-  val dummyEvent2 =
-      Event(
-          id = "2",
-          title = "Tech Hackathon 2025",
-          date = LocalDateTime.of(2025, 11, 3, 9, 0),
-          tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
-          participants = setOf(Rocky),
-          creator = Rocky,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
-  val dummyEvent3 =
-      Event(
-          id = "3",
-          title = "Art & Wine Evening",
-          description = "Relaxed evening mixing painting, wine, and music.",
-          date = LocalDateTime.of(2025, 10, 22, 19, 0),
-          tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
-          participants = setOf(Alice),
-          creator = Alice,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
-  val FullDescriptionEvent =
-      Event(
-          id = "event-001",
-          title = "Morning Run at the Lake",
-          description = "Join us for a casual 5km run around the lake followed by coffee.",
-          date = DummyDate,
-          tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-          participants = setOf(userWithNullDescription, userWithManyTags),
-          creator = userWithNullDescription,
-          location = DummyLocation)
-
-  val EmptyDescriptionEvent =
-      Event(
-          id = "event-002",
-          title = "Morning Run at the Lake",
-          description = "",
-          date = DummyDate,
-          tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-          participants = setOf(userWithNullDescription, userWithManyTags),
-          creator = userWithNullDescription,
-          location = DummyLocation)
-  val NullDescriptionEvent =
-      Event(
-          id = "event-003",
-          title = "Morning Run at the Lake",
-          description = null,
-          date = DummyDate,
-          tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-          participants = setOf(userWithNullDescription, userWithManyTags),
-          creator = userWithNullDescription,
-          location = DummyLocation)
-
-  val NoParticipantEvent =
-      Event(
-          id = "event-004",
-          title = "Morning Run at the Lake",
-          description = null,
-          date = DummyDate,
-          tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-          participants = emptySet(),
-          creator = userWithNullDescription,
-          location = DummyLocation)
-
-  val NoTagsEvent =
-      Event(
-          id = "event-005",
-          title = "Morning Run at the Lake",
-          description = null,
-          date = DummyDate,
-          tags = emptySet(),
-          participants = emptySet(),
-          creator = userWithNullDescription,
-          location = DummyLocation)
-
-  val SomeTagsEvent =
-      Event(
-          id = "event-006",
-          title = "Morning Run at the Lake",
-          description = null,
           date = DummyDate,
           tags = UserTestData.someTags,
           participants = emptySet(),
-          creator = userWithNullDescription,
+          creator = Alice,
           location = DummyLocation)
+
+  val dummyEvent1 = BaseEvent.copy(id = "1", participants = setOf(Bob, Alice), creator = Bob)
+  val dummyEvent2 =
+      BaseEvent.copy(
+          id = "2", title = "Tech Hackathon 2025", participants = setOf(Rocky), creator = Rocky)
+  val dummyEvent3 =
+      BaseEvent.copy(
+          id = "3",
+          title = "Art & Wine Evening",
+          description = "Relaxed evening mixing painting, wine, and music.",
+          participants = setOf(Alice),
+      )
+  val FullDescriptionEvent =
+      BaseEvent.copy(
+          id = "event-001",
+          participants = setOf(userWithNullDescription, userWithManyTags),
+          creator = userWithNullDescription)
+
+  val EmptyDescriptionEvent =
+      BaseEvent.copy(
+          id = "event-002",
+          title = "Morning Run at the Lake",
+          description = "",
+          participants = setOf(userWithNullDescription, userWithManyTags),
+          creator = userWithNullDescription)
+  val NullDescriptionEvent =
+      BaseEvent.copy(
+          id = "event-003",
+          description = null,
+          participants = setOf(userWithNullDescription, userWithManyTags),
+          creator = userWithNullDescription)
+  val NoParticipantEvent = BaseEvent.copy(id = "event-004", creator = userWithNullDescription)
+  val NoTagsEvent =
+      BaseEvent.copy(
+          id = "event-005",
+          tags = emptySet(),
+          creator = userWithNullDescription,
+      )
+
+  val SomeTagsEvent =
+      BaseEvent.copy(
+          id = "event-006",
+          tags = UserTestData.someTags,
+      )
 }
