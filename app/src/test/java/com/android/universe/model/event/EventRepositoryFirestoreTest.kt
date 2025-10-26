@@ -64,16 +64,9 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     assertEquals(event3, result[2])
   }
 
-  @Test
+  @Test(expected = NoSuchElementException::class)
   fun getEventThrowsExceptionWhenEventNotFound() = runTest {
-    try {
-      eventRepository.getEvent("NonExistentEvent")
-      assert(false) { "Expected NoSuchElementException was not thrown" }
-    } catch (e: NoSuchElementException) {
-      assert(true)
-    } catch (e: Exception) {
-      assert(false) { "Unexpected exception type: ${e::class.java}" }
-    }
+    eventRepository.getEvent("NonExistentEvent")
   }
 
   @Test
@@ -97,16 +90,9 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     assertEquals(event2, result[1])
   }
 
-  @Test
+  @Test(expected = NoSuchElementException::class)
   fun updateNonExistentEventThrowsException() = runTest {
-    try {
-      eventRepository.updateEvent("NonExistentEvent", event1)
-      assert(false) { "Expected NoSuchElementException was not thrown" }
-    } catch (e: NoSuchElementException) {
-      assert(true)
-    } catch (e: Exception) {
-      assert(false) { "Unexpected exception type: ${e::class.java}" }
-    }
+    eventRepository.updateEvent("NonExistentEvent", event1)
   }
 
   @Test
@@ -131,16 +117,9 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     assertEquals(event3, result[1])
   }
 
-  @Test
+  @Test(expected = NoSuchElementException::class)
   fun deleteNonExistentEventThrowsException() = runTest {
-    try {
-      eventRepository.deleteEvent("NonExistentEvent")
-      assert(false) { "Expected NoSuchElementException was not thrown" }
-    } catch (e: NoSuchElementException) {
-      assert(true)
-    } catch (e: Exception) {
-      assert(false) { "Unexpected exception type: ${e::class.java}" }
-    }
+    eventRepository.deleteEvent("NonExistentEvent")
   }
 
   @Test
