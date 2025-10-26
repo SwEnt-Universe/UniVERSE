@@ -3,12 +3,14 @@ package com.android.universe.ui.profileSettings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
 import com.android.universe.ui.profile.SettingsUiState
@@ -16,7 +18,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class SettingsModalTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -65,9 +69,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                androidx.compose.ui.test.hasTestTag(SettingsTestTags.EMAIL_FIELD),
-            useUnmergedTree = true)
+            hasSetTextAction() and hasTestTag(SettingsTestTags.EMAIL_FIELD), useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
     field.performTextInput("newemail@example.com")
@@ -84,8 +86,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                androidx.compose.ui.test.hasTestTag(SettingsTestTags.PASSWORD_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.PASSWORD_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
@@ -102,8 +103,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                androidx.compose.ui.test.hasTestTag(SettingsTestTags.FIRST_NAME_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.FIRST_NAME_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
@@ -120,8 +120,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                androidx.compose.ui.test.hasTestTag(SettingsTestTags.LAST_NAME_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.LAST_NAME_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
@@ -142,8 +141,7 @@ class SettingsModalTest {
 
     val field =
         composeTestRule.onNode(
-            hasSetTextAction() and
-                androidx.compose.ui.test.hasTestTag(SettingsTestTags.DESCRIPTION_FIELD),
+            hasSetTextAction() and hasTestTag(SettingsTestTags.DESCRIPTION_FIELD),
             useUnmergedTree = true)
     field.performClick()
     field.performTextClearance()
