@@ -1,3 +1,4 @@
+
 package com.android.universe.ui.event
 
 import androidx.compose.ui.test.assertHasClickAction
@@ -8,8 +9,11 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.MainCoroutineRule
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.utils.EventTestData
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -17,10 +21,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class EventScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var viewModel: EventViewModel
@@ -92,6 +98,7 @@ class EventScreenTest {
       fakeEventRepository.addEvent(megaTagEvent)
       // Reload events in the ViewModel (suspending call)
       viewModel.loadEvents()
+      advanceUntilIdle()
 
       // Let Compose update. Wait until at least one tag node appears (timeout guards flakiness).
       composeTestRule
