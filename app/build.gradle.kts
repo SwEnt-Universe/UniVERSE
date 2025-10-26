@@ -138,6 +138,10 @@ android {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
 
+    testFixtures {
+        enable = true
+    }
+
     testOptions {
         unitTests {
             // Robolectric
@@ -250,6 +254,17 @@ dependencies {
     // ==========================================================================
     // TESTING
     // ==========================================================================
+
+    globalTestImplementation(testFixtures(project(path)))
+    testFixturesImplementation(kotlin("stdlib"))
+    testFixturesImplementation(firebaseBom)
+    testFixturesImplementation(libs.firebase.auth)
+    testFixturesImplementation(libs.firebase.firestore)
+    testFixturesImplementation(libs.kotlin.coroutines.test)
+    testFixturesImplementation(libs.junit4)
+    testFixturesImplementation(composeBom)
+    testFixturesImplementation(libs.androidx.compose.runtime)
+    testFixturesImplementation(libs.androidx.test.core)
 
     // ----------------- Unit Testing (test/) -----------------
     testImplementation(libs.junit4)

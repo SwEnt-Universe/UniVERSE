@@ -51,6 +51,11 @@ object SelectTagsScreenTestTags {
   const val DELETE_ICON = "DeleteIcon"
   const val TAG_BUTTON_PREFIX = "Button_"
   const val SELECTED_TAG_BUTTON_PREFIX = "Button_Selected_"
+
+  fun unselectedTag(tag: Tag): String = "$TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
+
+  fun selectedTag(tag: Tag): String =
+      "$SELECTED_TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
 }
 
 /**
@@ -93,9 +98,7 @@ private fun TagGroup(
               onTagSelect(tag)
             }
           },
-          modifier =
-              Modifier.testTag("${SelectTagsScreenTestTags.TAG_BUTTON_PREFIX}${tag.displayName}")
-                  .padding(4.dp),
+          modifier = Modifier.testTag(SelectTagsScreenTestTags.unselectedTag(tag)).padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -192,9 +195,7 @@ fun SelectTagScreen(
         items(selectedTags.toList()) { tag ->
           Button(
               onClick = {},
-              modifier =
-                  Modifier.testTag(
-                      "${SelectTagsScreenTestTags.SELECTED_TAG_BUTTON_PREFIX}${tag.displayName}")) {
+              modifier = Modifier.testTag(SelectTagsScreenTestTags.selectedTag(tag))) {
                 Text(tag.displayName)
               }
           IconButton(

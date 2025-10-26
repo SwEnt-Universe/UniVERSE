@@ -183,7 +183,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   override suspend fun updateEvent(eventId: String, newEvent: Event) {
     val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
     if (event.exists()) {
-      db.collection(EVENTS_COLLECTION_PATH).document(eventId).set(eventToMap(newEvent)).await()
+      db.collection(EVENTS_COLLECTION_PATH)
+          .document(eventId)
+          .set(eventToMap(newEvent.copy(id = eventId)))
+          .await()
     } else {
       throw NoSuchElementException("No event with ID $eventId found")
     }
