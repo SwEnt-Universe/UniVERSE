@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
 import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryFirestore
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
@@ -28,6 +29,7 @@ import org.junit.runner.RunWith
 class UserProfileScreenTest : FirestoreUserTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
+  private lateinit var repository: UserRepository
 
   companion object {
     private val allTags = Tag.Category.entries.flatMap { Tag.Companion.getTagsForCategory(it) }
@@ -56,11 +58,11 @@ class UserProfileScreenTest : FirestoreUserTest() {
   @Before
   override fun setUp() {
     super.setUp()
+    repository = UserRepositoryFirestore(emulator.firestore)
   }
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() = runTest {
-    val repository = UserRepositoryFirestore(emulator.firestore)
     repository.addUser(dummyUser)
 
     composeTestRule.setContent {
@@ -97,8 +99,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun tooManyTagsImpliesScrollable() = runTest {
-    val repository = UserRepositoryFirestore(emulator.firestore)
-
     repository.addUser(dummyUser2)
 
     composeTestRule.setContent {
@@ -112,7 +112,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun tagsAreUniqueAndInAllowedList() = runTest {
-    val repository = UserRepositoryFirestore(emulator.firestore)
     repository.addUser(dummyUser2)
 
     composeTestRule.setContent {
@@ -141,7 +140,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun descriptionDisplaysPlaceholderWhenNull() = runTest {
-    val repository = UserRepositoryFirestore(emulator.firestore)
     repository.addUser(dummyUser3)
 
     composeTestRule.setContent {
@@ -158,7 +156,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun descriptionDisplaysFullDescriptionWhenNotNull() = runTest {
-    val repository = UserRepositoryFirestore(emulator.firestore)
     val profile = dummyUser4.copy(description = "Hello World")
     repository.addUser(profile)
 
@@ -166,7 +163,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(dummyUser4)
+    waitForDisplay(profile)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
@@ -176,7 +173,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun descriptionDisplaysNoDescriptionMessageWhenEmpty() = runTest {
-    val repository = UserRepositoryFirestore(emulator.firestore)
     repository.addUser(dummyUser5)
 
     composeTestRule.setContent {
