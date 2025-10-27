@@ -590,9 +590,7 @@ class AddProfileViewModelTest {
     invalid.forEach {
       viewModel.setFirstName(it)
       val result = viewModel.uiState.value.firstNameError
-      assertEquals(
-          "Invalid First name format",
-          result)
+      assertEquals("Invalid First name format", result)
     }
   }
 
@@ -620,9 +618,7 @@ class AddProfileViewModelTest {
     invalid.forEach {
       viewModel.setLastName(it)
       val result = viewModel.uiState.value.lastNameError
-      assertEquals(
-          "Invalid Last name format",
-          result)
+      assertEquals("Invalid Last name format", result)
     }
   }
 

@@ -104,18 +104,18 @@ fun validateNonEmpty(label: String, s: String) = if (s.isBlank()) "$label cannot
  * @return A string containing the error message if invalid, or `null` if valid.
  */
 fun validateCountry(country: String): String? {
-    return when {
-        country.isBlank() -> {
-            "Country cannot be empty"
-        }
-        countryToIsoCode[country] == null -> {
-            "Invalid country"
-        }
-        else -> {
-            // Le pays est valide
-            null
-        }
+  return when {
+    country.isBlank() -> {
+      "Country cannot be empty"
     }
+    countryToIsoCode[country] == null -> {
+      "Invalid country"
+    }
+    else -> {
+      // Le pays est valide
+      null
+    }
+  }
 }
 
 /**

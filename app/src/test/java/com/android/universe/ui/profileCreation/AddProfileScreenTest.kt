@@ -501,8 +501,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid First name format")
+        .assertTextEquals("Invalid First name format")
   }
 
   @Test
@@ -514,7 +513,6 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid Last name format")
+        .assertTextEquals("Invalid Last name format")
   }
 }

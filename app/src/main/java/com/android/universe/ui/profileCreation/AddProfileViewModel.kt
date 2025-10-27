@@ -36,42 +36,42 @@ import kotlinx.coroutines.withContext
  * @property year The year of birth as a string.
  * @property errorMsg Optional error message displayed on validation failure.
  * @property usernameError Optional error message for the username field. Note that it is
- * initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- * change if the user didn't enter anything and clicked away from the field.
+ *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ *   change if the user didn't enter anything and clicked away from the field.
  * @property firstNameError Optional error message for the first name field. Note that it is
- * initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- * change if the user didn't enter anything and clicked away from the field.
+ *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ *   change if the user didn't enter anything and clicked away from the field.
  * @property lastNameError Optional error message for the last name field. Note that it is
- * initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- * change if the user didn't enter anything and clicked away from the field.
+ *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
+ *   change if the user didn't enter anything and clicked away from the field.
  * @property descriptionError Optional error message for the description field.
  * @property yearError Optional error message for the year field. Note that it is initialized to
- * "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- * change if the user didn't enter anything and clicked away from the field.
+ *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
+ *   didn't enter anything and clicked away from the field.
  * @property monthError Optional error message for the month field. Note that it is initialized to
- * "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- * change if the user didn't enter anything and clicked away from the field.
+ *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
+ *   didn't enter anything and clicked away from the field.
  * @property dayError Optional error message for the day field. Note that it is initialized to
- * "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- * change if the user didn't enter anything and clicked away from the field.
+ *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
+ *   didn't enter anything and clicked away from the field.
  */
 data class AddProfileUIState(
-  val username: String = "",
-  val firstName: String = "",
-  val lastName: String = "",
-  val description: String? = null,
-  val country: String = "",
-  val day: String = "",
-  val month: String = "",
-  val year: String = "",
-  val errorMsg: String? = null,
-  val usernameError: String? = "Username cannot be empty",
-  val firstNameError: String? = "First name cannot be empty",
-  val lastNameError: String? = "Last name cannot be empty",
-  val descriptionError: String? = null,
-  val yearError: String? = "Year cannot be empty",
-  val monthError: String? = "Month cannot be empty",
-  val dayError: String? = "Day cannot be empty"
+    val username: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val description: String? = null,
+    val country: String = "",
+    val day: String = "",
+    val month: String = "",
+    val year: String = "",
+    val errorMsg: String? = null,
+    val usernameError: String? = "Username cannot be empty",
+    val firstNameError: String? = "First name cannot be empty",
+    val lastNameError: String? = "Last name cannot be empty",
+    val descriptionError: String? = null,
+    val yearError: String? = "Year cannot be empty",
+    val monthError: String? = "Month cannot be empty",
+    val dayError: String? = "Day cannot be empty"
 )
 
 /**
@@ -100,16 +100,16 @@ object InputLimits {
  *
  * @param repository The data source handling user-related operations.
  * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
- * Defaults to [Dispatchers.Default].
+ *   Defaults to [Dispatchers.Default].
  * @param repositoryDispatcher The [CoroutineDispatcher] used for executing repository operations.
- * Defaults to [Dispatchers.IO].
+ *   Defaults to [Dispatchers.IO].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 class AddProfileViewModel(
-  private val repository: UserRepository = UserRepositoryProvider.repository,
-  private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-  private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
-  private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
+    private val repository: UserRepository = UserRepositoryProvider.repository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
@@ -152,15 +152,15 @@ class AddProfileViewModel(
       val isoCode = countryToIsoCode[state.country]!!
 
       val userProfile =
-        UserProfile(
-          uid = uid,
-          username = sanitize(state.username),
-          firstName = sanitize(state.firstName),
-          lastName = sanitize(state.lastName),
-          description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
-          country = isoCode,
-          dateOfBirth = dateOfBirth,
-          tags = emptySet())
+          UserProfile(
+              uid = uid,
+              username = sanitize(state.username),
+              firstName = sanitize(state.firstName),
+              lastName = sanitize(state.lastName),
+              description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
+              country = isoCode,
+              dateOfBirth = dateOfBirth,
+              tags = emptySet())
 
       withContext(repositoryDispatcher) { repository.addUser(userProfile) }
       withContext(mainDispatcher) { onSuccess() }
@@ -251,13 +251,13 @@ class AddProfileViewModel(
     val trimmed = username.take(InputLimits.USERNAME + 1)
 
     val error =
-      when {
-        trimmed.isBlank() -> "Username cannot be empty"
-        trimmed.length > InputLimits.USERNAME -> "Username is too long"
-        !usernameRegex.matches(trimmed) ->
-          "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes"
-        else -> null
-      }
+        when {
+          trimmed.isBlank() -> "Username cannot be empty"
+          trimmed.length > InputLimits.USERNAME -> "Username is too long"
+          !usernameRegex.matches(trimmed) ->
+              "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes"
+          else -> null
+        }
     _uiState.value = _uiState.value.copy(username = trimmed, usernameError = error)
   }
 
@@ -307,11 +307,10 @@ class AddProfileViewModel(
     val state = _uiState.value
 
     val (dayErr, monthErr, yearErr) =
-      validateDateTriple(day = trimmedDay, month = state.month, year = state.year)
+        validateDateTriple(day = trimmedDay, month = state.month, year = state.year)
 
     _uiState.value =
-      state.copy(
-        day = trimmedDay, dayError = dayErr, monthError = monthErr, yearError = yearErr)
+        state.copy(day = trimmedDay, dayError = dayErr, monthError = monthErr, yearError = yearErr)
   }
 
   /**
@@ -324,11 +323,11 @@ class AddProfileViewModel(
     val state = _uiState.value
 
     val (dayErr, monthErr, yearErr) =
-      validateDateTriple(day = state.day, month = trimmedMonth, year = state.year)
+        validateDateTriple(day = state.day, month = trimmedMonth, year = state.year)
 
     _uiState.value =
-      state.copy(
-        month = trimmedMonth, dayError = dayErr, monthError = monthErr, yearError = yearErr)
+        state.copy(
+            month = trimmedMonth, dayError = dayErr, monthError = monthErr, yearError = yearErr)
   }
 
   /**
@@ -341,11 +340,11 @@ class AddProfileViewModel(
     val state = _uiState.value
 
     val (dayErr, monthErr, yearErr) =
-      validateDateTriple(day = state.day, month = state.month, year = trimmedYear)
+        validateDateTriple(day = state.day, month = state.month, year = trimmedYear)
 
     _uiState.value =
-      state.copy(
-        year = trimmedYear, dayError = dayErr, monthError = monthErr, yearError = yearErr)
+        state.copy(
+            year = trimmedYear, dayError = dayErr, monthError = monthErr, yearError = yearErr)
   }
 
   /**
