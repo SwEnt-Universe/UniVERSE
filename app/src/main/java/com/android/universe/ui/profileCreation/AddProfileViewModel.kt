@@ -7,6 +7,7 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDateTriple
 import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateName
@@ -200,8 +201,10 @@ class AddProfileViewModel(
       return false
     }
 
-    // Validate Country (sets its own error)
-    if (!validateCountry(state.country)) {
+    // Validate Country
+    val countryError = validateCountry(state.country)
+    if (countryError != null) {
+      setErrorMsg(countryError)
       return false
     }
 
@@ -211,25 +214,6 @@ class AddProfileViewModel(
     }
 
     return true
-  }
-
-  /**
-   * Validates the country field.
-   *
-   * @return `true` if valid, `false` otherwise, setting an error message on failure.
-   */
-  private fun validateCountry(country: String): Boolean {
-    return when {
-      country.isBlank() -> {
-        setErrorMsg("Country cannot be empty")
-        false
-      }
-      countryToIsoCode[country] == null -> {
-        setErrorMsg("Invalid country")
-        false
-      }
-      else -> true
-    }
   }
 
   /**
