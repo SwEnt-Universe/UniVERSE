@@ -10,6 +10,13 @@ import kotlinx.coroutines.tasks.await
 // Firestore collection path for user profiles.
 const val USERS_COLLECTION_PATH = "users"
 
+/** Check if a List is of type T and safely casts it, returning an empty list if not. */
+private inline fun <reified T> Any?.safeCastList(): List<T> {
+  return if (this is List<*>) {
+    this.filterIsInstance<T>()
+  } else emptyList()
+}
+
 /**
  * Firestore implementation of [UserRepository] to store user profiles in the Firestore database.
  *
@@ -54,9 +61,9 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
           description = doc.getString("description"),
           dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
           tags =
-              (doc.get("tags") as? List<Number>)
-                  ?.map { ordinal -> Tag.entries[ordinal.toInt()] }
-                  ?.toSet() ?: emptySet())
+              (doc.get("tags").safeCastList<Number>())
+                  .map { ordinal -> Tag.entries[ordinal.toInt()] }
+                  .toSet())
     } catch (e: Exception) {
       Log.e(
           "UserRepositoryFirestore.documentToUserProfile",
