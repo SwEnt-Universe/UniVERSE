@@ -1,5 +1,6 @@
 package com.android.universe.ui.common
 
+import com.android.universe.model.CountryData.countryToIsoCode
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.Period
@@ -96,6 +97,26 @@ fun validateDescription(s: String, maxLength: Int = 100) =
  * @param s Field value.
  */
 fun validateNonEmpty(label: String, s: String) = if (s.isBlank()) "$label cannot be empty" else null
+
+/**
+ * Validates the country field.
+ *
+ * @return A string containing the error message if invalid, or `null` if valid.
+ */
+fun validateCountry(country: String): String? {
+  return when {
+    country.isBlank() -> {
+      "Country cannot be empty"
+    }
+    countryToIsoCode[country] == null -> {
+      "Invalid country"
+    }
+    else -> {
+      // Le pays est valide
+      null
+    }
+  }
+}
 
 /**
  * Validates a date triple (day, month, year) for logical consistency and age constraint.

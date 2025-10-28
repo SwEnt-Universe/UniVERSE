@@ -417,7 +417,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextInput("Doe")
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput("1")
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput("1")
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput("2025")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput("2005")
 
     // After entering valid inputs, the Save button should be enabled
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsEnabled()
@@ -448,7 +448,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("First name is too long")
+        .assertTextEquals("First name too long")
   }
 
   @Test
@@ -462,7 +462,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Last name is too long")
+        .assertTextEquals("Last name too long")
   }
 
   @Test
@@ -476,7 +476,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Description is too long")
+        .assertTextEquals("Description too long")
   }
 
   @Test
@@ -501,8 +501,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+        .assertTextEquals("Invalid First name format")
   }
 
   @Test
@@ -514,7 +513,6 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+        .assertTextEquals("Invalid Last name format")
   }
 }
