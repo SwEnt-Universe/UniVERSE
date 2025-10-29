@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -170,7 +169,10 @@ fun UserProfileScreen(
               val descriptionSize = 100
               // Description box
               Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Description:", fontSize = 16.sp)
+                Text(
+                  text = "Description:",
+                  style = MaterialTheme.typography.bodyLarge
+                )
                 Box(
                     modifier =
                         Modifier.fillMaxWidth()
