@@ -303,7 +303,12 @@ dependencies {
 tasks.withType<Test>().configureEach {
     extensions.configure(JacocoTaskExtension::class.java) {
         isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*", "jdk.proxy*", "java.*", "javax.*")
+        excludes = listOf(
+            "jdk.internal.*",
+            "jdk.proxy*",
+            "java.*",
+            "javax.*",
+            "**/MainActivity*.*",)
     }
 }
 
