@@ -19,15 +19,26 @@ import org.junit.Before
  * Base class for tests that require both Firebase Auth and Firestore emulators. Combines
  * authentication and user profile management.
  */
-abstract class FirebaseAuthUserTest {
+open class FirebaseAuthUserTest {
   protected val emulator = FirebaseEmulator
   protected val auth: FirebaseAuth
     get() = emulator.auth
 
+  /**
+   * Gets the number of user documents in the Firestore users collection.
+   *
+   * @return The number of users in Firestore
+   */
   suspend fun getFirestoreUserCount(): Int {
     return emulator.firestore.collection(USERS_COLLECTION_PATH).get().await().size()
   }
 
+  /**
+   * Gets the number of users currently in the Firebase Auth emulator. Makes an HTTP GET request to
+   * the emulator REST API.
+   *
+   * @return Number of users in Auth emulator
+   */
   fun getAuthUserCount(): Int {
     val projectId = FirebaseApp.getInstance().options.projectId
     val host = FirebaseEmulator.currentHost
@@ -48,6 +59,7 @@ abstract class FirebaseAuthUserTest {
     }
   }
 
+  /** Clears all user documents from Firestore users collection. */
   private suspend fun clearFirestoreUsers() {
     val users = emulator.firestore.collection(USERS_COLLECTION_PATH).get().await()
 
@@ -62,7 +74,8 @@ abstract class FirebaseAuthUserTest {
     }
   }
 
-  fun clearAuthUsers() {
+  /** Clears all users from the Firebase Auth emulator. */
+  private fun clearAuthUsers() {
     val projectId = FirebaseApp.getInstance().options.projectId
     val host = FirebaseEmulator.currentHost
     val url =
@@ -80,6 +93,7 @@ abstract class FirebaseAuthUserTest {
     }
   }
 
+  /** Creates a UserRepository instance using the emulator Firestore. */
   fun createInitializedRepository(): UserRepository {
     return UserRepositoryFirestore(db = emulator.firestore)
   }
@@ -101,7 +115,13 @@ abstract class FirebaseAuthUserTest {
     return uid
   }
 
-  /** Signs in a test user. */
+  /**
+   * Signs in a test user using Firebase Auth.
+   *
+   * @param email Email of the user
+   * @param password Password of the user (default for test users)
+   * @return UID of the signed-in user
+   */
   suspend fun signInTestUser(email: String, password: String = "test-password-123"): String {
     val authResult = auth.signInWithEmailAndPassword(email, password).await()
     return authResult.user!!.uid
