@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import android.R.attr.text
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -128,7 +129,7 @@ fun UserProfileScreen(
                                       modifier =
                                           Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
 
-                                  Spacer(modifier = Modifier.width(4.dp))
+                                  Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
 
                                   Text(
                                       text = userUIState.userProfile.lastName,
