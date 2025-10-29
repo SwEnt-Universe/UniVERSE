@@ -114,7 +114,7 @@ fun UserProfileScreen(
                           // First and last name
                           Text(
                               text = userUIState.userProfile.firstName,
-                              style = MaterialTheme.typography.bodyMedium,
+                              style = MaterialTheme.typography.bodyLarge,
                               color = MaterialTheme.colorScheme.onBackground,
                               modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
                           Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
