@@ -5,7 +5,6 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -13,7 +12,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.MainActivity
 import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileCreation.AddProfileScreenTestTags
 import org.junit.Rule
@@ -23,49 +21,37 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AddProfileNavigationTest {
 
-  @get:Rule
-  val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
   @Test
   fun backButton_navigatesToSignIn() {
     composeTestRule.setContent {
       val navController = rememberNavController()
       NavHost(
-        navController = navController,
-        startDestination = NavigationScreens.AddProfile.route
-      ) {
-        composable(NavigationScreens.AddProfile.route) {
-          AddProfileScreen(
-            uid = "test_uid",
-            navigateOnSave = {},
-            onBack = {
-              navController.navigate(NavigationScreens.SignIn.route) {
-                popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-              }
+          navController = navController, startDestination = NavigationScreens.AddProfile.route) {
+            composable(NavigationScreens.AddProfile.route) {
+              AddProfileScreen(
+                  uid = "test_uid",
+                  navigateOnSave = {},
+                  onBack = {
+                    navController.navigate(NavigationScreens.SignIn.route) {
+                      popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
+                    }
+                  })
             }
-          )
-        }
-        composable(NavigationScreens.SignIn.route) {
-          Box(Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN)) {
-            Text("Sign In Screen")
+            composable(NavigationScreens.SignIn.route) {
+              Box(Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN)) { Text("Sign In Screen") }
+            }
           }
-        }
-      }
     }
 
     // Assert initial screen
-    composeTestRule
-      .onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN)
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN).assertIsDisplayed()
 
     // Perform navigation
-    composeTestRule
-      .onNodeWithTag(AddProfileScreenTestTags.BACK_BUTTON)
-      .performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.BACK_BUTTON).performClick()
 
     // Verify we navigated
-    composeTestRule
-      .onNodeWithTag(NavigationTestTags.SIGN_IN_SCREEN)
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.SIGN_IN_SCREEN).assertIsDisplayed()
   }
 }
