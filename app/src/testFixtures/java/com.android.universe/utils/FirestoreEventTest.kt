@@ -1,19 +1,19 @@
 package com.android.universe.utils
 
 import android.util.Log
+import androidx.test.core.app.ApplicationProvider
 import com.android.universe.model.event.EVENTS_COLLECTION_PATH
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryFirestore
+import com.google.firebase.FirebaseApp
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 
 open class FirestoreEventTest {
-  val testDispatcher = StandardTestDispatcher()
   val emulator = FirebaseEmulator
 
   suspend fun getEventCount(): Int {
@@ -38,6 +38,7 @@ open class FirestoreEventTest {
 
   @Before
   open fun setUp() {
+    FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     val url = URL("http://10.0.2.2:8080") // Firestore emulator host for Android
     val connection = url.openConnection() as HttpURLConnection
     connection.connectTimeout = 2000

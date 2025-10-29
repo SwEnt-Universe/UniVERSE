@@ -8,11 +8,15 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
 import com.android.universe.ui.profile.SettingsUiState
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -91,25 +95,25 @@ class SettingsScreenTest {
     setUpScreen(onOpenField = { opened = it })
 
     composeTestRule.onNodeWithTag(SettingsTestTags.EMAIL_BUTTON).performClick()
-    assert(opened == "email")
+    assertEquals("email", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON).performClick()
-    assert(opened == "password")
+    assertEquals("password", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).performClick()
-    assert(opened == "firstName")
+    assertEquals("firstName", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.LAST_NAME_BUTTON).performClick()
-    assert(opened == "lastName")
+    assertEquals("lastName", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.DESCRIPTION_BUTTON).performClick()
-    assert(opened == "description")
+    assertEquals("description", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.COUNTRY_BUTTON).performClick()
-    assert(opened == "country")
+    assertEquals("country", opened)
 
     composeTestRule.onNodeWithTag(SettingsTestTags.DATE_BUTTON).performClick()
-    assert(opened == "date")
+    assertEquals("date", opened)
   }
 
   @Test

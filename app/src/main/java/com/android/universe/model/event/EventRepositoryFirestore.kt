@@ -14,6 +14,23 @@ import kotlinx.coroutines.tasks.await
 // Firestore collection path for events.
 const val EVENTS_COLLECTION_PATH = "events"
 
+/** Check if a List is of type T and safely casts it, returning an empty list if not. */
+private inline fun <reified T> Any?.safeCastList(): List<T> {
+  return if (this is List<*>) {
+    this.filterIsInstance<T>()
+  } else emptyList()
+}
+
+/** Check if a Map is of type K to V and safely casts it, returning an empty map if not. */
+private inline fun <reified K, reified V> Any?.safeCastMap(): Map<K, V> {
+  return if (this is Map<*, *>) {
+    this.filterKeys { it is K }
+        .mapKeys { it.key as K }
+        .filterValues { it is V }
+        .mapValues { it.value as V }
+  } else emptyMap()
+}
+
 /**
  * Firestore implementation of [EventRepository] to stock events in the firestore database.
  *
@@ -54,8 +71,9 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         description = map["description"] as String?,
         dateOfBirth = LocalDate.parse(map["dateOfBirth"] as String),
         tags =
-            (map["tags"] as? List<Number>)?.map { ordinal -> Tag.entries[ordinal.toInt()] }?.toSet()
-                ?: emptySet())
+            (map["tags"].safeCastList<Number>())
+                .map { ordinal -> Tag.entries[ordinal.toInt()] }
+                .toSet())
   }
 
   /**
@@ -106,26 +124,27 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    */
   private fun documentToEvent(doc: DocumentSnapshot): Event {
     return try {
+      // the list of tags that have been casted safely.
+      val tagsList = doc.get("tags").safeCastList<Number>()
+      // the creator map that have been casted safely.
+      val creatorMap = doc.get("creator").safeCastMap<String, Any?>()
+      // check if the creator map is empty and throw an exception if so.
+      require(creatorMap.isNotEmpty()) { "Creator data missing" }
+      // the participants list that have been casted safely.
+      val participantsList = doc.get("participants").safeCastList<Map<String, Any?>>()
+      // the location map that have been casted safely.
+      val locationMap = doc.get("location").safeCastMap<String, Any?>()
+      // check if the location map is empty and throw an exception if so.
+      require(locationMap.isNotEmpty()) { "Location data missing" }
       Event(
           id = doc.getString("id") ?: "",
           title = doc.getString("title") ?: "",
           description = doc.getString("description"),
           date = doc.getString("date")?.let { LocalDateTime.parse(it) } ?: LocalDateTime.now(),
-          tags =
-              (doc.get("tags") as? List<Number>)
-                  ?.map { ordinal -> Tag.entries[ordinal.toInt()] }
-                  ?.toSet() ?: emptySet(),
-          creator =
-              mapToUserProfile(
-                  doc.get("creator") as? Map<String, Any?>
-                      ?: throw Exception("Creator data missing")),
-          participants =
-              (doc.get("participants") as? List<Map<String, Any?>>)
-                  ?.map { mapToUserProfile(it) }
-                  ?.toSet() ?: emptySet(),
-          location =
-              (doc.get("location") as? Map<String, Any?>)?.let { mapToLocation(it) }
-                  ?: Location(0.0, 0.0))
+          tags = tagsList.map { ordinal -> Tag.entries[ordinal.toInt()] }.toSet(),
+          creator = mapToUserProfile(creatorMap),
+          participants = participantsList.map { mapToUserProfile(it) }.toSet(),
+          location = mapToLocation(locationMap))
     } catch (e: Exception) {
       Log.e("EventRepositoryFirestore", "Error converting document to Event", e)
       throw e
@@ -183,7 +202,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   override suspend fun updateEvent(eventId: String, newEvent: Event) {
     val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
     if (event.exists()) {
-      db.collection(EVENTS_COLLECTION_PATH).document(eventId).set(eventToMap(newEvent)).await()
+      db.collection(EVENTS_COLLECTION_PATH)
+          .document(eventId)
+          .set(eventToMap(newEvent.copy(id = eventId)))
+          .await()
     } else {
       throw NoSuchElementException("No event with ID $eventId found")
     }

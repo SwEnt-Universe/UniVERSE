@@ -7,14 +7,10 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
-import com.android.universe.model.Tag
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.profile.UserProfileScreenTestTags
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import java.time.LocalDate
+import com.android.universe.utils.FirebaseEmulator
+import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
@@ -24,20 +20,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-object Emulator {
-  val auth = Firebase.auth
-  val firestore = Firebase.firestore
-
-  init {
-    auth.useEmulator("10.0.2.2", 9099)
-  }
-}
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class UniverseAppNavigationTest {
 
-  val emulator = Emulator
+  val emulator = FirebaseEmulator
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule
@@ -52,15 +39,7 @@ class UniverseAppNavigationTest {
       emulator.auth.signInAnonymously().await()
 
       UserRepositoryProvider.repository.addUser(
-          UserProfile(
-              uid = emulator.auth.currentUser!!.uid,
-              username = "tester",
-              firstName = "testa",
-              lastName = "testo",
-              country = "testastan",
-              dateOfBirth = LocalDate.of(2003, 12, 3),
-              tags = setOf(Tag.TABLE_TENNIS),
-          ))
+          UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
     }
     composeTestRule.setContent { UniverseApp() }
   }

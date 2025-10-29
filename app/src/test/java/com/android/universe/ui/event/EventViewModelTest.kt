@@ -80,7 +80,7 @@ class EventViewModelTest {
                 creator = sampleUsers[1],
                 location = Location(latitude = 46.5196535, longitude = 6.6322734)))
 
-    runBlocking { sampleEvents.forEach { repository.addEvent(it) } }
+    runTest { sampleEvents.forEach { repository.addEvent(it) } }
 
     viewModel = EventViewModel(repository)
   }

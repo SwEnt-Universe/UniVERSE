@@ -12,13 +12,16 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.UserRepositoryFirestore
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.utils.FirestoreUserTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class AddProfileScreenTest : FirestoreUserTest() {
   @get:Rule val composeTestRule = createComposeRule()
   val uid = "AddProfileScreenTest"
@@ -414,7 +417,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextInput("Doe")
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput("1")
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput("1")
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput("2025")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput("2005")
 
     // After entering valid inputs, the Save button should be enabled
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsEnabled()
@@ -445,7 +448,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("First name is too long")
+        .assertTextEquals("First name too long")
   }
 
   @Test
@@ -459,7 +462,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Last name is too long")
+        .assertTextEquals("Last name too long")
   }
 
   @Test
@@ -473,7 +476,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Description is too long")
+        .assertTextEquals("Description too long")
   }
 
   @Test
@@ -498,8 +501,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+        .assertTextEquals("Invalid First name format")
   }
 
   @Test
@@ -511,7 +513,6 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid name format, allowed characters are letters, apostrophes, hyphens, and spaces")
+        .assertTextEquals("Invalid Last name format")
   }
 }
