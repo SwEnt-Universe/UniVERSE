@@ -6,8 +6,6 @@ import com.android.universe.model.event.EVENTS_COLLECTION_PATH
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryFirestore
 import com.google.firebase.FirebaseApp
-import java.net.HttpURLConnection
-import java.net.URL
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -38,18 +36,18 @@ open class FirestoreEventTest {
 
   @Before
   open fun setUp() {
-    FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
-    val url = URL("http://10.0.2.2:8080") // Firestore emulator host for Android
-    val connection = url.openConnection() as HttpURLConnection
-    connection.connectTimeout = 2000
-    connection.requestMethod = "GET"
+    if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
+      FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
+    }
+
+    emulator.connect()
+
     runTest {
       val eventCount = getEventCount()
       if (eventCount > 0) {
         Log.w(
-            "FirebaseEmulatedTest",
-            "Warning: Test collection is not empty at the beginning of the test, count: $eventCount",
-        )
+            "FirestoreEventTest",
+            "Warning: Event collection not empty at test start, count: $eventCount")
         clearTestCollection()
       }
     }
