@@ -144,7 +144,7 @@ fun GoogleSignInButton(onClick: () -> Unit) {
           ButtonDefaults.buttonColors(
               containerColor = MaterialTheme.colorScheme.surface), // Button color
       modifier =
-          Modifier.padding(horizontal = 64.dp)
+          Modifier.padding(horizontal = 48.dp)
               .height(48.dp) // Adjust height as needed
               .testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
         Row(
