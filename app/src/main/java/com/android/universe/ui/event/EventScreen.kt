@@ -157,7 +157,7 @@ fun EventCard(
                     Modifier.align(Alignment.TopEnd)
                         .padding(PaddingMedium)
                         .background(
-                            color = MaterialTheme.colorScheme.surface,
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
                             shape = RoundedCornerShape(Dimensions.RoundedCorner))
                         .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
@@ -211,7 +211,8 @@ fun EventCard(
                 Text(
                     text = "$participants joined • by $creator",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
                 Button(
                     onClick = {},
@@ -239,7 +240,7 @@ fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
           Modifier.background(
-                  MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                  MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
                   RoundedCornerShape(Dimensions.RoundedCorner))
               .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
               .testTag(testTag)) {
@@ -260,6 +261,18 @@ fun TagCard(tag: String, testTag: String) {
 @Preview(showBackground = true)
 @Composable
 fun EventCardPreview() {
-  val previewViewModel = EventViewModel(EventRepositoryProvider.repository)
-  UniverseTheme { EventScreen(viewModel = previewViewModel) }
+  // Grab a single sample event
+  val event = EventRepositoryProvider.sampleEvents.first()
+
+  UniverseTheme {
+    EventCard(
+      title = event.title,
+      description = event.description ?: "",
+      date = event.date.toLocalDate().toString(),
+      tags = event.tags.map { it.name },
+      creator = event.creator.username,
+      participants = event.participants.size
+    )
+  }
 }
+
