@@ -235,7 +235,7 @@ fun AddProfileScreen(
           // Date of Birth section
           DateOfBirthFields(uiState = profileUIState, viewModel = addProfileViewModel)
 
-          Spacer(modifier = Modifier.size(8.dp))
+          Spacer(modifier = Modifier.size(Dimensions.SpacerMedium))
 
           // Save Button
           Button(
@@ -257,7 +257,7 @@ fun AddProfileScreen(
                       containerColor = MaterialTheme.colorScheme.primary,
                       contentColor = MaterialTheme.colorScheme.onPrimary
                   ),
-              shape = RoundedCornerShape(12.dp)) {
+              shape = RoundedCornerShape(Dimensions.RoundedCorner)) {
                 Text(text = "Save")
               }
         }
@@ -294,7 +294,7 @@ private fun ProfileInputField(
         error != null
       }
 
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Dimensions.SpacerSmall)) {
     if (!config.useInlineLabel) {
       Text(
           text = config.label,
@@ -361,7 +361,7 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
                 Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth()
                     .testTag(AddProfileScreenTestTags.COUNTRY_FIELD),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(Dimensions.RoundedCorner),
             singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showDropDown) })
         ExposedDropdownMenu(
@@ -397,12 +397,12 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
  */
 @Composable
 private fun DateOfBirthFields(uiState: AddProfileUIState, viewModel: AddProfileViewModel) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  Column(verticalArrangement = Arrangement.spacedBy(Dimensions.SpacerMedium)) {
     Text(
         text = "Date of Birth",
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT))
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacerLarge)) {
       // Day input
       ProfileInputField(
           modifier = Modifier.weight(1f),
