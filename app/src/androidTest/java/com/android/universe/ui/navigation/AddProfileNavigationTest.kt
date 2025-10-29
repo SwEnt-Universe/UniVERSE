@@ -24,34 +24,32 @@ class AddProfileNavigationTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @Test
-  fun backButton_navigatesToSignIn() {
+  fun clickingBackButton_navigatesToSignIn() {
     composeTestRule.setContent {
       val navController = rememberNavController()
-      NavHost(
-          navController = navController, startDestination = NavigationScreens.AddProfile.route) {
-            composable(NavigationScreens.AddProfile.route) {
-              AddProfileScreen(
-                  uid = "test_uid",
-                  navigateOnSave = {},
-                  onBack = {
-                    navController.navigate(NavigationScreens.SignIn.route) {
-                      popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-                    }
-                  })
-            }
-            composable(NavigationScreens.SignIn.route) {
-              Box(Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN)) { Text("Sign In Screen") }
-            }
-          }
+      NavHost(navController, startDestination = NavigationScreens.AddProfile.route) {
+        composable(NavigationScreens.AddProfile.route) {
+          AddProfileScreen(
+              uid = "test_uid",
+              onBack = {
+                navController.navigate(NavigationScreens.SignIn.route) {
+                  popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
+                }
+              })
+        }
+        composable(NavigationScreens.SignIn.route) {
+          Box(Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN)) { Text("Sign In Screen") }
+        }
+      }
     }
 
-    // Assert initial screen
+    // Assert AddProfileScreen is visible (TopAppBar)
     composeTestRule.onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN).assertIsDisplayed()
 
-    // Perform navigation
+    // Click back
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.BACK_BUTTON).performClick()
 
-    // Verify we navigated
+    // Verify SignInScreen is now visible
     composeTestRule.onNodeWithTag(NavigationTestTags.SIGN_IN_SCREEN).assertIsDisplayed()
   }
 }
