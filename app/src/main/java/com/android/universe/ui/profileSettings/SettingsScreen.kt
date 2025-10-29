@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -92,6 +91,7 @@ private fun EditableField(
   if (error != null) {
     Text(
         error,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
   }
@@ -230,7 +230,7 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = 0.5.dp,
+        thickness = Dimensions.DividerThickness,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
     EditableField(
@@ -264,18 +264,21 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
     uiState.dayError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.monthError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.yearError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
@@ -288,7 +291,7 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = 0.5.dp,
+        thickness = Dimensions.DividerThickness,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Interests", style = SettingsScreenStyles.sectionTitleStyle())
     Tag.Category.entries.forEach { category ->

@@ -47,7 +47,6 @@ object Dimensions {
 
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
-  val DividerThick = 1.dp // SelectTagScreen divider
 
   // Border
   val BorderWidth = 2.dp // Selected tag border
