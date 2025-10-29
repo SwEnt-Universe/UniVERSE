@@ -108,9 +108,16 @@ fun UniverseApp(
       composable(NavigationScreens.AddProfile.route) {
         AddProfileScreen(
             uid = user!!.uid,
-            navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTag) })
+            navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTag) },
+            onBack = {
+              // Navigate back to Sign In
+              navController.navigate(NavigationScreens.SignIn.route) {
+                popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
+              }
+            })
       }
     }
+
     navigation(
         route = NavigationScreens.SelectTag.name,
         startDestination = NavigationScreens.SelectTag.route) {
