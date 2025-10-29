@@ -118,14 +118,25 @@ fun UserProfileScreen(
                       Column(
                           horizontalAlignment = Alignment.CenterHorizontally,
                           verticalArrangement = Arrangement.Center) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center) {
+                                  Text(
+                                      text = userUIState.userProfile.firstName,
+                                      style = MaterialTheme.typography.titleLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier =
+                                          Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
 
-                            // First name + last name row
-                            Text(
-                                text =
-                                    "${userUIState.userProfile.firstName} ${userUIState.userProfile.lastName}",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
+                                  Spacer(modifier = Modifier.width(4.dp))
+
+                                  Text(
+                                      text = userUIState.userProfile.lastName,
+                                      style = MaterialTheme.typography.titleLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier =
+                                          Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
+                                }
 
                             Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
 
