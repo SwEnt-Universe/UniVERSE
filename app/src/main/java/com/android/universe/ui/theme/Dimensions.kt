@@ -26,13 +26,19 @@ import androidx.compose.ui.unit.dp
  * ```
  */
 object Dimensions {
-  // Paddings (consolidating SettingsScreenPaddings, TagGroup, SelectTagScreen)
+  // Padding sizes
   val PaddingSmall = 4.dp // InternalSpacing, tag padding
   val PaddingMedium = 8.dp // General spacing, tag group horizontal
   val PaddingLarge = 16.dp // Section titles, content padding
-  val PaddingExtraLarge = 20.dp // ContentHorizontalPadding, DividerPadding
+  val PaddingExtraLarge = 24.dp // ContentHorizontalPadding, DividerPadding
   val PaddingErrorIndent = 8.dp // ErrorIndent
   val PaddingFieldIconSpacing = 10.dp // FieldIconSpacing
+
+  // Spacer sizes
+  val SpacerSmall = 4.dp // InternalSpacing, tag padding
+  val SpacerMedium = 8.dp // General spacing, tag group horizontal
+  val SpacerLarge = 16.dp // Section titles, content padding
+  val SpacerExtraLarge = 24.dp // ContentHorizontalPadding, DividerPadding
 
   // Icon sizes (from TagGroup, SelectTagScreen)
   val IconSizeSmall = 16.dp // Delete icon
@@ -51,8 +57,4 @@ object Dimensions {
 
   // Corner radii
   val RoundedCorner = 8.dp // General rounded corners
-
-  // Spacer sizes
-  val SpacerSmall = 4.dp // Between text and icons in tags
-  val SpacerMedium = 8.dp // Between fields
 }

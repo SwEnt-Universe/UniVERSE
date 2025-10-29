@@ -125,7 +125,7 @@ fun UserProfileScreen(
                               fontSize = FieldFontSizes.NAMES.sp,
                               color = MaterialTheme.colorScheme.onBackground,
                               modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
-                          Spacer(modifier = Modifier.width(4.dp))
+                          Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
                           Text(
                               text = userUIState.userProfile.lastName,
                               fontSize = FieldFontSizes.NAMES.sp,
@@ -141,7 +141,7 @@ fun UserProfileScreen(
                                     fontSize = FieldFontSizes.AGE.sp,
                                     color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
                                 Text(
                                     text = "Country: ${userUIState.userProfile.country}",
                                     fontSize = FieldFontSizes.COUNTRY.sp,
@@ -151,7 +151,7 @@ fun UserProfileScreen(
                         }
                   }
 
-              Spacer(modifier = Modifier.height(16.dp))
+              Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
               Box(
                   modifier =
                       Modifier.fillMaxWidth()
@@ -166,14 +166,14 @@ fun UserProfileScreen(
                                 .fillMaxWidth()
                                 .verticalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.SpaceAround,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.SpacerSmall)) {
                           userUIState.userProfile.tags.toList().forEachIndexed { index, tag ->
                             InterestTag(tag.displayName, index)
                           }
                         }
                   }
 
-              Spacer(modifier = Modifier.height(16.dp))
+              Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
               val descriptionSize = 100
               // Description box
               Column(modifier = Modifier.fillMaxWidth()) {
