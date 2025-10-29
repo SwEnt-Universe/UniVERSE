@@ -41,6 +41,7 @@ import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 
 object SignInScreenTestTags {
@@ -92,16 +93,17 @@ fun SignInScreen(
           text = "Welcome to",
           style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
           textAlign = TextAlign.Center,
-          fontWeight = FontWeight.Bold)
+          fontWeight = FontWeight.Bold
+      )
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
       Image(
           painter = painterResource(R.drawable.app_logo_placeholder),
           contentDescription = "App Logo",
           modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_LOGO).size(320.dp))
 
-      Spacer(modifier = Modifier.height(32.dp))
+      Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
 
       if (uiState.isLoading)
           LinearProgressIndicator(
@@ -127,8 +129,8 @@ fun GoogleSignInButton(onClick: () -> Unit) {
       colors =
           ButtonDefaults.buttonColors(
               containerColor = MaterialTheme.colorScheme.surface), // Button color
-      modifier =
-          Modifier.padding(horizontal = 64.dp)
+      modifier = Modifier
+              .padding(horizontal = 64.dp)
               .height(48.dp) // Adjust height as needed
               .testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
         Row(
@@ -140,16 +142,16 @@ fun GoogleSignInButton(onClick: () -> Unit) {
                   painter =
                       painterResource(id = R.drawable.google_logo), // Ensure this drawable exists
                   contentDescription = "Google Logo",
-                  modifier =
-                      Modifier.size(32.dp) // Size of the Google logo
-                          .padding(end = 8.dp))
+                  modifier = Modifier
+                          .size(Dimensions.IconSizeLarge) // Size of the Google logo
+                          .padding(end = Dimensions.PaddingMedium))
 
               // Text for the button
               Text(
                   text = "Sign in with Google",
                   color = MaterialTheme.colorScheme.onSurface,
-                  fontSize = 16.sp, // Font size
-                  fontWeight = FontWeight.Medium)
+                  style = MaterialTheme.typography.bodyLarge
+              )
             }
       }
 }
