@@ -93,8 +93,7 @@ fun SignInScreen(
           text = "Welcome to",
           style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
           textAlign = TextAlign.Center,
-          fontWeight = FontWeight.Bold
-      )
+          fontWeight = FontWeight.Bold)
 
       Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
@@ -129,8 +128,8 @@ fun GoogleSignInButton(onClick: () -> Unit) {
       colors =
           ButtonDefaults.buttonColors(
               containerColor = MaterialTheme.colorScheme.surface), // Button color
-      modifier = Modifier
-              .padding(horizontal = 64.dp)
+      modifier =
+          Modifier.padding(horizontal = 64.dp)
               .height(48.dp) // Adjust height as needed
               .testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
         Row(
@@ -142,16 +141,15 @@ fun GoogleSignInButton(onClick: () -> Unit) {
                   painter =
                       painterResource(id = R.drawable.google_logo), // Ensure this drawable exists
                   contentDescription = "Google Logo",
-                  modifier = Modifier
-                          .size(Dimensions.IconSizeLarge) // Size of the Google logo
+                  modifier =
+                      Modifier.size(Dimensions.IconSizeLarge) // Size of the Google logo
                           .padding(end = Dimensions.PaddingMedium))
 
               // Text for the button
               Text(
                   text = "Sign in with Google",
                   color = MaterialTheme.colorScheme.onSurface,
-                  style = MaterialTheme.typography.bodyLarge
-              )
+                  style = MaterialTheme.typography.bodyLarge)
             }
       }
 }

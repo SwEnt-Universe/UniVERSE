@@ -94,64 +94,61 @@ fun UserProfileScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(PaddingLarge),
             horizontalAlignment = Alignment.CenterHorizontally) {
-          Box(modifier = Modifier.fillMaxWidth()) {
+              Box(modifier = Modifier.fillMaxWidth()) {
 
-            // Leftmost profile picture
-            Box(
-              modifier = Modifier
-                .align(Alignment.CenterStart)
-                .size(120.dp)
-                .background(MaterialTheme.colorScheme.surface, CircleShape),
-              contentAlignment = Alignment.Center
-            ) {
-              Text("Img", color = MaterialTheme.colorScheme.onSurface)
-            }
+                // Leftmost profile picture
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.CenterStart)
+                            .size(120.dp)
+                            .background(MaterialTheme.colorScheme.surface, CircleShape),
+                    contentAlignment = Alignment.Center) {
+                      Text("Img", color = MaterialTheme.colorScheme.onSurface)
+                    }
 
-            // Profile info box (takes up all remaining width)
-            Box(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 120.dp) // shifts content to start where the image ends
-                .height(120.dp),
-              contentAlignment = Alignment.Center // centers contents vertically & horizontally
-            ) {
-              Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-              ) {
+                // Profile info box (takes up all remaining width)
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(start = 120.dp) // shifts content to start where the image ends
+                            .height(120.dp),
+                    contentAlignment =
+                        Alignment.Center // centers contents vertically & horizontally
+                    ) {
+                      Column(
+                          horizontalAlignment = Alignment.CenterHorizontally,
+                          verticalArrangement = Arrangement.Center) {
 
-                // First name + last name row
-                Text(
-                  text = "${userUIState.userProfile.firstName} ${userUIState.userProfile.lastName}",
-                  style = MaterialTheme.typography.titleLarge,
-                  color = MaterialTheme.colorScheme.onBackground,
-                  modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME)
-                )
+                            // First name + last name row
+                            Text(
+                                text =
+                                    "${userUIState.userProfile.firstName} ${userUIState.userProfile.lastName}",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
 
-                Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+                            Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
 
-                // Second row (age + country)
-                Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.Center
-                ) {
-                  Text(
-                    text = "Age: $userAge",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.testTag(UserProfileScreenTestTags.AGE)
-                  )
-                  Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
-                  Text(
-                    text = "Country: ${userUIState.userProfile.country}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY)
-                  )
-                }
+                            // Second row (age + country)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center) {
+                                  Text(
+                                      text = "Age: $userAge",
+                                      style = MaterialTheme.typography.bodyLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
+                                  Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
+                                  Text(
+                                      text = "Country: ${userUIState.userProfile.country}",
+                                      style = MaterialTheme.typography.bodyLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier =
+                                          Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
+                                }
+                          }
+                    }
               }
-            }
-          }
 
               Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
               Box(
@@ -179,10 +176,7 @@ fun UserProfileScreen(
               val descriptionSize = 100
               // Description box
               Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                  text = "Description:",
-                  style = MaterialTheme.typography.bodyLarge
-                )
+                Text(text = "Description:", style = MaterialTheme.typography.bodyLarge)
                 Box(
                     modifier =
                         Modifier.fillMaxWidth()
@@ -231,7 +225,5 @@ fun InterestTag(text: String, testTagIndex: Int) {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UniverseTheme {
-    UserProfileScreen(uid = "1")
-  }
+  UniverseTheme { UserProfileScreen(uid = "1") }
 }

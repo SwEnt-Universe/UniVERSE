@@ -40,8 +40,8 @@ import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
+import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.Dimensions.PaddingSmall
 import com.android.universe.ui.theme.UniverseTheme
 
@@ -140,7 +140,8 @@ fun EventCard(
     participants: Int
 ) {
   Card(
-      modifier = Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
+      modifier =
+          Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(Dimensions.RoundedCorner),
       elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
@@ -211,8 +212,7 @@ fun EventCard(
                 Text(
                     text = "$participants joined • by $creator",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                    color = MaterialTheme.colorScheme.onSurface)
 
                 Button(
                     onClick = {},
@@ -266,13 +266,11 @@ fun EventCardPreview() {
 
   UniverseTheme {
     EventCard(
-      title = event.title,
-      description = event.description ?: "",
-      date = event.date.toLocalDate().toString(),
-      tags = event.tags.map { it.name },
-      creator = event.creator.username,
-      participants = event.participants.size
-    )
+        title = event.title,
+        description = event.description ?: "",
+        date = event.date.toLocalDate().toString(),
+        tags = event.tags.map { it.name },
+        creator = event.creator.username,
+        participants = event.participants.size)
   }
 }
-

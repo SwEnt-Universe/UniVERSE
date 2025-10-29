@@ -255,8 +255,7 @@ fun AddProfileScreen(
               colors =
                   ButtonDefaults.buttonColors(
                       containerColor = MaterialTheme.colorScheme.primary,
-                      contentColor = MaterialTheme.colorScheme.onPrimary
-                  ),
+                      contentColor = MaterialTheme.colorScheme.onPrimary),
               shape = RoundedCornerShape(Dimensions.RoundedCorner)) {
                 Text(text = "Save")
               }
@@ -457,14 +456,13 @@ private fun DateOfBirthFields(uiState: AddProfileUIState, viewModel: AddProfileV
 private fun AddProfileScreenPreview() {
   UniverseTheme {
     // A no-op fake ViewModel substitute
-    val dummyViewModel = object : AddProfileViewModel() {
-    }
+    val dummyViewModel = object : AddProfileViewModel() {}
 
     // Just render the UI (no real logic, safe for preview)
     AddProfileScreen(
-      uid = "preview_user_001",
-      addProfileViewModel = dummyViewModel,
-      navigateOnSave = {},
+        uid = "preview_user_001",
+        addProfileViewModel = dummyViewModel,
+        navigateOnSave = {},
     )
   }
 }
