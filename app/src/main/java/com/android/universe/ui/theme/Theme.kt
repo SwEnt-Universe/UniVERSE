@@ -88,7 +88,27 @@ fun UniverseTheme(
   }
 }
 
-// Extension to access tag colors dynamically by category
+/**
+ * Returns the appropriate [Color] for a tag based on its category, selection state,
+ * and the current theme (light or dark).
+ *
+ * This composable function adapts the color of tags used throughout the UI
+ * to ensure visual consistency across categories: "INTEREST", "SPORT",
+ * "MUSIC", "TRANSPORT", and "CANTON".
+ *
+ * If a tag is **selected**, it uses a universal selected color (`TagSelectedDark` or `TagSelectedLight`)
+ * depending on the current theme. Otherwise, it uses a category-specific color variant
+ * (e.g., `TagInterestDark`, `TagSportLight`, etc.).
+ *
+ * Categories not explicitly handled default to the [MaterialTheme.colorScheme.primary] color.
+ *
+ * @param category the tag category name (e.g., `"INTEREST"`, `"SPORT"`, `"MUSIC"`, `"TRANSPORT"`, `"CANTON"`).
+ * @param isSelected whether the tag is currently selected. Defaults to `false`.
+ * @return a [Color] corresponding to the tag's category, selection state, and theme.
+ *
+ * @see LocalIsDarkTheme for determining the current theme mode.
+ * @see MaterialTheme.colorScheme for fallback colors.
+ */
 @Composable
 fun tagColor(category: String, isSelected: Boolean = false): Color {
   val isDark = LocalIsDarkTheme.current
