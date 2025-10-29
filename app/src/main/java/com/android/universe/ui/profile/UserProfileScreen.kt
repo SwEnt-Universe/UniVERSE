@@ -94,54 +94,64 @@ fun UserProfileScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(PaddingLarge),
             horizontalAlignment = Alignment.CenterHorizontally) {
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
+          Box(modifier = Modifier.fillMaxWidth()) {
+
+            // Leftmost profile picture
+            Box(
+              modifier = Modifier
+                .align(Alignment.CenterStart)
+                .size(120.dp)
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
+              contentAlignment = Alignment.Center
+            ) {
+              Text("Img", color = MaterialTheme.colorScheme.onSurface)
+            }
+
+            // Profile info box (takes up all remaining width)
+            Box(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 120.dp) // shifts content to start where the image ends
+                .height(120.dp),
+              contentAlignment = Alignment.Center // centers contents vertically & horizontally
+            ) {
+              Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+              ) {
+
+                // First name + last name row
+                Text(
+                  text = "${userUIState.userProfile.firstName} ${userUIState.userProfile.lastName}",
+                  style = MaterialTheme.typography.titleLarge,
+                  color = MaterialTheme.colorScheme.onBackground,
+                  modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME)
+                )
+
+                Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+
+                // Second row (age + country)
+                Row(
                   verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.SpaceAround) {
-                    // Profile picture placeholder
-                    Box(
-                        modifier =
-                            Modifier.size(80.dp)
-                                .background(MaterialTheme.colorScheme.surface, CircleShape),
-                        contentAlignment = Alignment.Center) {
-                          Text("Img", color = MaterialTheme.colorScheme.onSurface)
-                        }
-
-                    Column(
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-
-                          // First and last name
-                          Text(
-                              text = userUIState.userProfile.firstName,
-                              style = MaterialTheme.typography.bodyLarge,
-                              color = MaterialTheme.colorScheme.onBackground,
-                              modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
-                          Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
-                          Text(
-                              text = userUIState.userProfile.lastName,
-                              style = MaterialTheme.typography.bodyLarge,
-                              color = MaterialTheme.colorScheme.onBackground,
-                              modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
-
-                          // Age and country (split for tagging, same line)
-                          Row(
-                              verticalAlignment = Alignment.CenterVertically,
-                              horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = "Age: $userAge",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
-                                Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
-                                Text(
-                                    text = "Country: ${userUIState.userProfile.country}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
-                              }
-                        }
-                  }
+                  horizontalArrangement = Arrangement.Center
+                ) {
+                  Text(
+                    text = "Age: $userAge",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.testTag(UserProfileScreenTestTags.AGE)
+                  )
+                  Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
+                  Text(
+                    text = "Country: ${userUIState.userProfile.country}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY)
+                  )
+                }
+              }
+            }
+          }
 
               Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
               Box(
