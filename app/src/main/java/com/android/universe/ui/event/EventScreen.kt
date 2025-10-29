@@ -141,8 +141,8 @@ fun EventCard(
 ) {
   Card(
       modifier = Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
-      shape = RoundedCornerShape(16.dp),
-      elevation = CardDefaults.cardElevation(10.dp)) {
+      shape = RoundedCornerShape(Dimensions.RoundedCorner),
+      elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
           // Image with overlay
           Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
