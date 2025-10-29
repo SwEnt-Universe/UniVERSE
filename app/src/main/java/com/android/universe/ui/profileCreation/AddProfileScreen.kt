@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.UniverseTheme
@@ -315,7 +316,7 @@ private fun ProfileInputField(
                 hasBeenTouched = true
               }
             },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(Dimensions.RoundedCorner),
         singleLine = config.maxLines == 1,
         maxLines = config.maxLines,
         isError = showError)
@@ -355,7 +356,6 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
             value = value,
             onValueChange = {}, // Not needed, read-only
             readOnly = true,
-            label = { Text(text = "Country") },
             placeholder = { Text("Country") },
             modifier =
                 Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
