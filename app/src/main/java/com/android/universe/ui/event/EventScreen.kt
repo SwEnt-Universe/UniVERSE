@@ -26,7 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -40,6 +39,11 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.Dimensions.PaddingLarge
+import com.android.universe.ui.theme.Dimensions.PaddingMedium
+import com.android.universe.ui.theme.Dimensions.PaddingSmall
+import com.android.universe.ui.theme.UniverseTheme
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -94,8 +98,8 @@ fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = v
     LazyColumn(
         modifier =
             Modifier.fillMaxSize().padding(paddingValues).testTag(EventScreenTestTags.EVENTS_LIST),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        contentPadding = PaddingValues(PaddingMedium),
+        verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
           items(events) { event ->
             EventCard(
                 title = event.title,
@@ -136,10 +140,11 @@ fun EventCard(
     participants: Int
 ) {
   Card(
-      modifier = Modifier.fillMaxWidth().padding(8.dp).testTag(EventScreenTestTags.EVENT_CARD),
-      shape = RoundedCornerShape(16.dp),
-      elevation = CardDefaults.cardElevation(48.dp)) {
-        Column(modifier = Modifier.background(Color.White)) {
+      modifier =
+          Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
+      shape = RoundedCornerShape(Dimensions.RoundedCorner),
+      elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
+        Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
           // Image with overlay
           Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
             Image(
@@ -151,13 +156,15 @@ fun EventCard(
             Box(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(PaddingMedium)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                            shape = RoundedCornerShape(Dimensions.RoundedCorner))
+                        .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(
                       text = date,
-                      color = Color.Black,
+                      color = MaterialTheme.colorScheme.onSurface,
                       style = MaterialTheme.typography.labelSmall,
                       fontWeight = FontWeight.Bold)
                 }
@@ -165,9 +172,9 @@ fun EventCard(
             Column(
                 modifier =
                     Modifier.align(Alignment.TopStart)
-                        .padding(8.dp)
+                        .padding(PaddingMedium)
                         .testTag(EventScreenTestTags.EVENT_TAGS_COLUMN),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
                   tags.forEach { tag -> TagCard(tag, EventScreenTestTags.EVENT_TAG) }
                 }
           }
@@ -176,10 +183,9 @@ fun EventCard(
           Text(
               text = title,
               style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = Color.Black,
+              color = MaterialTheme.colorScheme.onSurface,
               modifier =
-                  Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                  Modifier.padding(horizontal = PaddingLarge, vertical = PaddingMedium)
                       .testTag(EventScreenTestTags.EVENT_TITLE),
               maxLines = 1,
               overflow = TextOverflow.Ellipsis)
@@ -188,9 +194,9 @@ fun EventCard(
           Text(
               text = description,
               style = MaterialTheme.typography.bodyMedium,
-              color = Color.DarkGray,
+              color = MaterialTheme.colorScheme.onSurface,
               modifier =
-                  Modifier.padding(horizontal = 16.dp)
+                  Modifier.padding(horizontal = PaddingLarge)
                       .testTag(EventScreenTestTags.EVENT_DESCRIPTION),
               maxLines = 3,
               overflow = TextOverflow.Ellipsis)
@@ -199,21 +205,23 @@ fun EventCard(
           Row(
               modifier =
                   Modifier.fillMaxWidth()
-                      .padding(horizontal = 16.dp, vertical = 8.dp)
+                      .padding(PaddingLarge, PaddingMedium)
                       .testTag(EventScreenTestTags.EVENT_CREATOR_PARTICIPANTS),
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "$participants joined • by $creator",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray)
+                    color = MaterialTheme.colorScheme.onSurface)
 
                 Button(
                     onClick = {},
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    shape = RoundedCornerShape(Dimensions.RoundedCorner),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.testTag(EventScreenTestTags.EVENT_JOIN_BUTTON)) {
-                      Text(text = "Join In", color = Color.White)
+                      Text(text = "Join In", color = MaterialTheme.colorScheme.onPrimary)
                     }
               }
         }
@@ -231,13 +239,15 @@ fun EventCard(
 fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
-          Modifier.background(Color.Gray.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-              .padding(horizontal = 8.dp, vertical = 4.dp)
+          Modifier.background(
+                  MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                  RoundedCornerShape(Dimensions.RoundedCorner))
+              .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
               .testTag(testTag)) {
         Text(
             text = tag,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold)
       }
 }
@@ -251,6 +261,16 @@ fun TagCard(tag: String, testTag: String) {
 @Preview(showBackground = true)
 @Composable
 fun EventCardPreview() {
-  val previewViewModel = EventViewModel(EventRepositoryProvider.repository)
-  EventScreen(viewModel = previewViewModel)
+  // Grab a single sample event
+  val event = EventRepositoryProvider.sampleEvents.first()
+
+  UniverseTheme {
+    EventCard(
+        title = event.title,
+        description = event.description ?: "",
+        date = event.date.toLocalDate().toString(),
+        tags = event.tags.map { it.name },
+        creator = event.creator.username,
+        participants = event.participants.size)
+  }
 }

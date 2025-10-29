@@ -32,7 +32,7 @@ import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
-import com.android.universe.ui.theme.SampleAppTheme
+import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
-      SampleAppTheme {
+      UniverseTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },

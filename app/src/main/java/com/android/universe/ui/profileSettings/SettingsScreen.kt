@@ -18,23 +18,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.profile.SettingsViewModel
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
 
 /* =========================================================
  * Padding/style constants
  * ========================================================= */
 object SettingsScreenPaddings {
-  val InternalSpacing = 4.dp
-  val DividerPadding = 20.dp
-  val ContentHorizontalPadding = 20.dp
-  val ErrorIndent = 8.dp
-  val FieldIconSpacing = 10.dp
-  val DateFieldSpacing = 8.dp
+  val InternalSpacing = Dimensions.PaddingSmall
+  val DividerPadding = Dimensions.PaddingExtraLarge
+  val ContentHorizontalPadding = Dimensions.PaddingExtraLarge
+  val ErrorIndent = Dimensions.PaddingMedium
+  val FieldIconSpacing = Dimensions.PaddingFieldIconSpacing
+  val DateFieldSpacing = Dimensions.PaddingMedium
 }
 
 object SettingsScreenStyles {
@@ -90,6 +91,7 @@ private fun EditableField(
   if (error != null) {
     Text(
         error,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
   }
@@ -176,6 +178,7 @@ fun SettingsScreenContent(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(padding)
+                    .padding(top = Dimensions.PaddingLarge)
                     .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)) {
               item { GeneralSection(uiState = uiState, open = onOpenField) }
               item { ProfileSection(uiState = uiState, open = onOpenField) }
@@ -227,7 +230,7 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = 0.5.dp,
+        thickness = Dimensions.DividerThickness,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
     EditableField(
@@ -261,18 +264,21 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
     uiState.dayError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.monthError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.yearError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
@@ -285,7 +291,7 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = 0.5.dp,
+        thickness = Dimensions.DividerThickness,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Interests", style = SettingsScreenStyles.sectionTitleStyle())
     Tag.Category.entries.forEach { category ->
@@ -301,7 +307,6 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
 /* =========================================================
  * Previews (use stateless content only)
  * ========================================================= */
-/** Preview for Settings screen without modal. */
 fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
     SettingsUiState(
         email = "preview@example.com",
@@ -320,7 +325,7 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
 @Preview(showBackground = true, name = "Settings")
 @Composable
 private fun SettingsScreenContent_Preview() {
-  MaterialTheme {
+  UniverseTheme {
     SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
   }
 }

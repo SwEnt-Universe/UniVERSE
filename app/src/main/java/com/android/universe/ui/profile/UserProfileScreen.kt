@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import android.R.attr.text
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,15 +18,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.Dimensions.PaddingLarge
+import com.android.universe.ui.theme.UniverseTheme
 
 object UserProfileScreenTestTags {
   const val FIRSTNAME = "userProfileFirstName"
@@ -40,13 +43,6 @@ object UserProfileScreenTestTags {
   fun getTagTestTag(index: Int): String {
     return "userProfileTag$index"
   }
-}
-
-object FieldFontSizes {
-  const val NAMES = 16
-  const val AGE = 14
-  const val COUNTRY = 14
-  const val DESCRIPTION = 14
 }
 
 /**
@@ -88,67 +84,92 @@ fun UserProfileScreen(
               IconButton(
                   onClick = { onEditProfileClick(uid) },
                   modifier = Modifier.testTag(UserProfileScreenTestTags.EDIT_BUTTON)) {
-                    Icon(Icons.Default.Settings, contentDescription = "Edit Profile")
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Edit Profile",
+                        modifier = Modifier.size(Dimensions.IconSizeLarge))
                   }
             })
       },
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(PaddingLarge),
             horizontalAlignment = Alignment.CenterHorizontally) {
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.SpaceAround) {
-                    // Profile picture placeholder
-                    Box(
-                        modifier = Modifier.size(80.dp).background(Color.Gray, CircleShape),
-                        contentAlignment = Alignment.Center) {
-                          Text("Img", color = Color.White)
-                        }
+              Box(modifier = Modifier.fillMaxWidth()) {
 
-                    Column(
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
+                // Leftmost profile picture
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.CenterStart)
+                            .size(120.dp)
+                            .background(MaterialTheme.colorScheme.surface, CircleShape),
+                    contentAlignment = Alignment.Center) {
+                      Text("Img", color = MaterialTheme.colorScheme.onSurface)
+                    }
 
-                          // First and last name
-                          Text(
-                              text = userUIState.userProfile.firstName,
-                              fontSize = FieldFontSizes.NAMES.sp,
-                              color = Color.Blue,
-                              modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
-                          Spacer(modifier = Modifier.width(4.dp))
-                          Text(
-                              text = userUIState.userProfile.lastName,
-                              fontSize = FieldFontSizes.NAMES.sp,
-                              color = Color.Blue,
-                              modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
+                // Profile info box (takes up all remaining width)
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(start = 120.dp) // shifts content to start where the image ends
+                            .height(120.dp),
+                    contentAlignment =
+                        Alignment.Center // centers contents vertically & horizontally
+                    ) {
+                      Column(
+                          horizontalAlignment = Alignment.CenterHorizontally,
+                          verticalArrangement = Arrangement.Center) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center) {
+                                  Text(
+                                      text = userUIState.userProfile.firstName,
+                                      style = MaterialTheme.typography.titleLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier =
+                                          Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
 
-                          // Age and country (split for tagging, same line)
-                          Row(
-                              verticalAlignment = Alignment.CenterVertically,
-                              horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = "Age: $userAge",
-                                    fontSize = FieldFontSizes.AGE.sp,
-                                    color = Color.Gray,
-                                    modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Country: ${userUIState.userProfile.country}",
-                                    fontSize = FieldFontSizes.COUNTRY.sp,
-                                    color = Color.Gray,
-                                    modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
-                              }
-                        }
-                  }
+                                  Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
 
-              Spacer(modifier = Modifier.height(16.dp))
+                                  Text(
+                                      text = userUIState.userProfile.lastName,
+                                      style = MaterialTheme.typography.titleLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier =
+                                          Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
+                                }
+
+                            Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+
+                            // Second row (age + country)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center) {
+                                  Text(
+                                      text = "Age: $userAge",
+                                      style = MaterialTheme.typography.bodyLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
+                                  Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
+                                  Text(
+                                      text = "Country: ${userUIState.userProfile.country}",
+                                      style = MaterialTheme.typography.bodyLarge,
+                                      color = MaterialTheme.colorScheme.onBackground,
+                                      modifier =
+                                          Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
+                                }
+                          }
+                    }
+              }
+
+              Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
               Box(
                   modifier =
                       Modifier.fillMaxWidth()
                           .height(100.dp)
-                          .background(Color.LightGray.copy(alpha = 0.3f)),
+                          .background(
+                              color = MaterialTheme.colorScheme.surface,
+                              shape = RoundedCornerShape(Dimensions.RoundedCorner)),
                   contentAlignment = Alignment.Center) {
                     FlowRow(
                         modifier =
@@ -156,32 +177,34 @@ fun UserProfileScreen(
                                 .fillMaxWidth()
                                 .verticalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.SpaceAround,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.SpacerSmall)) {
                           userUIState.userProfile.tags.toList().forEachIndexed { index, tag ->
                             InterestTag(tag.displayName, index)
                           }
                         }
                   }
 
-              Spacer(modifier = Modifier.height(16.dp))
+              Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
               val descriptionSize = 100
               // Description box
               Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Description:", fontSize = 16.sp)
+                Text(text = "Description:", style = MaterialTheme.typography.bodyLarge)
                 Box(
                     modifier =
                         Modifier.fillMaxWidth()
                             .height(descriptionSize.dp)
-                            .background(Color.LightGray.copy(alpha = 0.3f)),
+                            .background(
+                                color = MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(Dimensions.RoundedCorner)),
                     contentAlignment = Alignment.Center) {
                       val descriptionText =
                           userUIState.userProfile.description.takeUnless { it.isNullOrBlank() }
                               ?: "No description"
                       Text(
                           text = descriptionText,
-                          fontSize = FieldFontSizes.DESCRIPTION.sp,
+                          style = MaterialTheme.typography.bodyMedium,
                           modifier =
-                              Modifier.padding(16.dp)
+                              Modifier.padding(PaddingLarge)
                                   .testTag(UserProfileScreenTestTags.DESCRIPTION))
                     }
               }
@@ -211,11 +234,8 @@ fun InterestTag(text: String, testTagIndex: Int) {
       }
 }
 
-/* Preview should be commented out in production */
-/*
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
-  UserProfileScreen(uid = "0")
+  UniverseTheme { UserProfileScreen(uid = "1") }
 }
- */

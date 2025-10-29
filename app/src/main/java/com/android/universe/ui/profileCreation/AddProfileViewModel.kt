@@ -105,7 +105,7 @@ object InputLimits {
  *   Defaults to [Dispatchers.IO].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
-class AddProfileViewModel(
+open class AddProfileViewModel(
     private val repository: UserRepository = UserRepositoryProvider.repository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,

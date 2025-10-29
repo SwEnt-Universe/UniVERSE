@@ -29,7 +29,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -42,6 +41,8 @@ import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
 
 object SignInScreenTestTags {
   const val SIGN_IN_BUTTON = "signInButton"
@@ -94,14 +95,14 @@ fun SignInScreen(
           textAlign = TextAlign.Center,
           fontWeight = FontWeight.Bold)
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
       Image(
           painter = painterResource(R.drawable.app_logo_placeholder),
           contentDescription = "App Logo",
           modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_LOGO).size(320.dp))
 
-      Spacer(modifier = Modifier.height(32.dp))
+      Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
 
       if (uiState.isLoading)
           LinearProgressIndicator(
@@ -124,7 +125,9 @@ fun SignInScreen(
 fun GoogleSignInButton(onClick: () -> Unit) {
   OutlinedButton(
       onClick = onClick,
-      colors = ButtonDefaults.buttonColors(containerColor = Color.White), // Button color
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.surface), // Button color
       modifier =
           Modifier.padding(horizontal = 64.dp)
               .height(48.dp) // Adjust height as needed
@@ -139,15 +142,14 @@ fun GoogleSignInButton(onClick: () -> Unit) {
                       painterResource(id = R.drawable.google_logo), // Ensure this drawable exists
                   contentDescription = "Google Logo",
                   modifier =
-                      Modifier.size(32.dp) // Size of the Google logo
-                          .padding(end = 8.dp))
+                      Modifier.size(Dimensions.IconSizeLarge) // Size of the Google logo
+                          .padding(end = Dimensions.PaddingMedium))
 
               // Text for the button
               Text(
                   text = "Sign in with Google",
-                  color = Color.Gray, // Text color
-                  fontSize = 16.sp, // Font size
-                  fontWeight = FontWeight.Medium)
+                  color = MaterialTheme.colorScheme.onSurface,
+                  style = MaterialTheme.typography.bodyLarge)
             }
       }
 }
@@ -156,5 +158,5 @@ fun GoogleSignInButton(onClick: () -> Unit) {
 @Preview
 @Composable
 fun SignInScreenPreview() {
-  SignInScreen()
+  UniverseTheme { SignInScreen() }
 }
