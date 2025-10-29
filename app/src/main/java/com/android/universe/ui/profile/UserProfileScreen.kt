@@ -45,13 +45,6 @@ object UserProfileScreenTestTags {
   }
 }
 
-object FieldFontSizes {
-  const val NAMES = 16
-  const val AGE = 14
-  const val COUNTRY = 14
-  const val DESCRIPTION = 14
-}
-
 /**
  * Composable for displaying a user's profile.
  *
@@ -122,13 +115,13 @@ fun UserProfileScreen(
                           // First and last name
                           Text(
                               text = userUIState.userProfile.firstName,
-                              fontSize = FieldFontSizes.NAMES.sp,
+                              style = MaterialTheme.typography.bodyMedium,
                               color = MaterialTheme.colorScheme.onBackground,
                               modifier = Modifier.testTag(UserProfileScreenTestTags.FIRSTNAME))
                           Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
                           Text(
                               text = userUIState.userProfile.lastName,
-                              fontSize = FieldFontSizes.NAMES.sp,
+                              style = MaterialTheme.typography.bodyLarge,
                               color = MaterialTheme.colorScheme.onBackground,
                               modifier = Modifier.testTag(UserProfileScreenTestTags.LASTNAME))
 
@@ -138,13 +131,13 @@ fun UserProfileScreen(
                               horizontalArrangement = Arrangement.Center) {
                                 Text(
                                     text = "Age: $userAge",
-                                    fontSize = FieldFontSizes.AGE.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.AGE))
                                 Spacer(modifier = Modifier.width(Dimensions.SpacerMedium))
                                 Text(
                                     text = "Country: ${userUIState.userProfile.country}",
-                                    fontSize = FieldFontSizes.COUNTRY.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.testTag(UserProfileScreenTestTags.COUNTRY))
                               }
@@ -191,7 +184,7 @@ fun UserProfileScreen(
                               ?: "No description"
                       Text(
                           text = descriptionText,
-                          fontSize = FieldFontSizes.DESCRIPTION.sp,
+                          style = MaterialTheme.typography.bodyMedium,
                           modifier =
                               Modifier.padding(PaddingLarge)
                                   .testTag(UserProfileScreenTestTags.DESCRIPTION))
