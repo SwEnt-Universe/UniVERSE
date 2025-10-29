@@ -32,7 +32,7 @@ object Dimensions {
   val PaddingLarge = 16.dp // Section titles, content padding
   val PaddingExtraLarge = 24.dp // ContentHorizontalPadding, DividerPadding
   val PaddingErrorIndent = 8.dp // ErrorIndent
-  val PaddingFieldIconSpacing = 10.dp // FieldIconSpacing
+  val PaddingFieldIconSpacing = 8.dp // FieldIconSpacing
 
   // Spacer sizes
   val SpacerSmall = 4.dp // InternalSpacing, tag padding
@@ -43,7 +43,7 @@ object Dimensions {
   // Icon sizes (from TagGroup, SelectTagScreen)
   val IconSizeSmall = 16.dp // Delete icon
   val IconSizeMedium = 18.dp // Check icon in tags
-  val IconSizeLarge = 36.dp // General icons (e.g., Edit, ArrowBack)
+  val IconSizeLarge = 32.dp // General icons (e.g., Edit, ArrowBack)
 
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider

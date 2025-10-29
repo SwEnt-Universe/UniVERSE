@@ -1,10 +1,6 @@
 package com.android.universe.ui.theme
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import com.android.universe.ui.profileSettings.SettingsScreenContent
-import com.android.universe.ui.profileSettings.sampleSettingsState
 
 // On colors for light and dark themes
 val OnPrimaryLight = Color(0xFFFFFFFF) // White
@@ -18,9 +14,9 @@ val OnSurfaceDark = Color(0xFFFFFFFF) // White
 val OnErrorLight = Color(0xFFFFFFFF) // White
 val OnErrorDark = Color(0xFF000000) // Black
 
-// Primary colors
-val PrimaryLight = Color(0xFF009688) // Purple for light theme
-val PrimaryDark = Color(0xFF009688) // Lighter purple for dark theme
+// Primary colors (USED FOR BUTTON)
+val PrimaryLight = Color(0xFF009688) // Greenish
+val PrimaryDark = Color(0xFF009688) // Greenish
 
 // Secondary colors
 val SecondaryLight = Color(0xFF03DAC6)
@@ -55,19 +51,3 @@ val TagSelectedLight = Color(0xFF9E9E9E) // Gray for selected tags
 val TagSelectedDark = Color(0xFF757575)
 val TagSelectedBorderLight = Color(0xFF546E7A)
 val TagSelectedBorderDark = Color(0xFF455A64)
-
-@Preview(showBackground = true)
-@Composable
-private fun Preview_LightMode() {
-  UniverseTheme(darkTheme = false) {
-    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
-  }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun Preview_DarkMode() {
-  UniverseTheme(darkTheme = true) {
-    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
-  }
-}
