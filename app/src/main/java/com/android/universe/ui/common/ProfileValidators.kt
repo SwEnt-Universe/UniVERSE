@@ -60,11 +60,13 @@ fun validateName(label: String, s: String, maxLength: Int = 25): String? =
  * ```
  */
 private val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
+private val EPFLEmailRegex: Regex = Regex("^[a-zA-Z0-9._%+-]+@epfl\\.ch$")
 
 fun validateEmail(s: String): String? =
     when {
       s.isBlank() -> "Email cannot be empty"
       !emailRegex.matches(s) -> "Invalid email format"
+      !EPFLEmailRegex.matches(s) -> "Not an EPFL email address"
       else -> null
     }
 
