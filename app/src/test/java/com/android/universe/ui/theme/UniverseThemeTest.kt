@@ -1,13 +1,12 @@
 package com.android.universe.ui.theme
 
-import android.app.Application
+import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.core.app.ApplicationProvider
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +28,19 @@ class UniverseThemeTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private val context = ApplicationProvider.getApplicationContext<Application>()
+  // ────────────────────────────────────────────────
+  // Helper: Inject dark/light theme into composition
+  // ────────────────────────────────────────────────
+
+  @VisibleForTesting
+  @Composable
+  fun tagColorForTest(category: String, isSelected: Boolean, darkTheme: Boolean): Color {
+    var color: Color = Color.Unspecified
+    CompositionLocalProvider(LocalIsDarkTheme provides darkTheme) {
+      color = tagColor(category, isSelected)
+    }
+    return color
+  }
 
   // ────────────────────────────────────────────────
   // THEME TESTS
@@ -87,20 +98,17 @@ class UniverseThemeTest {
 
   @Test
   fun tagColor_returnsDifferentColorsForLightAndDarkThemes() {
-    composeTestRule.setContent {
-      val light = tagColor(category = "INTEREST", isSelected = false, darkTheme = false)
-      val dark = tagColor(category = "INTEREST", isSelected = false, darkTheme = true)
-      assertNotEquals(light, dark)
-    }
-  }
+    var light: Color? = null
+    var dark: Color? = null
 
-  @Test
-  fun tagColor_returnsSelectedColorWhenSelected() {
     composeTestRule.setContent {
-      val normal = tagColor(category = "SPORT", isSelected = false, darkTheme = false)
-      val selected = tagColor(category = "SPORT", isSelected = true, darkTheme = false)
-      assertNotEquals(normal, selected)
+      light = tagColorForTest(category = "INTEREST", isSelected = false, darkTheme = false)
+      dark = tagColorForTest(category = "INTEREST", isSelected = false, darkTheme = true)
     }
+
+    assertNotNull(light)
+    assertNotNull(dark)
+    assertNotEquals(light, dark)
   }
 
   @Test
@@ -108,21 +116,35 @@ class UniverseThemeTest {
     val categories = listOf("INTEREST", "SPORT", "MUSIC", "TRANSPORT", "CANTON", "UNKNOWN")
     composeTestRule.setContent {
       categories.forEach { category ->
-        val lightNormal = tagColor(category, false, false)
-        val darkNormal = tagColor(category, false, true)
-        val lightSelected = tagColor(category, true, false)
-        val darkSelected = tagColor(category, true, true)
+        val lightNormal = tagColorForTest(category, false, false)
+        val darkNormal = tagColorForTest(category, false, true)
+        val lightSelected = tagColorForTest(category, true, false)
+        val darkSelected = tagColorForTest(category, true, true)
 
         assertNotNull(lightNormal)
         assertNotNull(darkNormal)
         assertNotNull(lightSelected)
         assertNotNull(darkSelected)
 
-        // all colors should be valid
         listOf(lightNormal, darkNormal, lightSelected, darkSelected).forEach {
           assertTrue(it != Color.Unspecified)
         }
       }
     }
+  }
+
+  @Test
+  fun tagColor_returnsSelectedColorWhenSelected() {
+    var normal: Color? = null
+    var selected: Color? = null
+
+    composeTestRule.setContent {
+      normal = tagColorForTest(category = "SPORT", isSelected = false, darkTheme = false)
+      selected = tagColorForTest(category = "SPORT", isSelected = true, darkTheme = false)
+    }
+
+    assertNotNull(normal)
+    assertNotNull(selected)
+    assertNotEquals(normal, selected)
   }
 }
