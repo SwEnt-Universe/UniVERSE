@@ -97,6 +97,9 @@ object AddProfileScreenTestTags {
 
   // Save button
   const val SAVE_BUTTON = "save_button"
+
+  // Back button
+  const val BACK_BUTTON = "back_button"
 }
 
 /**
@@ -176,11 +179,13 @@ fun AddProfileScreen(
         TopAppBar(
             title = { Text("Create Profile") },
             navigationIcon = {
-              IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back to Login")
-              }
+              IconButton(
+                  onClick = onBack,
+                  modifier = Modifier.testTag(AddProfileScreenTestTags.BACK_BUTTON)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to Login")
+                  }
             },
             modifier = Modifier.testTag(NavigationTestTags.ADD_PROFILE_SCREEN))
       },
