@@ -33,9 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
+import com.android.universe.ui.theme.Dimensions.PaddingLarge
+import com.android.universe.ui.theme.Dimensions.PaddingMedium
+import com.android.universe.ui.theme.UniverseTheme
 
 object AddProfileScreenTestTags {
   // Username
@@ -141,8 +145,8 @@ fun AddProfileScreen(
   Scaffold(
       content = { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(PaddingLarge).padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(PaddingMedium),
         ) {
 
           // Username field
@@ -411,8 +415,6 @@ fun AddProfileScreen(
       })
 }
 
-/* Preview should be commented out in production
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun AddProfileScreenPreview() {
@@ -429,4 +431,3 @@ private fun AddProfileScreenPreview() {
     )
   }
 }
-*/
