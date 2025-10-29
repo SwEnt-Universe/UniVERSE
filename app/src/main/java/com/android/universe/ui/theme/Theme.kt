@@ -95,24 +95,24 @@ fun tagColor(category: String, isSelected: Boolean = false): Color {
 
   return when (category) {
     "INTEREST" ->
-      if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-      else if (isDark) TagInterestDark else TagInterestLight
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagInterestDark else TagInterestLight
 
     "SPORT" ->
-      if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-      else if (isDark) TagSportDark else TagSportLight
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagSportDark else TagSportLight
 
     "MUSIC" ->
-      if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-      else if (isDark) TagMusicDark else TagMusicLight
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagMusicDark else TagMusicLight
 
     "TRANSPORT" ->
-      if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-      else if (isDark) TagTransportDark else TagTransportLight
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagTransportDark else TagTransportLight
 
     "CANTON" ->
-      if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-      else if (isDark) TagCantonDark else TagCantonLight
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagCantonDark else TagCantonLight
 
     else -> MaterialTheme.colorScheme.primary
   }
