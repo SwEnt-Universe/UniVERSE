@@ -2,25 +2,38 @@ package com.android.universe.ui.eventCreation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
+import com.android.universe.model.Tag
+import com.android.universe.ui.profile.InterestTag
+import com.android.universe.ui.profile.UserProfileScreenTestTags
 
 @Composable
 private fun textFieldEventCreation(
@@ -47,12 +60,13 @@ private fun textFieldEventCreation(
         singleLine = singleLine
     )
 }
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
     location: Location,
     onSave: () -> Unit = {},
-    onAddTag: () -> Unit = {}
+    onAddTag: (Set<Tag>) -> Unit = {}
 ) {
     val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
     val isErrorName = remember { mutableStateOf(false) }
@@ -97,7 +111,7 @@ fun EventCreationScreen(
                     errorMessage = "Description cannot be empty",
                     singleLine = false
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Row (modifier = Modifier.padding(paddingValues)){
                     textFieldEventCreation(
                         modifier = Modifier.weight(1f).padding(16.dp),
@@ -200,10 +214,30 @@ fun EventCreationScreen(
                     )
 
                     Button(
-                        onClick = { onAddTag() },
-                        modifier = Modifier.padding(12.dp)
+                        onClick = { onAddTag(uiState.value.tags) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Gray,
+                            contentColor = Color.White ),
+                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 0.dp)
                     ) {
                         Text("Add Tags")
+                    }
+                }
+                FlowRow(
+                    modifier =
+                        Modifier.fillMaxWidth().weight(1f).padding(horizontal = 16.dp).verticalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    uiState.value.tags.toList().forEach { tag ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(50)
+                        ){
+                            Text(
+                                text = tag.displayName,
+                                modifier =
+                                    Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                        }
                     }
                 }
                 Button(
