@@ -29,24 +29,21 @@ object FirebaseEmulator {
   val firestore: FirebaseFirestore
     get() = Firebase.firestore
 
-  val hostFromEnv: String? = System.getenv("FIREBASE_EMULATOR_HOST")
-
   val currentHost: String
     get() =
-        hostFromEnv
-            ?: if (isConnected) {
-              val projectId =
-                  try {
-                    auth.app.options.projectId ?: ""
-                  } catch (_: IllegalStateException) {
-                    ""
-                  }
+        if (isConnected) {
+          val projectId =
+              try {
+                auth.app.options.projectId ?: ""
+              } catch (_: IllegalStateException) {
+                ""
+              }
 
-              if (projectId.contains("robolectric", ignoreCase = true)) ROBOLECTRIC_HOST
-              else ANDROID_EMULATOR_HOST
-            } else {
-              ANDROID_EMULATOR_HOST
-            }
+          if (projectId.contains("robolectric", ignoreCase = true)) ROBOLECTRIC_HOST
+          else ANDROID_EMULATOR_HOST
+        } else {
+          ANDROID_EMULATOR_HOST
+        }
 
   /**
    * Connects the Firebase instance to the local emulators. This MUST be called after

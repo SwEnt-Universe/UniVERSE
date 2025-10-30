@@ -6,6 +6,8 @@ import com.android.universe.model.event.EVENTS_COLLECTION_PATH
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryFirestore
 import com.google.firebase.FirebaseApp
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -41,6 +43,18 @@ open class FirestoreEventTest {
     }
 
     emulator.connect()
+
+    try {
+      val host = FirebaseEmulator.currentHost
+      val url = URL("http://$host:${FirebaseEmulator.FIRESTORE_PORT}")
+      val conn = url.openConnection() as HttpURLConnection
+      conn.connectTimeout = 2000
+      conn.requestMethod = "GET"
+      conn.connect()
+      conn.disconnect()
+    } catch (e: Exception) {
+      Log.w("FirestoreEventTest", "Firestore emulator might not be reachable: ${e.message}")
+    }
 
     runTest {
       val eventCount = getEventCount()

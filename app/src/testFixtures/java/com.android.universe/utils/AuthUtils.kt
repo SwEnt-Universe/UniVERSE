@@ -15,6 +15,28 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import org.json.JSONObject
 
+/**
+ * A utility object for generating fake JSON Web Tokens (JWTs) to simulate Google ID tokens in
+ * tests.
+ *
+ * This is primarily used for testing authentication flows that require a Google ID token without
+ * making real network calls or depending on Google's identity services.
+ *
+ * Each generated token includes a unique `"sub"` (subject) claim based on an internal counter, as
+ * well as `"email"`, `"name"`, and `"picture"` fields.
+ *
+ * ### Example usage:
+ * ```
+ * val fakeToken = FakeJwtGenerator.createFakeGoogleIdToken(
+ *     name = "Test User",
+ *     email = "test@example.com"
+ * )
+ * println(fakeToken) // Outputs a string like "header.payload.sig"
+ * ```
+ *
+ * This token can then be injected into a fake authentication manager such as
+ * [FakeCredentialManager].
+ */
 object FakeJwtGenerator {
   private var _counter = 0
   private val counter
@@ -50,6 +72,25 @@ object FakeJwtGenerator {
   }
 }
 
+/**
+ * A fake implementation of [CredentialManager] for testing authentication flows without connecting
+ * to Google services.
+ *
+ * This simulates a user login by providing a fake Google ID token, and mocks the behavior of
+ * [GoogleIdTokenCredential] and the credential retrieval process.
+ *
+ * Usage example:
+ * ```
+ * val fakeToken = FakeJwtGenerator.createFakeGoogleIdToken("Test User", "test@example.com")
+ * val fakeCredentialManager = FakeCredentialManager.create(fakeToken)
+ * ```
+ *
+ * Then inject [fakeCredentialManager] in place of a real [CredentialManager] in tests to avoid real
+ * network calls or dependency on Google services.
+ *
+ * @property context The application [Context] used to initialize the base [CredentialManager].
+ * @constructor Private to enforce creation through [create].
+ */
 class FakeCredentialManager private constructor(private val context: Context) :
     CredentialManager by CredentialManager.create(context) {
   companion object {

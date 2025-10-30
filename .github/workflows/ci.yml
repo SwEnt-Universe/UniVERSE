@@ -187,8 +187,6 @@ jobs:
       # ------------------ Run instrumentation tests ------------------
       - name: Run instrumentation tests (${{ env.mode }})
         if: env.skip != 'true'
-        env:
-          FIREBASE_EMULATOR_HOST: "10.0.2.2"
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
