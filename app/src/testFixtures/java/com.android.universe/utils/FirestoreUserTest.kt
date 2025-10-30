@@ -38,11 +38,24 @@ open class FirestoreUserTest() {
 
   @Before
   open fun setUp() {
-    FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
-    val url = URL("http://10.0.2.2:8080") // Firestore emulator host for Android
-    val connection = url.openConnection() as HttpURLConnection
-    connection.connectTimeout = 2000
-    connection.requestMethod = "GET"
+    if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
+      FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
+    }
+
+    emulator.connect()
+
+    try {
+      val host = FirebaseEmulator.currentHost
+      val url = URL("http://$host:${FirebaseEmulator.FIRESTORE_PORT}")
+      val conn = url.openConnection() as HttpURLConnection
+      conn.connectTimeout = 2000
+      conn.requestMethod = "GET"
+      conn.connect()
+      conn.disconnect()
+    } catch (e: Exception) {
+      Log.w("FirestoreUserTest", "Firestore emulator might not be reachable: ${e.message}")
+    }
+
     runTest {
       val userCount = getUserCount()
       if (userCount > 0) {
