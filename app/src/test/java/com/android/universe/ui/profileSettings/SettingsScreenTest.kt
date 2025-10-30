@@ -54,7 +54,7 @@ class SettingsScreenTest {
     composeTestRule
         .onNodeWithTag(SettingsTestTags.EMAIL_BUTTON)
         .assertIsDisplayed()
-        .assertTextEquals("Email address", "preview@example.com")
+        .assertTextEquals("Email address", "preview@epfl.ch")
     composeTestRule
         .onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON)
         .assertIsDisplayed()
