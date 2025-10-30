@@ -12,10 +12,11 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.model.user.UserRepositoryFirestore
-import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirestoreUserTest
+import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -25,12 +26,20 @@ import org.junit.runner.RunWith
 class AddProfileScreenTest : FirestoreUserTest() {
   @get:Rule val composeTestRule = createComposeRule()
   val uid = "AddProfileScreenTest"
+  private var onBackSpy: () -> Unit = {}
 
   @Before
   override fun setUp() {
     super.setUp()
-    UserRepositoryProvider.repository = UserRepositoryFirestore(emulator.firestore)
-    composeTestRule.setContent { AddProfileScreen(uid) }
+    composeTestRule.setContent {
+      UniverseTheme {
+        AddProfileScreen(
+            uid = uid,
+            addProfileViewModel = viewModel(),
+            navigateOnSave = {},
+            onBack = { onBackSpy() })
+      }
+    }
   }
 
   @Test
@@ -514,5 +523,15 @@ class AddProfileScreenTest : FirestoreUserTest() {
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
         .assertTextEquals("Invalid Last name format")
+  }
+
+  @Test
+  fun backButtonInvokesOnBackCallback() {
+    var wasCalled = false
+    onBackSpy = { wasCalled = true }
+
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.BACK_BUTTON).performClick()
+
+    assertTrue(wasCalled)
   }
 }
