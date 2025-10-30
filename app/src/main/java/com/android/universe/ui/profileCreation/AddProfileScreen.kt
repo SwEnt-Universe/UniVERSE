@@ -33,12 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.Dimensions.PaddingLarge
+import com.android.universe.ui.theme.Dimensions.PaddingMedium
+import com.android.universe.ui.theme.UniverseTheme
 
 /**
  * Defines constants for use in UI tests to identify specific composables within the
@@ -161,8 +165,8 @@ fun AddProfileScreen(
   Scaffold(
       content = { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(PaddingLarge).padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(PaddingMedium),
         ) {
 
           // Username field
@@ -231,7 +235,7 @@ fun AddProfileScreen(
           // Date of Birth section
           DateOfBirthFields(uiState = profileUIState, viewModel = addProfileViewModel)
 
-          Spacer(modifier = Modifier.size(8.dp))
+          Spacer(modifier = Modifier.size(Dimensions.SpacerMedium))
 
           // Save Button
           Button(
@@ -250,8 +254,9 @@ fun AddProfileScreen(
                       profileUIState.yearError == null,
               colors =
                   ButtonDefaults.buttonColors(
-                      containerColor = Color.Black, contentColor = Color.White),
-              shape = RoundedCornerShape(12.dp)) {
+                      containerColor = MaterialTheme.colorScheme.primary,
+                      contentColor = MaterialTheme.colorScheme.onPrimary),
+              shape = RoundedCornerShape(Dimensions.RoundedCorner)) {
                 Text(text = "Save")
               }
         }
@@ -288,7 +293,7 @@ private fun ProfileInputField(
         error != null
       }
 
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Dimensions.SpacerSmall)) {
     if (!config.useInlineLabel) {
       Text(
           text = config.label,
@@ -310,7 +315,7 @@ private fun ProfileInputField(
                 hasBeenTouched = true
               }
             },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(Dimensions.RoundedCorner),
         singleLine = config.maxLines == 1,
         maxLines = config.maxLines,
         isError = showError)
@@ -318,7 +323,7 @@ private fun ProfileInputField(
     if (showError) {
       Text(
           text = error!!,
-          color = Color.Red,
+          color = MaterialTheme.colorScheme.error,
           style = MaterialTheme.typography.bodySmall,
           modifier = Modifier.testTag(config.testTagError))
     }
@@ -350,13 +355,12 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
             value = value,
             onValueChange = {}, // Not needed, read-only
             readOnly = true,
-            label = { Text(text = "Country") },
             placeholder = { Text("Country") },
             modifier =
                 Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth()
                     .testTag(AddProfileScreenTestTags.COUNTRY_FIELD),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(Dimensions.RoundedCorner),
             singleLine = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showDropDown) })
         ExposedDropdownMenu(
@@ -392,12 +396,12 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
  */
 @Composable
 private fun DateOfBirthFields(uiState: AddProfileUIState, viewModel: AddProfileViewModel) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  Column(verticalArrangement = Arrangement.spacedBy(Dimensions.SpacerMedium)) {
     Text(
         text = "Date of Birth",
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier.testTag(AddProfileScreenTestTags.DATE_OF_BIRTH_TEXT))
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacerLarge)) {
       // Day input
       ProfileInputField(
           modifier = Modifier.weight(1f),
@@ -444,5 +448,21 @@ private fun DateOfBirthFields(uiState: AddProfileUIState, viewModel: AddProfileV
           error = uiState.yearError,
       )
     }
+  }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun AddProfileScreenPreview() {
+  UniverseTheme {
+    // A no-op fake ViewModel substitute
+    val dummyViewModel = object : AddProfileViewModel() {}
+
+    // Just render the UI (no real logic, safe for preview)
+    AddProfileScreen(
+        uid = "preview_user_001",
+        addProfileViewModel = dummyViewModel,
+        navigateOnSave = {},
+    )
   }
 }

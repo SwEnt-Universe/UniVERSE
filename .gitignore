@@ -37,5 +37,8 @@ render.experimental.xml
 # Google Services (e.g. APIs or Firebase)
 app/google-services.json
 
+# key release secrets
+app/key-releasesecrets.txt
+
 # Android Profiling
 *.hprof
