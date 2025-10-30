@@ -104,12 +104,13 @@ class AuthModelFirebase(
   override suspend fun signInWithEmail(email: String, password: String): Result<FirebaseUser> =
       runCatching {
         validateEmail(email)?.let { throw InvalidEmailException(it) }
-        try {
-          auth.createUserWithEmailAndPassword(email, password).await()
-        } catch (_: FirebaseAuthUserCollisionException) {
-          auth.signInWithEmailAndPassword(email, password).await()
-        }
-        auth.currentUser ?: throw SignInFailedException()
+        val authResult =
+            try {
+              auth.createUserWithEmailAndPassword(email, password).await()
+            } catch (_: FirebaseAuthUserCollisionException) {
+              auth.signInWithEmailAndPassword(email, password).await()
+            }
+        authResult?.user ?: throw SignInFailedException()
       }
 
   /**
