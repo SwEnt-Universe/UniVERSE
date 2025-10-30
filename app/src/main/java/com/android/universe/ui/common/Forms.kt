@@ -37,7 +37,6 @@ fun TextInputField(
       label = { FormHint(hint) },
       modifier = Modifier.fillMaxWidth().testTag(tag),
       shape = RoundedCornerShape(12.dp),
-      singleLine = true,
       minLines = minLines,
       maxLines = maxLines,
       supportingText = { FormError(errorMsg) })
