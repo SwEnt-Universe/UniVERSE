@@ -309,7 +309,7 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
  * ========================================================= */
 fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
     SettingsUiState(
-        email = "preview@example.com",
+        email = "preview@epfl.ch",
         firstName = "Emma",
         lastName = "Prolapse",
         country = "Switzerland",

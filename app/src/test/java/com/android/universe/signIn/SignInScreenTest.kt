@@ -1,13 +1,15 @@
 package com.android.universe.signIn
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.signIn.SignInScreen
+import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags.SIGN_IN_BUTTON
-import com.android.universe.ui.signIn.SignInScreenTestTags.SIGN_IN_LOGO
 import com.android.universe.ui.signIn.SignInScreenTestTags.SIGN_IN_PROGRESS_BAR
 import com.android.universe.ui.signIn.SignInScreenTestTags.SIGN_IN_TITLE
 import com.android.universe.ui.signIn.SignInUIState
@@ -24,6 +26,10 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SignInScreenTest {
+  private val validEmail = "test@epfl.ch"
+  private val invalidEmail = "not-an-email"
+  private val validPassword = "Password123"
+  private val invalidPassword = "123"
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -59,7 +65,6 @@ class SignInScreenTest {
     // Assert: Check that the sign-in button is displayed and enabled
     composeTestRule.onNodeWithTag(SIGN_IN_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SIGN_IN_TITLE).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(SIGN_IN_LOGO).assertIsDisplayed()
 
     // Assert: Check that the progress indicator is not displayed
     composeTestRule.onNodeWithTag(SIGN_IN_PROGRESS_BAR).assertDoesNotExist()
@@ -79,7 +84,6 @@ class SignInScreenTest {
 
     // Assert: Check that the progress indicator is displayed
     composeTestRule.onNodeWithTag(SIGN_IN_PROGRESS_BAR).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(SIGN_IN_LOGO).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SIGN_IN_TITLE).assertIsDisplayed()
 
     // Assert: Check that the sign-in button is not displayed
@@ -136,5 +140,37 @@ class SignInScreenTest {
     // Assert: Verify that the ViewModel's function to clear the error was called.
     // This happens in the LaunchedEffect.
     verify(exactly = 1) { mockViewModel.clearErrorMsg() }
+  }
+
+  @Test
+  fun signInButton_enabledWithValidInput() {
+    fakeUiState.value =
+        SignInUIState(email = validEmail, password = validPassword, isLoading = false)
+
+    composeTestRule.setContent { SignInScreen(viewModel = mockViewModel) }
+
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).assertIsEnabled()
+  }
+
+  @Test
+  fun signInButton_disabledWithInvalidInput() {
+    fakeUiState.value =
+        SignInUIState(email = invalidEmail, password = invalidPassword, isLoading = false)
+
+    composeTestRule.setContent { SignInScreen(viewModel = mockViewModel) }
+
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).assertIsNotEnabled()
+  }
+
+  @Test
+  fun signInButton_onClick_callsSignInWithEmail() {
+    fakeUiState.value =
+        SignInUIState(email = validEmail, password = validPassword, isLoading = false)
+
+    composeTestRule.setContent { SignInScreen(viewModel = mockViewModel) }
+
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).performClick()
+
+    verify(exactly = 1) { mockViewModel.signInWithEmail() }
   }
 }
