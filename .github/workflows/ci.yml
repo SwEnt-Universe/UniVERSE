@@ -152,19 +152,23 @@ jobs:
         if: github.ref == 'refs/heads/main' && env.skip != 'true'
         run: ./gradlew assembleDebug lintDebug
 
-      # ------------------  Unit Tests ------------------
-      - name: Run unit tests
-        if: env.skip != 'true'
-        run: ./gradlew testDebugUnitTest
-
       # ------------------  Firebase Emulators ------------------
       - name: Start Firebase emulators
         if: env.skip != 'true'
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
             nohup firebase emulators:start --only auth,firestore --project demo-project > firebase-emulator.log 2>&1 &
-            sleep 20
+            for port in 8080 9099; do
+              echo "⏳ Waiting for port $port..."
+              while ! nc -z localhost $port; do sleep 1; done
+            done
+            echo "✅ Firebase emulators are running."
           fi
+
+      # ------------------  Unit Tests ------------------
+      - name: Run unit tests
+        if: env.skip != 'true'
+        run: ./gradlew testDebugUnitTest
 
       # ------------------  Decide test target ------------------
       - name: Determine test suite
@@ -183,6 +187,8 @@ jobs:
       # ------------------ Run instrumentation tests ------------------
       - name: Run instrumentation tests (${{ env.mode }})
         if: env.skip != 'true'
+        env:
+          FIREBASE_EMULATOR_HOST: "10.0.2.2"
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
