@@ -67,7 +67,7 @@ class SettingsViewModelTest {
       mockEmailTask = mockk(relaxed = true)
       mockPasswordTask = mockk(relaxed = true)
 
-      every { mockFirebaseUser.email } returns "old@example.com"
+      every { mockFirebaseUser.email } returns "old@epfl.ch"
       every { mockFirebaseUser.updateEmail(any()) } returns mockEmailTask
       every { mockFirebaseUser.updatePassword(any()) } returns mockPasswordTask
 
@@ -112,12 +112,12 @@ class SettingsViewModelTest {
         every { fakeAuth.currentUser } returns mockFirebaseUser
 
         val viewModel = SettingsViewModel(UserRepositoryProvider)
-        assertEquals("old@example.com", viewModel.uiState.value.email)
+        assertEquals("old@epfl.ch", viewModel.uiState.value.email)
       }
 
   @Test
   fun `init does not set email if Firebase user is null`() =
-      runTest(testDispatcher) { assertEquals("preview@example.com", viewModel.uiState.value.email) }
+      runTest(testDispatcher) { assertEquals("preview@epfl.ch", viewModel.uiState.value.email) }
 
   // loadUser Tests
   @Test
@@ -175,9 +175,9 @@ class SettingsViewModelTest {
         viewModel.saveModal("0")
         assertNotNull(viewModel.uiState.value.modalError)
 
-        viewModel.updateTemp("tempValue", "test@example.com")
+        viewModel.updateTemp("tempValue", "test@epfl.ch")
         val s = viewModel.uiState.value
-        assertEquals("test@example.com", s.tempValue)
+        assertEquals("test@epfl.ch", s.tempValue)
         assertNull(s.modalError)
       }
 
@@ -213,7 +213,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         viewModel.openModal("email")
-        assertEquals("preview@example.com", viewModel.uiState.value.tempValue)
+        assertEquals("preview@epfl.ch", viewModel.uiState.value.tempValue)
 
         viewModel.openModal("password")
         assertEquals("", viewModel.uiState.value.tempValue)
@@ -330,11 +330,11 @@ class SettingsViewModelTest {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
-        viewModel.updateTemp("tempValue", "new@example.com")
+        viewModel.updateTemp("tempValue", "new@epfl.ch")
         viewModel.saveModal("0")
         advanceUntilIdle()
 
-        assertEquals("new@example.com", viewModel.uiState.value.email)
+        assertEquals("new@epfl.ch", viewModel.uiState.value.email)
         assertNull(viewModel.uiState.value.modalError)
         assertFalse(viewModel.uiState.value.showModal)
       }
@@ -589,11 +589,11 @@ class SettingsViewModelTest {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
-        viewModel.updateTemp("tempValue", "new@example.com")
+        viewModel.updateTemp("tempValue", "new@epfl.ch")
         viewModel.saveModal("0")
         advanceUntilIdle()
 
-        verify { mockFirebaseUser.updateEmail("new@example.com") }
+        verify { mockFirebaseUser.updateEmail("new@epfl.ch") }
         assertNull(viewModel.uiState.value.errorMsg)
       }
 
@@ -603,10 +603,10 @@ class SettingsViewModelTest {
         val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
-        every { mockFirebaseUser.email } returns "preview@example.com"
+        every { mockFirebaseUser.email } returns "preview@epfl.ch"
 
         viewModel.openModal("email")
-        viewModel.updateTemp("tempValue", "preview@example.com")
+        viewModel.updateTemp("tempValue", "preview@epfl.ch")
         viewModel.saveModal("0")
         viewModel.saveProfile("0")
         advanceUntilIdle()

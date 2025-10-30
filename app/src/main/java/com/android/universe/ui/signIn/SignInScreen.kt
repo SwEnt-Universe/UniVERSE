@@ -40,12 +40,15 @@ import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
+import com.android.universe.ui.common.EmailInputField
+import com.android.universe.ui.common.PasswordInputField
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 
 object SignInScreenTestTags {
   const val SIGN_IN_BUTTON = "signInButton"
+  const val EMAIL_SIGN_IN_BUTTON = "emailSignInButton"
   const val SIGN_IN_LOGO = "signInLogo"
   const val SIGN_IN_TITLE = "signInTitle"
   const val SIGN_IN_PROGRESS_BAR = "signInProgressBar"
@@ -84,34 +87,49 @@ fun SignInScreen(
   Scaffold(modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN).fillMaxSize()) {
       paddingValues ->
     Column(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
+        modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       Text(
           modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_TITLE),
-          text = "Welcome to",
+          text = "Welcome to Universe",
           style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
           textAlign = TextAlign.Center,
           fontWeight = FontWeight.Bold)
 
-      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
-
-      Image(
-          painter = painterResource(R.drawable.app_logo_placeholder),
-          contentDescription = "App Logo",
-          modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_LOGO).size(320.dp))
-
       Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
+
+      EmailInputField(
+          value = uiState.email,
+          onValueChange = { viewModel.setEmail(it) },
+          errorMsg = uiState.emailErrorMsg)
+
+      PasswordInputField(
+          value = uiState.password,
+          onValueChange = { viewModel.setPassword(it) },
+          errorMsg = uiState.passwordErrorMsg)
+
+      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
       if (uiState.isLoading)
           LinearProgressIndicator(
               modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_PROGRESS_BAR))
-      else
-          GoogleSignInButton(
-              onClick = {
-                viewModel.signIn(context = context, credentialManager = credentialManager)
-              })
+      else {
+        SignInButton(onClick = { viewModel.signInWithEmail() }, enabled = uiState.signInEnabled)
+        Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
+        Text(
+            text = "OR",
+            style =
+                MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight))
+        Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
+        GoogleSignInButton(
+            onClick = {
+              viewModel.signIn(context = context, credentialManager = credentialManager)
+            })
+      }
     }
   }
 }
@@ -125,11 +143,9 @@ fun SignInScreen(
 fun GoogleSignInButton(onClick: () -> Unit) {
   OutlinedButton(
       onClick = onClick,
-      colors =
-          ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.surface), // Button color
+      colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
       modifier =
-          Modifier.padding(horizontal = 64.dp)
+          Modifier.padding(horizontal = 48.dp)
               .height(48.dp) // Adjust height as needed
               .testTag(SignInScreenTestTags.SIGN_IN_BUTTON)) {
         Row(
@@ -148,9 +164,36 @@ fun GoogleSignInButton(onClick: () -> Unit) {
               // Text for the button
               Text(
                   text = "Sign in with Google",
-                  color = MaterialTheme.colorScheme.onSurface,
+                  color = MaterialTheme.colorScheme.onPrimary,
                   style = MaterialTheme.typography.bodyLarge)
             }
+      }
+}
+
+/**
+ * A button composable for signing in with email and password.
+ *
+ * @param onClick The callback to be invoked when the button is clicked.
+ * @param enabled Controls the enabled state of the button. When `false`, this button will not be
+ *   clickable.
+ */
+@Composable
+fun SignInButton(onClick: () -> Unit, enabled: Boolean) {
+  OutlinedButton(
+      onClick = onClick,
+      enabled = enabled,
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.primary,
+              contentColor = MaterialTheme.colorScheme.onPrimary),
+      modifier =
+          Modifier.padding(horizontal = 64.dp)
+              .height(48.dp)
+              .testTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON)) {
+        Text(
+            text = "Sign In",
+            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+            fontWeight = FontWeight.Medium)
       }
 }
 

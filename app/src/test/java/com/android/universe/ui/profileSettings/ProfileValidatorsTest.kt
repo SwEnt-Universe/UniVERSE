@@ -46,8 +46,13 @@ class ProfileValidatorsTest {
   }
 
   @Test
+  fun validateEmail_nonEPFL() {
+    assertEquals("Not an EPFL email address", validateEmail("user@example.com"))
+  }
+
+  @Test
   fun validateEmail_ok() {
-    assertNull(validateEmail("user@example.com"))
+    assertNull(validateEmail("user@epfl.ch"))
   }
 
   // --- validatePassword ---
@@ -176,7 +181,7 @@ class ProfileValidatorsTest {
     val dob = LocalDate.now().minusYears(20)
     val e =
         validateAll(
-            email = "a@b.com",
+            email = "a@epfl.ch",
             password = "secret",
             firstName = "Alice",
             lastName = "Smith",

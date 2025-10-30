@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
  */
 data class SettingsUiState(
     val username: String = "",
-    val email: String = "preview@example.com",
+    val email: String = "preview@epfl.ch",
     val password: String = "",
     val firstName: String = "",
     val lastName: String = "",
