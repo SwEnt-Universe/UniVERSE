@@ -29,7 +29,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -94,12 +93,12 @@ fun SignInScreen(
     ) {
       Text(
           modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_TITLE),
-          text = "Welcome to",
+          text = "Welcome to Universe",
           style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
           textAlign = TextAlign.Center,
           fontWeight = FontWeight.Bold)
 
-      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
+      Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
 
       EmailInputField(
           value = uiState.email,
@@ -111,17 +110,21 @@ fun SignInScreen(
           onValueChange = { viewModel.setPassword(it) },
           errorMsg = uiState.passwordErrorMsg)
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
       if (uiState.isLoading)
           LinearProgressIndicator(
               modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_PROGRESS_BAR))
       else {
         SignInButton(onClick = { viewModel.signInWithEmail() }, enabled = uiState.signInEnabled)
-        Spacer(modifier = Modifier.height(64.dp))
+        Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
         Text(
             text = "OR",
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 24.sp))
+            style =
+                MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight))
+        Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
         GoogleSignInButton(
             onClick = {
               viewModel.signIn(context = context, credentialManager = credentialManager)
@@ -140,9 +143,7 @@ fun SignInScreen(
 fun GoogleSignInButton(onClick: () -> Unit) {
   OutlinedButton(
       onClick = onClick,
-      colors =
-          ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.surface), // Button color
+      colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
       modifier =
           Modifier.padding(horizontal = 48.dp)
               .height(48.dp) // Adjust height as needed
@@ -163,7 +164,7 @@ fun GoogleSignInButton(onClick: () -> Unit) {
               // Text for the button
               Text(
                   text = "Sign in with Google",
-                  color = MaterialTheme.colorScheme.onSurface,
+                  color = MaterialTheme.colorScheme.onPrimary,
                   style = MaterialTheme.typography.bodyLarge)
             }
       }
@@ -183,12 +184,16 @@ fun SignInButton(onClick: () -> Unit, enabled: Boolean) {
       enabled = enabled,
       colors =
           ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.surface, contentColor = Color.Black),
+              containerColor = MaterialTheme.colorScheme.primary,
+              contentColor = MaterialTheme.colorScheme.onPrimary),
       modifier =
           Modifier.padding(horizontal = 64.dp)
               .height(48.dp)
               .testTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON)) {
-        Text(text = "Sign In", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+        Text(
+            text = "Sign In",
+            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+            fontWeight = FontWeight.Medium)
       }
 }
 
