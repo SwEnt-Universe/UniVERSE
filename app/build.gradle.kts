@@ -135,7 +135,16 @@ android {
     kotlinOptions { jvmTarget = "17" }
 
     packaging {
-        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+        resources {
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt"
+            )
+        }
     }
 
     testFixtures {
@@ -265,6 +274,10 @@ dependencies {
     testFixturesImplementation(composeBom)
     testFixturesImplementation(libs.androidx.compose.runtime)
     testFixturesImplementation(libs.androidx.test.core)
+    testFixturesImplementation(libs.google.credentials)
+    testFixturesImplementation(libs.google.id)
+    testFixturesImplementation(libs.mockk.android)
+    testFixturesImplementation(libs.mockk.agent)
 
     // ----------------- Unit Testing (test/) -----------------
     testImplementation(libs.junit4)
