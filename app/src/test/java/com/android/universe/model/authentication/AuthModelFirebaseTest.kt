@@ -8,7 +8,6 @@ import com.android.universe.utils.FakeJwtGenerator
 import com.google.android.gms.tasks.Tasks
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.common.base.CharMatcher.any
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.AuthResult
@@ -227,7 +226,7 @@ class AuthModelFirebaseTest {
     // Simulate createUserWithEmailAndPassword succeeds
     val completedTask = Tasks.forResult(mockAuthResult)
     every { mockAuth.createUserWithEmailAndPassword(any(), any()) } returns completedTask
-    every { mockAuth.currentUser } returns mockFirebaseUser
+    every { mockAuthResult.user } returns mockFirebaseUser
 
     val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
     assertTrue(signIn.isSuccess)
@@ -244,7 +243,7 @@ class AuthModelFirebaseTest {
         FirebaseAuthUserCollisionException("must not be empty", "must not be empty")
     val completedTask = Tasks.forResult(mockAuthResult)
     every { mockAuth.signInWithEmailAndPassword(any(), any()) } returns completedTask
-    every { mockAuth.currentUser } returns mockFirebaseUser
+    every { mockAuthResult.user } returns mockFirebaseUser
     runTest {
       val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
       assertTrue(signIn.isSuccess)
@@ -256,7 +255,7 @@ class AuthModelFirebaseTest {
 
   @Test
   fun `signInWithEmail whenUsingInvalidEmail throwsException`() {
-    every { mockAuth.currentUser } returns mockFirebaseUser
+    every { mockAuthResult.user } returns mockFirebaseUser
     runTest {
       val signIn = authModelFirebase.signInWithEmail(notFromEpfl, password)
       assertTrue(signIn.isFailure)
@@ -274,7 +273,7 @@ class AuthModelFirebaseTest {
         FirebaseNetworkException("must be nonempty")
     val completedTask = Tasks.forResult(mockAuthResult)
     every { mockAuth.signInWithEmailAndPassword(any(), any()) } returns completedTask
-    every { mockAuth.currentUser } returns mockFirebaseUser
+    every { mockAuthResult.user } returns mockFirebaseUser
     runTest {
       val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
       assertTrue(signIn.isFailure)
@@ -291,7 +290,7 @@ class AuthModelFirebaseTest {
         FirebaseAuthUserCollisionException("must not be empty", "must not be empty")
     val completedTask = Tasks.forResult(mockAuthResult)
     every { mockAuth.signInWithEmailAndPassword(any(), any()) } returns completedTask
-    every { mockAuth.currentUser } returns null
+    every { mockAuthResult.user } returns null
     runTest {
       val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
       assertTrue(signIn.isFailure)
