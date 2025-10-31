@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
@@ -35,6 +34,7 @@ import com.android.universe.model.location.Location
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
+/** All the tags that are used to test the EventCreation screen. */
 object EventCreationTestTags {
   const val EVENT_TITLE_TEXT_FIELD = "EventTitleTextField"
   const val EVENT_DESCRIPTION_TEXT_FIELD = "EventDescriptionTextField"
@@ -55,8 +55,20 @@ object EventCreationTestTags {
   const val ERROR_MINUTE = "ErrorMinute"
 }
 
+/**
+ * returns a OutlinedTextField with all the parameters given.
+ *
+ * @param modifier the modifier to apply.
+ * @param value the string to print on the textField.
+ * @param onValueChange the function to call when the value change.
+ * @param isError the boolean true when there is an error.
+ * @param supportingText to add a text when there is an error.
+ * @param label the string to display at the top of the textField.
+ * @param errorMessage the message to display when there is an error.
+ * @param singleLine the boolean true when we want to display the value is one single Line.
+ */
 @Composable
-private fun textFieldEventCreation(
+private fun TextFieldEventCreation(
     modifier: Modifier = Modifier,
     value: String = "",
     onValueChange: (String) -> Unit = {},
@@ -82,6 +94,19 @@ private fun textFieldEventCreation(
       singleLine = singleLine)
 }
 
+/**
+ * Screen for the Event creation
+ *
+ * The user can enter a name, a description, a day, a month, a year, a hour and a minute for his
+ * event. The user can also click on the button 'Add tags' to add tags that correspond to his
+ * events. The user can see the selectedTags in the screen. A save tag button is displayed at the
+ * button to save the Event with the parameters that have been selected
+ *
+ * @param eventCreationViewModel the viewModel.
+ * @param location the location of the event.
+ * @param onSave the callBack to call when the user click on the 'Save Event' button.
+ * @param onAddTag the callBack to call when the user click on the 'Add Tag' button.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventCreationScreen(
@@ -102,7 +127,7 @@ fun EventCreationScreen(
   Scaffold(
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
-          textFieldEventCreation(
+          TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
                       .fillMaxWidth()
@@ -125,7 +150,7 @@ fun EventCreationScreen(
                   },
               label = "Event Title",
               errorMessage = "Title cannot be empty")
-          textFieldEventCreation(
+          TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
                       .fillMaxWidth()
@@ -152,7 +177,7 @@ fun EventCreationScreen(
               singleLine = false)
           Spacer(modifier = Modifier.height(12.dp))
           Row(modifier = Modifier.padding(paddingValues)) {
-            textFieldEventCreation(
+            TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
                         .weight(1f)
@@ -181,7 +206,7 @@ fun EventCreationScreen(
                     },
                 label = "Day",
                 errorMessage = "Enter a valid day format XX")
-            textFieldEventCreation(
+            TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
                         .weight(1f)
@@ -210,7 +235,7 @@ fun EventCreationScreen(
                     },
                 label = "Month",
                 errorMessage = "Enter a valid month format XX")
-            textFieldEventCreation(
+            TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
                         .weight(1f)
@@ -243,7 +268,7 @@ fun EventCreationScreen(
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
               horizontalArrangement = Arrangement.Center) {
-                textFieldEventCreation(
+                TextFieldEventCreation(
                     modifier =
                         Modifier.testTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).width(120.dp),
                     value = uiState.value.hour,
@@ -272,7 +297,7 @@ fun EventCreationScreen(
                     errorMessage = "Enter a valid hour format XX")
 
                 Spacer(modifier = Modifier.width(16.dp))
-                textFieldEventCreation(
+                TextFieldEventCreation(
                     modifier =
                         Modifier.testTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
                             .width(120.dp),
@@ -359,10 +384,4 @@ fun EventCreationScreen(
               }
         }
       })
-}
-
-@Preview
-@Composable
-fun EventCreationPreview() {
-  EventCreationScreen(EventCreationViewModel(), location = Location(0.0, 0.0))
 }
