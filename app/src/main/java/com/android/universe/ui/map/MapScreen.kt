@@ -1,6 +1,7 @@
 package com.android.universe.ui.map
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -56,11 +57,14 @@ object MapScreenTestTags {
  * @param onTabSelected Lambda to handle bottom navigation tab selection.
  */
 @Composable
-fun MapScreen(onTabSelected: (Tab) -> Unit) {
-  val context = LocalContext.current
-  val viewModel: MapViewModel = viewModel {
-    MapViewModel(TomTomLocationRepository(context), EventRepositoryProvider.repository)
-  }
+fun MapScreen(
+    onTabSelected: (Tab) -> Unit,
+    context: Context = LocalContext.current,
+    viewModel: MapViewModel = viewModel {
+      MapViewModel(TomTomLocationRepository(context), EventRepositoryProvider.repository)
+    }
+) {
+
   val uiState by viewModel.uiState.collectAsState()
 
   val hasPermission =

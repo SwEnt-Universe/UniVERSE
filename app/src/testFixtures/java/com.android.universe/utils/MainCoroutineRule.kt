@@ -1,4 +1,4 @@
-package com.android.universe
+package com.android.universe.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

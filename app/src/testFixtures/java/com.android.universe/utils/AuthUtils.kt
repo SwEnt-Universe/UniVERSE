@@ -66,6 +66,7 @@ object FakeJwtGenerator {
     val headerEncoded = base64UrlEncode(header.toString().toByteArray())
     val payloadEncoded = base64UrlEncode(payload.toString().toByteArray())
 
+    // Signature can be anything, emulator doesn't check it
     val signature = "sig"
 
     return "$headerEncoded.$payloadEncoded.$signature"

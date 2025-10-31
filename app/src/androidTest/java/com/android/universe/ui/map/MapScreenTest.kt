@@ -10,16 +10,16 @@ import androidx.test.rule.GrantPermissionRule
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.ui.navigation.Tab
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class MapScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  @get:Rule val permissionRule = GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
 
   private lateinit var fakeLocationRepository: FakeLocationRepository
 
@@ -41,5 +41,5 @@ class MapScreenTest {
 /** Wrapper to add test tags to MapScreen for Compose testing */
 @Composable
 fun MapScreenTestWrapper(viewModel: MapViewModel, onTabSelected: (Tab) -> Unit) {
-  Box { MapScreen(onTabSelected = onTabSelected) }
+  Box { MapScreen(viewModel = viewModel, onTabSelected = onTabSelected) }
 }
