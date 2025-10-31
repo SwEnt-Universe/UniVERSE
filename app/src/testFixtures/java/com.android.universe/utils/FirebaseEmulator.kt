@@ -20,7 +20,7 @@ object FirebaseEmulator {
   // 10.0.2.2 is for tests running on an Android Emulator
   private const val ANDROID_EMULATOR_HOST = "10.0.2.2"
 
-  private const val AUTH_PORT = 9099
+  const val AUTH_PORT = 9099
   private const val FIRESTORE_PORT = 8080
 
   val auth: FirebaseAuth
