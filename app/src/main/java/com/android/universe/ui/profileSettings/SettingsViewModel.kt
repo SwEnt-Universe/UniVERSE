@@ -161,28 +161,35 @@ class SettingsViewModel(
       var finalValue = value
       when (state.currentField) {
         "email" -> {
-          finalValue = value.take(InputLimits.EMAIL_MAX_LENGTH) // HARD LIMIT
+          // Truncate at LIMIT + 1 to match AddProfileViewModel behavior
+          finalValue = value.take(InputLimits.EMAIL_MAX_LENGTH + 1)
           validationResult = validateEmail(finalValue)
         }
         "password" -> {
-          // No hard limit for password, just validation
+          // No hard limit for password, just validation (soft limit)
           finalValue = value
           // You'll need to create validatePassword in ProfileValidators.kt
           // validationResult = validatePassword(finalValue)
         }
         "firstName" -> {
-          finalValue = value.take(InputLimits.FIRST_NAME) // HARD LIMIT
+          // Sanitize *then* truncate at LIMIT + 1
+          val cleaned = sanitize(value)
+          finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
           validationResult = validateFirstName(finalValue)
         }
         "lastName" -> {
-          finalValue = value.take(InputLimits.LAST_NAME) // HARD LIMIT
+          // Sanitize *then* truncate at LIMIT + 1
+          val cleaned = sanitize(value)
+          finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
           validationResult = validateLastName(finalValue)
         }
         "description" -> {
-          finalValue = value // SOFT LIMIT (no truncation)
+          // No truncation, (soft limit), matches AddProfileViewModel
+          finalValue = value
           validationResult = validateDescription(finalValue)
         }
         "country" -> {
+          // No truncation
           finalValue = value
           validationResult = validateCountry(finalValue, countryToIsoCode)
         }
@@ -226,22 +233,24 @@ class SettingsViewModel(
       yearResult: ValidationResult,
       logicalDateResult: ValidationResult
   ): Triple<ValidationResult, ValidationResult, ValidationResult> {
-    var finalDayError = dayResult
-    var finalMonthError = monthResult
-    var finalYearError = yearResult
+    val finalDayError =
+        if (logicalDateResult is ValidationResult.Invalid &&
+            logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
+          logicalDateResult
+        } else {
+          dayResult
+        }
 
-    if (logicalDateResult is ValidationResult.Invalid) {
-      when (logicalDateResult.errorMessage) {
-        ErrorMessages.DATE_INVALID_LOGICAL -> {
-          finalDayError = logicalDateResult
-          finalMonthError = logicalDateResult
-          finalYearError = logicalDateResult
+    val finalMonthError = monthResult
+
+    val finalYearError =
+        if (logicalDateResult is ValidationResult.Invalid &&
+            logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
+          logicalDateResult
+        } else {
+          yearResult
         }
-        else -> { // "too young" or "in future"
-          finalYearError = logicalDateResult
-        }
-      }
-    }
+
     return Triple(finalDayError, finalMonthError, finalYearError)
   }
 

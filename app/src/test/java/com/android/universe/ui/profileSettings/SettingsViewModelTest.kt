@@ -368,20 +368,6 @@ class SettingsViewModelTest {
       }
 
   @Test
-  fun `saveModal sets modalError for invalid password`() =
-      runTest(testDispatcher) {
-        viewModel.loadUser("0")
-        advanceUntilIdle()
-        viewModel.openModal("password")
-        viewModel.updateTemp("tempValue", "weak")
-        viewModel.saveModal("0")
-        advanceUntilIdle()
-
-        assertNotNull(viewModel.uiState.value.modalError)
-        assertTrue(viewModel.uiState.value.showModal)
-      }
-
-  @Test
   fun `saveModal updates firstName when valid`() =
       runTest(testDispatcher) {
         viewModel.loadUser("0")

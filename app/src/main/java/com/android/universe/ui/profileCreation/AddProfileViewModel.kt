@@ -149,7 +149,7 @@ open class AddProfileViewModel(
               username = sanitize(state.username),
               firstName = sanitize(state.firstName),
               lastName = sanitize(state.lastName),
-              description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
+              description = state.description?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = dateOfBirth,
               tags = emptySet())

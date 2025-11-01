@@ -791,6 +791,6 @@ class AddProfileViewModelTest {
     assertEquals(1995, user.dateOfBirth.year)
     assertEquals(5, user.dateOfBirth.monthValue)
     assertEquals(15, user.dateOfBirth.dayOfMonth)
-    assertEquals("asds ad", user.description)
+    assertEquals("  asds  ad  ", user.description)
   }
 }
