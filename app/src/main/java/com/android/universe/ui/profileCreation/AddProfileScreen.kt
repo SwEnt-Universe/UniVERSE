@@ -258,7 +258,14 @@ fun AddProfileScreen(
                       .fillMaxWidth()
                       .testTag(AddProfileScreenTestTags.SAVE_BUTTON),
               enabled =
-                  profileUIState.usernameError == null &&
+                  profileUIState.username.isNotBlank() &&
+                      profileUIState.firstName.isNotBlank() &&
+                      profileUIState.lastName.isNotBlank() &&
+                      profileUIState.country.isNotBlank() &&
+                      profileUIState.day.isNotBlank() &&
+                      profileUIState.month.isNotBlank() &&
+                      profileUIState.year.isNotBlank() &&
+                      profileUIState.usernameError == null &&
                       profileUIState.firstNameError == null &&
                       profileUIState.lastNameError == null &&
                       profileUIState.descriptionError == null &&
