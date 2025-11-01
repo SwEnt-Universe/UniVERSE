@@ -28,6 +28,7 @@ object ErrorMessages {
   const val USERNAME_EMPTY = "Username cannot be empty"
   const val USERNAME_TOO_LONG = "Username cannot be longer than %d characters"
   const val USERNAME_INVALID_FORMAT = "Only letters, numbers, . _ - are allowed"
+  const val USERNAME_TAKEN = "This username is already taken"
 
   // First Name
   const val FIRSTNAME_EMPTY = "First name cannot be empty"
