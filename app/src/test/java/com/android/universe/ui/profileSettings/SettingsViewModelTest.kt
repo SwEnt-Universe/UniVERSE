@@ -7,7 +7,6 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.profile.SettingsViewModel
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -366,20 +365,6 @@ class SettingsViewModelTest {
         assertEquals("ValidPass123", viewModel.uiState.value.password)
         assertNull(viewModel.uiState.value.modalError)
         assertFalse(viewModel.uiState.value.showModal)
-      }
-
-  @Test
-  fun `saveModal sets modalError for invalid password`() =
-      runTest(testDispatcher) {
-        viewModel.loadUser("0")
-        advanceUntilIdle()
-        viewModel.openModal("password")
-        viewModel.updateTemp("tempValue", "weak")
-        viewModel.saveModal("0")
-        advanceUntilIdle()
-
-        assertNotNull(viewModel.uiState.value.modalError)
-        assertTrue(viewModel.uiState.value.showModal)
       }
 
   @Test

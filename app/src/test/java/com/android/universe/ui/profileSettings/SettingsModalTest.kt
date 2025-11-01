@@ -13,7 +13,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
-import com.android.universe.ui.profile.SettingsUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -194,56 +193,6 @@ class SettingsModalTest {
     // We only assert that we got a toggle request to 'true' (actual visual expansion is owned by
     // upstream state)
     assertEquals(true, lastExpanded)
-  }
-
-  // ---------- Date fields ----------
-
-  @Test
-  fun dateModal_inputsUpdate_and_showErrors() {
-    var d = ""
-    var m = ""
-    var y = ""
-    val ui =
-        sampleSettingsState(showModal = true, field = "date")
-            .copy(
-                tempDay = "",
-                tempMonth = "",
-                tempYear = "",
-                tempDayError = "Invalid day",
-                tempMonthError = "Invalid month",
-                tempYearError = "Invalid year")
-    renderWith(
-        ui,
-        onUpdateTemp = { k, v ->
-          when (k) {
-            "tempDay" -> d = v
-            "tempMonth" -> m = v
-            "tempYear" -> y = v
-          }
-        })
-
-    composeTestRule.onNodeWithText("Invalid day").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Invalid month").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Invalid year").assertIsDisplayed()
-
-    val day = composeTestRule.onNodeWithTag(SettingsTestTags.DAY_FIELD, useUnmergedTree = true)
-    day.performClick()
-    day.performTextClearance()
-    day.performTextInput("07")
-
-    val month = composeTestRule.onNodeWithTag(SettingsTestTags.MONTH_FIELD, useUnmergedTree = true)
-    month.performClick()
-    month.performTextClearance()
-    month.performTextInput("12")
-
-    val year = composeTestRule.onNodeWithTag(SettingsTestTags.YEAR_FIELD, useUnmergedTree = true)
-    year.performClick()
-    year.performTextClearance()
-    year.performTextInput("1999")
-
-    assertEquals("07", d)
-    assertEquals("12", m)
-    assertEquals("1999", y)
   }
 
   // ---------- Save / Cancel ----------

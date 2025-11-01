@@ -21,8 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
 import com.android.universe.ui.navigation.NavigationTestTags
-import com.android.universe.ui.profile.SettingsUiState
-import com.android.universe.ui.profile.SettingsViewModel
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 
