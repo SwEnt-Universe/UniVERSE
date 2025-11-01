@@ -18,6 +18,7 @@ import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.authentication.InvalidEmailException
 import com.android.universe.model.authentication.SIGN_IN_FAILED_EXCEPTION_MESSAGE
+import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.validateEmail
 import com.android.universe.ui.common.validatePassword
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -50,7 +51,10 @@ data class SignInUIState(
     val passwordErrorMsg: String? = null,
 ) {
   val signInEnabled: Boolean
-    get() = !isLoading && validateEmail(email) == null && validatePassword(password) == null
+    get() =
+        !isLoading &&
+            validateEmail(email) is ValidationResult.Valid &&
+            validatePassword(password) is ValidationResult.Valid
 }
 
 /**
@@ -204,7 +208,8 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
    */
   fun setEmail(email: String) {
     if (_uiState.value.isLoading) return
-    _uiState.update { it.copy(email = email, emailErrorMsg = validateEmail(email)) }
+    val validationResult = validateEmail(email)
+    _uiState.update { it.copy(email = email, emailErrorMsg = validationResult.toString()) }
   }
 
   /**
@@ -214,7 +219,8 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
    */
   fun setPassword(password: String) {
     if (_uiState.value.isLoading) return
-    _uiState.update { it.copy(password = password, passwordErrorMsg = validatePassword(password)) }
+    val validationResult = validatePassword(password)
+    _uiState.update { it.copy(password = password, passwordErrorMsg = validationResult.toString()) }
   }
 
   /**

@@ -1,14 +1,12 @@
 package com.android.universe.ui.profileCreation
 
-import android.app.Application
-import androidx.annotation.StringRes
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.universe.R
 import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.validateBirthDate
@@ -101,12 +99,11 @@ data class AddProfileUIState(
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 open class AddProfileViewModel(
-    application: Application,
     private val repository: UserRepository = UserRepositoryProvider.repository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
   private val _uiState = MutableStateFlow(AddProfileUIState())
@@ -114,18 +111,12 @@ open class AddProfileViewModel(
   /** Publicly exposed state of the Add Profile UI. */
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
-    private fun ValidationResult.toStringOrNull(): String? {
-        return when (this) {
-            is ValidationResult.Valid -> null
-            is ValidationResult.Invalid -> {
-                getApplication<Application>().getString(this.errorResId, *this.formatArgs.toTypedArray())
-            }
-        }
+  private fun ValidationResult.toStringOrNull(): String? {
+    return when (this) {
+      is ValidationResult.Valid -> null
+      is ValidationResult.Invalid -> this.errorMessage
     }
-
-    private fun getString(@StringRes resId: Int): String {
-        return getApplication<Application>().getString(resId)
-    }
+  }
 
   /** Clears the current error message from the UI state. */
   fun clearErrorMsg() {
@@ -185,68 +176,50 @@ open class AddProfileViewModel(
    * @return `true` if all inputs are valid, `false` otherwise.
    */
   private suspend fun validateAllInputs(): Boolean {
-      val state = _uiState.value
+    val state = _uiState.value
 
-      // Re-validate all fields on submit, in case any were empty/pristine
-      val usernameResult = validateUsername(state.username)
-      val firstNameResult = validateFirstName(state.firstName)
-      val lastNameResult = validateLastName(state.lastName)
-      val descriptionResult = validateDescription(state.description ?: "")
-      val countryResult = validateCountry(state.country, countryToIsoCode)
-      val dayResult = validateDay(state.day)
-      val monthResult = validateMonth(state.month)
-      val yearResult = validateYear(state.year)
+    // Re-validate all fields on submit
+    val usernameResult = validateUsername(state.username)
+    val firstNameResult = validateFirstName(state.firstName)
+    val lastNameResult = validateLastName(state.lastName)
+    val descriptionResult = validateDescription(state.description ?: "")
+    val countryResult = validateCountry(state.country, countryToIsoCode)
+    val dayResult = validateDay(state.day)
+    val monthResult = validateMonth(state.month)
+    val yearResult = validateYear(state.year)
 
-      var logicalDateResult: ValidationResult = ValidationResult.Valid
-      if (dayResult is ValidationResult.Valid &&
-          monthResult is ValidationResult.Valid &&
-          yearResult is ValidationResult.Valid) {
-          logicalDateResult =
-              validateBirthDate(state.day.toInt(), state.month.toInt(), state.year.toInt())
-      }
+    var logicalDateResult: ValidationResult = ValidationResult.Valid
+    if (dayResult is ValidationResult.Valid &&
+        monthResult is ValidationResult.Valid &&
+        yearResult is ValidationResult.Valid) {
+      logicalDateResult =
+          validateBirthDate(state.day.toInt(), state.month.toInt(), state.year.toInt())
+    }
 
-      // Assign logical date error based on logic from _validateAndSetDate
-      val (finalDayError, finalMonthError, finalYearError) =
-          deriveDateErrors(dayResult, monthResult, yearResult, logicalDateResult)
+    val (finalDayError, finalMonthError, finalYearError) =
+        deriveDateErrors(dayResult, monthResult, yearResult, logicalDateResult)
 
-      _uiState.update {
-          it.copy(
-              usernameError = usernameResult.toStringOrNull(),
-              firstNameError = firstNameResult.toStringOrNull(),
-              lastNameError = lastNameResult.toStringOrNull(),
-              descriptionError = descriptionResult.toStringOrNull(),
-              countryError = countryResult.toStringOrNull(),
-              dayError = finalDayError.toStringOrNull(),
-              monthError = finalMonthError.toStringOrNull(),
-              yearError = finalYearError.toStringOrNull())
-      }
+    _uiState.update {
+      it.copy(
+          usernameError = usernameResult.toStringOrNull(),
+          firstNameError = firstNameResult.toStringOrNull(),
+          lastNameError = lastNameResult.toStringOrNull(),
+          descriptionError = descriptionResult.toStringOrNull(),
+          countryError = countryResult.toStringOrNull(),
+          dayError = finalDayError.toStringOrNull(),
+          monthError = finalMonthError.toStringOrNull(),
+          yearError = finalYearError.toStringOrNull())
+    }
 
-      val isSyncValid =
-          usernameResult is ValidationResult.Valid &&
-                  firstNameResult is ValidationResult.Valid &&
-                  lastNameResult is ValidationResult.Valid &&
-                  descriptionResult is ValidationResult.Valid &&
-                  countryResult is ValidationResult.Valid &&
-                  finalDayError is ValidationResult.Valid &&
-                  finalMonthError is ValidationResult.Valid &&
-                  finalYearError is ValidationResult.Valid
-
-      if (!isSyncValid) {
-          return false
-      }
-
-      // All sync checks passed, now run the async username check
-      val isUnique =
-          withContext(repositoryDispatcher) { repository.isUsernameUnique(state.username) }
-      if (!isUnique) {
-          // Note: You'll need to add error_username_taken to your strings.xml
-          val takenError = ValidationResult.Invalid(R.string.error_username_taken)
-          _uiState.update { it.copy(usernameError = takenError.toStringOrNull()) }
-          setErrorMsg(getString(R.string.error_username_taken)) // Example
-          return false
-      }
-
-      return true
+    // Return true if all results are valid
+    return usernameResult is ValidationResult.Valid &&
+        firstNameResult is ValidationResult.Valid &&
+        lastNameResult is ValidationResult.Valid &&
+        descriptionResult is ValidationResult.Valid &&
+        countryResult is ValidationResult.Valid &&
+        finalDayError is ValidationResult.Valid &&
+        finalMonthError is ValidationResult.Valid &&
+        finalYearError is ValidationResult.Valid
   }
 
   /**
@@ -254,11 +227,11 @@ open class AddProfileViewModel(
    * more than the specified limit to allow an error popup to be displayed
    */
   fun setUsername(username: String) {
-      val finalUsername = username.take(InputLimits.USERNAME)
-      val validationResult = validateUsername(finalUsername)
-      _uiState.update {
-          it.copy(username = finalUsername, usernameError = validationResult.toStringOrNull())
-      }
+    val finalUsername = username.take(InputLimits.USERNAME)
+    val validationResult = validateUsername(finalUsername)
+    _uiState.update {
+      it.copy(username = finalUsername, usernameError = validationResult.toStringOrNull())
+    }
   }
 
   /**
@@ -266,12 +239,12 @@ open class AddProfileViewModel(
    * more than the specified limit to allow an error popup to be displayed and removes double spaces
    */
   fun setFirstName(firstName: String) {
-      val cleaned = firstName.replace(Regex("\\s+"), " ")
-      val finalName = cleaned.take(InputLimits.FIRST_NAME)
-      val validationResult = validateFirstName(finalName)
-      _uiState.update {
-          it.copy(firstName = finalName, firstNameError = validationResult.toStringOrNull())
-      }
+    val cleaned = firstName.replace(Regex("\\s+"), " ")
+    val finalName = cleaned.take(InputLimits.FIRST_NAME)
+    val validationResult = validateFirstName(finalName)
+    _uiState.update {
+      it.copy(firstName = finalName, firstNameError = validationResult.toStringOrNull())
+    }
   }
 
   /**
@@ -279,12 +252,12 @@ open class AddProfileViewModel(
    * more than the specified limit to allow an error popup to be displayed and removes double spaces
    */
   fun setLastName(lastName: String) {
-      val cleaned = lastName.replace(Regex("\\s+"), " ")
-      val finalName = cleaned.take(InputLimits.LAST_NAME)
-      val validationResult = validateLastName(finalName)
-      _uiState.update {
-          it.copy(lastName = finalName, lastNameError = validationResult.toStringOrNull())
-      }
+    val cleaned = lastName.replace(Regex("\\s+"), " ")
+    val finalName = cleaned.take(InputLimits.LAST_NAME)
+    val validationResult = validateLastName(finalName)
+    _uiState.update {
+      it.copy(lastName = finalName, lastNameError = validationResult.toStringOrNull())
+    }
   }
 
   /**
@@ -293,17 +266,17 @@ open class AddProfileViewModel(
    * spaces
    */
   fun setDescription(description: String) {
-      val cleaned = description.replace(Regex("\\s+"), " ")
-      val validationResult = validateDescription(cleaned)
-      _uiState.update {
-          it.copy(description = cleaned, descriptionError = validationResult.toStringOrNull())
-      }
+    val cleaned = description.replace(Regex("\\s+"), " ")
+    val validationResult = validateDescription(cleaned)
+    _uiState.update {
+      it.copy(description = cleaned, descriptionError = validationResult.toStringOrNull())
+    }
   }
 
   /** Updates the country field. */
   fun setCountry(country: String) {
-      val validationResult = validateCountry(country, countryToIsoCode)
-      _uiState.update { it.copy(country = country, countryError = validationResult.toStringOrNull()) }
+    val validationResult = validateCountry(country, countryToIsoCode)
+    _uiState.update { it.copy(country = country, countryError = validationResult.toStringOrNull()) }
   }
 
   /**
@@ -311,16 +284,16 @@ open class AddProfileViewModel(
    * checks (e.g. Feb 30) and age constraints.
    */
   fun setDay(day: String) {
-      val finalDay = day.filter { it.isDigit() }.take(InputLimits.DAY)
-      val dayResult = validateDay(finalDay)
-      _validateAndSetDate(
-          day = finalDay,
-          dayResult = dayResult,
-          month = _uiState.value.month,
-          monthResult = validateMonth(_uiState.value.month), // Re-validate
-          year = _uiState.value.year,
-          yearResult = validateYear(_uiState.value.year) // Re-validate
-      )
+    val finalDay = day.filter { it.isDigit() }.take(InputLimits.DAY)
+    val dayResult = validateDay(finalDay)
+    _validateAndSetDate(
+        day = finalDay,
+        dayResult = dayResult,
+        month = _uiState.value.month,
+        monthResult = validateMonth(_uiState.value.month), // Re-validate
+        year = _uiState.value.year,
+        yearResult = validateYear(_uiState.value.year) // Re-validate
+        )
   }
 
   /**
@@ -328,16 +301,16 @@ open class AddProfileViewModel(
    * checks (e.g. Feb 30) and age constraints.
    */
   fun setMonth(month: String) {
-      val finalMonth = month.filter { it.isDigit() }.take(InputLimits.MONTH)
-      val monthResult = validateMonth(finalMonth)
-      _validateAndSetDate(
-          day = _uiState.value.day,
-          dayResult = validateDay(_uiState.value.day), // Re-validate
-          month = finalMonth,
-          monthResult = monthResult,
-          year = _uiState.value.year,
-          yearResult = validateYear(_uiState.value.year) // Re-validate
-      )
+    val finalMonth = month.filter { it.isDigit() }.take(InputLimits.MONTH)
+    val monthResult = validateMonth(finalMonth)
+    _validateAndSetDate(
+        day = _uiState.value.day,
+        dayResult = validateDay(_uiState.value.day), // Re-validate
+        month = finalMonth,
+        monthResult = monthResult,
+        year = _uiState.value.year,
+        yearResult = validateYear(_uiState.value.year) // Re-validate
+        )
   }
 
   /**
@@ -345,75 +318,71 @@ open class AddProfileViewModel(
    * checks (e.g. Feb 30) and age constraints.
    */
   fun setYear(year: String) {
-      val finalYear = year.filter { it.isDigit() }.take(InputLimits.YEAR)
-      val yearResult = validateYear(finalYear)
-      _validateAndSetDate(
-          day = _uiState.value.day,
-          dayResult = validateDay(_uiState.value.day), // Re-validate
-          month = _uiState.value.month,
-          monthResult = validateMonth(_uiState.value.month), // Re-validate
-          year = finalYear,
-          yearResult = yearResult
-      )
+    val finalYear = year.filter { it.isDigit() }.take(InputLimits.YEAR)
+    val yearResult = validateYear(finalYear)
+    _validateAndSetDate(
+        day = _uiState.value.day,
+        dayResult = validateDay(_uiState.value.day), // Re-validate
+        month = _uiState.value.month,
+        monthResult = validateMonth(_uiState.value.month), // Re-validate
+        year = finalYear,
+        yearResult = yearResult)
   }
 
-    private fun _validateAndSetDate(
-        day: String,
-        dayResult: ValidationResult,
-        month: String,
-        monthResult: ValidationResult,
-        year: String,
-        yearResult: ValidationResult
-    ) {
-        var logicalDateResult: ValidationResult = ValidationResult.Valid
-        // Only check logical date if all fields are individually valid
-        if (dayResult is ValidationResult.Valid &&
-            monthResult is ValidationResult.Valid &&
-            yearResult is ValidationResult.Valid) {
-            logicalDateResult =
-                validateBirthDate(day.toInt(), month.toInt(), year.toInt())
-        }
-
-        val (finalDayError, finalMonthError, finalYearError) =
-            deriveDateErrors(dayResult, monthResult, yearResult, logicalDateResult)
-
-        _uiState.update {
-            it.copy(
-                day = day,
-                dayError = finalDayError.toStringOrNull(),
-                month = month,
-                monthError = finalMonthError.toStringOrNull(),
-                year = year,
-                yearError = finalYearError.toStringOrNull()
-            )
-        }
+  private fun _validateAndSetDate(
+      day: String,
+      dayResult: ValidationResult,
+      month: String,
+      monthResult: ValidationResult,
+      year: String,
+      yearResult: ValidationResult
+  ) {
+    var logicalDateResult: ValidationResult = ValidationResult.Valid
+    // Only check logical date if all fields are individually valid
+    if (dayResult is ValidationResult.Valid &&
+        monthResult is ValidationResult.Valid &&
+        yearResult is ValidationResult.Valid) {
+      logicalDateResult = validateBirthDate(day.toInt(), month.toInt(), year.toInt())
     }
 
-    private fun deriveDateErrors(
-        dayResult: ValidationResult,
-        monthResult: ValidationResult,
-        yearResult: ValidationResult,
-        logicalDateResult: ValidationResult
-    ): Triple<ValidationResult, ValidationResult, ValidationResult> {
-        var finalDayError = dayResult
-        var finalMonthError = monthResult
-        var finalYearError = yearResult
+    val (finalDayError, finalMonthError, finalYearError) =
+        deriveDateErrors(dayResult, monthResult, yearResult, logicalDateResult)
 
-        if (logicalDateResult is ValidationResult.Invalid) {
-            when (logicalDateResult.errorResId) {
-                R.string.error_date_invalid_logical -> {
-                    finalDayError = logicalDateResult
-                    finalMonthError = logicalDateResult
-                    finalYearError = logicalDateResult
-                }
-                R.string.error_date_too_young,
-                R.string.error_date_in_future -> {
-                    finalYearError = logicalDateResult
-                }
-            }
-        }
-        return Triple(finalDayError, finalMonthError, finalYearError)
+    _uiState.update {
+      it.copy(
+          day = day,
+          dayError = finalDayError.toStringOrNull(),
+          month = month,
+          monthError = finalMonthError.toStringOrNull(),
+          year = year,
+          yearError = finalYearError.toStringOrNull())
     }
+  }
+
+  private fun deriveDateErrors(
+      dayResult: ValidationResult,
+      monthResult: ValidationResult,
+      yearResult: ValidationResult,
+      logicalDateResult: ValidationResult
+  ): Triple<ValidationResult, ValidationResult, ValidationResult> {
+    var finalDayError = dayResult
+    var finalMonthError = monthResult
+    var finalYearError = yearResult
+
+    if (logicalDateResult is ValidationResult.Invalid) {
+      when (logicalDateResult.errorMessage) {
+        ErrorMessages.DATE_INVALID_LOGICAL -> {
+          finalDayError = logicalDateResult
+          finalMonthError = logicalDateResult
+          finalYearError = logicalDateResult
+        }
+        else -> {
+          finalYearError = logicalDateResult
+        }
+      }
+    }
+    return Triple(finalDayError, finalMonthError, finalYearError)
+  }
 
   /**
    * Updates the current error message in the UI state.
@@ -424,5 +393,5 @@ open class AddProfileViewModel(
     _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
   }
 
-    private fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
+  private fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
 }

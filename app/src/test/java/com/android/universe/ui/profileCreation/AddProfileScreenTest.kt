@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirestoreUserTest
 import junit.framework.TestCase.assertTrue

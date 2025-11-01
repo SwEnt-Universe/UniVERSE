@@ -1,6 +1,5 @@
 package com.android.universe.ui.profileCreation
 
-import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -483,11 +482,7 @@ private fun DateOfBirthFields(uiState: AddProfileUIState, viewModel: AddProfileV
 private fun AddProfileScreenPreview() {
   UniverseTheme {
     // A no-op fake ViewModel substitute
-      val context = LocalContext.current
-      // 2. Get the application context from it
-      val dummyApplication = context.applicationContext as Application
-
-    val dummyViewModel = object : AddProfileViewModel(dummyApplication) {}
+    val dummyViewModel = object : AddProfileViewModel() {}
 
     // Just render the UI (no real logic, safe for preview)
     AddProfileScreen(
