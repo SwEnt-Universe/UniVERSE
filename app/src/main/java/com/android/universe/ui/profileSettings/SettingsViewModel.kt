@@ -11,6 +11,7 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.sanitize
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -452,6 +453,4 @@ class SettingsViewModel(
       }
     }
   }
-
-  private fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
 }

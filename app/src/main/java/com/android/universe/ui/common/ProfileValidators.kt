@@ -200,3 +200,5 @@ fun validateBirthDate(day: Int, month: Int, year: Int): ValidationResult {
     return ValidationResult.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
   }
 }
+
+fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
