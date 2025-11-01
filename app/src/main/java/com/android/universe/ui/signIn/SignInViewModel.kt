@@ -209,7 +209,14 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
   fun setEmail(email: String) {
     if (_uiState.value.isLoading) return
     val validationResult = validateEmail(email)
-    _uiState.update { it.copy(email = email, emailErrorMsg = validationResult.toString()) }
+
+    val errorMsg =
+        when (validationResult) {
+          is ValidationResult.Valid -> null
+          is ValidationResult.Invalid -> validationResult.errorMessage
+        }
+
+    _uiState.update { it.copy(email = email, emailErrorMsg = errorMsg) }
   }
 
   /**
@@ -220,7 +227,14 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
   fun setPassword(password: String) {
     if (_uiState.value.isLoading) return
     val validationResult = validatePassword(password)
-    _uiState.update { it.copy(password = password, passwordErrorMsg = validationResult.toString()) }
+
+    val errorMsg =
+        when (validationResult) {
+          is ValidationResult.Valid -> null
+          is ValidationResult.Invalid -> validationResult.errorMessage
+        }
+
+    _uiState.update { it.copy(password = password, passwordErrorMsg = errorMsg) }
   }
 
   /**

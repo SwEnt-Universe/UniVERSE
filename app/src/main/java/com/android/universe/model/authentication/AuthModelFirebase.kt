@@ -6,7 +6,8 @@ package com.android.universe.model.authentication
  */
 import android.util.Log
 import androidx.credentials.Credential
-import com.android.universe.ui.common.InputLimits.EMAIL_MAX_LENGTH
+import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.validateEmail
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -85,15 +86,6 @@ class AuthModelFirebase(
     }
   }
 
-  private fun validateEmailForAuth(email: String): String? {
-    return when {
-      email.isBlank() -> "Email cannot be empty"
-      email.length > EMAIL_MAX_LENGTH -> "Email is too long (max $EMAIL_MAX_LENGTH)"
-      !emailRegex.matches(email) -> "Not a valid @epfl.ch email address"
-      else -> null
-    }
-  }
-
   /**
    * Signs in a user with an email and password.
    *
@@ -112,7 +104,9 @@ class AuthModelFirebase(
    */
   override suspend fun signInWithEmail(email: String, password: String): Result<FirebaseUser> =
       runCatching {
-        validateEmailForAuth(email)?.let { throw InvalidEmailException(it) }
+        (validateEmail(email) as? ValidationResult.Invalid)?.let {
+          throw InvalidEmailException(it.errorMessage)
+        }
         val authResult =
             try {
               auth.createUserWithEmailAndPassword(email, password).await()
