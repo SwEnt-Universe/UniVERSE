@@ -11,6 +11,9 @@ object InputLimits {
     const val FIRST_NAME = 25
     const val LAST_NAME = 25
     const val DESCRIPTION = 100
+    const val DAY = 2
+    const val MONTH = 2
+    const val YEAR = 4
     const val MIN_AGE = 13
     const val MIN_BIRTH_YEAR = 1900
     const val EMAIL_MAX_LENGTH = 254

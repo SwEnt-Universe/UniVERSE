@@ -16,6 +16,7 @@
     <string name="error_username_empty">Username cannot be empty</string>
     <string name="error_username_invalid_format">Only letters, numbers, . _ - are allowed</string>
     <string name="error_username_too_long">Username cannot be longer than %1$d characters</string>
+    <string name="error_username_taken">This username is already taken</string>
 
     <!-- First Name -->
     <string name="error_firstname_empty">First name cannot be empty</string>

@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
 import com.android.universe.ui.common.TagGroup
-import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.selectTag.TagColors
 
 /**

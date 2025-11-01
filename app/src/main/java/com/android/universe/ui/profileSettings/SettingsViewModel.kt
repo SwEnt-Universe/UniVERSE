@@ -1,4 +1,4 @@
-package com.android.universe.ui.profile
+package com.android.universe.ui.profileSettings
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -8,14 +8,8 @@ import com.android.universe.model.Tag
 import com.android.universe.model.isoToCountryName
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.common.sanitize
-import com.android.universe.ui.common.validateAll
-import com.android.universe.ui.common.validateDateTriple
 import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateEmail
-import com.android.universe.ui.common.validateName
-import com.android.universe.ui.common.validateNonEmpty
-import com.android.universe.ui.common.validatePassword
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
