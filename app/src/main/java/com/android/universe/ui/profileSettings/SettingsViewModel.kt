@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.Tag
+import com.android.universe.model.authentication.AuthModel
+import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.isoToCountryName
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
@@ -62,7 +64,8 @@ data class SettingsUiState(
     val showModal: Boolean = false,
     val currentField: String = "",
     val showCountryDropdown: Boolean = false,
-    val errorMsg: String? = null
+    val errorMsg: String? = null,
+    val isLoading: Boolean = false
 )
 
 /**
@@ -73,9 +76,11 @@ data class SettingsUiState(
  * - Managing UI state through [SettingsUiState].
  * - Validating and sanitizing user input.
  * - Persisting updates to Firebase Authentication and the local repository.
+ * - Logging out the user through [signOut] from [AuthModelFirebase].
  */
 class SettingsViewModel(
-    private val userRepository: UserRepositoryProvider = UserRepositoryProvider
+    private val userRepository: UserRepositoryProvider = UserRepositoryProvider,
+    private val authModel: AuthModel = AuthModelFirebase()
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(SettingsUiState())
   val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -400,6 +405,27 @@ class SettingsViewModel(
       } catch (e: Exception) {
         _uiState.value = _uiState.value.copy(errorMsg = "Failed to save profile: ${e.message}")
       }
+    }
+  }
+
+  /**
+   * Signs out the user, clears the credential state and navigates to the login screen.
+   *
+   * @param clear the credential state
+   * @param navigate to the login screen
+   */
+  fun signOut(clear: suspend () -> Unit, navigate: () -> Unit) {
+    _uiState.value = _uiState.value.copy(isLoading = true)
+    viewModelScope.launch {
+      authModel.signOut(
+          onSuccess = {},
+          onFailure = { e ->
+            Log.e("SettingsViewModel", "Failed to sign out: ${e.message}")
+            _uiState.value = _uiState.value.copy(isLoading = false)
+            return@signOut
+          })
+      clear()
+      navigate()
     }
   }
 }
