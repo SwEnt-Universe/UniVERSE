@@ -19,7 +19,6 @@ import com.android.universe.ui.common.validateName
 import com.android.universe.ui.common.validateNonEmpty
 import com.android.universe.ui.common.validatePassword
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.delay
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -409,20 +408,25 @@ class SettingsViewModel(
     }
   }
 
-    /**
-     * Signs out the user, clears the credential state and navigates to the login screen.
-     * @param clear the credential state
-     * @param navigate to the login screen
-     */
-    fun signOut( clear: suspend () -> Unit, navigate: () -> Unit) {
-        _uiState.value = _uiState.value.copy(isLoading = true)
-        viewModelScope.launch {
-            authModel.signOut(onSuccess = {}, onFailure = { e -> {
-                _uiState.value = _uiState.value.copy(isLoading = false)
-                return@signOut
-            } })
-            clear()
-            navigate()
-        }
+  /**
+   * Signs out the user, clears the credential state and navigates to the login screen.
+   *
+   * @param clear the credential state
+   * @param navigate to the login screen
+   */
+  fun signOut(clear: suspend () -> Unit, navigate: () -> Unit) {
+    _uiState.value = _uiState.value.copy(isLoading = true)
+    viewModelScope.launch {
+      authModel.signOut(
+          onSuccess = {},
+          onFailure = { e ->
+            {
+              _uiState.value = _uiState.value.copy(isLoading = false)
+              return@signOut
+            }
+          })
+      clear()
+      navigate()
     }
+  }
 }

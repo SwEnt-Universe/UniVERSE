@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,8 +80,7 @@ private fun EditableField(
 ) {
   Row(
       modifier =
-          Modifier
-              .fillMaxWidth()
+          Modifier.fillMaxWidth()
               .clickable { onClick() }
               .testTag(testTag)
               .padding(vertical = SettingsScreenPaddings.InternalSpacing),
@@ -159,9 +157,7 @@ fun SettingsScreen(
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
       onSaveModal = { viewModel.saveModal(uid) },
-      onLogout = {
-          viewModel.signOut(clear, onLogout)
-      })
+      onLogout = { viewModel.signOut(clear, onLogout) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -187,72 +183,59 @@ fun SettingsScreenContent(
         onLogout()
       },
       onDismiss = { showDialog.value = false })
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Settings")
-                            LogoutButton(onClick = { showDialog.value = true })
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                        }
-                    },
-                    modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN)
-                )
-            }) { padding ->
-            LazyColumn(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(top = Dimensions.PaddingLarge)
-                        .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)
-            ) {
-                item { GeneralSection(uiState = uiState, open = onOpenField) }
-                item { ProfileSection(uiState = uiState, open = onOpenField) }
-                item { InterestsSection(uiState = uiState, open = onOpenField) }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = {
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Text("Settings")
+                    LogoutButton(onClick = { showDialog.value = true })
+                  }
+            },
+            navigationIcon = {
+              IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+              }
+            },
+            modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
+      }) { padding ->
+        LazyColumn(
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .padding(top = Dimensions.PaddingLarge)
+                    .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)) {
+              item { GeneralSection(uiState = uiState, open = onOpenField) }
+              item { ProfileSection(uiState = uiState, open = onOpenField) }
+              item { InterestsSection(uiState = uiState, open = onOpenField) }
             }
+      }
+
+  if (uiState.showModal) {
+    ModalBottomSheet(
+        onDismissRequest = onCloseModal, sheetState = rememberModalBottomSheetState()) {
+          ModalContent(
+              uiState = uiState,
+              onUpdateTemp = onUpdateTemp,
+              onToggleCountryDropdown = onToggleCountryDropdown,
+              onAddTag = onAddTag,
+              onRemoveTag = onRemoveTag,
+              onClose = onCloseModal,
+              onSave = onSaveModal)
         }
+  }
 
-        if (uiState.showModal) {
-            ModalBottomSheet(
-                onDismissRequest = onCloseModal, sheetState = rememberModalBottomSheetState()
-            ) {
-                ModalContent(
-                    uiState = uiState,
-                    onUpdateTemp = onUpdateTemp,
-                    onToggleCountryDropdown = onToggleCountryDropdown,
-                    onAddTag = onAddTag,
-                    onRemoveTag = onRemoveTag,
-                    onClose = onCloseModal,
-                    onSave = onSaveModal
-                )
-            }
+  // This is the loading icon which will appear during the signing out
+  if (uiState.isLoading) {
+    Box(
+        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center) {
+          CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
-
-    //This is the loading icon which will appear during the signing out
-    if (uiState.isLoading) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-
-
+  }
 }
 
 /* =========================================================
