@@ -32,36 +32,25 @@ import kotlinx.coroutines.withContext
 /**
  * Represents the UI state for the Add Profile screen.
  *
- * This data class centralizes all user-input fields and error states. It is observed by the UI via
- * a [StateFlow] in [AddProfileViewModel].
+ * This data class centralizes all user-input fields and their corresponding validation error states.
+ * It is exposed to the UI via a [StateFlow] in [AddProfileViewModel].
  *
  * @property username The username entered by the user.
  * @property firstName The user's first name.
  * @property lastName The user's last name.
  * @property description Optional description or bio text.
- * @property country The user's country.
+ * @property country The user's selected country.
  * @property day The day of birth as a string.
  * @property month The month of a birth as a string.
  * @property year The year of birth as a string.
- * @property usernameError Optional error message for the username field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
- * @property firstNameError Optional error message for the first name field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
- * @property lastNameError Optional error message for the last name field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
+ * @property usernameError Optional error message for the username field.
+ * @property firstNameError Optional error message for the first name field.
+ * @property lastNameError Optional error message for the last name field.
  * @property descriptionError Optional error message for the description field.
- * @property yearError Optional error message for the year field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
- * @property monthError Optional error message for the month field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
- * @property dayError Optional error message for the day field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
+ * @property countryError Optional error message for the country field.
+ * @property yearError Optional error message for the year field.
+ * @property monthError Optional error message for the month field.
+ * @property dayError Optional error message for the day field.
  */
 data class AddProfileUIState(
     val username: String = "",
@@ -110,6 +99,10 @@ open class AddProfileViewModel(
   /** Publicly exposed state of the Add Profile UI. */
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
+    /**
+     * Converts a [ValidationResult] to a nullable String.
+     * @return The error message if the result is [ValidationResult.Invalid], otherwise null.
+     */
   private fun ValidationResult.toStringOrNull(): String? {
     return when (this) {
       is ValidationResult.Valid -> null
@@ -117,22 +110,19 @@ open class AddProfileViewModel(
     }
   }
 
-  /**
-   * Attempts to create and add a new user profile.
-   *
-   * This method performs a series of validations:
-   * - Ensures all required fields are filled.
-   * - Validates date components (day, month, year).
-   * - Checks for a unique username.
-   * - Checks invalid input formats in the name fields.
-   * - Enforces a maximum length for each field.
-   * - Removes any leading or trailing spaces from the input before adding the profile.
-   *
-   * If any check fails, errorMsg is updated with a user-friendly message. Otherwise, a
-   * [UserProfile] is constructed and persisted via [repository]
-   *
-   * @param uid The user's unique identifier.
-   */
+    /**
+     * Validates all inputs and attempts to create and save a new user profile.
+     *
+     * This method first triggers a comprehensive validation of all fields by calling [validateAllInputs].
+     * If validation succeeds, it constructs a [UserProfile] object from the current UI state,
+     * sanitizing text fields and converting the country name to its ISO code. The new profile is then
+     * saved to the repository.
+     *
+     * On successful creation, it invokes the [onSuccess] callback.
+     *
+     * @param uid The unique identifier for the user.
+     * @param onSuccess A callback function to be executed on the main thread after the profile is successfully created.
+     */
   fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
     viewModelScope.launch(dispatcher) {
       if (!validateAllInputs()) {
@@ -164,11 +154,12 @@ open class AddProfileViewModel(
     }
   }
 
-  /**
-   * Validates all user inputs from the UI state. Sets errorMsg on the first failure.
-   *
-   * @return `true` if all inputs are valid, `false` otherwise.
-   */
+    /**
+     * Validates all user inputs from the UI state and updates the [uiState] with any error messages.
+     * This includes checking for unique username, correct formats, and valid dates.
+     *
+     * @return `true` if all inputs are valid, `false` otherwise.
+     */
   private suspend fun validateAllInputs(): Boolean {
     val state = _uiState.value
 
@@ -242,10 +233,12 @@ open class AddProfileViewModel(
         finalYearError is ValidationResult.Valid
   }
 
-  /**
-   * Updates the username field and its associated error state if any. Also truncates the input to
-   * more than the specified limit to allow an error popup to be displayed
-   */
+    /**
+     * Updates the username in the UI state and validates it.
+     * Input is truncated to slightly above the allowed limit to ensure the length error is shown.
+     *
+     * @param username The new username string from the UI.
+     */
   fun setUsername(username: String) {
     val finalUsername = username.take(InputLimits.USERNAME + 1)
     val validationResult = validateUsername(finalUsername)
@@ -254,10 +247,13 @@ open class AddProfileViewModel(
     }
   }
 
-  /**
-   * Updates the first name field and its associated error state if any. Also truncates the input to
-   * more than the specified limit to allow an error popup to be displayed and removes double spaces
-   */
+
+    /**
+     * Updates the first name in the UI state and validates it.
+     * Input is sanitized, then truncated to slightly above the allowed limit to ensure the length error is shown.
+     *
+     * @param firstName The new first name string from the UI.
+     */
   fun setFirstName(firstName: String) {
     val cleaned = sanitize(firstName)
     val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
@@ -267,10 +263,12 @@ open class AddProfileViewModel(
     }
   }
 
-  /**
-   * Updates the last name field and its associated error state if any. Also truncates the input to
-   * more than the specified limit to allow an error popup to be displayed and removes double spaces
-   */
+    /**
+     * Updates the last name in the UI state and validates it.
+     * Input is sanitized, then truncated to slightly above the allowed limit to ensure the length error is shown.
+     *
+     * @param lastName The new last name string from the UI.
+     */
   fun setLastName(lastName: String) {
     val cleaned = sanitize(lastName)
     val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
@@ -280,11 +278,11 @@ open class AddProfileViewModel(
     }
   }
 
-  /**
-   * Updates the description field and its associated error state if any. Also truncates the input
-   * to more than the specified limit to allow an error popup to be displayed and removes double
-   * spaces
-   */
+    /**
+     * Updates the description in the UI state and validates its length.
+     *
+     * @param description The new description string from the UI.
+     */
   fun setDescription(description: String) {
     val validationResult = validateDescription(description)
     _uiState.update {
@@ -292,26 +290,34 @@ open class AddProfileViewModel(
     }
   }
 
-  /** Updates the country field. */
+    /**
+     * Updates the selected country in the UI state and validates it.
+     *
+     * @param country The new country string from the UI.
+     */
   fun setCountry(country: String) {
     val validationResult = validateCountry(country, countryToIsoCode)
     _uiState.update { it.copy(country = country, countryError = validationResult.toStringOrNull()) }
   }
 
-  /**
-   * Updates the day field and re-validates the entire date (day, month, year) including logical
-   * checks (e.g. Feb 30) and age constraints.
-   */
+    /**
+     * Updates the day of birth in the UI state and validates it.
+     * Input is filtered to only allow digits and truncated to the maximum character length.
+     *
+     * @param day The day of birth as a string from the UI.
+     */
   fun setDay(day: String) {
     val finalDay = day.filter { it.isDigit() }.take(InputLimits.DAY)
     val dayResult = validateDay(finalDay)
     _uiState.update { it.copy(day = finalDay, dayError = dayResult.toStringOrNull()) }
   }
 
-  /**
-   * Updates the month field and re-validates the entire date (day, month, year) including logical
-   * checks (e.g. Feb 30) and age constraints.
-   */
+    /**
+     * Updates the month of birth in the UI state and validates it.
+     * Input is filtered to only allow digits and truncated to the maximum character length.
+     *
+     * @param month The month of birth as a string from the UI.
+     */
   fun setMonth(month: String) {
     val finalMonth = month.filter { it.isDigit() }.take(InputLimits.MONTH)
     val monthResult = validateMonth(finalMonth)
@@ -329,10 +335,12 @@ open class AddProfileViewModel(
     }
   }
 
-  /**
-   * Updates the year field and re-validates the entire date (day, month, year) including logical
-   * checks (e.g. Feb 30) and age constraints.
-   */
+    /**
+     * Updates the year of birth in the UI state and validates it.
+     * Input is filtered to only allow digits and truncated to the maximum character length.
+     *
+     * @param year The year of birth as a string from the UI.
+     */
   fun setYear(year: String) {
     val finalYear = year.filter { it.isDigit() }.take(InputLimits.YEAR)
     val yearResult = validateYear(finalYear)
