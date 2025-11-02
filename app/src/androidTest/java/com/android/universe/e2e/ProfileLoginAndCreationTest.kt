@@ -119,7 +119,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     assertNotNull(createdUser)
     runTest {
       // This delay avoid race conditions for the tags. Not the best but work for now
-      delay(2_000L)
+      delay(5_000L)
       createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
     }
     assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile)
