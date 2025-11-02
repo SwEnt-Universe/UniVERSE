@@ -33,32 +33,6 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
     return emulator.firestore.collection(USERS_COLLECTION_PATH).get().await().size()
   }
 
-  /**
-   * Gets the number of users currently in the Firebase Auth emulator. Makes an HTTP GET request to
-   * the emulator REST API.
-   *
-   * @return Number of users in Auth emulator
-   */
-  fun getAuthUserCount(): Int {
-    val projectId = FirebaseApp.getInstance().options.projectId
-    val host = if (isRobolectric) "127.0.0.1" else "10.0.0.2"
-    val url =
-        URL("http://$host:${FirebaseEmulator.AUTH_PORT}/emulator/v1/projects/$projectId/accounts")
-    val conn = url.openConnection() as HttpURLConnection
-    return try {
-      conn.requestMethod = "GET"
-      conn.connectTimeout = 2000
-      conn.connect()
-      val response = conn.inputStream.bufferedReader().use { it.readText() }
-      if (response.contains("\"users\"")) response.split("\"localId\"").size - 1 else 0
-    } catch (e: Exception) {
-      Log.w("FirebaseAuthUserTest", "Failed to get auth user count: ${e.message}")
-      0
-    } finally {
-      conn.disconnect()
-    }
-  }
-
   /** Clears all user documents from Firestore users collection. */
   private suspend fun clearFirestoreUsers() {
     val users = emulator.firestore.collection(USERS_COLLECTION_PATH).get().await()
@@ -133,24 +107,8 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
     emulator.connect(isRobolectric)
 
     runTest {
-      val firestoreUserCount = getFirestoreUserCount()
-      val authUserCount = getAuthUserCount()
-
-      if (firestoreUserCount > 0) {
-        Log.w(
-            "FirebaseAuthUserTest",
-            "Warning: Firestore test collection not empty at start, count: $firestoreUserCount",
-        )
-        clearFirestoreUsers()
-      }
-
-      if (authUserCount > 0) {
-        Log.w(
-            "FirebaseAuthUserTest",
-            "Warning: Auth emulator has users at start, count: $authUserCount",
-        )
-        clearAuthUsers()
-      }
+      clearFirestoreUsers()
+      clearAuthUsers()
     }
   }
 
