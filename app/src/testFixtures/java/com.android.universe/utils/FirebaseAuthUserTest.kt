@@ -19,7 +19,7 @@ import org.junit.Before
  * Base class for tests that require both Firebase Auth and Firestore emulators. Combines
  * authentication and user profile management.
  */
-open class FirebaseAuthUserTest {
+open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
   protected val emulator = FirebaseEmulator
   protected val auth: FirebaseAuth
     get() = emulator.auth
@@ -41,7 +41,7 @@ open class FirebaseAuthUserTest {
    */
   fun getAuthUserCount(): Int {
     val projectId = FirebaseApp.getInstance().options.projectId
-    val host = FirebaseEmulator.currentHost
+    val host = if (isRobolectric) "127.0.0.1" else "10.0.0.2"
     val url =
         URL("http://$host:${FirebaseEmulator.AUTH_PORT}/emulator/v1/projects/$projectId/accounts")
     val conn = url.openConnection() as HttpURLConnection
@@ -77,7 +77,7 @@ open class FirebaseAuthUserTest {
   /** Clears all users from the Firebase Auth emulator. */
   private fun clearAuthUsers() {
     val projectId = FirebaseApp.getInstance().options.projectId
-    val host = FirebaseEmulator.currentHost
+    val host = if (isRobolectric) "127.0.0.1" else "10.0.0.2"
     val url =
         URL("http://$host:${FirebaseEmulator.AUTH_PORT}/emulator/v1/projects/$projectId/accounts")
     val conn = url.openConnection() as HttpURLConnection
@@ -129,11 +129,8 @@ open class FirebaseAuthUserTest {
 
   @Before
   open fun setUp() {
-    if (FirebaseApp.getApps(ApplicationProvider.getApplicationContext()).isEmpty()) {
-      FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
-    }
-
-    emulator.connect()
+    FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
+    emulator.connect(isRobolectric)
 
     runTest {
       val firestoreUserCount = getFirestoreUserCount()

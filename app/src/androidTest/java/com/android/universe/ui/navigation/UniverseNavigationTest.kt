@@ -4,48 +4,44 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
-import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.profile.UserProfileScreenTestTags
-import com.android.universe.utils.FirebaseEmulator
+import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@OptIn(ExperimentalCoroutinesApi::class)
-@RunWith(AndroidJUnit4::class)
-class UniverseAppNavigationTest {
-
-  val emulator = FirebaseEmulator
+class UniverseAppNavigationTest : FirestoreUserTest(false) {
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
+  private lateinit var repository: UserRepository
 
   // This is a placeholder setup for the test to correctly launch while the FirebaseEmulator is in
   // development
   @Before
-  fun setup() {
+  override fun setUp() {
+    super.setUp()
+    repository = createInitializedRepository()
     runTest {
       emulator.auth.signInAnonymously().await()
 
-      UserRepositoryProvider.repository.addUser(
-          UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
+      repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
     }
     composeTestRule.setContent { UniverseApp() }
+    composeTestRule.waitForIdle()
   }
 
   @After
-  fun tearDown() {
+  override fun tearDown() {
     runTest {
       emulator.auth.currentUser?.delete()
       emulator.auth.signOut()
