@@ -83,391 +83,392 @@ data class SettingsUiState(
 class SettingsViewModel(
     private val userRepository: UserRepositoryProvider = UserRepositoryProvider
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(SettingsUiState())
+  val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private fun ValidationResult.toStringOrNull(): String? {
-        return when (this) {
-            is ValidationResult.Valid -> null
-            // Assumes ValidationResult.Invalid now has: val errorMessage: String
-            is ValidationResult.Invalid -> this.errorMessage
-        }
+  private fun ValidationResult.toStringOrNull(): String? {
+    return when (this) {
+      is ValidationResult.Valid -> null
+      // Assumes ValidationResult.Invalid now has: val errorMessage: String
+      is ValidationResult.Invalid -> this.errorMessage
     }
+  }
 
-    init {
-        FirebaseAuth.getInstance().currentUser?.email?.let { email ->
-            _uiState.value = _uiState.value.copy(email = email)
-        }
+  init {
+    FirebaseAuth.getInstance().currentUser?.email?.let { email ->
+      _uiState.value = _uiState.value.copy(email = email)
     }
+  }
 
-    /**
-     * Loads the full [UserProfile] for the given [username] from the repository and populates the
-     * state fields accordingly.
-     *
-     * If loading fails, [SettingsUiState.errorMsg] is updated with an error message.
-     */
-    fun loadUser(uid: String) {
-        viewModelScope.launch {
-            try {
-                val userProfile = userRepository.repository.getUser(uid)
-                _uiState.value =
-                    _uiState.value.copy(
-                        username = userProfile.username,
-                        firstName = userProfile.firstName,
-                        lastName = userProfile.lastName,
-                        country = isoToCountryName[userProfile.country] ?: userProfile.country,
-                        description = userProfile.description ?: "",
-                        day = userProfile.dateOfBirth.dayOfMonth.toString(),
-                        month = userProfile.dateOfBirth.monthValue.toString(),
-                        year = userProfile.dateOfBirth.year.toString(),
-                        selectedTags = userProfile.tags.toList())
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(errorMsg = "Failed to load user: ${e.message}")
-            }
-        }
-    }
-
-    /** Clears any active global error message shown via toast or snackbar. */
-    fun clearErrorMsg() {
-        _uiState.value = _uiState.value.copy(errorMsg = null)
-    }
-
-    /**
-     * Updates a temporary modal field (e.g., `tempValue`, `tempDay`, etc.) based on the given [key].
-     *
-     * Also clears any existing validation errors for that temporary field.
-     */
-    fun updateTemp(key: String, value: String) {
-        val state = _uiState.value
-        var validationResult: ValidationResult = ValidationResult.Valid
-
-        // Handle date fields separately for complex validation
-        if (key == "tempDay" || key == "tempMonth" || key == "tempYear") {
-            val newDay =
-                if (key == "tempDay") value.filter { it.isDigit() }.take(InputLimits.DAY)
-                else state.tempDay
-            val newMonth =
-                if (key == "tempMonth") value.filter { it.isDigit() }.take(InputLimits.MONTH)
-                else state.tempMonth
-            val newYear =
-                if (key == "tempYear") value.filter { it.isDigit() }.take(InputLimits.YEAR)
-                else state.tempYear
-
-            _validateAndSetDate(newDay, newMonth, newYear)
-            return
-        }
-
-        // Handle single-value text fields
-        if (key == "tempValue") {
-            var finalValue = value
-            when (state.currentField) {
-                "email" -> {
-                    // Truncate at LIMIT + 1 to match AddProfileViewModel behavior
-                    finalValue = value.take(InputLimits.EMAIL_MAX_LENGTH + 1)
-                    validationResult = validateEmail(finalValue)
-                }
-                "password" -> {
-                    // No hard limit for password, just validation (soft limit)
-                    finalValue = value
-                    // You'll need to create validatePassword in ProfileValidators.kt
-                    // validationResult = validatePassword(finalValue)
-                }
-                "firstName" -> {
-                    // Sanitize *then* truncate at LIMIT + 1
-                    val cleaned = sanitize(value)
-                    finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
-                    validationResult = validateFirstName(finalValue)
-                }
-                "lastName" -> {
-                    // Sanitize *then* truncate at LIMIT + 1
-                    val cleaned = sanitize(value)
-                    finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
-                    validationResult = validateLastName(finalValue)
-                }
-                "description" -> {
-                    // No truncation, (soft limit), matches AddProfileViewModel
-                    finalValue = value
-                    validationResult = validateDescription(finalValue)
-                }
-                "country" -> {
-                    // No truncation
-                    finalValue = value
-                    validationResult = validateCountry(finalValue, countryToIsoCode)
-                }
-            }
-            _uiState.update {
-                it.copy(tempValue = finalValue, modalError = validationResult.toStringOrNull())
-            }
-        }
-    }
-
-    /**
-     * Validates temporary date components and updates the UI state with new values and errors.
-     *
-     * This function is called when any part of the date is modified in the settings modal. It performs
-     * three levels of validation:
-     * 1.  Individual validation of the day, month, and year fields (`validateDay`, `validateMonth`, `validateYear`).
-     * 2.  Logical validation of the complete date (e.g., checking for "April 31st") and age constraints
-     *     via `validateBirthDate`, but only if the individual fields are valid.
-     * 3.  Derives the final, most relevant error message for each field using `deriveDateErrors`.
-     *
-     * The results are then used to update the `tempDay`, `tempMonth`, `tempYear` and their corresponding
-     * error fields in the UI state.
-     *
-     * @param day The temporary day string to validate.
-     * @param month The temporary month string to validate.
-     * @param year The temporary year string to validate.
-     */
-    private fun _validateAndSetDate(day: String, month: String, year: String) {
-        val dayResult = validateDay(day)
-        val monthResult = validateMonth(month)
-        val yearResult = validateYear(year)
-
-        var logicalDateResult: ValidationResult = ValidationResult.Valid
-        if (dayResult is ValidationResult.Valid &&
-            monthResult is ValidationResult.Valid &&
-            yearResult is ValidationResult.Valid) {
-            logicalDateResult = validateBirthDate(day.toInt(), month.toInt(), year.toInt())
-        }
-
-        // Use the same error derivation logic as AddProfileViewModel
-        val (finalDayError, finalMonthError, finalYearError) =
-            deriveDateErrors(dayResult, monthResult, yearResult, logicalDateResult)
-
-        _uiState.update {
-            it.copy(
-                tempDay = day,
-                tempMonth = month,
-                tempYear = year,
-                tempDayError = finalDayError.toStringOrNull(),
-                tempMonthError = finalMonthError.toStringOrNull(),
-                tempYearError = finalYearError.toStringOrNull())
-        }
-    }
-
-    private fun deriveDateErrors(
-        dayResult: ValidationResult,
-        monthResult: ValidationResult,
-        yearResult: ValidationResult,
-        logicalDateResult: ValidationResult
-    ): Triple<ValidationResult, ValidationResult, ValidationResult> {
-        val finalDayError =
-            if (logicalDateResult is ValidationResult.Invalid &&
-                logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
-                logicalDateResult
-            } else {
-                dayResult
-            }
-
-        val finalMonthError = monthResult
-
-        val finalYearError =
-            if (logicalDateResult is ValidationResult.Invalid &&
-                logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
-                logicalDateResult
-            } else {
-                yearResult
-            }
-
-        return Triple(finalDayError, finalMonthError, finalYearError)
-    }
-
-    /**
-     * Opens a modal bottom sheet for editing a specific field (e.g. `"email"`, `"country"`,
-     * `"date"`).
-     *
-     * Initializes all relevant temporary values (`tempValue`, `tempDay`, etc.) and resets modal error
-     * fields.
-     */
-    fun openModal(field: String) {
-        val state = _uiState.value
+  /**
+   * Loads the full [UserProfile] for the given [username] from the repository and populates the
+   * state fields accordingly.
+   *
+   * If loading fails, [SettingsUiState.errorMsg] is updated with an error message.
+   */
+  fun loadUser(uid: String) {
+    viewModelScope.launch {
+      try {
+        val userProfile = userRepository.repository.getUser(uid)
         _uiState.value =
             _uiState.value.copy(
-                showModal = true,
-                currentField = field,
-                modalError = null,
-                tempDayError = null,
-                tempMonthError = null,
-                tempYearError = null,
-                tempValue =
-                    when (field) {
-                        "email" -> state.email
-                        "password" -> ""
-                        "firstName" -> state.firstName
-                        "lastName" -> state.lastName
-                        "description" -> state.description
-                        "country" -> state.country
-                        else -> ""
-                    },
-                tempDay = if (field == "date") state.day else "",
-                tempMonth = if (field == "date") state.month else "",
-                tempYear = if (field == "date") state.year else "",
-                tempSelectedTags =
-                    Tag.Category.entries
-                        .find { it.fieldName == field }
-                        ?.let { category -> Tag.filterByCategory(state.selectedTags, category) }
-                        ?: emptyList())
+                username = userProfile.username,
+                firstName = userProfile.firstName,
+                lastName = userProfile.lastName,
+                country = isoToCountryName[userProfile.country] ?: userProfile.country,
+                description = userProfile.description ?: "",
+                day = userProfile.dateOfBirth.dayOfMonth.toString(),
+                month = userProfile.dateOfBirth.monthValue.toString(),
+                year = userProfile.dateOfBirth.year.toString(),
+                selectedTags = userProfile.tags.toList())
+      } catch (e: Exception) {
+        _uiState.value = _uiState.value.copy(errorMsg = "Failed to load user: ${e.message}")
+      }
+    }
+  }
+
+  /** Clears any active global error message shown via toast or snackbar. */
+  fun clearErrorMsg() {
+    _uiState.value = _uiState.value.copy(errorMsg = null)
+  }
+
+  /**
+   * Updates a temporary modal field (e.g., `tempValue`, `tempDay`, etc.) based on the given [key].
+   *
+   * Also clears any existing validation errors for that temporary field.
+   */
+  fun updateTemp(key: String, value: String) {
+    val state = _uiState.value
+    var validationResult: ValidationResult = ValidationResult.Valid
+
+    // Handle date fields separately for complex validation
+    if (key == "tempDay" || key == "tempMonth" || key == "tempYear") {
+      val newDay =
+          if (key == "tempDay") value.filter { it.isDigit() }.take(InputLimits.DAY)
+          else state.tempDay
+      val newMonth =
+          if (key == "tempMonth") value.filter { it.isDigit() }.take(InputLimits.MONTH)
+          else state.tempMonth
+      val newYear =
+          if (key == "tempYear") value.filter { it.isDigit() }.take(InputLimits.YEAR)
+          else state.tempYear
+
+      _validateAndSetDate(newDay, newMonth, newYear)
+      return
     }
 
-    /** Closes the currently open modal and resets all temporary modal-related fields and errors. */
-    fun closeModal() {
-        _uiState.value =
-            _uiState.value.copy(
-                showModal = false,
-                currentField = "",
-                modalError = null,
-                tempDayError = null,
-                tempMonthError = null,
-                tempYearError = null)
+    // Handle single-value text fields
+    if (key == "tempValue") {
+      var finalValue = value
+      when (state.currentField) {
+        "email" -> {
+          // Truncate at LIMIT + 1 to match AddProfileViewModel behavior
+          finalValue = value.take(InputLimits.EMAIL_MAX_LENGTH + 1)
+          validationResult = validateEmail(finalValue)
+        }
+        "password" -> {
+          // No hard limit for password, just validation (soft limit)
+          finalValue = value
+          // You'll need to create validatePassword in ProfileValidators.kt
+          // validationResult = validatePassword(finalValue)
+        }
+        "firstName" -> {
+          // Sanitize *then* truncate at LIMIT + 1
+          val cleaned = sanitize(value)
+          finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
+          validationResult = validateFirstName(finalValue)
+        }
+        "lastName" -> {
+          // Sanitize *then* truncate at LIMIT + 1
+          val cleaned = sanitize(value)
+          finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
+          validationResult = validateLastName(finalValue)
+        }
+        "description" -> {
+          // No truncation, (soft limit), matches AddProfileViewModel
+          finalValue = value
+          validationResult = validateDescription(finalValue)
+        }
+        "country" -> {
+          // No truncation
+          finalValue = value
+          validationResult = validateCountry(finalValue, countryToIsoCode)
+        }
+      }
+      _uiState.update {
+        it.copy(tempValue = finalValue, modalError = validationResult.toStringOrNull())
+      }
+    }
+  }
+
+  /**
+   * Validates temporary date components and updates the UI state with new values and errors.
+   *
+   * This function is called when any part of the date is modified in the settings modal. It
+   * performs three levels of validation:
+   * 1. Individual validation of the day, month, and year fields (`validateDay`, `validateMonth`,
+   *    `validateYear`).
+   * 2. Logical validation of the complete date (e.g., checking for "April 31st") and age
+   *    constraints via `validateBirthDate`, but only if the individual fields are valid.
+   * 3. Derives the final, most relevant error message for each field using `deriveDateErrors`.
+   *
+   * The results are then used to update the `tempDay`, `tempMonth`, `tempYear` and their
+   * corresponding error fields in the UI state.
+   *
+   * @param day The temporary day string to validate.
+   * @param month The temporary month string to validate.
+   * @param year The temporary year string to validate.
+   */
+  private fun _validateAndSetDate(day: String, month: String, year: String) {
+    val dayResult = validateDay(day)
+    val monthResult = validateMonth(month)
+    val yearResult = validateYear(year)
+
+    var logicalDateResult: ValidationResult = ValidationResult.Valid
+    if (dayResult is ValidationResult.Valid &&
+        monthResult is ValidationResult.Valid &&
+        yearResult is ValidationResult.Valid) {
+      logicalDateResult = validateBirthDate(day.toInt(), month.toInt(), year.toInt())
     }
 
-    /** Toggles the visibility of the country dropdown within the modal. */
-    fun toggleCountryDropdown(show: Boolean) {
-        _uiState.value = _uiState.value.copy(showCountryDropdown = show)
-    }
+    // Use the same error derivation logic as AddProfileViewModel
+    val (finalDayError, finalMonthError, finalYearError) =
+        deriveDateErrors(dayResult, monthResult, yearResult, logicalDateResult)
 
-    /** Adds a [Tag] to the temporary selection list if it is not already selected. */
-    fun addTag(tag: Tag) {
-        if (!_uiState.value.tempSelectedTags.contains(tag)) {
-            _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags + tag)
+    _uiState.update {
+      it.copy(
+          tempDay = day,
+          tempMonth = month,
+          tempYear = year,
+          tempDayError = finalDayError.toStringOrNull(),
+          tempMonthError = finalMonthError.toStringOrNull(),
+          tempYearError = finalYearError.toStringOrNull())
+    }
+  }
+
+  private fun deriveDateErrors(
+      dayResult: ValidationResult,
+      monthResult: ValidationResult,
+      yearResult: ValidationResult,
+      logicalDateResult: ValidationResult
+  ): Triple<ValidationResult, ValidationResult, ValidationResult> {
+    val finalDayError =
+        if (logicalDateResult is ValidationResult.Invalid &&
+            logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
+          logicalDateResult
         } else {
-            Log.e("SettingsViewModel", "Tag '${tag.displayName}' is already selected")
+          dayResult
         }
-    }
 
-    /** Removes a [Tag] from the temporary selection list if it exists. */
-    fun removeTag(tag: Tag) {
-        if (_uiState.value.tempSelectedTags.contains(tag)) {
-            _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags - tag)
+    val finalMonthError = monthResult
+
+    val finalYearError =
+        if (logicalDateResult is ValidationResult.Invalid &&
+            logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
+          logicalDateResult
         } else {
-            Log.e("SettingsViewModel", "Tag '${tag.displayName}' is not selected")
-        }
-    }
-
-    /**
-     * Validates and applies changes from the modal to the main state.
-     *
-     * Performs field-specific validation based on [SettingsUiState.currentField]. If validation
-     * passes, updates the corresponding state field and closes the modal.
-     *
-     * Finally, triggers [saveProfile] to persist all updates.
-     */
-    fun saveModal(uid: String) {
-        val state = _uiState.value
-
-        // Check for any validation errors that are already displayed
-        if (state.modalError != null ||
-            state.tempDayError != null ||
-            state.tempMonthError != null ||
-            state.tempYearError != null) {
-            return // Don't save, errors are present
+          yearResult
         }
 
-        var newState = state
+    return Triple(finalDayError, finalMonthError, finalYearError)
+  }
 
-        // No errors, so commit the temp values to the real state fields
-        when (state.currentField) {
-            "email" -> newState = newState.copy(email = state.tempValue, emailError = null)
-            "password" -> newState = newState.copy(password = state.tempValue, passwordError = null)
-            "firstName" -> newState = newState.copy(firstName = state.tempValue, firstNameError = null)
-            "lastName" -> newState = newState.copy(lastName = state.tempValue, lastNameError = null)
-            "description" ->
-                newState = newState.copy(description = state.tempValue, descriptionError = null)
-            "country" ->
-                newState = newState.copy(country = state.tempValue) // No main error field for country
-            "date" -> {
-                newState =
-                    newState.copy(
-                        day = state.tempDay,
-                        month = state.tempMonth,
-                        year = state.tempYear,
-                        dayError = null,
-                        monthError = null,
-                        yearError = null)
-            }
-            else -> {
-                // Handle Tag saving logic
+  /**
+   * Opens a modal bottom sheet for editing a specific field (e.g. `"email"`, `"country"`,
+   * `"date"`).
+   *
+   * Initializes all relevant temporary values (`tempValue`, `tempDay`, etc.) and resets modal error
+   * fields.
+   */
+  fun openModal(field: String) {
+    val state = _uiState.value
+    _uiState.value =
+        _uiState.value.copy(
+            showModal = true,
+            currentField = field,
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null,
+            tempValue =
+                when (field) {
+                  "email" -> state.email
+                  "password" -> ""
+                  "firstName" -> state.firstName
+                  "lastName" -> state.lastName
+                  "description" -> state.description
+                  "country" -> state.country
+                  else -> ""
+                },
+            tempDay = if (field == "date") state.day else "",
+            tempMonth = if (field == "date") state.month else "",
+            tempYear = if (field == "date") state.year else "",
+            tempSelectedTags =
                 Tag.Category.entries
-                    .find { it.fieldName == state.currentField }
-                    ?.let { category ->
-                        val tagList = Tag.getTagsForCategory(category)
-                        newState =
-                            newState.copy(
-                                selectedTags =
-                                    state.selectedTags.filter { it !in tagList } + state.tempSelectedTags)
-                    }
-            }
-        }
+                    .find { it.fieldName == field }
+                    ?.let { category -> Tag.filterByCategory(state.selectedTags, category) }
+                    ?: emptyList())
+  }
 
-        // Close modal and clear temp fields
-        _uiState.value =
+  /** Closes the currently open modal and resets all temporary modal-related fields and errors. */
+  fun closeModal() {
+    _uiState.value =
+        _uiState.value.copy(
+            showModal = false,
+            currentField = "",
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null)
+  }
+
+  /** Toggles the visibility of the country dropdown within the modal. */
+  fun toggleCountryDropdown(show: Boolean) {
+    _uiState.value = _uiState.value.copy(showCountryDropdown = show)
+  }
+
+  /** Adds a [Tag] to the temporary selection list if it is not already selected. */
+  fun addTag(tag: Tag) {
+    if (!_uiState.value.tempSelectedTags.contains(tag)) {
+      _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags + tag)
+    } else {
+      Log.e("SettingsViewModel", "Tag '${tag.displayName}' is already selected")
+    }
+  }
+
+  /** Removes a [Tag] from the temporary selection list if it exists. */
+  fun removeTag(tag: Tag) {
+    if (_uiState.value.tempSelectedTags.contains(tag)) {
+      _uiState.value = _uiState.value.copy(tempSelectedTags = _uiState.value.tempSelectedTags - tag)
+    } else {
+      Log.e("SettingsViewModel", "Tag '${tag.displayName}' is not selected")
+    }
+  }
+
+  /**
+   * Validates and applies changes from the modal to the main state.
+   *
+   * Performs field-specific validation based on [SettingsUiState.currentField]. If validation
+   * passes, updates the corresponding state field and closes the modal.
+   *
+   * Finally, triggers [saveProfile] to persist all updates.
+   */
+  fun saveModal(uid: String) {
+    val state = _uiState.value
+
+    // Check for any validation errors that are already displayed
+    if (state.modalError != null ||
+        state.tempDayError != null ||
+        state.tempMonthError != null ||
+        state.tempYearError != null) {
+      return // Don't save, errors are present
+    }
+
+    var newState = state
+
+    // No errors, so commit the temp values to the real state fields
+    when (state.currentField) {
+      "email" -> newState = newState.copy(email = state.tempValue, emailError = null)
+      "password" -> newState = newState.copy(password = state.tempValue, passwordError = null)
+      "firstName" -> newState = newState.copy(firstName = state.tempValue, firstNameError = null)
+      "lastName" -> newState = newState.copy(lastName = state.tempValue, lastNameError = null)
+      "description" ->
+          newState = newState.copy(description = state.tempValue, descriptionError = null)
+      "country" ->
+          newState = newState.copy(country = state.tempValue) // No main error field for country
+      "date" -> {
+        newState =
             newState.copy(
-                showModal = false,
-                currentField = "",
-                modalError = null,
-                tempDayError = null,
-                tempMonthError = null,
-                tempYearError = null)
-
-        // Persist all changes
-        saveProfile(uid)
-    }
-
-    /**
-     * Performs full form validation and persists the user profile.
-     *
-     * Steps:
-     * 1. Runs all validation checks via [validateAll].
-     * 2. Sanitizes text fields.
-     * 3. Updates user data in the repository.
-     * 4. Updates Firebase email/password if changed.
-     *
-     * Errors are reflected in the [SettingsUiState] fields.
-     */
-    fun saveProfile(uid: String) {
-        viewModelScope.launch {
-            val state = _uiState.value
-
-            // ─── 1. Validation is already done! ────────────────────────────
-            // We no longer need the `validateAll` check here.
-
-            // ─── 2. Attempt to update the user profile ─────────────────────
-            try {
-                val cleanedFirstName = sanitize(state.firstName)
-                val cleanedLastName = sanitize(state.lastName)
-                val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
-
-                val updatedProfile =
-                    UserProfile(
-                        uid = uid,
-                        username = state.username, // Username is read-only here
-                        firstName = cleanedFirstName,
-                        lastName = cleanedLastName,
-                        country = countryToIsoCode[state.country] ?: state.country,
-                        description = cleanedDescription,
-                        dateOfBirth =
-                            LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
-                        tags = state.selectedTags.toSet())
-
-                userRepository.repository.updateUser(uid, updatedProfile)
-
-                // ─── 3. Firebase Email update ──────────────────────────────
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                if (state.email != currentUser?.email) {
-                    currentUser?.updateEmail(state.email)?.addOnFailureListener { e ->
-                        _uiState.update { it.copy(errorMsg = "Failed to update email: ${e.message}") }
-                    }
-                }
-
-                // ─── 4. Firebase Password update ───────────────────────────
-                if (state.password.isNotEmpty()) {
-                    currentUser?.updatePassword(state.password)?.addOnFailureListener { e ->
-                        _uiState.update { it.copy(errorMsg = "Failed to update password: ${e.message}") }
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(errorMsg = "Failed to save profile: ${e.message}") }
+                day = state.tempDay,
+                month = state.tempMonth,
+                year = state.tempYear,
+                dayError = null,
+                monthError = null,
+                yearError = null)
+      }
+      else -> {
+        // Handle Tag saving logic
+        Tag.Category.entries
+            .find { it.fieldName == state.currentField }
+            ?.let { category ->
+              val tagList = Tag.getTagsForCategory(category)
+              newState =
+                  newState.copy(
+                      selectedTags =
+                          state.selectedTags.filter { it !in tagList } + state.tempSelectedTags)
             }
-        }
+      }
     }
+
+    // Close modal and clear temp fields
+    _uiState.value =
+        newState.copy(
+            showModal = false,
+            currentField = "",
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null)
+
+    // Persist all changes
+    saveProfile(uid)
+  }
+
+  /**
+   * Performs full form validation and persists the user profile.
+   *
+   * Steps:
+   * 1. Runs all validation checks via [validateAll].
+   * 2. Sanitizes text fields.
+   * 3. Updates user data in the repository.
+   * 4. Updates Firebase email/password if changed.
+   *
+   * Errors are reflected in the [SettingsUiState] fields.
+   */
+  fun saveProfile(uid: String) {
+    viewModelScope.launch {
+      val state = _uiState.value
+
+      // ─── 1. Validation is already done! ────────────────────────────
+      // We no longer need the `validateAll` check here.
+
+      // ─── 2. Attempt to update the user profile ─────────────────────
+      try {
+        val cleanedFirstName = sanitize(state.firstName)
+        val cleanedLastName = sanitize(state.lastName)
+        val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
+
+        val updatedProfile =
+            UserProfile(
+                uid = uid,
+                username = state.username, // Username is read-only here
+                firstName = cleanedFirstName,
+                lastName = cleanedLastName,
+                country = countryToIsoCode[state.country] ?: state.country,
+                description = cleanedDescription,
+                dateOfBirth =
+                    LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
+                tags = state.selectedTags.toSet())
+
+        userRepository.repository.updateUser(uid, updatedProfile)
+
+        // ─── 3. Firebase Email update ──────────────────────────────
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (state.email != currentUser?.email) {
+          currentUser?.updateEmail(state.email)?.addOnFailureListener { e ->
+            _uiState.update { it.copy(errorMsg = "Failed to update email: ${e.message}") }
+          }
+        }
+
+        // ─── 4. Firebase Password update ───────────────────────────
+        if (state.password.isNotEmpty()) {
+          currentUser?.updatePassword(state.password)?.addOnFailureListener { e ->
+            _uiState.update { it.copy(errorMsg = "Failed to update password: ${e.message}") }
+          }
+        }
+      } catch (e: Exception) {
+        _uiState.update { it.copy(errorMsg = "Failed to save profile: ${e.message}") }
+      }
+    }
+  }
 }

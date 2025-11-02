@@ -4,9 +4,7 @@ import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.Period
 
-/**
- * Defines the input length and value constraints for user profile fields.
- */
+/** Defines the input length and value constraints for user profile fields. */
 object InputLimits {
   /** Maximum lengths for a username. */
   const val USERNAME = 25
@@ -32,9 +30,7 @@ object InputLimits {
   const val PASSWORD_MIN_LENGTH = 6
 }
 
-/**
- * Provides standardized error messages for input validation failures.
- */
+/** Provides standardized error messages for input validation failures. */
 object ErrorMessages {
   // Email
   /** Error message for an empty email field. */
@@ -117,15 +113,14 @@ object ErrorMessages {
   const val DATE_INVALID_LOGICAL = "This date does not exist"
 }
 
-/**
- * Represents the result of a validation check.
- */
+/** Represents the result of a validation check. */
 sealed class ValidationResult {
   /** Indicates that the input is valid. */
   data object Valid : ValidationResult()
 
   /**
    * Indicates that the input is invalid.
+   *
    * @property errorMessage A descriptive message explaining the validation failure.
    */
   data class Invalid(val errorMessage: String) : ValidationResult()
@@ -139,8 +134,9 @@ private val usernameRegex = "^[A-Za-z0-9._-]+$".toRegex()
 private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
 
 /**
- * Validates an email address.
- * It must not be blank, must not exceed the maximum length, and must be a valid @epfl.ch address.
+ * Validates an email address. It must not be blank, must not exceed the maximum length, and must be
+ * a valid @epfl.ch address.
+ *
  * @param email The email address to validate.
  * @return [ValidationResult.Valid] if the email is valid, otherwise [ValidationResult.Invalid].
  */
@@ -155,8 +151,8 @@ fun validateEmail(email: String): ValidationResult {
 }
 
 /**
- * Validates a password.
- * It must meet the minimum length requirement.
+ * Validates a password. It must meet the minimum length requirement.
+ *
  * @param password The password to validate.
  * @return [ValidationResult.Valid] if the password is valid, otherwise [ValidationResult.Invalid].
  */
@@ -170,8 +166,9 @@ fun validatePassword(password: String): ValidationResult {
 }
 
 /**
- * Validates a username.
- * It must not be blank, must not exceed the maximum length, and must only contain allowed characters.
+ * Validates a username. It must not be blank, must not exceed the maximum length, and must only
+ * contain allowed characters.
+ *
  * @param username The username to validate.
  * @return [ValidationResult.Valid] if the username is valid, otherwise [ValidationResult.Invalid].
  */
@@ -187,10 +184,12 @@ fun validateUsername(username: String): ValidationResult {
 }
 
 /**
- * Validates a first name.
- * It must not be blank, must not exceed the maximum length, and must only contain valid characters.
+ * Validates a first name. It must not be blank, must not exceed the maximum length, and must only
+ * contain valid characters.
+ *
  * @param firstName The first name to validate.
- * @return [ValidationResult.Valid] if the first name is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationResult.Valid] if the first name is valid, otherwise
+ *   [ValidationResult.Invalid].
  */
 fun validateFirstName(firstName: String): ValidationResult {
   return when {
@@ -204,8 +203,9 @@ fun validateFirstName(firstName: String): ValidationResult {
 }
 
 /**
- * Validates a last name.
- * It must not be blank, must not exceed the maximum length, and must only contain valid characters.
+ * Validates a last name. It must not be blank, must not exceed the maximum length, and must only
+ * contain valid characters.
+ *
  * @param lastName The last name to validate.
  * @return [ValidationResult.Valid] if the last name is valid, otherwise [ValidationResult.Invalid].
  */
@@ -220,10 +220,11 @@ fun validateLastName(lastName: String): ValidationResult {
 }
 
 /**
- * Validates a user description.
- * It must not exceed the maximum length.
+ * Validates a user description. It must not exceed the maximum length.
+ *
  * @param description The description to validate.
- * @return [ValidationResult.Valid] if the description is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationResult.Valid] if the description is valid, otherwise
+ *   [ValidationResult.Invalid].
  */
 fun validateDescription(description: String): ValidationResult {
   return if (description.length > InputLimits.DESCRIPTION) {
@@ -234,8 +235,9 @@ fun validateDescription(description: String): ValidationResult {
 }
 
 /**
- * Validates a country selection.
- * The country must not be blank and must exist as a key in the provided map.
+ * Validates a country selection. The country must not be blank and must exist as a key in the
+ * provided map.
+ *
  * @param country The selected country name.
  * @param countryMap A map of valid country names to their codes.
  * @return [ValidationResult.Valid] if the country is valid, otherwise [ValidationResult.Invalid].
@@ -249,8 +251,9 @@ fun validateCountry(country: String, countryMap: Map<String, String>): Validatio
 }
 
 /**
- * Validates the day part of a date.
- * It must not be blank, must be a number, and must be between 1 and 31.
+ * Validates the day part of a date. It must not be blank, must be a number, and must be between 1
+ * and 31.
+ *
  * @param day The day as a string.
  * @return [ValidationResult.Valid] if the day is valid, otherwise [ValidationResult.Invalid].
  */
@@ -265,8 +268,9 @@ fun validateDay(day: String): ValidationResult {
 }
 
 /**
- * Validates the month part of a date.
- * It must not be blank, must be a number, and must be between 1 and 12.
+ * Validates the month part of a date. It must not be blank, must be a number, and must be between 1
+ * and 12.
+ *
  * @param month The month as a string.
  * @return [ValidationResult.Valid] if the month is valid, otherwise [ValidationResult.Invalid].
  */
@@ -281,9 +285,9 @@ fun validateMonth(month: String): ValidationResult {
 }
 
 /**
- * Validates the year part of a date.
- * It must not be blank, must be a number, and must be within a valid range
- * from [InputLimits.MIN_BIRTH_YEAR] to the current year.
+ * Validates the year part of a date. It must not be blank, must be a number, and must be within a
+ * valid range from [InputLimits.MIN_BIRTH_YEAR] to the current year.
+ *
  * @param year The year as a string.
  * @return [ValidationResult.Valid] if the year is valid, otherwise [ValidationResult.Invalid].
  */
@@ -301,9 +305,9 @@ fun validateYear(year: String): ValidationResult {
 }
 
 /**
- * Validates a complete date of birth.
- * Checks if the date is logically correct (e.g., not February 30th), not in the future,
- * and if the user meets the minimum age requirement.
+ * Validates a complete date of birth. Checks if the date is logically correct (e.g., not February
+ * 30th), not in the future, and if the user meets the minimum age requirement.
+ *
  * @param day The day of the month.
  * @param month The month of the year.
  * @param year The year.
@@ -330,8 +334,9 @@ fun validateBirthDate(day: Int, month: Int, year: Int): ValidationResult {
 }
 
 /**
- * Sanitizes a string by replacing multiple whitespace characters with a single space
- * and trimming leading/trailing whitespace.
+ * Sanitizes a string by replacing multiple whitespace characters with a single space and trimming
+ * leading/trailing whitespace.
+ *
  * @param s The string to sanitize.
  * @return The sanitized string.
  */

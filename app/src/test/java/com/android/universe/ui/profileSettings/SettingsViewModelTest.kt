@@ -1,12 +1,12 @@
 package com.android.universe.ui.profileSettings
 
 import android.util.Log
-import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.utils.MainCoroutineRule
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
