@@ -2,6 +2,7 @@ package com.android.universe.ui.profileSettings
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -168,7 +169,7 @@ class SettingsScreenTest {
     val state = sampleSettingsState()
     var logoutClicked = false
     setUpScreen(uiState = state, onLogout = { logoutClicked = true })
-    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(testTag = LogoutTestTags.LOGOUT_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
 
@@ -184,5 +185,12 @@ class SettingsScreenTest {
     composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
     composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CONFIRM_BUTTON).performClick()
     assert(logoutClicked) { "Logout button should trigger onLogout action" }
+  }
+
+  @Test
+  fun testLoading() {
+    val state = sampleSettingsState()
+    setUpScreen(uiState = state.copy(isLoading = true))
+    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertIsDisplayed()
   }
 }
