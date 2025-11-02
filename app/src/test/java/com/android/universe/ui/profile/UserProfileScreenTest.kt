@@ -8,15 +8,15 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
-import com.android.universe.model.user.UserRepositoryFirestore
 import com.android.universe.utils.FirestoreUserTest
+import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -25,10 +25,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class UserProfileScreenTest : FirestoreUserTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val mainCoroutineRule = MainCoroutineRule(UnconfinedTestDispatcher())
   private lateinit var repository: UserRepository
 
   companion object {
@@ -42,34 +44,20 @@ class UserProfileScreenTest : FirestoreUserTest() {
     private const val NO_DESC = "No description"
   }
 
-  private fun waitForDisplay(user: UserProfile) {
-    composeTestRule.waitUntil(timeoutMillis = 5000) {
-      composeTestRule
-          .onAllNodesWithTag(UserProfileScreenTestTags.FIRSTNAME)
-          .fetchSemanticsNodes()
-          .firstOrNull() // Get the first node
-          ?.config
-          ?.getOrNull(SemanticsProperties.Text) // Get its text property
-          ?.firstOrNull()
-          ?.text == user.firstName // Check if the text matches
-    }
-  }
-
   @Before
   override fun setUp() {
     super.setUp()
-    repository = UserRepositoryFirestore(emulator.firestore)
+    repository = createInitializedRepository()
   }
 
   @Test
-  fun profileDisplaysBasicInformationCorrectly() = runTest {
-    repository.addUser(dummyUser)
+  fun profileDisplaysBasicInformationCorrectly() {
+    runTest { repository.addUser(dummyUser) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(dummyUser)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME)
@@ -98,30 +86,28 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun tooManyTagsImpliesScrollable() = runTest {
-    repository.addUser(dummyUser2)
+  fun tooManyTagsImpliesScrollable() {
+    runTest { repository.addUser(dummyUser2) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(dummyUser2)
 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assert(hasScrollAction())
   }
 
   @Test
-  fun tagsAreUniqueAndInAllowedList() = runTest {
-    repository.addUser(dummyUser2)
+  fun tagsAreUniqueAndInAllowedList() {
+    runTest { repository.addUser(dummyUser2) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(dummyUser2)
 
     val seenTags = mutableSetOf<String>()
-    for (i in 0 until UserTestData.manyTags.size) {
+    for (i in 0 until dummyUser2.tags.size) {
       val tagText =
           composeTestRule
               .onNodeWithTag(UserProfileScreenTestTags.getTagTestTag(i))
@@ -139,14 +125,13 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun descriptionDisplaysPlaceholderWhenNull() = runTest {
-    repository.addUser(dummyUser3)
+  fun descriptionDisplaysPlaceholderWhenNull() {
+    runTest { repository.addUser(dummyUser3) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(dummyUser3)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
@@ -155,15 +140,14 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun descriptionDisplaysFullDescriptionWhenNotNull() = runTest {
+  fun descriptionDisplaysFullDescriptionWhenNotNull() {
     val profile = dummyUser4.copy(description = "Hello World")
-    repository.addUser(profile)
+    runTest { repository.addUser(profile) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(profile)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
@@ -172,14 +156,13 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun descriptionDisplaysNoDescriptionMessageWhenEmpty() = runTest {
-    repository.addUser(dummyUser5)
+  fun descriptionDisplaysNoDescriptionMessageWhenEmpty() {
+    runTest { repository.addUser(dummyUser5) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }
-    waitForDisplay(dummyUser5)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)

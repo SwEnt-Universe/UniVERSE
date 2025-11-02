@@ -1,9 +1,9 @@
 package com.android.universe.ui.selectTag
 
-import com.android.universe.MainCoroutineRule
 import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.utils.MainCoroutineRule
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
