@@ -168,6 +168,7 @@ class SettingsScreenTest {
     val state = sampleSettingsState()
     var logoutClicked = false
     setUpScreen(uiState = state, onLogout = { logoutClicked = true })
+      composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertDoesNotExist()
     composeTestRule.onNodeWithTag(testTag = LogoutTestTags.LOGOUT_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
 
