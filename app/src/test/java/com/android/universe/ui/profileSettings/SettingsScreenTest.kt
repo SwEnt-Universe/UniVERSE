@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
+import com.android.universe.ui.common.LogoutTestTags
 import com.android.universe.ui.profile.SettingsUiState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -30,7 +31,8 @@ class SettingsScreenTest {
       onRemoveTag: (Tag) -> Unit = {},
       onCloseModal: () -> Unit = {},
       onSaveModal: () -> Unit = {},
-      onBack: () -> Unit = {}
+      onBack: () -> Unit = {},
+      onLogout: () -> Unit = {}
   ) {
     composeTestRule.setContent {
       MaterialTheme {
@@ -43,7 +45,8 @@ class SettingsScreenTest {
             onRemoveTag = onRemoveTag,
             onCloseModal = onCloseModal,
             onSaveModal = onSaveModal,
-            onBack = onBack)
+            onBack = onBack,
+            onLogout = onLogout)
       }
     }
   }
@@ -158,5 +161,27 @@ class SettingsScreenTest {
     composeTestRule.onNodeWithText("Invalid day").assertIsDisplayed()
     composeTestRule.onNodeWithText("Invalid month").assertIsDisplayed()
     composeTestRule.onNodeWithText("Invalid year").assertIsDisplayed()
+  }
+
+  @Test
+  fun testLogout() {
+    val state = sampleSettingsState()
+    var logoutClicked = false
+    setUpScreen( uiState = state, onLogout = { logoutClicked = true })
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.LOGOUT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
+
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_DIALOG).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_TITLE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_TEXT).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CANCEL_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CONFIRM_BUTTON).assertIsDisplayed()
+
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CANCEL_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_DIALOG).assertDoesNotExist()
+
+    composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CONFIRM_BUTTON).performClick()
+    assert(logoutClicked) { "Logout button should trigger onLogout action" }
   }
 }

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.resources.C
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.map.MapScreen
@@ -46,7 +48,9 @@ class MainActivity : ComponentActivity() {
       UniverseTheme {
         // A surface container using the 'background' color from the theme
         Surface(
-            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics { testTag = C.Tag.main_screen_container },
             color = MaterialTheme.colorScheme.background) {
               UniverseApp()
             }
@@ -177,6 +181,8 @@ fun UniverseApp(
               onBack = {
                 navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
               },
+              onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn)},
+              clear = { credentialManager.clearCredentialState(request = ClearCredentialStateRequest()) }
           )
         }
   }
