@@ -280,6 +280,9 @@ dependencies {
     testFixturesImplementation(libs.google.id)
     testFixturesImplementation(libs.mockk.android)
     testFixturesImplementation(libs.mockk.agent)
+    testFixturesImplementation(libs.androidx.compose.ui)
+    testFixturesImplementation(libs.androidx.compose.ui.test.junit4)
+
 
     // ----------------- Unit Testing (test/) -----------------
     testImplementation(libs.junit4)

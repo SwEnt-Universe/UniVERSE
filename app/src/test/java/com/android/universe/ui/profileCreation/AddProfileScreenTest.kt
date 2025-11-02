@@ -15,6 +15,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.utils.CustomSemanticsMatcher.hasTestTagPrefix
 import com.android.universe.utils.FirestoreUserTest
 import junit.framework.TestCase.assertTrue
 import org.junit.Before
@@ -153,7 +154,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
 
     // Initially, no dropdown items are visible
     composeTestRule
-        .onAllNodesWithTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX)
+        .onAllNodes(hasTestTagPrefix(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX))
         .assertCountEquals(0)
 
     // Click the country field to expand the dropdown
@@ -162,7 +163,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     // Wait until the dropdown items appear (menu is expanded)
     composeTestRule.waitUntil(timeoutMillis = 2_000) {
       composeTestRule
-          .onAllNodesWithTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX)
+          .onAllNodes(hasTestTagPrefix(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX))
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
