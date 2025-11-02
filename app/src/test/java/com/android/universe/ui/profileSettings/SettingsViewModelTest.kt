@@ -16,6 +16,7 @@ import io.mockk.*
 import java.time.LocalDate
 import junit.framework.TestCase.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -646,4 +647,16 @@ class SettingsViewModelTest {
 
         verify(exactly = 0) { mockFirebaseUser.updatePassword(any()) }
       }
+
+  @Test
+  fun signOutTest() {
+    var cleared = false
+    var navigated = false
+    runTest(testDispatcher) {
+      viewModel.signOut(clear = suspend { cleared = true }, navigate = { navigated = true })
+      delay(1000)
+    }
+    assert(cleared)
+    assert(navigated)
+  }
 }
