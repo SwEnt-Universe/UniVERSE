@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -100,6 +99,7 @@ object AddProfileScreenTestTags {
 
   // Back button
   const val BACK_BUTTON = "back_button"
+  const val DROPDOWN_SCROLLING_MENU = "dropdown_scrolling_menu"
 }
 
 /**
@@ -392,7 +392,10 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
         ExposedDropdownMenu(
             expanded = showDropDown,
             onDismissRequest = { showDropDown = false },
-            modifier = Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
+            scrollState = rememberScrollState(),
+            modifier =
+                Modifier.heightIn(max = 240.dp)
+                    .testTag(AddProfileScreenTestTags.DROPDOWN_SCROLLING_MENU)) {
               allCountries.forEach { country ->
                 DropdownMenuItem(
                     text = {
@@ -405,7 +408,8 @@ private fun CountrySelectorField(value: String, addProfileViewModel: AddProfileV
                       showDropDown = false
                     },
                     modifier =
-                        Modifier.testTag(AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX))
+                        Modifier.testTag(
+                            "${AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX}$country"))
               }
             }
       }
