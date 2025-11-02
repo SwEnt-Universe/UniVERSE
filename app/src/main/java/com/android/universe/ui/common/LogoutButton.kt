@@ -2,14 +2,14 @@ package com.android.universe.ui.common
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
 
 /**
  * A composable function that displays a button for logging out.
@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 fun LogoutButton(
     onClick: () -> Unit = {},
     text: String = "Logout",
-    icon: ImageVector = Icons.AutoMirrored.Outlined.Logout
+    icon: ImageVector = UniverseTheme.icons.logout
 ) {
   Button(
       onClick = onClick,
@@ -35,7 +35,7 @@ fun LogoutButton(
             imageVector = icon,
             contentDescription = "Logout",
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(Dimensions.SpacerMedium))
         Text(text)
       }
 }

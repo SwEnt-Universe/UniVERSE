@@ -83,9 +83,11 @@ fun UniverseTheme(
                 error = ErrorLight,
                 onError = OnErrorLight)
       }
-  CompositionLocalProvider(LocalIsDarkTheme provides darkTheme) {
-    MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
-  }
+  CompositionLocalProvider(
+      LocalIsDarkTheme provides darkTheme,
+      LocalUniverseIcons provides if (darkTheme) DarkIcons else LightIcons) {
+        MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+      }
 }
 
 /**
@@ -135,4 +137,12 @@ fun tagColor(category: String, isSelected: Boolean = false): Color {
 
     else -> MaterialTheme.colorScheme.primary
   }
+}
+
+object UniverseTheme {
+  val icons: UniverseIcons
+    @Composable get() = LocalUniverseIcons.current
+
+  val isDark: Boolean
+    @Composable get() = LocalIsDarkTheme.current
 }
