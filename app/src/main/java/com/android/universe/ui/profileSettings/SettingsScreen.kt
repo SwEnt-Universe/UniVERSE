@@ -231,7 +231,9 @@ fun SettingsScreenContent(
   // This is the loading icon which will appear during the signing out
   if (uiState.isLoading) {
     Box(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).testTag(SettingsTestTags.LOADING_ICON),
+        Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .testTag(SettingsTestTags.LOADING_ICON),
         contentAlignment = Alignment.Center) {
           CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
