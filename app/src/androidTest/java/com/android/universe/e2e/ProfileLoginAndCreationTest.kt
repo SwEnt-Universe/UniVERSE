@@ -31,6 +31,7 @@ import com.android.universe.utils.UserTestData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -116,7 +117,11 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     val createdUser = Firebase.auth.currentUser
     var createdUserProfile: UserProfile? = null
     assertNotNull(createdUser)
-    runTest { createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid) }
+    runTest {
+        // This delay avoid race conditions for the tags. Not the best but work for now
+        delay(2_000L)
+        createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
+    }
     assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile)
   }
 
