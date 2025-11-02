@@ -420,10 +420,9 @@ class SettingsViewModel(
       authModel.signOut(
           onSuccess = {},
           onFailure = { e ->
-            {
-              _uiState.value = _uiState.value.copy(isLoading = false)
-              return@signOut
-            }
+            Log.e("SettingsViewModel", "Failed to sign out: ${e.message}")
+            _uiState.value = _uiState.value.copy(isLoading = false)
+            return@signOut
           })
       clear()
       navigate()

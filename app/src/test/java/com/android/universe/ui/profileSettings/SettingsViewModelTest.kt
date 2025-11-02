@@ -656,7 +656,7 @@ class SettingsViewModelTest {
       viewModel.signOut(clear = suspend { cleared = true }, navigate = { navigated = true })
       delay(1000)
     }
-    assert(cleared)
-    assert(navigated)
+    assertTrue(cleared)
+    assertTrue(navigated)
   }
 }
