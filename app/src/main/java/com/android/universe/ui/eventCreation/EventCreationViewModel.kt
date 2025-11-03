@@ -61,185 +61,189 @@ class EventCreationViewModel(
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
 
-    /**
-     * Update the title error message of the uiState.
-     *
-     * @param errorMessage the new message to display for the title textField.
-     */
-    private fun setTitleError(errorMessage: String?){
-        eventCreationUiState.value = eventCreationUiState.value.copy(titleError = errorMessage)
-    }
+  /**
+   * Update the title error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the title textField.
+   */
+  private fun setTitleError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(titleError = errorMessage)
+  }
 
-    /**
-     * Update the day error message of the uiState.
-     *
-     * @param errorMessage the new message to display for the day textField.
-     */
-    private fun setDayError(errorMessage: String?){
-        eventCreationUiState.value = eventCreationUiState.value.copy(dayError = errorMessage)
-    }
+  /**
+   * Update the day error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the day textField.
+   */
+  private fun setDayError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(dayError = errorMessage)
+  }
 
-    /**
-     * Update the month error message of the uiState.
-     *
-     * @param errorMessage the new message to display for the month textField.
-     */
-    private fun setMonthError(errorMessage: String?){
-        eventCreationUiState.value = eventCreationUiState.value.copy(monthError = errorMessage)
-    }
+  /**
+   * Update the month error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the month textField.
+   */
+  private fun setMonthError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(monthError = errorMessage)
+  }
 
-    /**
-     * Update the year error message of the uiState.
-     *
-     * @param errorMessage the new message to display for the year textField.
-     */
-    private fun setYearError(errorMessage: String?){
-        eventCreationUiState.value = eventCreationUiState.value.copy(yearError = errorMessage)
-    }
+  /**
+   * Update the year error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the year textField.
+   */
+  private fun setYearError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(yearError = errorMessage)
+  }
 
-    /**
-     * Update the hour error message of the uiState.
-     *
-     * @param errorMessage the new message to display for the hour textField.
-     */
-    private fun setHourError(errorMessage: String?){
-        eventCreationUiState.value = eventCreationUiState.value.copy(hourError = errorMessage)
-    }
+  /**
+   * Update the hour error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the hour textField.
+   */
+  private fun setHourError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(hourError = errorMessage)
+  }
 
-    /**
-     * Update the minute error message of the uiState.
-     *
-     * @param errorMessage the new message to display for the minute textField.
-     */
-    private fun setMinuteError(errorMessage: String?){
-        eventCreationUiState.value = eventCreationUiState.value.copy(minuteError = errorMessage)
-    }
+  /**
+   * Update the minute error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the minute textField.
+   */
+  private fun setMinuteError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(minuteError = errorMessage)
+  }
 
-    /**
-     * Check that the new title input is not empty and respect a certain format.
-     * @param title the new title input.
-     */
-    private fun validateTitle(title: String): Boolean{
-        if (title.isEmpty()){
-            setTitleError("Title cannot be empty")
-            return false
-        }else{
-            setTitleError(null)
-            return true
-        }
+  /**
+   * Check that the new title input is not empty and respect a certain format.
+   *
+   * @param title the new title input.
+   */
+  private fun validateTitle(title: String): Boolean {
+    if (title.isEmpty()) {
+      setTitleError("Title cannot be empty")
+      return false
+    } else {
+      setTitleError(null)
+      return true
     }
+  }
 
-    /**
-     * Check that the new day input is not empty and respect a certain format.
-     * @param day the new day input.
-     */
-    private fun validateDay(day: String): Boolean{
-        if (day.isEmpty()){
-            setDayError("Day cannot be empty")
-            return false
-        }else if (day.toIntOrNull() == null){
-            setDayError("Day should be a valid number")
-            return false
-        }else if(day.toInt() !in 1..31) {
-            setDayError("Day should be between 1 and 31")
-            return false
-        }else{
-            setDayError(null)
-            return true
-        }
+  /**
+   * Check that the new day input is not empty and respect a certain format.
+   *
+   * @param day the new day input.
+   */
+  private fun validateDay(day: String): Boolean {
+    if (day.isEmpty()) {
+      setDayError("Day cannot be empty")
+      return false
+    } else if (day.toIntOrNull() == null) {
+      setDayError("Day should be a valid number")
+      return false
+    } else if (day.toInt() !in 1..31) {
+      setDayError("Day should be between 1 and 31")
+      return false
+    } else {
+      setDayError(null)
+      return true
     }
+  }
 
-    /**
-     * Check that the new month input is not empty and respect a certain format.
-     * @param month the new month input.
-     */
-    private fun validateMonth(month: String):Boolean{
-        if (month.isEmpty()){
-            setMonthError("Month cannot be empty")
-            return false
-        }else if(month.toIntOrNull() == null){
-            setMonthError("Month should be a valid number")
-            return false
-        }else if(month.toInt() !in 1..12){
-            setMonthError("Month should be between 1 and 12")
-            return false
-        }else{
-            setMonthError(null)
-            return true
-        }
+  /**
+   * Check that the new month input is not empty and respect a certain format.
+   *
+   * @param month the new month input.
+   */
+  private fun validateMonth(month: String): Boolean {
+    if (month.isEmpty()) {
+      setMonthError("Month cannot be empty")
+      return false
+    } else if (month.toIntOrNull() == null) {
+      setMonthError("Month should be a valid number")
+      return false
+    } else if (month.toInt() !in 1..12) {
+      setMonthError("Month should be between 1 and 12")
+      return false
+    } else {
+      setMonthError(null)
+      return true
     }
+  }
 
-    /**
-     * Check that the new year input is not empty and respect a certain format.
-     * @param year the new year input.
-     */
-    private fun validateYear(year: String): Boolean{
-        if (year.isEmpty()){
-            setYearError("Year cannot be empty")
-            return false
-        }else if(year.toIntOrNull() == null){
-            setYearError("Year should be a valid number")
-            return false
-        }else if(year.toInt() < 2025 || year.length < 4){
-            setYearError("Enter a valid 4-digit year (2025 or later)")
-            return false
-        }else{
-            setYearError(null)
-            return true
-        }
+  /**
+   * Check that the new year input is not empty and respect a certain format.
+   *
+   * @param year the new year input.
+   */
+  private fun validateYear(year: String): Boolean {
+    if (year.isEmpty()) {
+      setYearError("Year cannot be empty")
+      return false
+    } else if (year.toIntOrNull() == null) {
+      setYearError("Year should be a valid number")
+      return false
+    } else if (year.toInt() < 2025 || year.length < 4) {
+      setYearError("Enter a valid 4-digit year (2025 or later)")
+      return false
+    } else {
+      setYearError(null)
+      return true
     }
+  }
 
-    /**
-     * Check that the new hour input is not empty and respect a certain format.
-     * @param hour the new hour input.
-     */
-    private fun validateHour(hour: String): Boolean{
-        if (hour.isEmpty()){
-            setHourError("Hour cannot be empty")
-            return false
-        }else if (hour.toIntOrNull() == null){
-            setHourError("Hour should be a valid number")
-            return false
-        }else if(hour.toInt() !in 0..23 ) {
-            setHourError("Hour should be between 0 and 23")
-            return false
-        }else{
-            setHourError(null)
-            return true
-        }
+  /**
+   * Check that the new hour input is not empty and respect a certain format.
+   *
+   * @param hour the new hour input.
+   */
+  private fun validateHour(hour: String): Boolean {
+    if (hour.isEmpty()) {
+      setHourError("Hour cannot be empty")
+      return false
+    } else if (hour.toIntOrNull() == null) {
+      setHourError("Hour should be a valid number")
+      return false
+    } else if (hour.toInt() !in 0..23) {
+      setHourError("Hour should be between 0 and 23")
+      return false
+    } else {
+      setHourError(null)
+      return true
     }
+  }
 
-    /**
-     * Check that the new minute input is not empty and respect a certain format.
-     * @param minute the new minute input.
-     */
-    private fun validateMinute(minute: String): Boolean{
-        if (minute.isEmpty()){
-            setMinuteError("Minute cannot be empty")
-            return false
-        }else if (minute.toIntOrNull() == null) {
-            setMinuteError("Minute should be a valid number")
-            return false
-        }else if (minute.toInt() !in 0..59){
-            setMinuteError("Minute should be between 0 and 59")
-            return false
-        }else{
-            setMinuteError(null)
-            return true
-        }
+  /**
+   * Check that the new minute input is not empty and respect a certain format.
+   *
+   * @param minute the new minute input.
+   */
+  private fun validateMinute(minute: String): Boolean {
+    if (minute.isEmpty()) {
+      setMinuteError("Minute cannot be empty")
+      return false
+    } else if (minute.toIntOrNull() == null) {
+      setMinuteError("Minute should be a valid number")
+      return false
+    } else if (minute.toInt() !in 0..59) {
+      setMinuteError("Minute should be between 0 and 59")
+      return false
+    } else {
+      setMinuteError(null)
+      return true
     }
+  }
 
-    /**
-     * Check that all the parameters enter in the textFields are not empty and are well written.
-     */
-    fun validateAll(): Boolean{
-        return (eventCreationUiState.value.titleError == null &&
-                eventCreationUiState.value.dayError == null &&
-                eventCreationUiState.value.monthError == null &&
-                eventCreationUiState.value.yearError == null &&
-                eventCreationUiState.value.hourError == null &&
-                eventCreationUiState.value.minuteError == null)
-    }
+  /** Check that all the parameters enter in the textFields are not empty and are well written. */
+  fun validateAll(): Boolean {
+    return (eventCreationUiState.value.titleError == null &&
+        eventCreationUiState.value.dayError == null &&
+        eventCreationUiState.value.monthError == null &&
+        eventCreationUiState.value.yearError == null &&
+        eventCreationUiState.value.hourError == null &&
+        eventCreationUiState.value.minuteError == null)
+  }
 
   /**
    * Update the name of the event.
@@ -248,7 +252,7 @@ class EventCreationViewModel(
    */
   fun setEventName(name: String) {
     eventCreationUiState.value = eventCreationUiState.value.copy(name = name)
-      validateTitle(name)
+    validateTitle(name)
   }
 
   /**
@@ -266,10 +270,10 @@ class EventCreationViewModel(
    * @param day the new event's day.
    */
   fun setEventDay(day: String) {
-      if(day.length <= 2) {
-          eventCreationUiState.value = eventCreationUiState.value.copy(day = day)
-          validateDay(day)
-      }
+    if (day.length <= 2) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(day = day)
+      validateDay(day)
+    }
   }
 
   /**
@@ -278,10 +282,10 @@ class EventCreationViewModel(
    * @param month the new event's month.
    */
   fun setEventMonth(month: String) {
-      if (month.length <= 2) {
-          eventCreationUiState.value = eventCreationUiState.value.copy(month = month)
-          validateMonth(month)
-      }
+    if (month.length <= 2) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(month = month)
+      validateMonth(month)
+    }
   }
 
   /**
@@ -290,10 +294,10 @@ class EventCreationViewModel(
    * @param year the new event's year.
    */
   fun setEventYear(year: String) {
-      if (year.length <= 4 ) {
-          eventCreationUiState.value = eventCreationUiState.value.copy(year = year)
-          validateYear(year)
-      }
+    if (year.length <= 4) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(year = year)
+      validateYear(year)
+    }
   }
 
   /**
@@ -302,10 +306,10 @@ class EventCreationViewModel(
    * @param hour the new event's hour.
    */
   fun setEventHour(hour: String) {
-      if (hour.length <= 2) {
-          eventCreationUiState.value = eventCreationUiState.value.copy(hour = hour)
-          validateHour(hour)
-      }
+    if (hour.length <= 2) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(hour = hour)
+      validateHour(hour)
+    }
   }
 
   /**
@@ -314,10 +318,10 @@ class EventCreationViewModel(
    * @param minute the new event's minute.
    */
   fun setEventMinute(minute: String) {
-      if (minute.length <= 2) {
-          eventCreationUiState.value = eventCreationUiState.value.copy(minute = minute)
-          validateMinute(minute)
-      }
+    if (minute.length <= 2) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(minute = minute)
+      validateMinute(minute)
+    }
   }
 
   /**
@@ -336,58 +340,53 @@ class EventCreationViewModel(
    * @param uid the uid of the Current User.
    */
   fun saveEvent(location: Location, uid: String) {
-      if (validateAll()) {
-          viewModelScope.launch {
+    if (validateAll()) {
+      viewModelScope.launch {
+        try {
+          val id = eventRepository.getNewID()
+
+          val realDay = eventCreationUiState.value.day.padStart(2, '0')
+
+          val realMonth = eventCreationUiState.value.month.padStart(2, '0')
+
+          val realHour = eventCreationUiState.value.hour.padStart(2, '0')
+
+          val realMinute = eventCreationUiState.value.minute.padStart(2, '0')
+
+          val date = realDay + "/" + realMonth + "/" + eventCreationUiState.value.year
+
+          val time = "$realHour:$realMinute"
+
+          val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+          val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+          val localDate =
               try {
-                  val id = eventRepository.getNewID()
-
-                  val realDay = eventCreationUiState.value.day.padStart(2, '0')
-
-                  val realMonth = eventCreationUiState.value.month.padStart(2, '0')
-
-                  val realHour = eventCreationUiState.value.hour.padStart(2, '0')
-
-                  val realMinute = eventCreationUiState.value.minute.padStart(2, '0')
-
-                  val date =
-                      realDay +
-                              "/" +
-                              realMonth +
-                              "/" +
-                              eventCreationUiState.value.year
-
-                  val time = "$realHour:$realMinute"
-
-                  val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                  val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-
-                  val localDate = try {
-                      LocalDate.parse(date, dateFormatter)
-                  } catch (e: Exception) {
-                      setDayError("Please enter a valid date (e.g. no 30th of February)")
-                      return@launch
-                  }
-                  val localTime = LocalTime.parse(time, timeFormatter)
-
-                  val eventDateTime = LocalDateTime.of(localDate, localTime)
-
-                  val creator = userRepository.getUser(uid)
-                  val event =
-                      Event(
-                          id = id,
-                          title = eventCreationUiState.value.name,
-                          description = eventCreationUiState.value.description,
-                          date = eventDateTime,
-                          tags = eventCreationUiState.value.tags,
-                          creator = creator,
-                          participants = setOf(creator),
-                          location = location
-                      )
-                  eventRepository.addEvent(event)
+                LocalDate.parse(date, dateFormatter)
               } catch (e: Exception) {
-                  Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
+                setDayError("Please enter a valid date (e.g. no 30th of February)")
+                return@launch
               }
-          }
+          val localTime = LocalTime.parse(time, timeFormatter)
+
+          val eventDateTime = LocalDateTime.of(localDate, localTime)
+
+          val creator = userRepository.getUser(uid)
+          val event =
+              Event(
+                  id = id,
+                  title = eventCreationUiState.value.name,
+                  description = eventCreationUiState.value.description,
+                  date = eventDateTime,
+                  tags = eventCreationUiState.value.tags,
+                  creator = creator,
+                  participants = setOf(creator),
+                  location = location)
+          eventRepository.addEvent(event)
+        } catch (e: Exception) {
+          Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
+        }
       }
+    }
   }
 }

@@ -23,9 +23,7 @@ class EventCreationViewModelTest {
   private lateinit var viewModel: EventCreationViewModel
   private val testDispatcher = StandardTestDispatcher()
 
-  /**
-   * Companion object to provides values for the tests.
-   */
+  /** Companion object to provides values for the tests. */
   companion object {
     const val SAMPLE_TITLE = "Sample Title"
     const val SAMPLE_DESCRIPTION = "Sample Description"

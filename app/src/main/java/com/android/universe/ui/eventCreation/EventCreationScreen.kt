@@ -79,28 +79,30 @@ private fun TextFieldEventCreation(
     errorModifier: Modifier = Modifier,
     singleLine: Boolean = true
 ) {
-    var hasBeenTouched by remember { mutableStateOf(false) }
+  var hasBeenTouched by remember { mutableStateOf(false) }
 
-    val isError = if (hasBeenTouched){
+  val isError =
+      if (hasBeenTouched) {
         errorMessage != null
-    }else{
+      } else {
         false
-    }
+      }
   OutlinedTextField(
-      modifier = modifier.onFocusChanged { focusState ->
-          if (focusState.isFocused && !hasBeenTouched) {
+      modifier =
+          modifier.onFocusChanged { focusState ->
+            if (focusState.isFocused && !hasBeenTouched) {
               hasBeenTouched = true
-          }
-      },
+            }
+          },
       value = value,
       onValueChange = onValueChange,
       isError = isError,
       supportingText =
-                if (isError) {
-                { Text(errorMessage!!, modifier = errorModifier) }
-              } else {
-                null
-              },
+          if (isError) {
+            { Text(errorMessage!!, modifier = errorModifier) }
+          } else {
+            null
+          },
       label = { Text(label) },
       singleLine = singleLine)
 }
@@ -136,9 +138,7 @@ fun EventCreationScreen(
                       .fillMaxWidth()
                       .padding(16.dp),
               value = uiState.value.name,
-              onValueChange = { name ->
-                eventCreationViewModel.setEventName(name)
-              },
+              onValueChange = { name -> eventCreationViewModel.setEventName(name) },
               label = "Event Title",
               errorMessage = uiState.value.titleError,
               errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_TITLE))
@@ -164,9 +164,7 @@ fun EventCreationScreen(
                         .weight(1f)
                         .padding(16.dp),
                 value = uiState.value.day,
-                onValueChange = { day ->
-                    eventCreationViewModel.setEventDay(day)
-                },
+                onValueChange = { day -> eventCreationViewModel.setEventDay(day) },
                 label = "Day",
                 errorMessage = uiState.value.dayError,
                 errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DAY))
@@ -176,9 +174,7 @@ fun EventCreationScreen(
                         .weight(1f)
                         .padding(16.dp),
                 value = uiState.value.month,
-                onValueChange = { month ->
-                    eventCreationViewModel.setEventMonth(month)
-                },
+                onValueChange = { month -> eventCreationViewModel.setEventMonth(month) },
                 label = "Month",
                 errorMessage = uiState.value.monthError,
                 errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MONTH))
@@ -188,9 +184,7 @@ fun EventCreationScreen(
                         .weight(1f)
                         .padding(16.dp),
                 value = uiState.value.year,
-                onValueChange = { year ->
-                    eventCreationViewModel.setEventYear(year)
-                },
+                onValueChange = { year -> eventCreationViewModel.setEventYear(year) },
                 label = "Year",
                 errorMessage = uiState.value.yearError,
                 errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_YEAR))
@@ -202,9 +196,7 @@ fun EventCreationScreen(
                     modifier =
                         Modifier.testTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).width(120.dp),
                     value = uiState.value.hour,
-                    onValueChange = { hour ->
-                        eventCreationViewModel.setEventHour(hour)
-                    },
+                    onValueChange = { hour -> eventCreationViewModel.setEventHour(hour) },
                     label = "Hour",
                     errorMessage = uiState.value.hourError,
                     errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_HOUR))
@@ -215,9 +207,7 @@ fun EventCreationScreen(
                         Modifier.testTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
                             .width(120.dp),
                     value = uiState.value.minute,
-                    onValueChange = { minute ->
-                        eventCreationViewModel.setEventMinute(minute)
-                    },
+                    onValueChange = { minute -> eventCreationViewModel.setEventMinute(minute) },
                     label = "Minute",
                     errorMessage = uiState.value.minuteError,
                     errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MINUTE))
@@ -262,11 +252,11 @@ fun EventCreationScreen(
                       .fillMaxWidth()
                       .padding(16.dp),
               onClick = {
-                  val currentUser = Firebase.auth.currentUser?.uid
-                  if (currentUser != null) {
-                    eventCreationViewModel.saveEvent(location = location, uid = currentUser)
-                    onSave()
-                  }
+                val currentUser = Firebase.auth.currentUser?.uid
+                if (currentUser != null) {
+                  eventCreationViewModel.saveEvent(location = location, uid = currentUser)
+                  onSave()
+                }
               },
               enabled = eventCreationViewModel.validateAll()) {
                 Text("Save Event")
