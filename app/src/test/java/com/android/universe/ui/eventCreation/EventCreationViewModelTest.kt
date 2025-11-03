@@ -23,6 +23,19 @@ class EventCreationViewModelTest {
   private lateinit var viewModel: EventCreationViewModel
   private val testDispatcher = StandardTestDispatcher()
 
+  /**
+   * Companion object to provides values for the tests.
+   */
+  companion object {
+    const val SAMPLE_TITLE = "Sample Title"
+    const val SAMPLE_DESCRIPTION = "Sample Description"
+    const val SAMPLE_DAY = "12"
+    const val SAMPLE_MONTH = "12"
+    const val SAMPLE_YEAR = "2025"
+    const val SAMPLE_HOUR = "12"
+    const val SAMPLE_MINUTE = "12"
+  }
+
   @OptIn(ExperimentalCoroutinesApi::class)
   @Before
   fun setup() {
@@ -35,58 +48,51 @@ class EventCreationViewModelTest {
 
   @Test
   fun testSetEventName() {
-    val eventName = "Sample Event"
-    viewModel.setEventName(eventName)
+    viewModel.setEventName(SAMPLE_TITLE)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.name == eventName)
+    assert(state.name == SAMPLE_TITLE)
   }
 
   @Test
   fun testSetEventDescription() {
-    val eventDescription = "Sample Description"
-    viewModel.setEventDescription(eventDescription)
+    viewModel.setEventDescription(SAMPLE_DESCRIPTION)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.description == eventDescription)
+    assert(state.description == SAMPLE_DESCRIPTION)
   }
 
   @Test
   fun testSetEventDay() {
-    val eventDay = "Sample Day"
-    viewModel.setEventDay(eventDay)
+    viewModel.setEventDay(SAMPLE_DAY)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.day == eventDay)
+    assert(state.day == SAMPLE_DAY)
   }
 
   @Test
   fun testSetEventMonth() {
-    val eventMonth = "Sample Month"
-    viewModel.setEventMonth(eventMonth)
+    viewModel.setEventMonth(SAMPLE_MONTH)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.month == eventMonth)
+    assert(state.month == SAMPLE_MONTH)
   }
 
   @Test
   fun testSetEventYear() {
-    val eventYear = "Sample Year"
-    viewModel.setEventYear(eventYear)
+    viewModel.setEventYear(SAMPLE_YEAR)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.year == eventYear)
+    assert(state.year == SAMPLE_YEAR)
   }
 
   @Test
   fun testSetEventHour() {
-    val eventHour = "Sample Hour"
-    viewModel.setEventHour(eventHour)
+    viewModel.setEventHour(SAMPLE_HOUR)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.hour == eventHour)
+    assert(state.hour == SAMPLE_HOUR)
   }
 
   @Test
   fun testSetEventMinute() {
-    val eventMinute = "Sample Minute"
-    viewModel.setEventMinute(eventMinute)
+    viewModel.setEventMinute(SAMPLE_MINUTE)
     val state = viewModel.uiStateEventCreation.value
-    assert(state.minute == eventMinute)
+    assert(state.minute == SAMPLE_MINUTE)
   }
 
   @Test
@@ -109,26 +115,19 @@ class EventCreationViewModelTest {
             dateOfBirth = LocalDate.of(1990, 1, 1),
             tags = emptySet())
     userRepository.addUser(userProfile)
-    val eventName = "Sample Event"
-    viewModel.setEventName(eventName)
+    viewModel.setEventName(SAMPLE_TITLE)
 
-    val eventDescription = "Sample Description"
-    viewModel.setEventDescription(eventDescription)
+    viewModel.setEventDescription(SAMPLE_DESCRIPTION)
 
-    val eventDay = "12"
-    viewModel.setEventDay(eventDay)
+    viewModel.setEventDay(SAMPLE_DAY)
 
-    val eventMonth = "12"
-    viewModel.setEventMonth(eventMonth)
+    viewModel.setEventMonth(SAMPLE_MONTH)
 
-    val eventYear = "2025"
-    viewModel.setEventYear(eventYear)
+    viewModel.setEventYear(SAMPLE_YEAR)
 
-    val eventHour = "12"
-    viewModel.setEventHour(eventHour)
+    viewModel.setEventHour(SAMPLE_HOUR)
 
-    val eventMinute = "12"
-    viewModel.setEventMinute(eventMinute)
+    viewModel.setEventMinute(SAMPLE_MINUTE)
 
     val eventTags = setOf(Tag.METAL, Tag.CAR)
     viewModel.setEventTags(eventTags)
@@ -138,8 +137,8 @@ class EventCreationViewModelTest {
     val savedEvent = eventRepository.getAllEvents()
     assert(savedEvent.size == 1)
     val event = savedEvent[0]
-    assert(event.title == eventName)
-    assert(event.description == eventDescription)
+    assert(event.title == SAMPLE_TITLE)
+    assert(event.description == SAMPLE_DESCRIPTION)
     assert(event.creator == userProfile)
     assert(event.participants == setOf(userProfile))
     assert(event.location == Location(0.0, 0.0))
