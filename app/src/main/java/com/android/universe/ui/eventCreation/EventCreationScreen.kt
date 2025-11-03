@@ -22,9 +22,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -61,8 +64,6 @@ object EventCreationTestTags {
  * @param modifier the modifier to apply.
  * @param value the string to print on the textField.
  * @param onValueChange the function to call when the value change.
- * @param isError the boolean true when there is an error.
- * @param supportingText to add a text when there is an error.
  * @param label the string to display at the top of the textField.
  * @param errorMessage the message to display when there is an error.
  * @param singleLine the boolean true when we want to display the value is one single Line.
@@ -72,21 +73,29 @@ private fun TextFieldEventCreation(
     modifier: Modifier = Modifier,
     value: String = "",
     onValueChange: (String) -> Unit = {},
-    isError: Boolean = false,
-    supportingText: @Composable (() -> Unit)? = null,
     label: String = "",
-    errorMessage: String = "",
+    errorMessage: String? = "",
     singleLine: Boolean = true
 ) {
+    var hasBeenTouched by remember { mutableStateOf(false) }
+
+    val isError = if (hasBeenTouched){
+        errorMessage != null
+    }else{
+        false
+    }
   OutlinedTextField(
-      modifier = modifier,
+      modifier = modifier.onFocusChanged { focusState ->
+          if (focusState.isFocused && !hasBeenTouched) {
+              hasBeenTouched = true
+          }
+      },
       value = value,
       onValueChange = onValueChange,
       isError = isError,
       supportingText =
-          supportingText
-              ?: if (isError) {
-                { Text(errorMessage) }
+                if (isError) {
+                { Text(errorMessage!!) }
               } else {
                 null
               },
@@ -116,13 +125,13 @@ fun EventCreationScreen(
     onAddTag: (Set<Tag>) -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
-  val isErrorName = remember { mutableStateOf(false) }
+  /*val isErrorName = remember { mutableStateOf(false) }
   val isErrorDescription = remember { mutableStateOf(false) }
   val isErrorDay = remember { mutableStateOf(false) }
   val isErrorMonth = remember { mutableStateOf(false) }
   val isErrorYear = remember { mutableStateOf(false) }
   val isErrorHour = remember { mutableStateOf(false) }
-  val isErrorMinute = remember { mutableStateOf(false) }
+  val isErrorMinute = remember { mutableStateOf(false) }*/
 
   Scaffold(
       content = { paddingValues ->
@@ -135,45 +144,21 @@ fun EventCreationScreen(
               value = uiState.value.name,
               onValueChange = { name ->
                 eventCreationViewModel.setEventName(name)
-                isErrorName.value = name.isEmpty()
               },
-              isError = isErrorName.value,
-              supportingText =
-                  if (isErrorName.value) {
-                    {
-                      Text(
-                          "Title cannot be empty",
-                          modifier = Modifier.testTag(EventCreationTestTags.ERROR_TITLE))
-                    }
-                  } else {
-                    null
-                  },
               label = "Event Title",
-              errorMessage = "Title cannot be empty")
+              errorMessage = uiState.value.titleError)
           TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
                       .fillMaxWidth()
                       .padding(16.dp)
                       .height(120.dp),
-              value = uiState.value.description,
+              value = uiState.value.description ?: "",
               onValueChange = { description ->
                 eventCreationViewModel.setEventDescription(description)
-                isErrorDescription.value = description.isEmpty()
               },
-              isError = isErrorDescription.value,
-              supportingText =
-                  if (isErrorDescription.value) {
-                    {
-                      Text(
-                          "Description cannot be empty",
-                          modifier = Modifier.testTag(EventCreationTestTags.ERROR_DESCRIPTION))
-                    }
-                  } else {
-                    null
-                  },
               label = "Event Description",
-              errorMessage = "Description cannot be empty",
+              errorMessage = null,
               singleLine = false)
           Spacer(modifier = Modifier.height(12.dp))
           Row(modifier = Modifier.padding(paddingValues)) {
@@ -184,28 +169,10 @@ fun EventCreationScreen(
                         .padding(16.dp),
                 value = uiState.value.day,
                 onValueChange = { day ->
-                  if (day.length <= 2) {
                     eventCreationViewModel.setEventDay(day)
-                    isErrorDay.value =
-                        day.isEmpty() ||
-                            day.toIntOrNull() == null ||
-                            day.toInt() !in 1..31 ||
-                            day.length < 2
-                  }
                 },
-                isError = isErrorDay.value,
-                supportingText =
-                    if (isErrorDay.value) {
-                      {
-                        Text(
-                            "Enter a valid day format XX",
-                            modifier = Modifier.testTag(EventCreationTestTags.ERROR_DAY))
-                      }
-                    } else {
-                      null
-                    },
                 label = "Day",
-                errorMessage = "Enter a valid day format XX")
+                errorMessage = uiState.value.dayError)
             TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
@@ -213,28 +180,10 @@ fun EventCreationScreen(
                         .padding(16.dp),
                 value = uiState.value.month,
                 onValueChange = { month ->
-                  if (month.length <= 2) {
                     eventCreationViewModel.setEventMonth(month)
-                    isErrorMonth.value =
-                        month.isEmpty() ||
-                            month.toIntOrNull() == null ||
-                            month.toInt() !in 1..12 ||
-                            month.length < 2
-                  }
                 },
-                isError = isErrorMonth.value,
-                supportingText =
-                    if (isErrorMonth.value) {
-                      {
-                        Text(
-                            "Enter a valid month format XX",
-                            modifier = Modifier.testTag(EventCreationTestTags.ERROR_MONTH))
-                      }
-                    } else {
-                      null
-                    },
                 label = "Month",
-                errorMessage = "Enter a valid month format XX")
+                errorMessage = uiState.value.monthError)
             TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
@@ -242,28 +191,10 @@ fun EventCreationScreen(
                         .padding(16.dp),
                 value = uiState.value.year,
                 onValueChange = { year ->
-                  if (year.length <= 4) {
                     eventCreationViewModel.setEventYear(year)
-                    isErrorYear.value =
-                        year.isEmpty() ||
-                            year.toIntOrNull() == null ||
-                            year.toInt() < 2025 ||
-                            year.length < 4
-                  }
                 },
-                isError = isErrorYear.value,
-                supportingText =
-                    if (isErrorYear.value) {
-                      {
-                        Text(
-                            "Enter a valid year format XXXX",
-                            modifier = Modifier.testTag(EventCreationTestTags.ERROR_YEAR))
-                      }
-                    } else {
-                      null
-                    },
                 label = "Year",
-                errorMessage = "Enter a valid year format XXXX")
+                errorMessage = uiState.value.yearError)
           }
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
@@ -273,28 +204,10 @@ fun EventCreationScreen(
                         Modifier.testTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).width(120.dp),
                     value = uiState.value.hour,
                     onValueChange = { hour ->
-                      if (hour.length <= 2) {
                         eventCreationViewModel.setEventHour(hour)
-                        isErrorHour.value =
-                            hour.isEmpty() ||
-                                hour.toIntOrNull() == null ||
-                                hour.toInt() !in 0..23 ||
-                                hour.length < 2
-                      }
                     },
-                    isError = isErrorHour.value,
-                    supportingText =
-                        if (isErrorHour.value) {
-                          {
-                            Text(
-                                "Enter a valid hour format XX",
-                                modifier = Modifier.testTag(EventCreationTestTags.ERROR_HOUR))
-                          }
-                        } else {
-                          null
-                        },
                     label = "Hour",
-                    errorMessage = "Enter a valid hour format XX")
+                    errorMessage = uiState.value.hourError)
 
                 Spacer(modifier = Modifier.width(16.dp))
                 TextFieldEventCreation(
@@ -303,28 +216,10 @@ fun EventCreationScreen(
                             .width(120.dp),
                     value = uiState.value.minute,
                     onValueChange = { minute ->
-                      if (minute.length <= 2) {
                         eventCreationViewModel.setEventMinute(minute)
-                        isErrorMinute.value =
-                            minute.isEmpty() ||
-                                minute.toIntOrNull() == null ||
-                                minute.toInt() !in 0..59 ||
-                                minute.length < 2
-                      }
                     },
-                    isError = isErrorMinute.value,
-                    supportingText =
-                        if (isErrorMinute.value) {
-                          {
-                            Text(
-                                "Enter a valid minute format XX",
-                                modifier = Modifier.testTag(EventCreationTestTags.ERROR_MINUTE))
-                          }
-                        } else {
-                          null
-                        },
                     label = "Minute",
-                    errorMessage = "Enter a valid minute format XX")
+                    errorMessage = uiState.value.minuteError)
               }
           Row(modifier = Modifier.padding(paddingValues)) {
             Text(
@@ -366,20 +261,13 @@ fun EventCreationScreen(
                       .fillMaxWidth()
                       .padding(16.dp),
               onClick = {
-                if (!isErrorName.value &&
-                    !isErrorDescription.value &&
-                    !isErrorDay.value &&
-                    !isErrorMonth.value &&
-                    !isErrorYear.value &&
-                    !isErrorHour.value &&
-                    !isErrorMinute.value) {
                   val currentUser = Firebase.auth.currentUser?.uid
                   if (currentUser != null) {
                     eventCreationViewModel.saveEvent(location = location, uid = currentUser)
+                    onSave()
                   }
-                  onSave()
-                }
-              }) {
+              },
+              enabled = eventCreationViewModel.validateAll()) {
                 Text("Save Event")
               }
         }
