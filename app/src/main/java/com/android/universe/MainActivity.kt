@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.map.MapScreen
@@ -28,6 +29,7 @@ import com.android.universe.ui.navigation.NavigationPlaceholderScreen
 import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.navigation.resolveUserDestinationScreen
 import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
@@ -35,10 +37,7 @@ import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
+import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,10 +67,8 @@ fun UniverseApp(
 ) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
-  var user = FirebaseAuth.getInstance().currentUser
-  val startDestination =
-      if (user != null && user.isAnonymous) NavigationScreens.Map.route
-      else NavigationScreens.SignIn.name
+  val userRepository = UserRepositoryProvider.repository
+  val startDestination = resolveUserDestinationScreen(userRepository = userRepository).name
 
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
 
@@ -83,21 +80,8 @@ fun UniverseApp(
       composable(NavigationScreens.SignIn.route) {
         SignInScreen(
             onSignedIn = {
-              user = FirebaseAuth.getInstance().currentUser
-              runBlocking {
-                val profileExists =
-                    Firebase.firestore
-                        .collection("users")
-                        .document(user!!.uid)
-                        .get()
-                        .await()
-                        .exists()
-                if (profileExists) {
-                  navigationActions.navigateTo(NavigationScreens.Map)
-                } else {
-                  navigationActions.navigateTo(NavigationScreens.AddProfile)
-                }
-              }
+              navigationActions.navigateTo(
+                  resolveUserDestinationScreen(userRepository = userRepository))
             },
             credentialManager = credentialManager)
       }
@@ -108,7 +92,7 @@ fun UniverseApp(
     ) {
       composable(NavigationScreens.AddProfile.route) {
         AddProfileScreen(
-            uid = user!!.uid,
+            uid = Firebase.auth.currentUser!!.uid,
             navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTag) },
             onBack = {
               // Navigate back to Sign In
@@ -124,7 +108,7 @@ fun UniverseApp(
         startDestination = NavigationScreens.SelectTag.route) {
           composable(NavigationScreens.SelectTag.route) {
             SelectTagScreen(
-                uid = user!!.uid,
+                uid = Firebase.auth.currentUser!!.uid,
                 navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
           }
         }
@@ -162,7 +146,7 @@ fun UniverseApp(
     ) {
       composable(NavigationScreens.Profile.route) {
         UserProfileScreen(
-            uid = user!!.uid,
+            uid = Firebase.auth.currentUser!!.uid,
             onTabSelected = onTabSelected,
             onEditProfileClick = { uid ->
               navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
