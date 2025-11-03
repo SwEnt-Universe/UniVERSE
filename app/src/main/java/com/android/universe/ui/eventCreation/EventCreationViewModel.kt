@@ -48,6 +48,19 @@ data class EventCreationUIState(
 )
 
 /**
+ * Object that contains the different limit of character for the textFields in the Event creation screen.
+ */
+object EventInputLimits {
+  const val TITLE_MAX_LENGTH = 40
+  const val DESCRIPTION_MAX_LENGTH = 200
+  const val DAY_MAX_LENGTH = 2
+  const val MONTH_MAX_LENGTH = 2
+  const val YEAR_MAX_LENGTH = 4
+  const val HOUR_MAX_LENGTH = 2
+  const val MINUTE_MAX_LENGTH = 2
+}
+
+/**
  * ViewModel of the EventCreationScreen. Manage the data of the Screen and save the Event in the
  * repository.
  *
@@ -251,8 +264,10 @@ class EventCreationViewModel(
    * @param name the new event's name.
    */
   fun setEventName(name: String) {
-    eventCreationUiState.value = eventCreationUiState.value.copy(name = name)
-    validateTitle(name)
+    if (name.length <= EventInputLimits.TITLE_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(name = name)
+      validateTitle(name)
+    }
   }
 
   /**
@@ -261,7 +276,9 @@ class EventCreationViewModel(
    * @param description the new event's description.
    */
   fun setEventDescription(description: String) {
-    eventCreationUiState.value = eventCreationUiState.value.copy(description = description)
+    if (description.length <= EventInputLimits.DESCRIPTION_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(description = description)
+    }
   }
 
   /**
@@ -270,7 +287,7 @@ class EventCreationViewModel(
    * @param day the new event's day.
    */
   fun setEventDay(day: String) {
-    if (day.length <= 2) {
+    if (day.length <= EventInputLimits.DAY_MAX_LENGTH) {
       eventCreationUiState.value = eventCreationUiState.value.copy(day = day)
       validateDay(day)
     }
@@ -282,7 +299,7 @@ class EventCreationViewModel(
    * @param month the new event's month.
    */
   fun setEventMonth(month: String) {
-    if (month.length <= 2) {
+    if (month.length <= EventInputLimits.MONTH_MAX_LENGTH) {
       eventCreationUiState.value = eventCreationUiState.value.copy(month = month)
       validateMonth(month)
     }
@@ -294,7 +311,7 @@ class EventCreationViewModel(
    * @param year the new event's year.
    */
   fun setEventYear(year: String) {
-    if (year.length <= 4) {
+    if (year.length <= EventInputLimits.YEAR_MAX_LENGTH) {
       eventCreationUiState.value = eventCreationUiState.value.copy(year = year)
       validateYear(year)
     }
@@ -306,7 +323,7 @@ class EventCreationViewModel(
    * @param hour the new event's hour.
    */
   fun setEventHour(hour: String) {
-    if (hour.length <= 2) {
+    if (hour.length <= EventInputLimits.HOUR_MAX_LENGTH) {
       eventCreationUiState.value = eventCreationUiState.value.copy(hour = hour)
       validateHour(hour)
     }
@@ -318,7 +335,7 @@ class EventCreationViewModel(
    * @param minute the new event's minute.
    */
   fun setEventMinute(minute: String) {
-    if (minute.length <= 2) {
+    if (minute.length <= EventInputLimits.MINUTE_MAX_LENGTH) {
       eventCreationUiState.value = eventCreationUiState.value.copy(minute = minute)
       validateMinute(minute)
     }
