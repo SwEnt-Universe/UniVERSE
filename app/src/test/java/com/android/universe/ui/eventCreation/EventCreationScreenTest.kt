@@ -190,7 +190,7 @@ class EventCreationScreenTest {
   }
 
   @Test
-  fun eventCreationScreen_DescriptionEmpty_Display_Error() {
+  fun eventCreationScreen_DescriptionEmpty_NotDisplay_Error() {
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(SAMPLE_TEXT_INPUT)
@@ -199,7 +199,7 @@ class EventCreationScreenTest {
         .performTextReplacement(SAMPLE_ERASED_TEXT)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.ERROR_DESCRIPTION, useUnmergedTree = true)
-        .assertIsDisplayed()
+        .assertIsNotDisplayed()
   }
 
   @Test
@@ -285,9 +285,8 @@ class EventCreationScreenTest {
 
   @Test
   fun eventCreationScreen_YearNonInt_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
+      composeTestRule
+          .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD).performTextInput(SAMPLE_INVALID_DATE_INPUT)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.ERROR_YEAR, useUnmergedTree = true)
         .assertIsDisplayed()

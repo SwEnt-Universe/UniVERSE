@@ -66,6 +66,7 @@ object EventCreationTestTags {
  * @param onValueChange the function to call when the value change.
  * @param label the string to display at the top of the textField.
  * @param errorMessage the message to display when there is an error.
+ * @param errorModifier the modifier for the Text error message.
  * @param singleLine the boolean true when we want to display the value is one single Line.
  */
 @Composable
@@ -75,6 +76,7 @@ private fun TextFieldEventCreation(
     onValueChange: (String) -> Unit = {},
     label: String = "",
     errorMessage: String? = "",
+    errorModifier: Modifier = Modifier,
     singleLine: Boolean = true
 ) {
     var hasBeenTouched by remember { mutableStateOf(false) }
@@ -95,7 +97,7 @@ private fun TextFieldEventCreation(
       isError = isError,
       supportingText =
                 if (isError) {
-                { Text(errorMessage!!) }
+                { Text(errorMessage!!, modifier = errorModifier) }
               } else {
                 null
               },
@@ -125,14 +127,6 @@ fun EventCreationScreen(
     onAddTag: (Set<Tag>) -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
-  /*val isErrorName = remember { mutableStateOf(false) }
-  val isErrorDescription = remember { mutableStateOf(false) }
-  val isErrorDay = remember { mutableStateOf(false) }
-  val isErrorMonth = remember { mutableStateOf(false) }
-  val isErrorYear = remember { mutableStateOf(false) }
-  val isErrorHour = remember { mutableStateOf(false) }
-  val isErrorMinute = remember { mutableStateOf(false) }*/
-
   Scaffold(
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
@@ -146,7 +140,8 @@ fun EventCreationScreen(
                 eventCreationViewModel.setEventName(name)
               },
               label = "Event Title",
-              errorMessage = uiState.value.titleError)
+              errorMessage = uiState.value.titleError,
+              errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_TITLE))
           TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
@@ -159,6 +154,7 @@ fun EventCreationScreen(
               },
               label = "Event Description",
               errorMessage = null,
+              errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DESCRIPTION),
               singleLine = false)
           Spacer(modifier = Modifier.height(12.dp))
           Row(modifier = Modifier.padding(paddingValues)) {
@@ -172,7 +168,8 @@ fun EventCreationScreen(
                     eventCreationViewModel.setEventDay(day)
                 },
                 label = "Day",
-                errorMessage = uiState.value.dayError)
+                errorMessage = uiState.value.dayError,
+                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DAY))
             TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
@@ -183,7 +180,8 @@ fun EventCreationScreen(
                     eventCreationViewModel.setEventMonth(month)
                 },
                 label = "Month",
-                errorMessage = uiState.value.monthError)
+                errorMessage = uiState.value.monthError,
+                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MONTH))
             TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
@@ -194,7 +192,8 @@ fun EventCreationScreen(
                     eventCreationViewModel.setEventYear(year)
                 },
                 label = "Year",
-                errorMessage = uiState.value.yearError)
+                errorMessage = uiState.value.yearError,
+                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_YEAR))
           }
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
@@ -207,7 +206,8 @@ fun EventCreationScreen(
                         eventCreationViewModel.setEventHour(hour)
                     },
                     label = "Hour",
-                    errorMessage = uiState.value.hourError)
+                    errorMessage = uiState.value.hourError,
+                    errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_HOUR))
 
                 Spacer(modifier = Modifier.width(16.dp))
                 TextFieldEventCreation(
@@ -219,7 +219,8 @@ fun EventCreationScreen(
                         eventCreationViewModel.setEventMinute(minute)
                     },
                     label = "Minute",
-                    errorMessage = uiState.value.minuteError)
+                    errorMessage = uiState.value.minuteError,
+                    errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MINUTE))
               }
           Row(modifier = Modifier.padding(paddingValues)) {
             Text(
