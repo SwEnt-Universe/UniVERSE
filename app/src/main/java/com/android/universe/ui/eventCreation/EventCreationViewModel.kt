@@ -48,7 +48,8 @@ data class EventCreationUIState(
 )
 
 /**
- * Object that contains the different limit of character for the textFields in the Event creation screen.
+ * Object that contains the different limit of character for the textFields in the Event creation
+ * screen.
  */
 object EventInputLimits {
   const val TITLE_MAX_LENGTH = 40
