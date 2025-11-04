@@ -6,7 +6,6 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.profile.SettingsViewModel
 import com.android.universe.utils.MainCoroutineRule
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth

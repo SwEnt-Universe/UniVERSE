@@ -6,6 +6,7 @@ package com.android.universe.model.authentication
  */
 import android.util.Log
 import androidx.credentials.Credential
+import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.validateEmail
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
@@ -103,7 +104,9 @@ class AuthModelFirebase(
    */
   override suspend fun signInWithEmail(email: String, password: String): Result<FirebaseUser> =
       runCatching {
-        validateEmail(email)?.let { throw InvalidEmailException(it) }
+        (validateEmail(email) as? ValidationResult.Invalid)?.let {
+          throw InvalidEmailException(it.errorMessage)
+        }
         val authResult =
             try {
               auth.createUserWithEmailAndPassword(email, password).await()

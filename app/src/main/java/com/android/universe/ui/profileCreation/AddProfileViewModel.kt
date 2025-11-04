@@ -6,54 +6,51 @@ import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.common.ErrorMessages
+import com.android.universe.ui.common.InputLimits
+import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
-import com.android.universe.ui.common.validateDateTriple
+import com.android.universe.ui.common.validateDay
 import com.android.universe.ui.common.validateDescription
-import com.android.universe.ui.common.validateName
+import com.android.universe.ui.common.validateFirstName
+import com.android.universe.ui.common.validateLastName
+import com.android.universe.ui.common.validateMonth
+import com.android.universe.ui.common.validateUsername
+import com.android.universe.ui.common.validateYear
 import java.time.LocalDate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
  * Represents the UI state for the Add Profile screen.
  *
- * This data class centralizes all user-input fields and error states. It is observed by the UI via
- * a [StateFlow] in [AddProfileViewModel].
+ * This data class centralizes all user-input fields and their corresponding validation error
+ * states. It is exposed to the UI via a [StateFlow] in [AddProfileViewModel].
  *
  * @property username The username entered by the user.
  * @property firstName The user's first name.
  * @property lastName The user's last name.
  * @property description Optional description or bio text.
- * @property country The user's country.
+ * @property country The user's selected country.
  * @property day The day of birth as a string.
  * @property month The month of a birth as a string.
  * @property year The year of birth as a string.
- * @property errorMsg Optional error message displayed on validation failure.
- * @property usernameError Optional error message for the username field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
- * @property firstNameError Optional error message for the first name field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
- * @property lastNameError Optional error message for the last name field. Note that it is
- *   initialized to "Username cannot be empty" to allow a UI recomposition as the state wouldn't
- *   change if the user didn't enter anything and clicked away from the field.
+ * @property usernameError Optional error message for the username field.
+ * @property firstNameError Optional error message for the first name field.
+ * @property lastNameError Optional error message for the last name field.
  * @property descriptionError Optional error message for the description field.
- * @property yearError Optional error message for the year field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
- * @property monthError Optional error message for the month field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
- * @property dayError Optional error message for the day field. Note that it is initialized to
- *   "Username cannot be empty" to allow a UI recomposition as the state wouldn't change if the user
- *   didn't enter anything and clicked away from the field.
+ * @property countryError Optional error message for the country field.
+ * @property yearError Optional error message for the year field.
+ * @property monthError Optional error message for the month field.
+ * @property dayError Optional error message for the day field.
  */
 data class AddProfileUIState(
     val username: String = "",
@@ -64,31 +61,15 @@ data class AddProfileUIState(
     val day: String = "",
     val month: String = "",
     val year: String = "",
-    val errorMsg: String? = null,
-    val usernameError: String? = "Username cannot be empty",
-    val firstNameError: String? = "First name cannot be empty",
-    val lastNameError: String? = "Last name cannot be empty",
+    val usernameError: String? = null,
+    val firstNameError: String? = null,
+    val lastNameError: String? = null,
     val descriptionError: String? = null,
-    val yearError: String? = "Year cannot be empty",
-    val monthError: String? = "Month cannot be empty",
-    val dayError: String? = "Day cannot be empty"
+    val countryError: String? = null,
+    val yearError: String? = null,
+    val monthError: String? = null,
+    val dayError: String? = null
 )
-
-/**
- * @property USERNAME The maximum length of a username.
- * @property FIRST_NAME The maximum length of a user's first name.
- * @property LAST_NAME The maximum length of a user's last name.
- * @property DESCRIPTION The maximum length of a user's description.
- */
-object InputLimits {
-  const val USERNAME = 25
-  const val FIRST_NAME = 25
-  const val LAST_NAME = 25
-  const val DESCRIPTION = 100
-  const val DAY = 2
-  const val MONTH = 2
-  const val YEAR = 4
-}
 
 /**
  * ViewModel responsible for managing the Add Profile screen Logic.
@@ -118,28 +99,31 @@ open class AddProfileViewModel(
   /** Publicly exposed state of the Add Profile UI. */
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
-  private val usernameRegex = "^[A-Za-z0-9._-]+$".toRegex()
-
-  /** Clears the current error message from the UI state. */
-  fun clearErrorMsg() {
-    _uiState.value = _uiState.value.copy(errorMsg = null)
+  /**
+   * Converts a [ValidationResult] to a nullable String.
+   *
+   * @return The error message if the result is [ValidationResult.Invalid], otherwise null.
+   */
+  private fun ValidationResult.toStringOrNull(): String? {
+    return when (this) {
+      is ValidationResult.Valid -> null
+      is ValidationResult.Invalid -> this.errorMessage
+    }
   }
 
   /**
-   * Attempts to create and add a new user profile.
+   * Validates all inputs and attempts to create and save a new user profile.
    *
-   * This method performs a series of validations:
-   * - Ensures all required fields are filled.
-   * - Validates date components (day, month, year).
-   * - Checks for a unique username.
-   * - Checks invalid input formats in the name fields.
-   * - Enforces a maximum length for each field.
-   * - Removes any leading or trailing spaces from the input before adding the profile.
+   * This method first triggers a comprehensive validation of all fields by calling
+   * [validateAllInputs]. If validation succeeds, it constructs a [UserProfile] object from the
+   * current UI state, sanitizing text fields and converting the country name to its ISO code. The
+   * new profile is then saved to the repository.
    *
-   * If any check fails, errorMsg is updated with a user-friendly message. Otherwise, a
-   * [UserProfile] is constructed and persisted via [repository]
+   * On successful creation, it invokes the [onSuccess] callback.
    *
-   * @param uid The user's unique identifier.
+   * @param uid The unique identifier for the user.
+   * @param onSuccess A callback function to be executed on the main thread after the profile is
+   *   successfully created.
    */
   fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
     viewModelScope.launch(dispatcher) {
@@ -152,7 +136,7 @@ open class AddProfileViewModel(
 
       val isoCode = countryToIsoCode[state.country]
       if (isoCode == null) {
-        setErrorMsg("Invalid country")
+        _uiState.update { it.copy(countryError = ErrorMessages.COUNTRY_INVALID) }
         return@launch
       }
 
@@ -162,7 +146,7 @@ open class AddProfileViewModel(
               username = sanitize(state.username),
               firstName = sanitize(state.firstName),
               lastName = sanitize(state.lastName),
-              description = state.description?.let { sanitize(it) }?.takeIf { it.isNotBlank() },
+              description = state.description?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = dateOfBirth,
               tags = emptySet())
@@ -173,204 +157,205 @@ open class AddProfileViewModel(
   }
 
   /**
-   * Validates all user inputs from the UI state. Sets errorMsg on the first failure.
+   * Validates all user inputs from the UI state and updates the [uiState] with any error messages.
+   * This includes checking for unique username, correct formats, and valid dates.
    *
    * @return `true` if all inputs are valid, `false` otherwise.
    */
   private suspend fun validateAllInputs(): Boolean {
     val state = _uiState.value
 
-    // Validate Name
-    val firstNameError = validateName("First name", state.firstName, InputLimits.FIRST_NAME)
-    if (firstNameError != null) {
-      setErrorMsg(firstNameError)
-      return false
-    }
-    val lastNameError = validateName("Last name", state.lastName, InputLimits.LAST_NAME)
-    if (lastNameError != null) {
-      setErrorMsg(lastNameError)
-      return false
+    var usernameResult = validateUsername(state.username)
+    val firstNameResult = validateFirstName(state.firstName)
+    val lastNameResult = validateLastName(state.lastName)
+    val descriptionResult = validateDescription(state.description ?: "")
+    val countryResult = validateCountry(state.country, countryToIsoCode)
+    val dayResult = validateDay(state.day)
+    val monthResult = validateMonth(state.month)
+    val yearResult = validateYear(state.year)
+
+    if (usernameResult is ValidationResult.Valid) {
+      val isUnique =
+          withContext(repositoryDispatcher) { repository.isUsernameUnique(state.username) }
+      if (!isUnique) {
+        usernameResult = ValidationResult.Invalid(ErrorMessages.USERNAME_TAKEN)
+      }
     }
 
-    // Validate Description
-    val descriptionError = validateDescription(state.description ?: "", InputLimits.DESCRIPTION)
-    if (descriptionError != null) {
-      setErrorMsg(descriptionError)
-      return false
+    val allDateFieldsValid =
+        dayResult is ValidationResult.Valid &&
+            monthResult is ValidationResult.Valid &&
+            yearResult is ValidationResult.Valid
+
+    val logicalDateResult =
+        if (allDateFieldsValid) {
+          validateBirthDate(state.day.toInt(), state.month.toInt(), state.year.toInt())
+        } else {
+          ValidationResult.Valid
+        }
+
+    val finalDayError =
+        if (logicalDateResult is ValidationResult.Invalid &&
+            logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
+          logicalDateResult
+        } else {
+          dayResult
+        }
+
+    val finalMonthError = monthResult
+
+    val finalYearError =
+        if (logicalDateResult is ValidationResult.Invalid &&
+            logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
+          logicalDateResult
+        } else {
+          yearResult
+        }
+
+    _uiState.update {
+      it.copy(
+          usernameError = usernameResult.toStringOrNull(),
+          firstNameError = firstNameResult.toStringOrNull(),
+          lastNameError = lastNameResult.toStringOrNull(),
+          descriptionError = descriptionResult.toStringOrNull(),
+          countryError = countryResult.toStringOrNull(),
+          dayError = finalDayError.toStringOrNull(),
+          monthError = finalMonthError.toStringOrNull(),
+          yearError = finalYearError.toStringOrNull())
     }
 
-    // Validate Date
-    val (dayErr, monthErr, yearErr) = validateDateTriple(state.day, state.month, state.year)
-    if (dayErr != null || monthErr != null || yearErr != null) {
-      setErrorMsg(dayErr ?: monthErr ?: yearErr ?: "Invalid date")
-      return false
-    }
-
-    // Validate Country
-    val countryError = validateCountry(state.country)
-    if (countryError != null) {
-      setErrorMsg(countryError)
-      return false
-    }
-
-    // Validate Username (sets its own error)
-    if (!validateUsername(state.username)) {
-      return false
-    }
-
-    return true
+    // Return true if all results are valid
+    return usernameResult is ValidationResult.Valid &&
+        firstNameResult is ValidationResult.Valid &&
+        lastNameResult is ValidationResult.Valid &&
+        descriptionResult is ValidationResult.Valid &&
+        countryResult is ValidationResult.Valid &&
+        finalDayError is ValidationResult.Valid &&
+        finalMonthError is ValidationResult.Valid &&
+        finalYearError is ValidationResult.Valid
   }
 
   /**
-   * Validates the username for format, length, and uniqueness.
+   * Updates the username in the UI state and validates it. Input is truncated to slightly above the
+   * allowed limit to ensure the length error is shown.
    *
-   * @return `true` if valid, `false` otherwise, setting an error message on failure.
-   */
-  private suspend fun validateUsername(username: String): Boolean {
-    when {
-      username.isBlank() -> {
-        setErrorMsg("Username cannot be empty")
-        return false
-      }
-      username.length > InputLimits.USERNAME -> {
-        setErrorMsg("Username is too long")
-        return false
-      }
-      !usernameRegex.matches(username) -> {
-        setErrorMsg("Invalid Username format")
-        return false
-      }
-    }
-    if (!withContext(repositoryDispatcher) { repository.isUsernameUnique(username) }) {
-      setErrorMsg("Username already exists")
-      return false
-    }
-    return true
-  }
-
-  /**
-   * Updates the username field and its associated error state if any. Also truncates the input to
-   * more than the specified limit to allow an error popup to be displayed
+   * @param username The new username string from the UI.
    */
   fun setUsername(username: String) {
-    val trimmed = username.take(InputLimits.USERNAME + 1)
-
-    val error =
-        when {
-          trimmed.isBlank() -> "Username cannot be empty"
-          trimmed.length > InputLimits.USERNAME -> "Username is too long"
-          !usernameRegex.matches(trimmed) ->
-              "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes"
-          else -> null
-        }
-    _uiState.value = _uiState.value.copy(username = trimmed, usernameError = error)
+    val finalUsername = username.take(InputLimits.USERNAME + 1)
+    val validationResult = validateUsername(finalUsername)
+    _uiState.update {
+      it.copy(username = finalUsername, usernameError = validationResult.toStringOrNull())
+    }
   }
 
   /**
-   * Updates the first name field and its associated error state if any. Also truncates the input to
-   * more than the specified limit to allow an error popup to be displayed and removes double spaces
+   * Updates the first name in the UI state and validates it. Input is sanitized, then truncated to
+   * slightly above the allowed limit to ensure the length error is shown.
+   *
+   * @param firstName The new first name string from the UI.
    */
   fun setFirstName(firstName: String) {
-    val cleaned = trimAndCleanInput(firstName, InputLimits.FIRST_NAME + 1)
-    val error = validateName(label = "First name", s = cleaned, maxLength = InputLimits.FIRST_NAME)
-    _uiState.value = _uiState.value.copy(firstName = cleaned, firstNameError = error)
+    val cleaned = sanitize(firstName)
+    val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
+    val validationResult = validateFirstName(finalName)
+    _uiState.update {
+      it.copy(firstName = finalName, firstNameError = validationResult.toStringOrNull())
+    }
   }
 
   /**
-   * Updates the last name field and its associated error state if any. Also truncates the input to
-   * more than the specified limit to allow an error popup to be displayed and removes double spaces
+   * Updates the last name in the UI state and validates it. Input is sanitized, then truncated to
+   * slightly above the allowed limit to ensure the length error is shown.
+   *
+   * @param lastName The new last name string from the UI.
    */
   fun setLastName(lastName: String) {
-    val cleaned = trimAndCleanInput(lastName, InputLimits.LAST_NAME + 1)
-    val error = validateName(label = "Last name", s = cleaned, maxLength = InputLimits.LAST_NAME)
-    _uiState.value = _uiState.value.copy(lastName = cleaned, lastNameError = error)
+    val cleaned = sanitize(lastName)
+    val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
+    val validationResult = validateLastName(finalName)
+    _uiState.update {
+      it.copy(lastName = finalName, lastNameError = validationResult.toStringOrNull())
+    }
   }
 
   /**
-   * Updates the description field and its associated error state if any. Also truncates the input
-   * to more than the specified limit to allow an error popup to be displayed and removes double
-   * spaces
+   * Updates the description in the UI state and validates its length.
+   *
+   * @param description The new description string from the UI.
    */
   fun setDescription(description: String) {
-    val cleaned = trimAndCleanInput(description, InputLimits.DESCRIPTION + 1)
-    val error = validateDescription(s = cleaned, maxLength = InputLimits.DESCRIPTION)
-    _uiState.value = _uiState.value.copy(description = cleaned, descriptionError = error)
-  }
-
-  /** Updates the country field. */
-  fun setCountry(country: String) {
-    _uiState.value = _uiState.value.copy(country = country)
+    val validationResult = validateDescription(description)
+    _uiState.update {
+      it.copy(description = description, descriptionError = validationResult.toStringOrNull())
+    }
   }
 
   /**
-   * Updates the day field and re-validates the entire date (day, month, year) including logical
-   * checks (e.g. Feb 30) and age constraints.
+   * Updates the selected country in the UI state and validates it.
+   *
+   * @param country The new country string from the UI.
+   */
+  fun setCountry(country: String) {
+    val validationResult = validateCountry(country, countryToIsoCode)
+    _uiState.update { it.copy(country = country, countryError = validationResult.toStringOrNull()) }
+  }
+
+  /**
+   * Updates the day of birth in the UI state and validates it. Input is filtered to only allow
+   * digits and truncated to the maximum character length.
+   *
+   * @param day The day of birth as a string from the UI.
    */
   fun setDay(day: String) {
-    val number = day.filter { it.isDigit() }
-    val trimmedDay = number.take(InputLimits.DAY)
-    val state = _uiState.value
-
-    val (dayErr, monthErr, yearErr) =
-        validateDateTriple(day = trimmedDay, month = state.month, year = state.year)
-
-    _uiState.value =
-        state.copy(day = trimmedDay, dayError = dayErr, monthError = monthErr, yearError = yearErr)
+    val finalDay = day.filter { it.isDigit() }.take(InputLimits.DAY)
+    val dayResult = validateDay(finalDay)
+    _uiState.update { it.copy(day = finalDay, dayError = dayResult.toStringOrNull()) }
   }
 
   /**
-   * Updates the month field and re-validates the entire date (day, month, year) including logical
-   * checks (e.g. Feb 30) and age constraints.
+   * Updates the month of birth in the UI state and validates it. Input is filtered to only allow
+   * digits and truncated to the maximum character length.
+   *
+   * @param month The month of birth as a string from the UI.
    */
   fun setMonth(month: String) {
-    val number = month.filter { it.isDigit() }
-    val trimmedMonth = number.take(InputLimits.MONTH)
-    val state = _uiState.value
+    val finalMonth = month.filter { it.isDigit() }.take(InputLimits.MONTH)
+    val monthResult = validateMonth(finalMonth)
 
-    val (dayErr, monthErr, yearErr) =
-        validateDateTriple(day = state.day, month = trimmedMonth, year = state.year)
+    val currentDayError = _uiState.value.dayError
+    val newDayError =
+        if (currentDayError == ErrorMessages.DATE_INVALID_LOGICAL) {
+          null
+        } else {
+          currentDayError
+        }
 
-    _uiState.value =
-        state.copy(
-            month = trimmedMonth, dayError = dayErr, monthError = monthErr, yearError = yearErr)
+    _uiState.update {
+      it.copy(month = finalMonth, monthError = monthResult.toStringOrNull(), dayError = newDayError)
+    }
   }
 
   /**
-   * Updates the year field and re-validates the entire date (day, month, year) including logical
-   * checks (e.g. Feb 30) and age constraints.
+   * Updates the year of birth in the UI state and validates it. Input is filtered to only allow
+   * digits and truncated to the maximum character length.
+   *
+   * @param year The year of birth as a string from the UI.
    */
   fun setYear(year: String) {
-    val number = year.filter { it.isDigit() }
-    val trimmedYear = number.take(InputLimits.YEAR)
-    val state = _uiState.value
+    val finalYear = year.filter { it.isDigit() }.take(InputLimits.YEAR)
+    val yearResult = validateYear(finalYear)
 
-    val (dayErr, monthErr, yearErr) =
-        validateDateTriple(day = state.day, month = state.month, year = trimmedYear)
+    val currentDayError = _uiState.value.dayError
+    val newDayError =
+        if (currentDayError == ErrorMessages.DATE_INVALID_LOGICAL) {
+          null
+        } else {
+          currentDayError
+        }
 
-    _uiState.value =
-        state.copy(
-            year = trimmedYear, dayError = dayErr, monthError = monthErr, yearError = yearErr)
-  }
-
-  /**
-   * Updates the current error message in the UI state.
-   *
-   * @param errorMsg The message to display to the user.
-   */
-  fun setErrorMsg(errorMsg: String) {
-    _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
-  }
-
-  /**
-   * Replaces multiple spaces with a single one and truncates the input if it exceeds the specified
-   * limit.
-   *
-   * @param input The input string.
-   * @param limit The maximum length of the output string.
-   */
-  private fun trimAndCleanInput(input: String, limit: Int): String {
-    val singleSpaced = input.replace(Regex("\\s+"), " ")
-    val trimmed = singleSpaced.take(limit)
-    return trimmed
+    _uiState.update {
+      it.copy(year = finalYear, yearError = yearResult.toStringOrNull(), dayError = newDayError)
+    }
   }
 }

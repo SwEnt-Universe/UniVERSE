@@ -13,7 +13,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
-import com.android.universe.ui.profile.SettingsUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -196,7 +195,7 @@ class SettingsModalTest {
     assertEquals(true, lastExpanded)
   }
 
-  // ---------- Date fields ----------
+  // ---------- Save / Cancel ----------
 
   @Test
   fun dateModal_inputsUpdate_and_showErrors() {
@@ -230,23 +229,20 @@ class SettingsModalTest {
     day.performClick()
     day.performTextClearance()
     day.performTextInput("07")
+    assertEquals("07", d)
 
     val month = composeTestRule.onNodeWithTag(SettingsTestTags.MONTH_FIELD, useUnmergedTree = true)
     month.performClick()
     month.performTextClearance()
     month.performTextInput("12")
+    assertEquals("12", m)
 
     val year = composeTestRule.onNodeWithTag(SettingsTestTags.YEAR_FIELD, useUnmergedTree = true)
     year.performClick()
     year.performTextClearance()
     year.performTextInput("1999")
-
-    assertEquals("07", d)
-    assertEquals("12", m)
     assertEquals("1999", y)
   }
-
-  // ---------- Save / Cancel ----------
 
   @Test
   fun saveAndCancel_invokeCallbacks() {
