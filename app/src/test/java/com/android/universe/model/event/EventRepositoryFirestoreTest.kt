@@ -3,8 +3,10 @@ package com.android.universe.model.event
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirestoreEventTest
+import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -67,6 +69,32 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   @Test(expected = NoSuchElementException::class)
   fun getEventThrowsExceptionWhenEventNotFound() = runTest {
     eventRepository.getEvent("NonExistentEvent")
+  }
+
+  @Test
+  fun suggestEvents_returnsEventsWithMatchingTags() = runTest {
+    val user = UserTestData.SomeTagsUser
+
+    eventRepository.addEvent(EventTestData.SomeTagsEvent)
+    eventRepository.addEvent(EventTestData.NoTagsEvent)
+
+    val suggestedEvents = eventRepository.suggestEventsForUser(user)
+
+    assertEquals(1, suggestedEvents.size)
+    assertTrue(suggestedEvents.contains(EventTestData.SomeTagsEvent))
+    assertFalse(suggestedEvents.contains(EventTestData.NoTagsEvent))
+  }
+
+  @Test
+  fun suggestEvents_returnsEmptyListWhenNoTagsMatch() = runTest {
+    val user = UserTestData.NoTagsUser
+
+    eventRepository.addEvent(EventTestData.SomeTagsEvent)
+    eventRepository.addEvent(EventTestData.NoTagsEvent)
+
+    val suggestedEvents = eventRepository.suggestEventsForUser(user)
+
+    assertTrue(suggestedEvents.isEmpty())
   }
 
   @Test

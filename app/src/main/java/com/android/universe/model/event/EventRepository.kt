@@ -1,5 +1,7 @@
 package com.android.universe.model.event
 
+import com.android.universe.model.user.UserProfile
+
 /**
  * Repository interface for accessing and managing event.
  *
@@ -28,6 +30,14 @@ interface EventRepository {
    * @param event the [Event] to add.
    */
   suspend fun addEvent(event: Event)
+
+  /**
+   * Suggests events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  suspend fun suggestEventsForUser(user: UserProfile): List<Event>
 
   /**
    * Updates an existing event.

@@ -212,6 +212,40 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   /**
+   * Suggests events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  override suspend fun suggestEventsForUser(user: UserProfile): List<Event> {
+    val matchedEvents = getEventsMatchingUserTags(user)
+    val rankedEvents = rankEventsByTagMatch(user, matchedEvents)
+    return rankedEvents.map { it.first }
+  }
+
+  private suspend fun getEventsMatchingUserTags(user: UserProfile): List<Event> {
+    val userTagOrdinals = user.tags.map { it.ordinal }
+    if (userTagOrdinals.isEmpty()) return emptyList()
+
+    val querySnapshot =
+        db.collection(EVENTS_COLLECTION_PATH)
+            .whereArrayContainsAny("tags", userTagOrdinals.take(10))
+            .get()
+            .await()
+
+    return querySnapshot.documents.map { doc -> documentToEvent(doc) }
+  }
+
+  private fun rankEventsByTagMatch(user: UserProfile, events: List<Event>): List<Pair<Event, Int>> {
+    return events
+        .map { event ->
+          val commonTags = user.tags.intersect(event.tags)
+          event to commonTags.size
+        }
+        .sortedByDescending { it.second }
+  }
+
+  /**
    * Deletes an event identified by eventId.
    *
    * @param eventId the ID of the event to delete.
