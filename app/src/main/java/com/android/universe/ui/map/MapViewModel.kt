@@ -23,7 +23,9 @@ data class MapUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isPermissionRequired: Boolean = false,
-    val location: Location? = null
+    val location: Location? = null,
+    val selectedLat: Double? = null,
+    val selectedLng: Double? = null
 )
 
 /**
@@ -138,4 +140,8 @@ class MapViewModel(
       }
     }
   }
+
+    fun selectLocation(latitude: Double, longitude: Double) {
+        _uiState.value = _uiState.value.copy(selectedLat = latitude, selectedLng = longitude)
+    }
 }

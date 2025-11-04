@@ -17,6 +17,7 @@ object NavigationTestTags {
   const val ADD_PROFILE_SCREEN = "AddProfileScreen"
   const val SETTINGS_SCREEN = "SettingsScreen"
   const val SELECT_TAG_SCREEN = "SelectTagScreen"
+  const val EVENT_CREATION_SCREEN = "EventCreationScreen"
 
   // BOTTOM NAVIGATION MENU
   const val BOTTOM_NAVIGATION_MENU = "BottomNavigationMenu"
@@ -49,5 +50,6 @@ object NavigationTestTags {
         is NavigationScreens.AddProfile -> ADD_PROFILE_SCREEN
         is NavigationScreens.Settings -> SETTINGS_SCREEN
         is NavigationScreens.SelectTag -> SELECT_TAG_SCREEN
+        is NavigationScreens.EventCreation -> EVENT_CREATION_SCREEN
       }
 }

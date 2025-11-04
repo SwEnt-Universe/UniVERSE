@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -39,7 +40,6 @@ import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.image.ImageFactory
-import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.ui.MapView
 
@@ -60,6 +60,7 @@ object MapScreenTestTags {
 fun MapScreen(
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
+    createEvent: (latitude: Double, longitude: Double) -> Unit = {lat, lng ->},
     viewModel: MapViewModel = viewModel {
       MapViewModel(TomTomLocationRepository(context), EventRepositoryProvider.repository)
     }
@@ -96,7 +97,7 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-          TomTomMapView(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+          TomTomMapView(viewModel = viewModel, modifier = Modifier.fillMaxSize(), createEvent = createEvent)
 
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -126,7 +127,7 @@ fun MapScreen(
  * @param modifier The modifier to be applied to the layout.
  */
 @Composable
-fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
+fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier, createEvent: (latitude: Double, longitude: Double) -> Unit = {lat, lng ->}) {
   val context = LocalContext.current
 
   val mapView =
@@ -134,7 +135,7 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
   var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
   var isInitialized by remember { mutableStateOf(false) }
   var isLocationProviderSet by remember { mutableStateOf(false) }
-
+    val state = viewModel.uiState.collectAsState()
   val eventMarkers by viewModel.eventMarkers.collectAsState()
 
   AndroidView(
@@ -150,14 +151,21 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
           getMapAsync { map ->
             tomtomMap = map
 
-            if (!isLocationProviderSet && viewModel.locationProvider != null) {
+            /*if (!isLocationProviderSet && viewModel.locationProvider != null) {
               map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
               map.enableLocationMarker(locationMarkerOptions)
-            }
+            }*/
+              map.addMapClickListener { geoPoint ->
+                  val latitude = geoPoint.latitude
+                  val longitude = geoPoint.longitude
+                  viewModel.selectLocation(latitude, longitude)
+                  true
+
+              }
           }
         }
       },
@@ -178,6 +186,13 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier) {
       }
     }
   }
+    if(state.value.selectedLat != null && state.value.selectedLng != null) {
+        Button(onClick = {
+            createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
+        }) {
+            Text("Create")
+        }
+    }
 
   LaunchedEffect(Unit) {
     viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }

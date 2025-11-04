@@ -20,8 +20,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.universe.model.location.Location
 import com.android.universe.resources.C
 import com.android.universe.ui.event.EventScreen
+import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationPlaceholderScreen
@@ -132,7 +134,12 @@ fun UniverseApp(
         startDestination = NavigationScreens.Map.route,
         route = NavigationScreens.Map.name,
     ) {
-      composable(NavigationScreens.Map.route) { MapScreen(onTabSelected) }
+      composable(NavigationScreens.Map.route) { MapScreen(onTabSelected,
+          createEvent = { lat, lng ->
+              navController.navigate("eventCreation/$lat/$lng")
+
+      }
+      ) }
     }
 
     navigation(
@@ -183,5 +190,23 @@ fun UniverseApp(
                 credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
               })
         }
+
+      navigation(
+          startDestination = NavigationScreens.EventCreation.route,
+          route = NavigationScreens.EventCreation.name,
+      ) {
+          composable(
+              route = NavigationScreens.EventCreation.route,
+              arguments = listOf(
+                  navArgument("latitude") { type = NavType.FloatType },
+                  navArgument("longitude") { type = NavType.FloatType }
+              )
+          ) { backStackEntry ->
+              val latitude = backStackEntry.arguments?.getDouble("latitude") ?: 0.0
+              val longitude = backStackEntry.arguments?.getDouble("longitude") ?: 0.0
+
+              EventCreationScreen(location = Location(latitude, longitude))
+          }
+      }
   }
 }
