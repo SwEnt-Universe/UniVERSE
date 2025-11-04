@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -177,7 +178,10 @@ fun UniverseApp(
               onBack = {
                 navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
               },
-          )
+              onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+              clear = {
+                credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
+              })
         }
   }
 }

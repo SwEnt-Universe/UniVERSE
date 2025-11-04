@@ -1,0 +1,410 @@
+package com.android.universe.ui.eventCreation
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.android.universe.model.Tag
+import com.android.universe.model.event.Event
+import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.location.Location
+import com.android.universe.model.user.UserRepository
+import com.android.universe.model.user.UserRepositoryProvider
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+/**
+ * Represent the UiSate of the EventCreationScreen.
+ *
+ * @param name the name of the event.
+ * @param description the description of the event.
+ * @param day the day of the event.
+ * @param month the month of the event.
+ * @param year the year of the event.
+ * @param hour the hour of the event.
+ * @param minute the minute of the event.
+ * @param tags the tags of the events.
+ */
+data class EventCreationUIState(
+    val name: String = "",
+    val description: String? = null,
+    val day: String = "",
+    val month: String = "",
+    val year: String = "",
+    val hour: String = "",
+    val minute: String = "",
+    val tags: Set<Tag> = emptySet(),
+    val titleError: String? = "Title cannot be empty",
+    val dayError: String? = "Day cannot be empty",
+    val monthError: String? = "Month cannot be empty",
+    val yearError: String? = "Year cannot be empty",
+    val hourError: String? = "Hour cannot be empty",
+    val minuteError: String? = "Minute cannot be empty"
+)
+
+/**
+ * Object that contains the different limit of character for the textFields in the Event creation
+ * screen.
+ */
+object EventInputLimits {
+  const val TITLE_MAX_LENGTH = 40
+  const val DESCRIPTION_MAX_LENGTH = 200
+  const val DAY_MAX_LENGTH = 2
+  const val MONTH_MAX_LENGTH = 2
+  const val YEAR_MAX_LENGTH = 4
+  const val HOUR_MAX_LENGTH = 2
+  const val MINUTE_MAX_LENGTH = 2
+}
+
+/**
+ * ViewModel of the EventCreationScreen. Manage the data of the Screen and save the Event in the
+ * repository.
+ *
+ * @param eventRepository the repository for the event.
+ * @param userRepository the repository for the user.
+ */
+class EventCreationViewModel(
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val userRepository: UserRepository = UserRepositoryProvider.repository
+) : ViewModel() {
+  private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
+  val uiStateEventCreation = eventCreationUiState.asStateFlow()
+
+  /**
+   * Update the title error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the title textField.
+   */
+  private fun setTitleError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(titleError = errorMessage)
+  }
+
+  /**
+   * Update the day error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the day textField.
+   */
+  private fun setDayError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(dayError = errorMessage)
+  }
+
+  /**
+   * Update the month error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the month textField.
+   */
+  private fun setMonthError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(monthError = errorMessage)
+  }
+
+  /**
+   * Update the year error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the year textField.
+   */
+  private fun setYearError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(yearError = errorMessage)
+  }
+
+  /**
+   * Update the hour error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the hour textField.
+   */
+  private fun setHourError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(hourError = errorMessage)
+  }
+
+  /**
+   * Update the minute error message of the uiState.
+   *
+   * @param errorMessage the new message to display for the minute textField.
+   */
+  private fun setMinuteError(errorMessage: String?) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(minuteError = errorMessage)
+  }
+
+  /**
+   * Check that the new title input is not empty and respect a certain format.
+   *
+   * @param title the new title input.
+   */
+  private fun validateTitle(title: String): Boolean {
+    if (title.isEmpty()) {
+      setTitleError("Title cannot be empty")
+      return false
+    } else {
+      setTitleError(null)
+      return true
+    }
+  }
+
+  /**
+   * Check that the new day input is not empty and respect a certain format.
+   *
+   * @param day the new day input.
+   */
+  private fun validateDay(day: String): Boolean {
+    if (day.isEmpty()) {
+      setDayError("Day cannot be empty")
+      return false
+    } else if (day.toIntOrNull() == null) {
+      setDayError("Day should be a valid number")
+      return false
+    } else if (day.toInt() !in 1..31) {
+      setDayError("Day should be between 1 and 31")
+      return false
+    } else {
+      setDayError(null)
+      return true
+    }
+  }
+
+  /**
+   * Check that the new month input is not empty and respect a certain format.
+   *
+   * @param month the new month input.
+   */
+  private fun validateMonth(month: String): Boolean {
+    if (month.isEmpty()) {
+      setMonthError("Month cannot be empty")
+      return false
+    } else if (month.toIntOrNull() == null) {
+      setMonthError("Month should be a valid number")
+      return false
+    } else if (month.toInt() !in 1..12) {
+      setMonthError("Month should be between 1 and 12")
+      return false
+    } else {
+      setMonthError(null)
+      return true
+    }
+  }
+
+  /**
+   * Check that the new year input is not empty and respect a certain format.
+   *
+   * @param year the new year input.
+   */
+  private fun validateYear(year: String): Boolean {
+    if (year.isEmpty()) {
+      setYearError("Year cannot be empty")
+      return false
+    } else if (year.toIntOrNull() == null) {
+      setYearError("Year should be a valid number")
+      return false
+    } else if (year.toInt() < 2025 || year.length < 4) {
+      setYearError("Enter a valid 4-digit year (2025 or later)")
+      return false
+    } else {
+      setYearError(null)
+      return true
+    }
+  }
+
+  /**
+   * Check that the new hour input is not empty and respect a certain format.
+   *
+   * @param hour the new hour input.
+   */
+  private fun validateHour(hour: String): Boolean {
+    if (hour.isEmpty()) {
+      setHourError("Hour cannot be empty")
+      return false
+    } else if (hour.toIntOrNull() == null) {
+      setHourError("Hour should be a valid number")
+      return false
+    } else if (hour.toInt() !in 0..23) {
+      setHourError("Hour should be between 0 and 23")
+      return false
+    } else {
+      setHourError(null)
+      return true
+    }
+  }
+
+  /**
+   * Check that the new minute input is not empty and respect a certain format.
+   *
+   * @param minute the new minute input.
+   */
+  private fun validateMinute(minute: String): Boolean {
+    if (minute.isEmpty()) {
+      setMinuteError("Minute cannot be empty")
+      return false
+    } else if (minute.toIntOrNull() == null) {
+      setMinuteError("Minute should be a valid number")
+      return false
+    } else if (minute.toInt() !in 0..59) {
+      setMinuteError("Minute should be between 0 and 59")
+      return false
+    } else {
+      setMinuteError(null)
+      return true
+    }
+  }
+
+  /** Check that all the parameters enter in the textFields are not empty and are well written. */
+  fun validateAll(): Boolean {
+    return (eventCreationUiState.value.titleError == null &&
+        eventCreationUiState.value.dayError == null &&
+        eventCreationUiState.value.monthError == null &&
+        eventCreationUiState.value.yearError == null &&
+        eventCreationUiState.value.hourError == null &&
+        eventCreationUiState.value.minuteError == null)
+  }
+
+  /**
+   * Update the name of the event.
+   *
+   * @param name the new event's name.
+   */
+  fun setEventName(name: String) {
+    if (name.length <= EventInputLimits.TITLE_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(name = name)
+      validateTitle(name)
+    }
+  }
+
+  /**
+   * Update the description of the event.
+   *
+   * @param description the new event's description.
+   */
+  fun setEventDescription(description: String) {
+    if (description.length <= EventInputLimits.DESCRIPTION_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(description = description)
+    }
+  }
+
+  /**
+   * Update the day of the event.
+   *
+   * @param day the new event's day.
+   */
+  fun setEventDay(day: String) {
+    if (day.length <= EventInputLimits.DAY_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(day = day)
+      validateDay(day)
+    }
+  }
+
+  /**
+   * Update the month of the event.
+   *
+   * @param month the new event's month.
+   */
+  fun setEventMonth(month: String) {
+    if (month.length <= EventInputLimits.MONTH_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(month = month)
+      validateMonth(month)
+    }
+  }
+
+  /**
+   * Update the year of the event.
+   *
+   * @param year the new event's year.
+   */
+  fun setEventYear(year: String) {
+    if (year.length <= EventInputLimits.YEAR_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(year = year)
+      validateYear(year)
+    }
+  }
+
+  /**
+   * Update the hour of the event.
+   *
+   * @param hour the new event's hour.
+   */
+  fun setEventHour(hour: String) {
+    if (hour.length <= EventInputLimits.HOUR_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(hour = hour)
+      validateHour(hour)
+    }
+  }
+
+  /**
+   * Update the minute of the event.
+   *
+   * @param minute the new event's minute.
+   */
+  fun setEventMinute(minute: String) {
+    if (minute.length <= EventInputLimits.MINUTE_MAX_LENGTH) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(minute = minute)
+      validateMinute(minute)
+    }
+  }
+
+  /**
+   * Update the tags of the event.
+   *
+   * @param tags the new event's tags.
+   */
+  fun setEventTags(tags: Set<Tag>) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(tags = tags)
+  }
+
+  /**
+   * Save the event with all the parameters selected by the user in the event repository.
+   *
+   * @param location the location of the event.
+   * @param uid the uid of the Current User.
+   */
+  fun saveEvent(location: Location, uid: String) {
+    if (validateAll()) {
+      viewModelScope.launch {
+        try {
+          val id = eventRepository.getNewID()
+
+          val realDay = eventCreationUiState.value.day.padStart(2, '0')
+
+          val realMonth = eventCreationUiState.value.month.padStart(2, '0')
+
+          val realHour = eventCreationUiState.value.hour.padStart(2, '0')
+
+          val realMinute = eventCreationUiState.value.minute.padStart(2, '0')
+
+          val date = realDay + "/" + realMonth + "/" + eventCreationUiState.value.year
+
+          val time = "$realHour:$realMinute"
+
+          val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+          val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+          val localDate =
+              try {
+                LocalDate.parse(date, dateFormatter)
+              } catch (e: Exception) {
+                setDayError("Please enter a valid date (e.g. no 30th of February)")
+                return@launch
+              }
+          val localTime = LocalTime.parse(time, timeFormatter)
+
+          val eventDateTime = LocalDateTime.of(localDate, localTime)
+
+          val creator = userRepository.getUser(uid)
+          val event =
+              Event(
+                  id = id,
+                  title = eventCreationUiState.value.name,
+                  description = eventCreationUiState.value.description,
+                  date = eventDateTime,
+                  tags = eventCreationUiState.value.tags,
+                  creator = creator,
+                  participants = setOf(creator),
+                  location = location)
+          eventRepository.addEvent(event)
+        } catch (e: Exception) {
+          Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
+        }
+      }
+    }
+  }
+}
