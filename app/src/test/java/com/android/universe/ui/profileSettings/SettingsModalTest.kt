@@ -198,6 +198,53 @@ class SettingsModalTest {
   // ---------- Save / Cancel ----------
 
   @Test
+  fun dateModal_inputsUpdate_and_showErrors() {
+    var d = ""
+    var m = ""
+    var y = ""
+    val ui =
+        sampleSettingsState(showModal = true, field = "date")
+            .copy(
+                tempDay = "",
+                tempMonth = "",
+                tempYear = "",
+                tempDayError = "Invalid day",
+                tempMonthError = "Invalid month",
+                tempYearError = "Invalid year")
+    renderWith(
+        ui,
+        onUpdateTemp = { k, v ->
+          when (k) {
+            "tempDay" -> d = v
+            "tempMonth" -> m = v
+            "tempYear" -> y = v
+          }
+        })
+
+    composeTestRule.onNodeWithText("Invalid day").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Invalid month").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Invalid year").assertIsDisplayed()
+
+    val day = composeTestRule.onNodeWithTag(SettingsTestTags.DAY_FIELD, useUnmergedTree = true)
+    day.performClick()
+    day.performTextClearance()
+    day.performTextInput("07")
+    assertEquals("07", d)
+
+    val month = composeTestRule.onNodeWithTag(SettingsTestTags.MONTH_FIELD, useUnmergedTree = true)
+    month.performClick()
+    month.performTextClearance()
+    month.performTextInput("12")
+    assertEquals("12", m)
+
+    val year = composeTestRule.onNodeWithTag(SettingsTestTags.YEAR_FIELD, useUnmergedTree = true)
+    year.performClick()
+    year.performTextClearance()
+    year.performTextInput("1999")
+    assertEquals("1999", y)
+  }
+
+  @Test
   fun saveAndCancel_invokeCallbacks() {
     var saved = false
     var closed = false

@@ -20,6 +20,7 @@ import com.android.universe.ui.common.validateEmail
 import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validateMonth
+import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateYear
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
@@ -169,8 +170,7 @@ class SettingsViewModel(
         "password" -> {
           // No hard limit for password, just validation (soft limit)
           finalValue = value
-          // You'll need to create validatePassword in ProfileValidators.kt
-          // validationResult = validatePassword(finalValue)
+          validationResult = validatePassword(finalValue)
         }
         "firstName" -> {
           // Sanitize *then* truncate at LIMIT + 1
