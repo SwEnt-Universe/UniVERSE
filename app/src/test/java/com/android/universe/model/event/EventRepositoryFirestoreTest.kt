@@ -72,13 +72,13 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   }
 
   @Test
-  fun suggestEvents_returnsEventsWithMatchingTags() = runTest {
+  fun getSuggestedEvents_returnsEventsWithMatchingTags() = runTest {
     val user = UserTestData.SomeTagsUser
 
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.suggestEventsForUser(user)
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
 
     assertEquals(1, suggestedEvents.size)
     assertTrue(suggestedEvents.contains(EventTestData.SomeTagsEvent))
@@ -86,13 +86,13 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   }
 
   @Test
-  fun suggestEvents_returnsEmptyListWhenNoTagsMatch() = runTest {
+  fun getSuggestedEvents_returnsEmptyListWhenNoTagsMatch() = runTest {
     val user = UserTestData.NoTagsUser
 
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.suggestEventsForUser(user)
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
 
     assertTrue(suggestedEvents.isEmpty())
   }

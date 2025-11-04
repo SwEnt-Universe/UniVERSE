@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
+import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
 import org.junit.Rule
 import org.junit.Test
@@ -21,18 +22,29 @@ class MapScreenTest {
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
 
+  private lateinit var uid: String
   private lateinit var fakeLocationRepository: FakeLocationRepository
 
   private lateinit var fakeEventRepository: FakeEventRepository
+  private lateinit var fakeUserRepository: FakeUserRepository
   private lateinit var viewModel: MapViewModel
 
   @Test
   fun mapIsDisplayed() {
+    uid = "test_uid"
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
-    viewModel = MapViewModel(fakeLocationRepository, fakeEventRepository)
+    fakeUserRepository = FakeUserRepository()
+    viewModel =
+        MapViewModel(
+            currentUserId = uid,
+            locationRepository = fakeLocationRepository,
+            eventRepository = fakeEventRepository,
+            userRepository = fakeUserRepository)
 
-    composeTestRule.setContent { MapScreenTestWrapper(viewModel = viewModel, onTabSelected = {}) }
+    composeTestRule.setContent {
+      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
+    }
 
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
   }
@@ -40,6 +52,6 @@ class MapScreenTest {
 
 /** Wrapper to add test tags to MapScreen for Compose testing */
 @Composable
-fun MapScreenTestWrapper(viewModel: MapViewModel, onTabSelected: (Tab) -> Unit) {
-  Box { MapScreen(viewModel = viewModel, onTabSelected = onTabSelected) }
+fun MapScreenTestWrapper(uid: String, viewModel: MapViewModel, onTabSelected: (Tab) -> Unit) {
+  Box { MapScreen(uid = uid, viewModel = viewModel, onTabSelected = onTabSelected) }
 }

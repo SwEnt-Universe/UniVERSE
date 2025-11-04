@@ -37,6 +37,24 @@ class FakeEventRepositoryTest {
   }
 
   @Test
+  fun getSuggestedEvents_returnsEventsMatchingUserTags() = runTest {
+    val user = UserTestData.SomeTagsUser
+    val eventA = EventTestData.dummyEvent1.copy(tags = setOf(Tag.ROCK, Tag.POP))
+    val eventB = EventTestData.dummyEvent2.copy(tags = setOf(Tag.METAL, Tag.JAZZ))
+    val eventC = EventTestData.dummyEvent3.copy(tags = setOf(Tag.TENNIS))
+
+    repository.addEvent(eventA)
+    repository.addEvent(eventB)
+    repository.addEvent(eventC)
+
+    val suggestedEvents = repository.getSuggestedEventsForUser(user)
+
+    assertTrue(suggestedEvents.contains(eventA))
+    assertTrue(suggestedEvents.contains(eventB))
+    assertFalse(suggestedEvents.contains(eventC))
+  }
+
+  @Test
   fun addEvent_storesEvent_andCanBeRetrieved() = runTest {
     val user1 =
         UserProfile(
@@ -379,24 +397,6 @@ class FakeEventRepositoryTest {
     assertEquals(1, result2.participants.size)
     assert(result2.participants.contains(user))
     assertEquals(result2.creator, user)
-  }
-
-  @Test
-  fun suggestEvents_returnsEventsMatchingUserTags() = runTest {
-    val user = UserTestData.SomeTagsUser
-    val eventA = EventTestData.dummyEvent1.copy(tags = setOf(Tag.ROCK, Tag.POP))
-    val eventB = EventTestData.dummyEvent2.copy(tags = setOf(Tag.METAL, Tag.JAZZ))
-    val eventC = EventTestData.dummyEvent3.copy(tags = setOf(Tag.TENNIS))
-
-    repository.addEvent(eventA)
-    repository.addEvent(eventB)
-    repository.addEvent(eventC)
-
-    val suggestedEvents = repository.suggestEventsForUser(user)
-
-    assertTrue(suggestedEvents.contains(eventA))
-    assertTrue(suggestedEvents.contains(eventB))
-    assertFalse(suggestedEvents.contains(eventC))
   }
 
   @Test

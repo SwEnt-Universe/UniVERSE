@@ -25,19 +25,19 @@ interface EventRepository {
   suspend fun getEvent(eventId: String): Event
 
   /**
+   * Retrieves suggested events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event>
+
+  /**
    * Adds a new event to the repository.
    *
    * @param event the [Event] to add.
    */
   suspend fun addEvent(event: Event)
-
-  /**
-   * Suggests events for a given user based on their profile (tags).
-   *
-   * @param user the [UserProfile] for whom to suggest events.
-   * @return a list of suggested [Event] objects.
-   */
-  suspend fun suggestEventsForUser(user: UserProfile): List<Event>
 
   /**
    * Updates an existing event.

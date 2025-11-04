@@ -42,9 +42,9 @@ class EventRepositoryProviderTest {
                           tags = emptySet()),
                   location = Location(0.0, 0.0))
 
-          override suspend fun addEvent(event: Event) {}
+          override suspend fun getSuggestedEventsForUser(user: UserProfile) = emptyList<Event>()
 
-          override suspend fun suggestEventsForUser(user: UserProfile) = emptyList<Event>()
+          override suspend fun addEvent(event: Event) {}
 
           override suspend fun updateEvent(eventId: String, newEvent: Event) {}
 

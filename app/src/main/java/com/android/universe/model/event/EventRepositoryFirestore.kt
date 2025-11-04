@@ -184,6 +184,18 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   /**
+   * Retrieves suggested events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
+    val matchedEvents = getEventsMatchingUserTags(user)
+    val rankedEvents = rankEventsByTagMatch(user, matchedEvents)
+    return rankedEvents.map { it.first }
+  }
+
+  /**
    * Adds a new event to the repository.
    *
    * @param event the [Event] to add.
@@ -209,18 +221,6 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     } else {
       throw NoSuchElementException("No event with ID $eventId found")
     }
-  }
-
-  /**
-   * Suggests events for a given user based on their profile (tags).
-   *
-   * @param user the [UserProfile] for whom to suggest events.
-   * @return a list of suggested [Event] objects.
-   */
-  override suspend fun suggestEventsForUser(user: UserProfile): List<Event> {
-    val matchedEvents = getEventsMatchingUserTags(user)
-    val rankedEvents = rankEventsByTagMatch(user, matchedEvents)
-    return rankedEvents.map { it.first }
   }
 
   private suspend fun getEventsMatchingUserTags(user: UserProfile): List<Event> {

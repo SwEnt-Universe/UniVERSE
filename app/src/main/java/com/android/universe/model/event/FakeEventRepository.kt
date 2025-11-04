@@ -36,22 +36,22 @@ class FakeEventRepository : EventRepository {
   }
 
   /**
+   * Retrieves suggested events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
+    return events.filter { event -> event.tags.any { it in user.tags } }
+  }
+
+  /**
    * Adds a new event to the repository.
    *
    * @param event the [Event] to add.
    */
   override suspend fun addEvent(event: Event) {
     events.add(event)
-  }
-
-  /**
-   * Suggests events for a given user based on their profile (tags).
-   *
-   * @param user the [UserProfile] for whom to suggest events.
-   * @return a list of suggested [Event] objects.
-   */
-  override suspend fun suggestEventsForUser(user: UserProfile): List<Event> {
-    return events.filter { event -> event.tags.any { it in user.tags } }
   }
 
   /**
