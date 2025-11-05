@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,14 +25,14 @@ class NavigationHelperTest {
   }
 
   @Test
-  fun `returns SignIn when user is null`() {
+  fun `returns SignIn when user is null`() = runTest {
     val result = resolveUserDestinationScreen(user = null, userRepository = mockUserRepository)
 
     assertEquals(NavigationScreens.SignIn, result)
   }
 
   @Test
-  fun `returns Map when user is anonymous`() {
+  fun `returns Map when user is anonymous`() = runTest {
     every { mockUser.isAnonymous } returns true
 
     val result = resolveUserDestinationScreen(user = mockUser, userRepository = mockUserRepository)
@@ -40,7 +41,7 @@ class NavigationHelperTest {
   }
 
   @Test
-  fun `returns Map when user has profile`() {
+  fun `returns Map when user has profile`() = runTest {
     every { mockUser.isAnonymous } returns false
     every { mockUser.uid } returns "uid123"
 
@@ -53,7 +54,7 @@ class NavigationHelperTest {
   }
 
   @Test
-  fun `returns AddProfile when user does not have profile`() {
+  fun `returns AddProfile when user does not have profile`() = runTest {
     every { mockUser.isAnonymous } returns false
     every { mockUser.uid } returns "uid123"
 

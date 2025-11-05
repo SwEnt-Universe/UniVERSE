@@ -23,7 +23,7 @@ import kotlinx.coroutines.runBlocking
  * @param user The current Firebase user. Defaults to `Firebase.auth.currentUser`.
  * @return The [NavigationScreens] destination that the user should be navigated to.
  */
-fun resolveUserDestinationScreen(
+suspend fun resolveUserDestinationScreen(
     userRepository: UserRepository,
     user: FirebaseUser? = Firebase.auth.currentUser
 ): NavigationScreens =
@@ -39,6 +39,6 @@ fun resolveUserDestinationScreen(
  * @param uid The unique identifier of the user to check.
  * @return `true` if the user profile is found, `false` otherwise.
  */
-private fun UserRepository.hasProfile(uid: String): Boolean = runBlocking {
-  runCatching { getUser(uid) }.isSuccess
-}
+private suspend fun UserRepository.hasProfile(uid: String): Boolean = runCatching {
+  getUser(uid) }.isSuccess
+
