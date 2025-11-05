@@ -205,7 +205,9 @@ fun UniverseApp(
               val latitude = backStackEntry.arguments?.getDouble("latitude") ?: 0.0
               val longitude = backStackEntry.arguments?.getDouble("longitude") ?: 0.0
 
-              EventCreationScreen(location = Location(latitude, longitude))
+              EventCreationScreen(location = Location(latitude, longitude), onSave = {
+                  navController.navigate(NavigationScreens.Map.route)
+              })
           }
       }
   }

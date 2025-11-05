@@ -190,7 +190,7 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier, create
         Button(onClick = {
             createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
         }) {
-            Text("Create")
+            Text("Create ${eventMarkers.size}")
         }
     }
 
