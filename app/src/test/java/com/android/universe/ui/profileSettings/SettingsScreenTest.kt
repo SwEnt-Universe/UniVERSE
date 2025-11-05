@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
 import com.android.universe.ui.common.LogoutTestTags
-import com.android.universe.ui.profile.SettingsUiState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
