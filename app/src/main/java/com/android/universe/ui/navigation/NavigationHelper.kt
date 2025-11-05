@@ -4,7 +4,6 @@ import com.android.universe.model.user.UserRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.runBlocking
 
 /**
  * Determines the appropriate initial screen for the user based on their authentication state and
@@ -39,6 +38,5 @@ suspend fun resolveUserDestinationScreen(
  * @param uid The unique identifier of the user to check.
  * @return `true` if the user profile is found, `false` otherwise.
  */
-private suspend fun UserRepository.hasProfile(uid: String): Boolean = runCatching {
-  getUser(uid) }.isSuccess
-
+private suspend fun UserRepository.hasProfile(uid: String): Boolean =
+    runCatching { getUser(uid) }.isSuccess
