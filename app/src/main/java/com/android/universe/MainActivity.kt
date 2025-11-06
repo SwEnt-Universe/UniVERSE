@@ -205,12 +205,12 @@ fun UniverseApp(
                 listOf(
                     navArgument("latitude") { type = NavType.FloatType },
                     navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
-              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0.0
-              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0.0
+              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
+              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
 
               EventCreationScreen(
                   location = Location(latitude.toDouble(), longitude.toDouble()),
-                  onSave = { navController.navigate(NavigationScreens.Map.route) })
+                  onSave = { navController.popBackStack() })
             }
       }
     }

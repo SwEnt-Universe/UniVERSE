@@ -144,7 +144,6 @@ fun TomTomMapView(
   var isLocationProviderSet by remember { mutableStateOf(false) }
   val state = viewModel.uiState.collectAsState()
   val eventMarkers by viewModel.eventMarkers.collectAsState()
-  viewModel.loadAllEvents()
 
   AndroidView(
       modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
@@ -214,6 +213,7 @@ fun TomTomMapView(
           }
     }
   }
+  Button(onClick = { viewModel.loadAllEvents() }) { Text("Reload events") }
 
   LaunchedEffect(Unit) {
     viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }
