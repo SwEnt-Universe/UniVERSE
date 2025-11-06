@@ -4,6 +4,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
@@ -40,8 +41,10 @@ class UserProfileScreenTest : FirestoreUserTest() {
     private val dummyUser3 = UserTestData.NullDescription
     private val dummyUser4 = UserTestData.NoTagsUser
     private val dummyUser5 = UserTestData.EmptyDescription
+    private val dummyUser6 = UserTestData.Arthur
 
     private const val NO_DESC = "No description"
+    private const val countryView = "Switzerland"
   }
 
   @Before
@@ -52,32 +55,32 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() {
-    runTest { repository.addUser(dummyUser) }
+    runTest { repository.addUser(dummyUser6) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
-      UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
+      UserProfileScreen(uid = dummyUser6.uid, userProfileViewModel = viewModel)
     }
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME)
         .assertIsDisplayed()
-        .assertTextEquals(dummyUser.firstName)
+        .assertTextEquals(dummyUser6.firstName)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.LASTNAME)
         .assertIsDisplayed()
-        .assertTextEquals(dummyUser.lastName)
+        .assertTextEquals(dummyUser6.lastName)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.COUNTRY)
         .assertIsDisplayed()
-        .assertTextContains(dummyUser.country, ignoreCase = true, substring = true)
+        .assertTextContains(countryView, ignoreCase = true, substring = true)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
         .assertIsDisplayed()
-        .assertTextContains(dummyUser.description!!)
+        .assertTextContains(dummyUser6.description!!)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.AGE)
@@ -125,7 +128,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun descriptionDisplaysPlaceholderWhenNull() {
+  fun descriptionDisplaysNothingWhenNull() {
     runTest { repository.addUser(dummyUser3) }
 
     composeTestRule.setContent {
@@ -133,10 +136,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
 
-    composeTestRule
-        .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
-        .assertIsDisplayed()
-        .assertTextEquals(NO_DESC)
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsNotDisplayed()
   }
 
   @Test
@@ -164,9 +164,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }
 
-    composeTestRule
-        .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
-        .assertIsDisplayed()
-        .assertTextEquals(NO_DESC)
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsNotDisplayed()
   }
 }
