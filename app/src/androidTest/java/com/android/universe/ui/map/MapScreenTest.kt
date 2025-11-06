@@ -11,6 +11,7 @@ import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,8 +30,8 @@ class MapScreenTest {
   private lateinit var fakeUserRepository: FakeUserRepository
   private lateinit var viewModel: MapViewModel
 
-  @Test
-  fun mapIsDisplayed() {
+  @Before
+  fun setUp() {
     uid = "test_uid"
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
@@ -41,7 +42,10 @@ class MapScreenTest {
             locationRepository = fakeLocationRepository,
             eventRepository = fakeEventRepository,
             userRepository = fakeUserRepository)
+  }
 
+  @Test
+  fun mapIsDisplayed() {
     composeTestRule.setContent {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
