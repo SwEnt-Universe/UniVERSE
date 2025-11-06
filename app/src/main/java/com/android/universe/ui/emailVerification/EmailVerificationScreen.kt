@@ -30,6 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -97,78 +99,120 @@ fun EmailVerificationScreen(
                 Modifier.padding(paddingValues)
                     .padding(top = Dimensions.PaddingExtraLarge * 2)
                     .fillMaxSize()) {
-              if (uiState.sendEmailFailed)
-                  SendEmailErrorScreen(
-                      resendEnabled = uiState.resendEnabled,
-                      onResend = { viewModel.sendEmailVerification() },
-                      email = uiState.email)
-              else
-                  AwaitingVerificationScreen(
-                      resendEnabled = uiState.resendEnabled,
-                      onResend = { viewModel.sendEmailVerification() },
-                      countDown = uiState.countDown,
-                      email = uiState.email)
+              if (uiState.sendEmailFailed) {
+                EmailStatusScreen(
+                    icon = Icons.Outlined.FlashOn,
+                    iconTint = MaterialTheme.colorScheme.error,
+                    backgroundColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                    headlineColor = MaterialTheme.colorScheme.error,
+                    messagePrefix = "Couldn't send verification link \n to ",
+                    email = uiState.email,
+                    instructions =
+                        "Verify the email address, your network connection\nand try again",
+                    resendEnabled = uiState.resendEnabled,
+                    onResend = { viewModel.sendEmailVerification() },
+                    enableProgressIndicator = true)
+              } else {
+                EmailStatusScreen(
+                    icon = Icons.Outlined.MarkEmailUnread,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    backgroundColor = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.1f),
+                    headlineColor = MaterialTheme.colorScheme.primary,
+                    messagePrefix = "Please verify the email using the link sent \n to ",
+                    email = uiState.email,
+                    instructions = null,
+                    countdown = uiState.countDown,
+                    resendEnabled = uiState.resendEnabled,
+                    onResend = { viewModel.sendEmailVerification() })
+              }
             }
       }
 }
 
 /**
- * A composable that displays a screen while awaiting email verification.
+ * A private composable that displays the status of the email verification process.
  *
- * This screen informs the user that a verification email has been sent to their address and that
- * they need to click the link in it. It includes a visual indicator (a progress circle with an
- * email icon), a countdown timer for when the "Resend" button will be enabled, and the button
- * itself.
+ * This component is used within [EmailVerificationScreen] to render different states, such as the
+ * initial "email sent" state or the "email send failed" state. It's a general-purpose component
+ * that can be configured with different icons, colors, and messages to suit the specific status
+ * being displayed.
  *
- * @param resendEnabled A boolean to control the enabled state of the resend button.
- * @param onResend A lambda function to be invoked when the user clicks the "Resend" button.
- * @param countDown The remaining time in seconds before the resend button is enabled.
- * @param email The email address to which the verification link has been sent.
+ * @param icon The main icon to display on the screen.
+ * @param iconTint The tint color for the [icon].
+ * @param backgroundColor The background color for the circular area behind the [icon].
+ * @param headlineColor The color for the main headline text ("Account Verification").
+ * @param messagePrefix A string that precedes the user's email address in the main message.
+ * @param email The user's email address to be displayed.
+ * @param instructions An optional string providing additional instructions or error details.
+ * @param countdown An optional integer representing the seconds remaining before the user can
+ *   resend the email. If provided, a countdown message is displayed.
+ * @param resendEnabled A boolean indicating whether the "Resend" button should be enabled.
+ * @param onResend A lambda function to be invoked when the "Resend" button is clicked.
+ * @param enableProgressIndicator A boolean that, if true, shows a circular progress indicator
+ *   around the icon. Useful for indicating an ongoing network operation.
  */
 @Composable
-private fun AwaitingVerificationScreen(
+private fun EmailStatusScreen(
+    icon: ImageVector,
+    iconTint: Color,
+    backgroundColor: Color,
+    headlineColor: Color,
+    messagePrefix: String,
+    email: String,
+    instructions: String? = null,
+    countdown: Int? = null,
     resendEnabled: Boolean,
     onResend: () -> Unit,
-    countDown: Int,
-    email: String
+    enableProgressIndicator: Boolean = false
 ) {
   Box(
       modifier =
           Modifier.size(Dimensions.IconSizeLarge * 10)
-              .background(
-                  color = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.1f),
-                  shape = CircleShape),
+              .background(color = backgroundColor, shape = CircleShape),
       contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(modifier = Modifier.fillMaxSize(), strokeWidth = 6.dp)
         Icon(
-            imageVector = Icons.Outlined.MarkEmailUnread,
+            imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = iconTint,
             modifier = Modifier.size(Dimensions.IconSizeLarge * 6))
+
+        if (enableProgressIndicator)
+            CircularProgressIndicator(modifier = Modifier.fillMaxSize(), strokeWidth = 6.dp)
       }
+
   Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
+
   Text(
       text = "Account Verification",
-      color = MaterialTheme.colorScheme.primary,
+      color = headlineColor,
       fontSize = MaterialTheme.typography.headlineLarge.fontSize,
       fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
       fontFamily = MaterialTheme.typography.headlineLarge.fontFamily)
+
   Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
+
   Text(
       text =
           buildAnnotatedString {
-            append("Please verify the email using the link sent \n to ")
-            withStyle(
-                style = SpanStyle(fontWeight = FontWeight.Bold),
-            ) {
-              append(email)
-            }
+            append(messagePrefix)
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(email) }
           },
       textAlign = TextAlign.Center,
       fontSize = MaterialTheme.typography.bodyLarge.fontSize,
   )
+
+  instructions?.let {
+    Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
+    Text(
+        text = it,
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.bodyLarge,
+    )
+  }
+
   Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+  if (countdown != null) {
     Text(
         text = "Didn't receive the email? Check your spam folder,",
         textAlign = TextAlign.Center,
@@ -179,11 +223,7 @@ private fun AwaitingVerificationScreen(
         text =
             buildAnnotatedString {
               append("or resend a link in ")
-              withStyle(
-                  style = SpanStyle(fontWeight = FontWeight.Bold),
-              ) {
-                append("$countDown")
-              }
+              withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$countdown") }
               append(" second(s)")
             },
         style = MaterialTheme.typography.bodyLarge,
@@ -191,65 +231,9 @@ private fun AwaitingVerificationScreen(
         modifier = Modifier.fillMaxWidth())
 
     Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-    ResendEmailButton(resendEnabled, onClick = onResend)
   }
-}
 
-/**
- * A composable that displays an error screen when sending the verification email fails.
- *
- * This screen informs the user about the failure, suggests possible reasons (incorrect email,
- * network issues), and provides an option to try resending the email.
- *
- * @param resendEnabled A boolean to control the enabled state of the resend button.
- * @param onResend A lambda function to be invoked when the user clicks the resend button.
- * @param email The email address to which the verification link failed to be sent.
- */
-@Composable
-private fun SendEmailErrorScreen(resendEnabled: Boolean, onResend: () -> Unit, email: String) {
-  Box(
-      modifier =
-          Modifier.size(Dimensions.IconSizeLarge * 10)
-              .background(
-                  color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                  shape = CircleShape),
-      contentAlignment = Alignment.Center) {
-        Icon(
-            imageVector = Icons.Outlined.FlashOn,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(Dimensions.IconSizeLarge * 6))
-      }
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-  Text(
-      text = "Account Verification",
-      color = MaterialTheme.colorScheme.error,
-      fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-      fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
-      fontFamily = MaterialTheme.typography.headlineLarge.fontFamily)
-
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
-  Text(
-      text =
-          buildAnnotatedString {
-            append("Couldn't send verification link \n to ")
-            withStyle(
-                style = SpanStyle(fontWeight = FontWeight.Bold),
-            ) {
-              append(email)
-            }
-          },
-      textAlign = TextAlign.Center,
-      fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-  )
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-  Text(
-      text = "Verify the email address, your network connection\nand try again",
-      textAlign = TextAlign.Center,
-      style = MaterialTheme.typography.bodyLarge,
-  )
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-  ResendEmailButton(resendEnabled, onClick = onResend)
+  ResendEmailButton(enabled = resendEnabled, onClick = onResend)
 }
 
 /**
