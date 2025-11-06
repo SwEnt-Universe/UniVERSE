@@ -28,12 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.isoToCountryName
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -60,11 +58,38 @@ object UserProfileScreenTestTags {
   }
 }
 
+/**
+ * Dimensions use in the screen for special cases.
+ */
+object UserProfileDimensions{
+    val verticalPaddingColumn = 112.dp
+    val profilePictureSize = 120.dp
+    val curveDepthPx = 48.dp
+    val backgroundHeight = 250.dp
+}
+
+/**
+ * Coordinates use in the screen for the creation of the background.
+ * It groups together all the coordinates and multiplier use in the creation of the path with Canvas for the background.
+ */
+object UserProfileBackGroundCoordinates{
+    const val X_START = 0f
+    const val Y_START = 0f
+    const val Y_END = 0f
+    const val X_LOW = 100f
+    const val X_MEDIUM = 225f
+    const val X_LARGE = 300f
+    const val Y_MULTIPLIER_LOW = 1.25f
+    const val Y_MULTIPLIER_MEDIUM = 2f
+    const val Y_MULTIPLIER_LARGE = 4.25f
+
+}
+
 /** Line that separate components in the screen. */
 @Composable
 fun DividerProfileScreen() {
   HorizontalDivider(
-      modifier = Modifier.padding(vertical = 8.dp), thickness = 2.dp, color = DecorationBackground)
+      modifier = Modifier.padding(vertical = Dimensions.PaddingMedium), thickness = Dimensions.ThicknessMedium, color = DecorationBackground)
 }
 
 /**
@@ -127,21 +152,21 @@ fun UserProfileScreen(
           // Box that contains the decoration background.
           Box(modifier = Modifier.fillMaxWidth()) { CurvedTopHeader() }
           Column(
-              modifier = Modifier.fillMaxSize().padding(vertical = 112.dp).padding(PaddingLarge),
+              modifier = Modifier.fillMaxSize().padding(vertical = UserProfileDimensions.verticalPaddingColumn).padding(PaddingLarge),
               horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                   // Profile picture of the user.
                   Box(
                       modifier =
                           Modifier.align(Alignment.Center)
-                              .size(120.dp)
+                              .size(UserProfileDimensions.profilePictureSize)
                               .background(MaterialTheme.colorScheme.surface, CircleShape),
                       contentAlignment = Alignment.Center) {
                         Icon(
                             tint = MaterialTheme.colorScheme.onSurface,
                             contentDescription = "Image",
                             imageVector = Icons.Filled.Image,
-                            modifier = Modifier.size(32.dp))
+                            modifier = Modifier.size(Dimensions.IconSizeLarge))
                       }
                   // Setting icon to navigate to the edit profile screen.
                   IconButton(
@@ -181,7 +206,7 @@ fun UserProfileScreen(
                           tint = MaterialTheme.colorScheme.onSurface,
                           contentDescription = "Location",
                           imageVector = Icons.Filled.LocationOn,
-                          modifier = Modifier.size(16.dp))
+                          modifier = Modifier.size(Dimensions.IconSizeSmall))
                       SpacerWidthUserProfile(Dimensions.SpacerSmall)
                       Text(
                           // We display the country name and not in Iso.
@@ -207,10 +232,9 @@ fun UserProfileScreen(
                 // We display the description only if it is not null.
                 if (userUIState.userProfile.description != null) {
                   SpacerHeightUserProfile(Dimensions.SpacerSmall)
-                  val descriptionSize = 80
                   // Description of the user.
                   Box(
-                      modifier = Modifier.fillMaxWidth().height(descriptionSize.dp),
+                      modifier = Modifier.fillMaxWidth().height(Dimensions.BoxDescriptionSize),
                       contentAlignment = Alignment.TopStart) {
                         val descriptionText = userUIState.userProfile.description
                         Text(
@@ -253,21 +277,20 @@ fun InterestTag(text: String, testTagIndex: Int) {
   Surface(
       color = MaterialTheme.colorScheme.primary,
       shape = RoundedCornerShape(50),
-      shadowElevation = 4.dp,
-      tonalElevation = 1.dp,
-      modifier = Modifier.height(height = 50.dp).widthIn(min = 0.dp, max = 100.dp)) {
+      shadowElevation = Dimensions.ShadowElevationTags,
+      tonalElevation = Dimensions.TonalElevationTags,
+      modifier = Modifier.height(height = Dimensions.HeightTags).widthIn(min = Dimensions.WidthMinimumTags, max = Dimensions.WidthMaximumTags)) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
           Text(
               text = text,
               color = MaterialTheme.colorScheme.onPrimary,
               style =
-                  MaterialTheme.typography.labelMedium.copy(
-                      fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp),
+                  MaterialTheme.typography.labelMedium,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
               modifier =
                   Modifier.testTag(UserProfileScreenTestTags.getTagTestTag(testTagIndex))
-                      .padding(horizontal = 12.dp, vertical = 6.dp))
+                      .padding(horizontal = Dimensions.HorizontalPaddingTagsText, vertical = Dimensions.VerticalPaddingTagsText))
         }
       }
 }
@@ -284,36 +307,36 @@ fun UserProfileScreenPreview() {
  */
 @Composable
 fun CurvedTopHeader() {
-  Canvas(modifier = Modifier.fillMaxWidth().height(250.dp)) {
+  Canvas(modifier = Modifier.fillMaxWidth().height(UserProfileDimensions.backgroundHeight)) {
     val width = size.width
     val heightPx = size.height
 
     // We define the curveDepth in out shape.
-    val curveDepthPx = 48.dp.toPx()
+    val curveDepthPx = UserProfileDimensions.curveDepthPx.toPx()
 
     // We define the path of point that will be display.
     val path =
         Path().apply {
-          moveTo(0f, 0f)
-          lineTo(0f, heightPx - curveDepthPx)
-          lineTo(x = 100f, y = heightPx - curveDepthPx)
+          moveTo(x = UserProfileBackGroundCoordinates.X_START, y = UserProfileBackGroundCoordinates.Y_START)
+          lineTo(x = UserProfileBackGroundCoordinates.X_START, y = heightPx - curveDepthPx)
+          lineTo(x = UserProfileBackGroundCoordinates.X_LOW, y = heightPx - curveDepthPx)
           quadraticTo(
-              x1 = 225f,
-              y1 = heightPx - curveDepthPx * 1.25f,
-              x2 = 300f,
-              y2 = heightPx - curveDepthPx * 2f)
+              x1 = UserProfileBackGroundCoordinates.X_MEDIUM,
+              y1 = heightPx - curveDepthPx * UserProfileBackGroundCoordinates.Y_MULTIPLIER_LOW,
+              x2 = UserProfileBackGroundCoordinates.X_LARGE,
+              y2 = heightPx - curveDepthPx * UserProfileBackGroundCoordinates.Y_MULTIPLIER_MEDIUM)
           quadraticTo(
               x1 = width / 2,
-              y1 = heightPx - curveDepthPx * 4.25f,
-              x2 = width - 300f,
-              y2 = heightPx - curveDepthPx * 2f)
+              y1 = heightPx - curveDepthPx * UserProfileBackGroundCoordinates.Y_MULTIPLIER_LARGE,
+              x2 = width - UserProfileBackGroundCoordinates.X_LARGE,
+              y2 = heightPx - curveDepthPx * UserProfileBackGroundCoordinates.Y_MULTIPLIER_MEDIUM)
           quadraticTo(
-              x1 = width - 225f,
-              y1 = heightPx - curveDepthPx * 1.25f,
-              x2 = width - 100f,
+              x1 = width - UserProfileBackGroundCoordinates.X_MEDIUM,
+              y1 = heightPx - curveDepthPx * UserProfileBackGroundCoordinates.Y_MULTIPLIER_LOW,
+              x2 = width - UserProfileBackGroundCoordinates.X_LOW,
               y2 = heightPx - curveDepthPx)
-          lineTo(width, heightPx - curveDepthPx)
-          lineTo(width, 0f)
+          lineTo(x = width, y = heightPx - curveDepthPx)
+          lineTo(x = width, y = UserProfileBackGroundCoordinates.Y_END)
           close()
         }
 
