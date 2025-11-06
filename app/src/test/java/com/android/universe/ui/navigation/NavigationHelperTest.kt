@@ -27,42 +27,51 @@ class NavigationHelperTest {
   @Test
   fun `returns SignIn when user is null`() = runTest {
     val result = resolveUserDestinationScreen(user = null, userRepository = mockUserRepository)
-
     assertEquals(NavigationScreens.SignIn, result)
   }
 
   @Test
   fun `returns Map when user is anonymous`() = runTest {
     every { mockUser.isAnonymous } returns true
+    every { mockUser.isEmailVerified } returns true
 
     val result = resolveUserDestinationScreen(user = mockUser, userRepository = mockUserRepository)
-
     assertEquals(NavigationScreens.Map, result)
+  }
+
+  @Test
+  fun `returns EmailValidation when user is not verified`() = runTest {
+    every { mockUser.isAnonymous } returns false
+    every { mockUser.isEmailVerified } returns false
+    every { mockUser.uid } returns "uid123"
+
+    val result = resolveUserDestinationScreen(user = mockUser, userRepository = mockUserRepository)
+    assertEquals(NavigationScreens.EmailValidation, result)
   }
 
   @Test
   fun `returns Map when user has profile`() = runTest {
     every { mockUser.isAnonymous } returns false
+    every { mockUser.isEmailVerified } returns true
     every { mockUser.uid } returns "uid123"
 
     // Mock getUser to succeed (simulates existing profile)
     coEvery { mockUserRepository.getUser("uid123") } returns mockk()
 
     val result = resolveUserDestinationScreen(user = mockUser, userRepository = mockUserRepository)
-
     assertEquals(NavigationScreens.Map, result)
   }
 
   @Test
   fun `returns AddProfile when user does not have profile`() = runTest {
     every { mockUser.isAnonymous } returns false
+    every { mockUser.isEmailVerified } returns true
     every { mockUser.uid } returns "uid123"
 
     // Mock getUser to throw exception (simulates missing profile)
     coEvery { mockUserRepository.getUser("uid123") } throws IllegalArgumentException()
 
     val result = resolveUserDestinationScreen(user = mockUser, userRepository = mockUserRepository)
-
     assertEquals(NavigationScreens.AddProfile, result)
   }
 }
