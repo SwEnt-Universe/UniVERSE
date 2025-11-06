@@ -60,7 +60,7 @@ object MapScreenTestTags {
 fun MapScreen(
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
-    createEvent: (latitude: Double, longitude: Double) -> Unit = {lat, lng ->},
+    createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(TomTomLocationRepository(context), EventRepositoryProvider.repository)
     }
@@ -97,7 +97,8 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-          TomTomMapView(viewModel = viewModel, modifier = Modifier.fillMaxSize(), createEvent = createEvent)
+          TomTomMapView(
+              viewModel = viewModel, modifier = Modifier.fillMaxSize(), createEvent = createEvent)
 
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -127,7 +128,11 @@ fun MapScreen(
  * @param modifier The modifier to be applied to the layout.
  */
 @Composable
-fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier, createEvent: (latitude: Double, longitude: Double) -> Unit = {lat, lng ->}) {
+fun TomTomMapView(
+    viewModel: MapViewModel,
+    modifier: Modifier = Modifier,
+    createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
+) {
   val context = LocalContext.current
 
   val mapView =
@@ -135,8 +140,9 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier, create
   var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
   var isInitialized by remember { mutableStateOf(false) }
   var isLocationProviderSet by remember { mutableStateOf(false) }
-    val state = viewModel.uiState.collectAsState()
+  val state = viewModel.uiState.collectAsState()
   val eventMarkers by viewModel.eventMarkers.collectAsState()
+  viewModel.loadAllEvents()
 
   AndroidView(
       modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
@@ -149,23 +155,32 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier, create
           onStart()
 
           getMapAsync { map ->
+            eventMarkers.forEach { event ->
+              event.location?.let { loc ->
+                map.addMarker(
+                    MarkerOptions(
+                        coordinate = GeoPoint(loc.latitude, loc.longitude),
+                        pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
+                        pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+              }
+            }
             tomtomMap = map
 
-            /*if (!isLocationProviderSet && viewModel.locationProvider != null) {
+            if (!isLocationProviderSet && viewModel.locationProvider != null) {
               map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
+              /*TODO this seems to fail as the import is missing ?
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-              map.enableLocationMarker(locationMarkerOptions)
-            }*/
-              map.addMapClickListener { geoPoint ->
-                  val latitude = geoPoint.latitude
-                  val longitude = geoPoint.longitude
-                  viewModel.selectLocation(latitude, longitude)
-                  true
-
-              }
+              map.enableLocationMarker(locationMarkerOptions)*/
+            }
+            map.addMapClickListener { geoPoint ->
+              val latitude = geoPoint.latitude
+              val longitude = geoPoint.longitude
+              viewModel.selectLocation(latitude, longitude)
+              true
+            }
           }
         }
       },
@@ -186,13 +201,17 @@ fun TomTomMapView(viewModel: MapViewModel, modifier: Modifier = Modifier, create
       }
     }
   }
-    if(state.value.selectedLat != null && state.value.selectedLng != null) {
-        Button(onClick = {
+  if (state.value.selectedLat != null && state.value.selectedLng != null) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+      Button(
+          onClick = {
             createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
-        }) {
-            Text("Create ${eventMarkers.size}")
-        }
+            viewModel.selectLocation(null, null)
+          }) {
+            Text("Create your Event !")
+          }
     }
+  }
 
   LaunchedEffect(Unit) {
     viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }
