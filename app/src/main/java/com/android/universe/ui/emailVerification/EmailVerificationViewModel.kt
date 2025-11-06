@@ -60,7 +60,7 @@ class EmailVerificationViewModel(private val user: FirebaseUser) : ViewModel() {
    * Decrements the countdown timer by one second if it's greater than zero. This is used to control
    * the cooldown period for resending a verification email.
    */
-  private fun countDown() {
+  fun countDown() {
     if (_uiState.value.countDown > 0) _uiState.update { it.copy(countDown = it.countDown - 1) }
   }
 
