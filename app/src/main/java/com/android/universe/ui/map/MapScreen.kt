@@ -33,6 +33,7 @@ import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
+import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -56,15 +57,21 @@ object MapScreenTestTags {
  * This screen handles location permissions, manages the MapViewModel, and displays the map along
  * with appropriate UI states.
  *
+ * @param uid The user ID for loading user-specific data.
  * @param onTabSelected Lambda to handle bottom navigation tab selection.
  */
 @Composable
 fun MapScreen(
+    uid: String,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
     createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> },
     viewModel: MapViewModel = viewModel {
-      MapViewModel(TomTomLocationRepository(context), EventRepositoryProvider.repository)
+      MapViewModel(
+          uid,
+          TomTomLocationRepository(context),
+          EventRepositoryProvider.repository,
+          UserRepositoryProvider.repository)
     }
 ) {
 

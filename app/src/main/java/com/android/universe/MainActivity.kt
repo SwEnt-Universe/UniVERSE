@@ -141,8 +141,7 @@ fun UniverseApp(
           route = NavigationScreens.Map.name,
       ) {
         composable(NavigationScreens.Map.route) {
-          MapScreen(
-              onTabSelected,
+          MapScreen(uid = Firebase.auth.currentUser!!.uid, onTabSelected = onTabSelected,
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
       }
