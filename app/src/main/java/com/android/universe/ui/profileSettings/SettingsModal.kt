@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.model.CountryData
 import com.android.universe.model.Tag
 import com.android.universe.ui.common.TagGroup
-import com.android.universe.ui.profile.SettingsUiState
 import com.android.universe.ui.selectTag.TagColors
 
 /**
@@ -93,11 +92,6 @@ internal fun ModalContent(
     onClose: () -> Unit,
     onSave: () -> Unit
 ) {
-  // Local mirrors keep the modal responsive without requiring immediate upstream state updates.
-  var localText by remember(uiState.currentField) { mutableStateOf(uiState.tempValue) }
-  var localDay by remember(uiState.currentField) { mutableStateOf(uiState.tempDay) }
-  var localMonth by remember(uiState.currentField) { mutableStateOf(uiState.tempMonth) }
-  var localYear by remember(uiState.currentField) { mutableStateOf(uiState.tempYear) }
 
   Column(
       modifier = Modifier.fillMaxWidth().padding(SettingsScreenPaddings.ContentHorizontalPadding),
@@ -146,11 +140,8 @@ internal fun ModalContent(
 
             // Main editable text input
             OutlinedTextField(
-                value = localText,
-                onValueChange = { newValue ->
-                  localText = newValue
-                  onUpdateTemp("tempValue", newValue)
-                },
+                value = uiState.tempValue,
+                onValueChange = { newValue -> onUpdateTemp("tempValue", newValue) },
                 modifier = Modifier.fillMaxWidth().testTag(tag),
                 isError = uiState.modalError != null,
                 supportingText = {
@@ -180,11 +171,8 @@ internal fun ModalContent(
                 horizontalArrangement =
                     Arrangement.spacedBy(SettingsScreenPaddings.DateFieldSpacing)) {
                   OutlinedTextField(
-                      value = localDay,
-                      onValueChange = { newDay ->
-                        localDay = newDay
-                        onUpdateTemp("tempDay", newDay)
-                      },
+                      value = uiState.tempDay,
+                      onValueChange = { newDay -> onUpdateTemp("tempDay", newDay) },
                       label = { Text("Day") },
                       modifier = Modifier.weight(1f).testTag(SettingsTestTags.DAY_FIELD),
                       isError = uiState.tempDayError != null,
@@ -194,11 +182,8 @@ internal fun ModalContent(
                       },
                       shape = RoundedCornerShape(12.dp))
                   OutlinedTextField(
-                      value = localMonth,
-                      onValueChange = { newMonth ->
-                        localMonth = newMonth
-                        onUpdateTemp("tempMonth", newMonth)
-                      },
+                      value = uiState.tempMonth,
+                      onValueChange = { newMonth -> onUpdateTemp("tempMonth", newMonth) },
                       label = { Text("Month") },
                       modifier = Modifier.weight(1f).testTag(SettingsTestTags.MONTH_FIELD),
                       isError = uiState.tempMonthError != null,
@@ -208,11 +193,8 @@ internal fun ModalContent(
                       },
                       shape = RoundedCornerShape(12.dp))
                   OutlinedTextField(
-                      value = localYear,
-                      onValueChange = { newYear ->
-                        localYear = newYear
-                        onUpdateTemp("tempYear", newYear)
-                      },
+                      value = uiState.tempYear,
+                      onValueChange = { newYear -> onUpdateTemp("tempYear", newYear) },
                       label = { Text("Year") },
                       modifier = Modifier.weight(1.5f).testTag(SettingsTestTags.YEAR_FIELD),
                       isError = uiState.tempYearError != null,
