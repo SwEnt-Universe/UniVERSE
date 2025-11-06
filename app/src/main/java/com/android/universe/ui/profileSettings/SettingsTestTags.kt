@@ -22,4 +22,5 @@ object SettingsTestTags {
   const val FIRST_NAME_FIELD = "first_name_field"
   const val LAST_NAME_FIELD = "last_name_field"
   const val DESCRIPTION_FIELD = "description_field"
+  const val LOADING_ICON = "loading_icon"
 }

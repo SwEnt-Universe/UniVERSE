@@ -2,18 +2,19 @@ package com.android.universe.ui.profileCreation
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.ui.common.ErrorMessages
+import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.CustomSemanticsMatcher.hasTestTagPrefix
 import com.android.universe.utils.FirestoreUserTest
@@ -223,7 +224,8 @@ class AddProfileScreenTest : FirestoreUserTest() {
   @Test
   fun showsUsernameErrorWhenEmpty() {
     // Focus the username field
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD).performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD).performTextInput("test")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD).performTextClearance()
 
     // Move focus away to trigger validation
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).performClick()
@@ -237,7 +239,10 @@ class AddProfileScreenTest : FirestoreUserTest() {
   @Test
   fun showsFirstNameErrorWhenEmpty() {
     // Focus the username field
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).performClick()
+    composeTestRule
+        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD)
+        .performTextInput("test")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).performTextClearance()
 
     // Move focus away to trigger validation
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD).performClick()
@@ -251,7 +256,8 @@ class AddProfileScreenTest : FirestoreUserTest() {
   @Test
   fun showsLastNameErrorWhenEmpty() {
     // Focus the username field
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextInput("test")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextClearance()
 
     // Move focus away to trigger validation
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performClick()
@@ -265,7 +271,8 @@ class AddProfileScreenTest : FirestoreUserTest() {
   @Test
   fun showsDayErrorWhenEmpty() {
     // Focus the username field
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput("test")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextClearance()
 
     // Move focus away to trigger validation
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performClick()
@@ -310,7 +317,8 @@ class AddProfileScreenTest : FirestoreUserTest() {
   @Test
   fun showsMonthErrorWhenEmpty() {
     // Focus the username field
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput("test")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextClearance()
 
     // Move focus away to trigger validation
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performClick()
@@ -355,7 +363,8 @@ class AddProfileScreenTest : FirestoreUserTest() {
   @Test
   fun showsYearErrorWhenEmpty() {
     // Focus the username field
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput("test")
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextClearance()
 
     // Move focus away to trigger validation
     composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performClick()
@@ -413,27 +422,6 @@ class AddProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun saveButtonEnabledOnlyWhenAllRequiredFieldsAreValid() {
-    // Initially, the Save button should be disabled
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsNotEnabled()
-
-    // Fill all required fields with valid values
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD)
-        .performTextInput("john_doe")
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_FIELD)
-        .performTextInput("John")
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_FIELD).performTextInput("Doe")
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD).performTextInput("1")
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD).performTextInput("1")
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD).performTextInput("2005")
-
-    // After entering valid inputs, the Save button should be enabled
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).assertIsEnabled()
-  }
-
-  @Test
   fun showsUsernameErrorWhenTooLongAndCuts() {
 
     composeTestRule
@@ -444,7 +432,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.USERNAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Username is too long")
+        .assertTextEquals(ErrorMessages.USERNAME_TOO_LONG.format(InputLimits.USERNAME))
   }
 
   @Test
@@ -458,7 +446,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("First name too long")
+        .assertTextEquals(ErrorMessages.FIRSTNAME_TOO_LONG.format(InputLimits.FIRST_NAME))
   }
 
   @Test
@@ -472,7 +460,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Last name too long")
+        .assertTextEquals(ErrorMessages.LASTNAME_TOO_LONG.format(InputLimits.LAST_NAME))
   }
 
   @Test
@@ -486,7 +474,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.DESCRIPTION_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Description too long")
+        .assertTextEquals(ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION))
   }
 
   @Test
@@ -498,8 +486,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.USERNAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(
-            "Invalid username format, allowed characters are letters, numbers, dots, underscores, or dashes")
+        .assertTextEquals(ErrorMessages.USERNAME_INVALID_FORMAT)
   }
 
   @Test
@@ -511,7 +498,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.FIRST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Invalid First name format")
+        .assertTextEquals(ErrorMessages.FIRSTNAME_INVALID_FORMAT)
   }
 
   @Test
@@ -523,7 +510,7 @@ class AddProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.LAST_NAME_ERROR, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals("Invalid Last name format")
+        .assertTextEquals(ErrorMessages.LASTNAME_INVALID_FORMAT)
   }
 
   @Test

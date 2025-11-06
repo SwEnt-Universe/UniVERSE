@@ -10,6 +10,7 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -31,9 +32,8 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
   override fun setUp() {
     super.setUp()
     repository = createInitializedRepository()
-    runTest {
+    runBlocking {
       emulator.auth.signInAnonymously().await()
-
       repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
     }
     composeTestRule.setContent { UniverseApp() }

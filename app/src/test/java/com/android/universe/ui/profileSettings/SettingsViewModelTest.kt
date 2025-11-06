@@ -6,7 +6,6 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.profile.SettingsViewModel
 import com.android.universe.utils.MainCoroutineRule
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
@@ -16,6 +15,7 @@ import io.mockk.*
 import java.time.LocalDate
 import junit.framework.TestCase.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -646,4 +646,16 @@ class SettingsViewModelTest {
 
         verify(exactly = 0) { mockFirebaseUser.updatePassword(any()) }
       }
+
+  @Test
+  fun signOutTest() {
+    var cleared = false
+    var navigated = false
+    runTest(testDispatcher) {
+      viewModel.signOut(clear = suspend { cleared = true }, navigate = { navigated = true })
+      delay(1000)
+    }
+    assertTrue(cleared)
+    assertTrue(navigated)
+  }
 }
