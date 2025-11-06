@@ -119,8 +119,7 @@ fun EmailVerificationScreen(
                     instructions =
                         "Verify the email address, your network connection\nand try again",
                     resendEnabled = uiState.resendEnabled,
-                    onResend = { viewModel.sendEmailVerification() },
-                    enableProgressIndicator = true)
+                    onResend = { viewModel.sendEmailVerification() })
               } else {
                 EmailStatusScreen(
                     icon = Icons.Outlined.MarkEmailUnread,
@@ -132,7 +131,8 @@ fun EmailVerificationScreen(
                     instructions = null,
                     countdown = uiState.countDown,
                     resendEnabled = uiState.resendEnabled,
-                    onResend = { viewModel.sendEmailVerification() })
+                    onResend = { viewModel.sendEmailVerification() },
+                    enableProgressIndicator = true)
               }
             }
       }
