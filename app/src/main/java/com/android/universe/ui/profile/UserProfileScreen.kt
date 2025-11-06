@@ -289,7 +289,7 @@ fun CurvedTopHeader() {
     val heightPx = size.height
 
     // We define the curveDepth in out shape.
-    val curveDepthPx = 80.dp.toPx()
+    val curveDepthPx = 48.dp.toPx()
 
     // We define the path of point that will be display.
     val path =
