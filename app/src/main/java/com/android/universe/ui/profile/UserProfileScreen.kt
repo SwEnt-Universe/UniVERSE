@@ -58,38 +58,37 @@ object UserProfileScreenTestTags {
   }
 }
 
-/**
- * Dimensions use in the screen for special cases.
- */
-object UserProfileDimensions{
-    val verticalPaddingColumn = 112.dp
-    val profilePictureSize = 120.dp
-    val curveDepthPx = 48.dp
-    val backgroundHeight = 250.dp
+/** Dimensions use in the screen for special cases. */
+object UserProfileDimensions {
+  val verticalPaddingColumn = 112.dp
+  val profilePictureSize = 120.dp
+  val curveDepthPx = 48.dp
+  val backgroundHeight = 250.dp
 }
 
 /**
- * Coordinates use in the screen for the creation of the background.
- * It groups together all the coordinates and multiplier use in the creation of the path with Canvas for the background.
+ * Coordinates use in the screen for the creation of the background. It groups together all the
+ * coordinates and multiplier use in the creation of the path with Canvas for the background.
  */
-object UserProfileBackGroundCoordinates{
-    const val X_START = 0f
-    const val Y_START = 0f
-    const val Y_END = 0f
-    const val X_LOW = 100f
-    const val X_MEDIUM = 225f
-    const val X_LARGE = 300f
-    const val Y_MULTIPLIER_LOW = 1.25f
-    const val Y_MULTIPLIER_MEDIUM = 2f
-    const val Y_MULTIPLIER_LARGE = 4.25f
-
+object UserProfileBackGroundCoordinates {
+  const val X_START = 0f
+  const val Y_START = 0f
+  const val Y_END = 0f
+  const val X_LOW = 100f
+  const val X_MEDIUM = 225f
+  const val X_LARGE = 300f
+  const val Y_MULTIPLIER_LOW = 1.25f
+  const val Y_MULTIPLIER_MEDIUM = 2f
+  const val Y_MULTIPLIER_LARGE = 4.25f
 }
 
 /** Line that separate components in the screen. */
 @Composable
 fun DividerProfileScreen() {
   HorizontalDivider(
-      modifier = Modifier.padding(vertical = Dimensions.PaddingMedium), thickness = Dimensions.ThicknessMedium, color = DecorationBackground)
+      modifier = Modifier.padding(vertical = Dimensions.PaddingMedium),
+      thickness = Dimensions.ThicknessMedium,
+      color = DecorationBackground)
 }
 
 /**
@@ -152,7 +151,10 @@ fun UserProfileScreen(
           // Box that contains the decoration background.
           Box(modifier = Modifier.fillMaxWidth()) { CurvedTopHeader() }
           Column(
-              modifier = Modifier.fillMaxSize().padding(vertical = UserProfileDimensions.verticalPaddingColumn).padding(PaddingLarge),
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(vertical = UserProfileDimensions.verticalPaddingColumn)
+                      .padding(PaddingLarge),
               horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                   // Profile picture of the user.
@@ -279,18 +281,21 @@ fun InterestTag(text: String, testTagIndex: Int) {
       shape = RoundedCornerShape(50),
       shadowElevation = Dimensions.ShadowElevationTags,
       tonalElevation = Dimensions.TonalElevationTags,
-      modifier = Modifier.height(height = Dimensions.HeightTags).widthIn(min = Dimensions.WidthMinimumTags, max = Dimensions.WidthMaximumTags)) {
+      modifier =
+          Modifier.height(height = Dimensions.HeightTags)
+              .widthIn(min = Dimensions.WidthMinimumTags, max = Dimensions.WidthMaximumTags)) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
           Text(
               text = text,
               color = MaterialTheme.colorScheme.onPrimary,
-              style =
-                  MaterialTheme.typography.labelMedium,
+              style = MaterialTheme.typography.labelMedium,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
               modifier =
                   Modifier.testTag(UserProfileScreenTestTags.getTagTestTag(testTagIndex))
-                      .padding(horizontal = Dimensions.HorizontalPaddingTagsText, vertical = Dimensions.VerticalPaddingTagsText))
+                      .padding(
+                          horizontal = Dimensions.HorizontalPaddingTagsText,
+                          vertical = Dimensions.VerticalPaddingTagsText))
         }
       }
 }
@@ -317,7 +322,9 @@ fun CurvedTopHeader() {
     // We define the path of point that will be display.
     val path =
         Path().apply {
-          moveTo(x = UserProfileBackGroundCoordinates.X_START, y = UserProfileBackGroundCoordinates.Y_START)
+          moveTo(
+              x = UserProfileBackGroundCoordinates.X_START,
+              y = UserProfileBackGroundCoordinates.Y_START)
           lineTo(x = UserProfileBackGroundCoordinates.X_START, y = heightPx - curveDepthPx)
           lineTo(x = UserProfileBackGroundCoordinates.X_LOW, y = heightPx - curveDepthPx)
           quadraticTo(
