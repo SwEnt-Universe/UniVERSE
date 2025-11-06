@@ -46,6 +46,7 @@ import com.tomtom.sdk.map.display.ui.MapView
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
   const val LOADING_INDICATOR = "loading_indicator"
+  const val CREATE_EVENT_BUTTON = "create_event_button"
 }
 
 /**
@@ -207,7 +208,8 @@ fun TomTomMapView(
           onClick = {
             createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
             viewModel.selectLocation(null, null)
-          }) {
+          },
+          modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
             Text("Create your Event !")
           }
     }
