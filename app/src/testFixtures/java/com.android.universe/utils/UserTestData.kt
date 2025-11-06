@@ -53,6 +53,8 @@ object UserTestData {
           dateOfBirth = LocalDate.of(2012, 9, 12),
           tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
 
+  val Arthur = BaseUser.copy(country = "CH")
+
   val FullDescription = BaseUser.copy(uid = "20")
 
   val EmptyDescription = BaseUser.copy(uid = "20", description = "")

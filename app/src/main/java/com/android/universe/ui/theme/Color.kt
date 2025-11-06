@@ -27,6 +27,7 @@ val BackgroundLight = Color(0xFFFFFFFF)
 val BackgroundDark = Color(0xFF121212)
 val SurfaceLight = Color(0xFFE3E3E3)
 val SurfaceDark = Color(0xFF1F1F1F)
+val DecorationBackground = Color(0xFF009688)
 
 // Semantic colors
 val ErrorLight = Color(0xFFB00020)
