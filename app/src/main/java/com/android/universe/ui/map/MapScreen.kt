@@ -40,6 +40,7 @@ import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.image.ImageFactory
+import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.ui.MapView
 
@@ -171,10 +172,9 @@ fun TomTomMapView(
               map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
-              /*TODO this seems to fail as the import is missing ?
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-              map.enableLocationMarker(locationMarkerOptions)*/
+              map.enableLocationMarker(locationMarkerOptions)
             }
             map.addMapClickListener { geoPoint ->
               val latitude = geoPoint.latitude
