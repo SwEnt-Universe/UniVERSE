@@ -36,15 +36,12 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   companion object {
     private val allTags = Tag.Category.entries.flatMap { Tag.Companion.getTagsForCategory(it) }
-    private val dummyUser = UserTestData.SomeTagsUser
+    private val dummyUser = UserTestData.Arthur
     private val dummyUser2 = UserTestData.ManyTagsUser
     private val dummyUser3 = UserTestData.NullDescription
     private val dummyUser4 = UserTestData.NoTagsUser
     private val dummyUser5 = UserTestData.EmptyDescription
-    private val dummyUser6 = UserTestData.Arthur
-
-    private const val NO_DESC = "No description"
-    private const val countryView = "Switzerland"
+    private const val COUNTRY_VIEW = "Switzerland"
   }
 
   @Before
@@ -55,32 +52,32 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() {
-    runTest { repository.addUser(dummyUser6) }
+    runTest { repository.addUser(dummyUser) }
 
     composeTestRule.setContent {
       val viewModel = UserProfileViewModel(repository)
-      UserProfileScreen(uid = dummyUser6.uid, userProfileViewModel = viewModel)
+      UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME)
         .assertIsDisplayed()
-        .assertTextEquals(dummyUser6.firstName)
+        .assertTextEquals(dummyUser.firstName)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.LASTNAME)
         .assertIsDisplayed()
-        .assertTextEquals(dummyUser6.lastName)
+        .assertTextEquals(dummyUser.lastName)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.COUNTRY)
         .assertIsDisplayed()
-        .assertTextContains(countryView, ignoreCase = true, substring = true)
+        .assertTextContains(COUNTRY_VIEW, ignoreCase = true, substring = true)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
         .assertIsDisplayed()
-        .assertTextContains(dummyUser6.description!!)
+        .assertTextContains(dummyUser.description!!)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.AGE)
