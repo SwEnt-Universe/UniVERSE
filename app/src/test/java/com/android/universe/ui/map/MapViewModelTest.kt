@@ -36,6 +36,11 @@ import org.junit.Test
 class MapViewModelTest {
   private lateinit var userId: String
 
+  companion object {
+    const val commonLat = 46.5196535
+    const val commonLng = 6.6322734
+  }
+
   private lateinit var viewModel: MapViewModel
   private lateinit var locationRepository: LocationRepository
 
@@ -244,5 +249,20 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals("Failed to load events: User not found", state.error)
+  }
+
+  @Test
+  fun `selectLocation updates selectedLat and selectedLng`() = runTest {
+    viewModel.selectLocation(commonLat, commonLng)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(viewModel.uiState.value.selectedLat, commonLat)
+    assertEquals(viewModel.uiState.value.selectedLng, commonLng)
+
+    viewModel.selectLocation(null, null)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(viewModel.uiState.value.selectedLat, null)
+    assertEquals(viewModel.uiState.value.selectedLng, null)
   }
 }
