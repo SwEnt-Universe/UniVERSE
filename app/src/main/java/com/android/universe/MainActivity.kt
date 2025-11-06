@@ -138,7 +138,9 @@ fun UniverseApp(
           startDestination = NavigationScreens.Map.route,
           route = NavigationScreens.Map.name,
       ) {
-        composable(NavigationScreens.Map.route) { MapScreen(onTabSelected) }
+        composable(NavigationScreens.Map.route) {
+          MapScreen(uid = Firebase.auth.currentUser!!.uid, onTabSelected = onTabSelected)
+        }
       }
 
       navigation(

@@ -7,6 +7,9 @@ import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserRepository
+import com.android.universe.utils.EventTestData
+import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
 import io.mockk.every
@@ -31,11 +34,13 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapViewModelTest {
+  private lateinit var userId: String
 
   private lateinit var viewModel: MapViewModel
   private lateinit var locationRepository: LocationRepository
 
   private lateinit var eventRepository: EventRepository
+  private lateinit var userRepository: UserRepository
 
   private val testDispatcher = StandardTestDispatcher()
 
@@ -95,9 +100,11 @@ class MapViewModelTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
-    viewModel = MapViewModel(locationRepository, eventRepository)
+    userRepository = mockk(relaxed = true)
+    viewModel = MapViewModel(userId, locationRepository, eventRepository, userRepository)
   }
 
   @After
@@ -210,5 +217,32 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals("Failed to load events: Failed to load", state.error)
+  }
+
+  @Test
+  fun `loadSuggestedEventsForCurrentUser updates eventMarkers with UserTestData`() = runTest {
+    val testUser = UserTestData.ManyTagsUser
+    val suggestedEvents = listOf(EventTestData.dummyEvent1, EventTestData.dummyEvent2)
+
+    coEvery { userRepository.getUser(userId) } returns testUser
+    coEvery { eventRepository.getSuggestedEventsForUser(testUser) } returns suggestedEvents
+
+    viewModel.loadSuggestedEventsForCurrentUser()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val markers = viewModel.eventMarkers.value
+    assertEquals(suggestedEvents.size, markers.size)
+    assertEquals(suggestedEvents, markers)
+  }
+
+  @Test
+  fun `loadSuggestedEventsForCurrentUser sets error on user retrieval failure`() = runTest {
+    coEvery { userRepository.getUser(userId) } throws RuntimeException("User not found")
+
+    viewModel.loadSuggestedEventsForCurrentUser()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("Failed to load events: User not found", state.error)
   }
 }

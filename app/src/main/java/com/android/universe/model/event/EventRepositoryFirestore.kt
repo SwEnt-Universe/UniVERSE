@@ -184,6 +184,18 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   /**
+   * Retrieves suggested events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
+    val matchedEvents = getEventsMatchingUserTags(user)
+    val rankedEvents = rankEventsByTagMatch(user, matchedEvents)
+    return rankedEvents.take(50).map { it.first }
+  }
+
+  /**
    * Adds a new event to the repository.
    *
    * @param event the [Event] to add.
@@ -209,6 +221,45 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     } else {
       throw NoSuchElementException("No event with ID $eventId found")
     }
+  }
+
+  /**
+   * Retrieves events from Firestore whose tag ordinals intersect with the provided user's tags.
+   *
+   * Limits the query to the first 10 tag ordinals because Firestore's `whereArrayContainsAny`
+   * accepts up to 10 elements.
+   *
+   * @param user the [UserProfile] whose tags are used to match events.
+   * @return a list of [Event] objects that match at least one of the user's tags.
+   */
+  private suspend fun getEventsMatchingUserTags(user: UserProfile): List<Event> {
+    val userTagOrdinals = user.tags.map { it.ordinal }.shuffled()
+    if (userTagOrdinals.isEmpty()) return emptyList()
+
+    val querySnapshot =
+        db.collection(EVENTS_COLLECTION_PATH)
+            .whereArrayContainsAny("tags", userTagOrdinals.take(10))
+            .get()
+            .await()
+
+    return querySnapshot.documents.map { doc -> documentToEvent(doc) }
+  }
+
+  /**
+   * Ranks events based on the number of matching tags with the user's profile.
+   *
+   * @param user the [UserProfile] whose tags are used for ranking.
+   * @param events the list of [Event] objects to rank.
+   * @return a list of pairs containing the [Event] and its corresponding match score, sorted in
+   *   descending order of match score.
+   */
+  private fun rankEventsByTagMatch(user: UserProfile, events: List<Event>): List<Pair<Event, Int>> {
+    return events
+        .map { event ->
+          val commonTags = user.tags.intersect(event.tags)
+          event to commonTags.size
+        }
+        .sortedByDescending { it.second }
   }
 
   /**
