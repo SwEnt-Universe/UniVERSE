@@ -57,7 +57,7 @@ class MapViewModel(
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
   init {
-    loadAllEvents()
+    loadSuggestedEventsForCurrentUser()
   }
 
   /**

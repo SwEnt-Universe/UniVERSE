@@ -63,11 +63,16 @@ class MapScreenTest {
   fun eventCreationButtonAppearsAndClickable() {
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
-    viewModel = MapViewModel(fakeLocationRepository, fakeEventRepository)
+    viewModel =
+        MapViewModel(
+            uid, fakeLocationRepository, fakeEventRepository, userRepository = fakeUserRepository)
     var accessed = false
     composeTestRule.setContent {
       MapScreenTestWrapper(
-          viewModel = viewModel, onTabSelected = {}, createEvent = { _, _ -> accessed = true })
+          uid = uid,
+          viewModel = viewModel,
+          onTabSelected = {},
+          createEvent = { _, _ -> accessed = true })
     }
 
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
@@ -89,5 +94,8 @@ fun MapScreenTestWrapper(
     onTabSelected: (Tab) -> Unit,
     createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
 ) {
-  Box { MapScreen(uid = uid, viewModel = viewModel, onTabSelected = onTabSelected, createEvent = createEvent) }
+  Box {
+    MapScreen(
+        uid = uid, viewModel = viewModel, onTabSelected = onTabSelected, createEvent = createEvent)
+  }
 }
