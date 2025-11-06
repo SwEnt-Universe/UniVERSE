@@ -95,7 +95,7 @@ fun MapScreen(
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier.fillMaxSize()) {
           TomTomMapView(viewModel = viewModel, modifier = Modifier.fillMaxSize())
 
           if (uiState.isLoading) {
