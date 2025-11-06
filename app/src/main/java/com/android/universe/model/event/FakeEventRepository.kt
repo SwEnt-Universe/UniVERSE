@@ -1,5 +1,6 @@
 package com.android.universe.model.event
 
+import com.android.universe.model.user.UserProfile
 import java.util.UUID
 
 /**
@@ -32,6 +33,16 @@ class FakeEventRepository : EventRepository {
   override suspend fun getEvent(eventId: String): Event {
     return events.firstOrNull { it.id == eventId }
         ?: throw NoSuchElementException("No event found with id: $eventId")
+  }
+
+  /**
+   * Retrieves suggested events for a given user based on their profile (tags).
+   *
+   * @param user the [UserProfile] for whom to suggest events.
+   * @return a list of suggested [Event] objects.
+   */
+  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
+    return events.filter { event -> event.tags.any { it in user.tags } }
   }
 
   /**

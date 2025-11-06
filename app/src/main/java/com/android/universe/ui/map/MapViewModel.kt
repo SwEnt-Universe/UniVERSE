@@ -6,6 +6,7 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
+import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
@@ -23,7 +24,10 @@ data class MapUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isPermissionRequired: Boolean = false,
-    val location: Location? = null
+    val location: Location? = null,
+    val selectedLat: Double? = null,
+    val selectedLng: Double? = null,
+    val eventCount: Int? = null
 )
 
 /**
@@ -33,8 +37,10 @@ data class MapUiState(
  * @property eventRepository Repository for accessing event data.
  */
 class MapViewModel(
+    private val currentUserId: String,
     private val locationRepository: LocationRepository,
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
@@ -51,7 +57,7 @@ class MapViewModel(
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
   init {
-    loadAllEvents()
+    loadSuggestedEventsForCurrentUser()
   }
 
   /**
@@ -133,9 +139,37 @@ class MapViewModel(
       try {
         val events = eventRepository.getAllEvents()
         _eventMarkers.value = events
+        // This is added so that the ui updates correctly when a new event is added
+        _uiState.update { it.copy(eventCount = events.size) }
       } catch (e: Exception) {
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
+  }
+
+  /**
+   * Loads suggested event markers for the current user from the event repository.
+   *
+   * Updates the state flow with the list of suggested events or an error message if loading fails.
+   */
+  fun loadSuggestedEventsForCurrentUser() {
+    viewModelScope.launch {
+      try {
+        val user = userRepository.getUser(currentUserId)
+        val events = eventRepository.getSuggestedEventsForUser(user)
+        _eventMarkers.value = events
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      }
+    }
+  }
+
+  /**
+   * Selects a location on the map.
+   *
+   * Updates the UI state with the selected latitude and longitude.
+   */
+  fun selectLocation(latitude: Double?, longitude: Double?) {
+    _uiState.value = _uiState.value.copy(selectedLat = latitude, selectedLng = longitude)
   }
 }
