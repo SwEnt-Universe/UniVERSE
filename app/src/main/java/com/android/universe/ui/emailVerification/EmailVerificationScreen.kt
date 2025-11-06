@@ -46,6 +46,15 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 
+object EmailVerificationScreenTestTags {
+  const val ICON_BOX = "ICON_BOX"
+  const val HEADLINE_TEXT = "HEADLINE_TEXT"
+  const val MESSAGE_TEXT = "MESSAGE_TEXT"
+  const val INSTRUCTIONS_TEXT = "INSTRUCTIONS_TEXT"
+  const val COUNTDOWN_TEXT = "COUNTDOWN_TEXT"
+  const val RESEND_BUTTON = "RESEND_BUTTON"
+}
+
 /**
  * A composable screen that handles the email verification process.
  *
@@ -168,7 +177,8 @@ private fun EmailStatusScreen(
   Box(
       modifier =
           Modifier.size(Dimensions.IconSizeLarge * 10)
-              .background(color = backgroundColor, shape = CircleShape),
+              .background(color = backgroundColor, shape = CircleShape)
+              .testTag(EmailVerificationScreenTestTags.ICON_BOX),
       contentAlignment = Alignment.Center) {
         Icon(
             imageVector = icon,
@@ -187,7 +197,8 @@ private fun EmailStatusScreen(
       color = headlineColor,
       fontSize = MaterialTheme.typography.headlineLarge.fontSize,
       fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
-      fontFamily = MaterialTheme.typography.headlineLarge.fontFamily)
+      fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
+      modifier = Modifier.testTag(EmailVerificationScreenTestTags.HEADLINE_TEXT))
 
   Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
 
@@ -199,7 +210,7 @@ private fun EmailStatusScreen(
           },
       textAlign = TextAlign.Center,
       fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-  )
+      modifier = Modifier.testTag(EmailVerificationScreenTestTags.MESSAGE_TEXT))
 
   instructions?.let {
     Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
@@ -207,7 +218,7 @@ private fun EmailStatusScreen(
         text = it,
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodyLarge,
-    )
+        modifier = Modifier.testTag(EmailVerificationScreenTestTags.INSTRUCTIONS_TEXT))
   }
 
   Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
@@ -228,12 +239,15 @@ private fun EmailStatusScreen(
             },
         style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth())
+        modifier = Modifier.fillMaxWidth().testTag(EmailVerificationScreenTestTags.COUNTDOWN_TEXT))
 
     Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
   }
 
-  ResendEmailButton(enabled = resendEnabled, onClick = onResend)
+  ResendEmailButton(
+      enabled = resendEnabled,
+      onClick = onResend,
+  )
 }
 
 /**
@@ -244,12 +258,16 @@ private fun EmailStatusScreen(
  */
 @Composable
 private fun ResendEmailButton(enabled: Boolean, onClick: () -> Unit) {
-  OutlinedButton(onClick = onClick, enabled = enabled, colors = ButtonDefaults.textButtonColors()) {
-    Text(
-        text = "Resend Verification Link",
-        style =
-            MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Bold,
-            ))
-  }
+  OutlinedButton(
+      onClick = onClick,
+      enabled = enabled,
+      colors = ButtonDefaults.textButtonColors(),
+      modifier = Modifier.testTag(EmailVerificationScreenTestTags.RESEND_BUTTON)) {
+        Text(
+            text = "Resend Verification Link",
+            style =
+                MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                ))
+      }
 }

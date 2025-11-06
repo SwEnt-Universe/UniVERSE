@@ -22,7 +22,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-const val TEST_EMAIL = "test@epfl.ch"
+private const val TEST_EMAIL = "test@epfl.ch"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EmailVerificationViewModelTest {
