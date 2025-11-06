@@ -140,7 +140,11 @@ fun UniverseApp(
           startDestination = NavigationScreens.Map.route,
           route = NavigationScreens.Map.name,
       ) {
-        composable(NavigationScreens.Map.route) { MapScreen(onTabSelected, createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") }) }
+        composable(NavigationScreens.Map.route) {
+          MapScreen(
+              onTabSelected,
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
+        }
       }
 
       navigation(
@@ -191,24 +195,24 @@ fun UniverseApp(
                   credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
                 })
           }
-        navigation(
-            startDestination = NavigationScreens.EventCreation.route,
-            route = NavigationScreens.EventCreation.name,
-        ) {
-            composable(
-                route = NavigationScreens.EventCreation.route,
-                arguments =
-                    listOf(
-                        navArgument("latitude") { type = NavType.FloatType },
-                        navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
-                val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0.0
-                val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0.0
+      navigation(
+          startDestination = NavigationScreens.EventCreation.route,
+          route = NavigationScreens.EventCreation.name,
+      ) {
+        composable(
+            route = NavigationScreens.EventCreation.route,
+            arguments =
+                listOf(
+                    navArgument("latitude") { type = NavType.FloatType },
+                    navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0.0
+              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0.0
 
-                EventCreationScreen(
-                    location = Location(latitude.toDouble(), longitude.toDouble()),
-                    onSave = { navController.navigate(NavigationScreens.Map.route) })
+              EventCreationScreen(
+                  location = Location(latitude.toDouble(), longitude.toDouble()),
+                  onSave = { navController.navigate(NavigationScreens.Map.route) })
             }
-        }
+      }
     }
   }
 }
