@@ -29,9 +29,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.event.EventScreen
+import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationPlaceholderScreen
@@ -139,7 +141,10 @@ fun UniverseApp(
           route = NavigationScreens.Map.name,
       ) {
         composable(NavigationScreens.Map.route) {
-          MapScreen(uid = Firebase.auth.currentUser!!.uid, onTabSelected = onTabSelected)
+          MapScreen(
+              uid = Firebase.auth.currentUser!!.uid,
+              onTabSelected = onTabSelected,
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
       }
 
@@ -191,6 +196,24 @@ fun UniverseApp(
                   credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
                 })
           }
+      navigation(
+          startDestination = NavigationScreens.EventCreation.route,
+          route = NavigationScreens.EventCreation.name,
+      ) {
+        composable(
+            route = NavigationScreens.EventCreation.route,
+            arguments =
+                listOf(
+                    navArgument("latitude") { type = NavType.FloatType },
+                    navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
+              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
+
+              EventCreationScreen(
+                  location = Location(latitude.toDouble(), longitude.toDouble()),
+                  onSave = { navController.popBackStack() })
+            }
+      }
     }
   }
 }

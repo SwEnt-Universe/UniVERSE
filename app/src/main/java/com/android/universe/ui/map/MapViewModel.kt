@@ -24,7 +24,10 @@ data class MapUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isPermissionRequired: Boolean = false,
-    val location: Location? = null
+    val location: Location? = null,
+    val selectedLat: Double? = null,
+    val selectedLng: Double? = null,
+    val eventCount: Int? = null
 )
 
 /**
@@ -136,6 +139,8 @@ class MapViewModel(
       try {
         val events = eventRepository.getAllEvents()
         _eventMarkers.value = events
+        // This is added so that the ui updates correctly when a new event is added
+        _uiState.update { it.copy(eventCount = events.size) }
       } catch (e: Exception) {
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
@@ -157,5 +162,14 @@ class MapViewModel(
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
+  }
+
+  /**
+   * Selects a location on the map.
+   *
+   * Updates the UI state with the selected latitude and longitude.
+   */
+  fun selectLocation(latitude: Double?, longitude: Double?) {
+    _uiState.value = _uiState.value.copy(selectedLat = latitude, selectedLng = longitude)
   }
 }
