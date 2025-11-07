@@ -34,7 +34,7 @@ object UserTestData {
           country = "FR",
           description = "a second user",
           dateOfBirth = LocalDate.of(2005, 12, 15),
-          tags = someTags)
+          tags = noTag)
   const val aliceEmail = "faketest@epfl.ch"
   const val alicePassword = "test-password-123"
 
