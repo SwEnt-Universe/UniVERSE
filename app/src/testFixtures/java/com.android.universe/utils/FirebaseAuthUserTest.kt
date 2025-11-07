@@ -7,8 +7,10 @@ import com.android.universe.model.user.USERS_COLLECTION_PATH
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryFirestore
+import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
@@ -152,5 +154,8 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
     }
   }
 
-  @After open fun tearDown() {}
+  @After
+  open fun tearDown() {
+    Firebase.auth.signOut()
+  }
 }

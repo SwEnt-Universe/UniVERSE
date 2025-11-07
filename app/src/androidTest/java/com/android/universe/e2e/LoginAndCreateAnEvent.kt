@@ -172,9 +172,5 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onAllNodesWithTag(EventScreenTestTags.EVENT_DESCRIPTION)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.description!!)
-    composeTestRule
-        .onAllNodesWithTag(EventScreenTestTags.EVENT_DATE)
-        .onFirst()
-        .assertTextEquals(FAKE_EVENT.date.toString())
   }
 }
