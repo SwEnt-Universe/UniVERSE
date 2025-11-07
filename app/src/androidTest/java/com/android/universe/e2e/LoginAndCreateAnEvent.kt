@@ -153,7 +153,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   private fun seeAddedEventInEventList() {
     composeTestRule.waitUntil(5_000L) {
-        composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
+      composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
     }
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
     composeTestRule.waitUntil(5_000L) {

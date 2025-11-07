@@ -2,6 +2,7 @@ package com.android.universe.utils
 
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
+import com.android.universe.model.event.EVENTS_COLLECTION_PATH
 import com.android.universe.model.user.USERS_COLLECTION_PATH
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
@@ -13,7 +14,6 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
@@ -73,6 +73,14 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
         conn.disconnect()
       }
     }
+  }
+
+  private suspend fun clearTestCollection() {
+    val events = emulator.firestore.collection(EVENTS_COLLECTION_PATH).get().await()
+
+    val batch = emulator.firestore.batch()
+    events.documents.forEach { batch.delete(it.reference) }
+    batch.commit().await()
   }
 
   /** Creates a UserRepository instance using the emulator Firestore. */
