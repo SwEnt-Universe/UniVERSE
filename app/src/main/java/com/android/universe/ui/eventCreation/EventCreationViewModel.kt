@@ -391,7 +391,7 @@ class EventCreationViewModel(
 
           val eventDateTime = LocalDateTime.of(localDate, localTime)
 
-          val creator = withContext(NonCancellable) { userRepository.getUser(uid) }
+          // val creator = withContext(NonCancellable) { userRepository.getUser(uid) }
           val event =
               Event(
                   id = id,
@@ -399,8 +399,8 @@ class EventCreationViewModel(
                   description = eventCreationUiState.value.description,
                   date = eventDateTime,
                   tags = eventCreationUiState.value.tags,
-                  creator = creator,
-                  participants = setOf(creator),
+                  creator = uid,
+                  participants = setOf(uid),
                   location = location)
           withContext(NonCancellable) { eventRepository.addEvent(event) }
         } catch (e: Exception) {

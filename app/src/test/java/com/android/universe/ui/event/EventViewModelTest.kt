@@ -4,6 +4,7 @@ import com.android.universe.model.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
+import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,6 +24,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class EventViewModelTest {
   private lateinit var repository: FakeEventRepository
+  private lateinit var userRepo: FakeUserRepository
   private lateinit var viewModel: EventViewModel
   private val testDispatcher = StandardTestDispatcher()
 
@@ -60,6 +62,8 @@ class EventViewModelTest {
     Dispatchers.setMain(testDispatcher)
 
     repository = FakeEventRepository()
+    userRepo = FakeUserRepository()
+
     val sampleEvents =
         listOf(
             Event(
@@ -68,8 +72,8 @@ class EventViewModelTest {
                 description = "Join us for a casual 5km run around the lake followed by coffee.",
                 date = LocalDateTime.of(2025, 10, 15, 7, 30),
                 tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-                participants = setOf(sampleUsers[0], sampleUsers[1]),
-                creator = sampleUsers[0],
+                participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
+                creator = sampleUsers[0].uid,
                 location = Location(latitude = 46.5196535, longitude = 6.6322734)),
             Event(
                 id = "event-002",
@@ -77,12 +81,15 @@ class EventViewModelTest {
                 date = LocalDateTime.of(2025, 11, 3, 9, 0),
                 tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
                 participants = emptySet(),
-                creator = sampleUsers[1],
+                creator = sampleUsers[1].uid,
                 location = Location(latitude = 46.5196535, longitude = 6.6322734)))
 
-    runTest { sampleEvents.forEach { repository.addEvent(it) } }
+    runTest {
+      sampleEvents.forEach { repository.addEvent(it) }
+      sampleUsers.forEach { userRepo.addUser(it) }
+    }
 
-    viewModel = EventViewModel(repository)
+    viewModel = EventViewModel(repository, null, userRepo)
   }
 
   @After
@@ -144,8 +151,8 @@ class EventViewModelTest {
                     Tag.PROGRAMMING,
                     Tag.RUNNING,
                     Tag.MUSIC),
-            participants = setOf(sampleUsers[0], sampleUsers[1]),
-            creator = sampleUsers[0],
+            participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
+            creator = sampleUsers[0].uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
 
     runBlocking { repository.addEvent(extraEvent) }

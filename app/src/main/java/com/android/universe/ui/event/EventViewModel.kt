@@ -2,27 +2,21 @@ package com.android.universe.ui.event
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserReactiveRepository
+import com.android.universe.model.user.UserReactiveRepositoryProvider
+import com.android.universe.model.user.UserRepository
+import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-/**
- * UI state for an event item.
- *
- * @property title The title of the event.
- * @property description A brief description of the event.
- * @property date The formatted date of the event.
- * @property tags A list of tags associated with the event.
- * @property creator The name of the event creator.
- * @property participants The number of participants in the event.
- */
+/** UI state for an event item. */
 data class EventUIState(
     val title: String = "",
     val description: String = "",
@@ -32,48 +26,67 @@ data class EventUIState(
     val participants: Int = 0
 )
 
-/**
- * ViewModel for managing event data and state.
- *
- * It fetches events from the [EventRepository], transforms them into [EventUIState], and exposes
- * them via a [StateFlow] for the UI to observe.
- *
- * @param eventRepository The repository used to fetch event data. Defaults to the singleton
- *   instance provided by [EventRepositoryProvider].
- */
+/** ViewModel for managing event data and reactive creator info. */
 class EventViewModel(
-    private val eventRepository: EventRepository = EventRepositoryProvider.repository
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val userReactiveRepository: UserReactiveRepository? =
+        UserReactiveRepositoryProvider.repository,
+    private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
 
-  /** Backing property for the list of event UI states. */
   private val _eventsState = MutableStateFlow<List<EventUIState>>(emptyList())
-
-  /** Publicly exposed StateFlow of event UI states. */
   val eventsState: StateFlow<List<EventUIState>> = _eventsState.asStateFlow()
 
-  /** Initializes the ViewModel by loading events. */
   init {
     loadEvents()
   }
 
-  /**
-   * Loads events from the repository, transforms them into UI states, and updates the state flow.
-   */
+  /** Load events and set up reactive creator updates */
   fun loadEvents() {
     viewModelScope.launch {
       val events = eventRepository.getAllEvents()
-      val uiStates =
-          events.map { event ->
-            EventUIState(
-                title = event.title,
-                description = event.description ?: "",
-                date = formatEventDate(event.date),
-                tags = event.tags.map { it.displayName }.take(3),
-                creator = formatCreator(event.creator),
-                participants = event.participants.count())
-          }
-      _eventsState.value = uiStates
+
+      if (userReactiveRepository != null) {
+        // Convert list of creators to distinct set
+        val distinctCreators = events.map { it.creator }.distinct()
+
+        // Combine all event flows
+        combine(
+                distinctCreators.map { uid ->
+                  userReactiveRepository!!.getUserFlow(uid).map { uid to it }
+                }) { userPairs ->
+                  val usersMap = userPairs.toMap()
+                  events.map { event ->
+                    val user = usersMap[event.creator]
+                    event.toUIState(user)
+                  }
+                }
+            .collect { uiStates -> _eventsState.value = uiStates }
+      } else {
+        val uiStates =
+            events.map { event ->
+              EventUIState(
+                  title = event.title,
+                  description = event.description ?: "",
+                  date = formatEventDate(event.date),
+                  tags = event.tags.map { it.displayName }.take(3),
+                  creator = formatCreator(userRepository.getUser(event.creator)),
+                  participants = event.participants.count())
+            }
+        _eventsState.value = uiStates
+      }
     }
+  }
+
+  /** Convert event and optional creator to UI model */
+  private fun Event.toUIState(user: UserProfile?): EventUIState {
+    return EventUIState(
+        title = title,
+        description = description ?: "",
+        date = formatEventDate(date),
+        tags = tags.map { it.displayName }.take(3),
+        creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
+        participants = participants.size)
   }
 
   /**
