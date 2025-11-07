@@ -161,7 +161,7 @@ fun SelectTagScreen(
     navigateOnSave: () -> Unit = {}
 ) {
   LaunchedEffect(uid) { selectedTagOverview.loadTags(uid) }
-  val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
+  val selectedTags by selectedTagOverview.selectedTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
