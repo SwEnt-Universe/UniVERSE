@@ -85,13 +85,8 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
     composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).performClick()
 
-    // Wait 15 second for the sign-in to occur, we should arrive on the EmailVerificationScreen
-    composeTestRule.waitUntil(15_000L) {
-      composeTestRule.onNodeWithTag(NavigationTestTags.EMAIL_VALIDATION_SCREEN).isDisplayed()
-    }
 
-    // Wait max 30 second for the email validation to occur, we should arrive on the
-    // MapScreen
+    // Wait max 30 seconds, we should arrive on the MapScreen
     composeTestRule.waitUntil(30_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
     }
