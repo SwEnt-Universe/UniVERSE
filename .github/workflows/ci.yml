@@ -163,6 +163,16 @@ jobs:
               while ! nc -z localhost $port; do sleep 1; done
             done
             echo "✅ Firebase emulators are running."
+          
+            # Start tail loop to auto-click verification links
+            tail -n 0 -F firebase-emulator.log | while read line; do
+              if [[ "$line" =~ http://127.0.0.1:9099/emulator/action\?mode=verifyEmail.* ]]; then
+                url="${BASH_REMATCH[0]}"
+                echo "➡ Clicking verification link: $url"
+                curl -s "$url" >/dev/null
+                fi
+            done &
+            TAIL_PID=$!
           fi
 
       # ------------------  Unit Tests ------------------
