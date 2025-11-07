@@ -47,6 +47,7 @@ import com.tomtom.sdk.map.display.ui.MapView
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
+  const val INTERACTABLE = "interactable"
   const val LOADING_INDICATOR = "loading_indicator"
   const val CREATE_EVENT_BUTTON = "create_event_button"
 }
@@ -105,24 +106,36 @@ fun MapScreen(
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-          TomTomMapView(
-              viewModel = viewModel, modifier = Modifier.fillMaxSize(), createEvent = createEvent)
+        Box(
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(padding)
+                    .then(
+                        if (uiState.isMapInteractive)
+                            Modifier.testTag(MapScreenTestTags.INTERACTABLE)
+                        else Modifier)) {
+              TomTomMapView(
+                  viewModel = viewModel,
+                  modifier = Modifier.fillMaxSize(),
+                  createEvent = createEvent)
 
-          if (uiState.isLoading) {
-            CircularProgressIndicator(
-                modifier =
-                    Modifier.align(Alignment.Center).testTag(MapScreenTestTags.LOADING_INDICATOR))
-          }
+              if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier =
+                        Modifier.align(Alignment.Center)
+                            .testTag(MapScreenTestTags.LOADING_INDICATOR))
+              }
 
-          uiState.error?.let { errorMessage ->
-            Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage) }
-          }
+              uiState.error?.let { errorMessage ->
+                Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage) }
+              }
 
-          if (uiState.isPermissionRequired) {
-            Snackbar(modifier = Modifier.padding(16.dp)) { Text("Location permission required") }
-          }
-        }
+              if (uiState.isPermissionRequired) {
+                Snackbar(modifier = Modifier.padding(16.dp)) {
+                  Text("Location permission required")
+                }
+              }
+            }
       }
 }
 
@@ -188,6 +201,7 @@ fun TomTomMapView(
               viewModel.selectLocation(latitude, longitude)
               true
             }
+            viewModel.nowInteractable()
           }
         }
       },

@@ -27,7 +27,8 @@ data class MapUiState(
     val location: Location? = null,
     val selectedLat: Double? = null,
     val selectedLng: Double? = null,
-    val eventCount: Int? = null
+    val eventCount: Int? = null,
+    val isMapInteractive: Boolean = false,
 )
 
 /**
@@ -172,4 +173,7 @@ class MapViewModel(
   fun selectLocation(latitude: Double?, longitude: Double?) {
     _uiState.value = _uiState.value.copy(selectedLat = latitude, selectedLng = longitude)
   }
+
+  /** Updates the UI state to indicate that the map is now interactable. */
+  fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
 }

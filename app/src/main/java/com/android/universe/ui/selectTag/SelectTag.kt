@@ -51,6 +51,7 @@ object SelectTagsScreenTestTags {
   const val DELETE_ICON = "DeleteIcon"
   const val TAG_BUTTON_PREFIX = "Button_"
   const val SELECTED_TAG_BUTTON_PREFIX = "Button_Selected_"
+  const val LAZY_COLUMN = "LazyColumnTags"
 
   fun unselectedTag(tag: Tag): String = "$TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
 
@@ -162,7 +163,7 @@ fun SelectTagScreen(
   LaunchedEffect(uid) { selectedTagOverview.loadTags(uid) }
   val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-    LazyColumn(modifier = Modifier.testTag("LazyColumnTags").weight(1f)) {
+    LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
         TagGroup(
             name = category.displayName,
