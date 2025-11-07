@@ -71,7 +71,7 @@ object EmailVerificationScreenTestTags {
  *   Typically used for navigation to the next screen (e.g., home or profile creation).
  * @param onBack A lambda function to be invoked when the user clicks the back button in the top app
  *   bar. Typically used for navigating back to the previous screen (e.g., login or registration).
- * @param viewModelInstance An instance of [EmailVerificationViewModel] that manages the state and
+ * @param viewModelInstance An unitialized [EmailVerificationViewModel] that manages the state and
  *   logic for this screen. This is provided for testability and defaults to a new instance.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,9 +80,13 @@ fun EmailVerificationScreen(
     user: FirebaseUser = Firebase.auth.currentUser!!,
     onSuccess: () -> Unit = {},
     onBack: () -> Unit = {},
-    viewModelInstance: EmailVerificationViewModel = EmailVerificationViewModel(user)
+    viewModelInstance: (FirebaseUser) -> EmailVerificationViewModel = {
+      EmailVerificationViewModel(it)
+    }
 ) {
-  val viewModel = remember { viewModelInstance } // Otherwise recomposition re-init's the viewModel
+  val viewModel = remember {
+    viewModelInstance(user)
+  } // Otherwise recomposition re-init's the viewModel
   val uiState by viewModel.uiState.collectAsState()
 
   LaunchedEffect(uiState.emailVerified) { if (uiState.emailVerified) onSuccess() }

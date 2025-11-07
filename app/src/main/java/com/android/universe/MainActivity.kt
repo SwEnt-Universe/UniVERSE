@@ -134,7 +134,7 @@ fun UniverseApp(
           EmailVerificationScreen(
               user = Firebase.auth.currentUser!!,
               onSuccess = {
-                coroutineScope.launch {
+                runBlocking {
                   navigationActions.navigateTo(resolveUserDestinationScreen(userRepository))
                 }
               },

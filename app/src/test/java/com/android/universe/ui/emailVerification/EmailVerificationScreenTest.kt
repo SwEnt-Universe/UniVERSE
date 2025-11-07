@@ -49,7 +49,7 @@ class EmailVerificationScreenTest {
   @Test
   fun displaysInitialStateCorrectly() = runTest {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = mockViewModel)
+      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
     }
 
     // Headline displayed
@@ -91,7 +91,7 @@ class EmailVerificationScreenTest {
   @Test
   fun callsOnResend_whenResendButtonClicked() {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = mockViewModel)
+      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
     }
 
     // Click resend button
@@ -108,7 +108,9 @@ class EmailVerificationScreenTest {
 
     composeTestRule.setContent {
       EmailVerificationScreen(
-          user = mockUser, viewModelInstance = mockViewModel, onSuccess = { successCalled = true })
+          user = mockUser,
+          viewModelInstance = { mockViewModel },
+          onSuccess = { successCalled = true })
     }
 
     // Simulate email verified
@@ -125,7 +127,7 @@ class EmailVerificationScreenTest {
     uiStateFlow.value = uiStateFlow.value.copy(sendEmailFailed = true)
 
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = mockViewModel)
+      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
     }
 
     // Error icon displayed
@@ -135,7 +137,7 @@ class EmailVerificationScreenTest {
   @Test
   fun countdownTextUpdates_whenCountdownChanges() = runTest {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = mockViewModel)
+      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
     }
 
     // Update countdown
@@ -156,7 +158,7 @@ class EmailVerificationScreenTest {
   @Test
   fun resendButtonDisabled_whenResendNotEnabled() = runTest {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = mockViewModel)
+      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
     }
 
     // Disable resend
