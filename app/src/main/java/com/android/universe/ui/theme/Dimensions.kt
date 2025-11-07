@@ -56,4 +56,19 @@ object Dimensions {
 
   // Corner radii
   val RoundedCorner = 8.dp // General rounded corners
+
+  // Thickness
+  val ThicknessMedium = 2.dp
+
+  // Box size
+  val BoxDescriptionSize = 80.dp
+
+  // Tags
+  val ShadowElevationTags = 4.dp
+  val TonalElevationTags = 1.dp
+  val HeightTags = 50.dp
+  val WidthMinimumTags = 0.dp
+  val WidthMaximumTags = 100.dp
+  val VerticalPaddingTagsText = 6.dp
+  val HorizontalPaddingTagsText = 12.dp
 }

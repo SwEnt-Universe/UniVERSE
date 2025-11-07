@@ -4,6 +4,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
@@ -35,13 +36,12 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   companion object {
     private val allTags = Tag.Category.entries.flatMap { Tag.Companion.getTagsForCategory(it) }
-    private val dummyUser = UserTestData.SomeTagsUser
+    private val dummyUser = UserTestData.Arthur
     private val dummyUser2 = UserTestData.ManyTagsUser
     private val dummyUser3 = UserTestData.NullDescription
     private val dummyUser4 = UserTestData.NoTagsUser
     private val dummyUser5 = UserTestData.EmptyDescription
-
-    private const val NO_DESC = "No description"
+    private const val COUNTRY_VIEW = "Switzerland"
   }
 
   @Before
@@ -72,7 +72,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.COUNTRY)
         .assertIsDisplayed()
-        .assertTextContains(dummyUser.country, ignoreCase = true, substring = true)
+        .assertTextContains(COUNTRY_VIEW, ignoreCase = true, substring = true)
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
@@ -125,7 +125,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   @Test
-  fun descriptionDisplaysPlaceholderWhenNull() {
+  fun descriptionDisplaysNothingWhenNull() {
     runTest { repository.addUser(dummyUser3) }
 
     composeTestRule.setContent {
@@ -133,10 +133,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
 
-    composeTestRule
-        .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
-        .assertIsDisplayed()
-        .assertTextEquals(NO_DESC)
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsNotDisplayed()
   }
 
   @Test
@@ -164,9 +161,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }
 
-    composeTestRule
-        .onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION)
-        .assertIsDisplayed()
-        .assertTextEquals(NO_DESC)
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsNotDisplayed()
   }
 }
