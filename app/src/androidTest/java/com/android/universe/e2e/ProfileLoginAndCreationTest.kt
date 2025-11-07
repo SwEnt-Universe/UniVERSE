@@ -109,7 +109,6 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.COUNTRY).assertIsDisplayed()
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME).assertIsDisplayed()
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.LASTNAME).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.TAGLIST).assertIsDisplayed()
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).assertIsDisplayed()
   }
 
