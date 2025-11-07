@@ -168,6 +168,7 @@ jobs:
             tail -n 0 -F firebase-emulator.log | while read line; do
               if [[ "$line" =~ http://127.0.0.1:9099/emulator/action\?mode=verifyEmail.* ]]; then
                 url="${BASH_REMATCH[0]}"
+                sleep 5
                 echo "➡ Clicking verification link: $url"
                 curl -s "$url" >/dev/null
                 fi
