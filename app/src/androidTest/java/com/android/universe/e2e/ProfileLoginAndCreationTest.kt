@@ -31,8 +31,7 @@ import com.android.universe.utils.UserTestData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -50,8 +49,8 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
       GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
   companion object {
-    private const val FAKE_EMAIL = "faketest@epfl.ch"
-    private const val FAKE_PASSWORD = "test-password-123"
+    private const val FAKE_EMAIL = UserTestData.aliceEmail
+    private const val FAKE_PASSWORD = UserTestData.alicePassword
     private val userTest = UserTestData.Alice
   }
 
@@ -117,9 +116,8 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     val createdUser = Firebase.auth.currentUser
     var createdUserProfile: UserProfile? = null
     assertNotNull(createdUser)
-    runTest {
+    runBlocking {
       // This delay avoid race conditions for the tags. Not the best but work for now
-      delay(5_000L)
       createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
     }
     assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile)
