@@ -91,9 +91,9 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     }
 
     // Wait max 30 second for the email validation to occur, we should arrive on the
-    // AddProfileScreen
+    // MapScreen
     composeTestRule.waitUntil(30_000L) {
-      composeTestRule.onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN).isDisplayed()
+      composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
     }
 
     composeTestRule.waitUntil(15_000L) {
