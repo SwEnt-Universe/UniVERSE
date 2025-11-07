@@ -217,3 +217,12 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar --parallel
+
+      - name: Shutdown
+        if: env.skip != 'true'
+        run: |
+          echo "🛑 Stopping tail loop and Firebase emulator"
+          if [ -n "${{ env.TAIL_PID }}" ]; then
+            kill ${{ env.TAIL_PID }} || true
+            echo "✅ Tail loop stopped"
+          fi
