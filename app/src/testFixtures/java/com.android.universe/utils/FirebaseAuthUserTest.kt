@@ -147,6 +147,7 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
 
     runBlocking {
       clearFirestoreUsers()
+      clearTestCollection()
       clearAuthUsers()
     }
   }
