@@ -35,12 +35,16 @@ object UserTestData {
           description = "a second user",
           dateOfBirth = LocalDate.of(2005, 12, 15),
           tags = someTags)
+  const val aliceEmail = "faketest@epfl.ch"
+  const val alicePassword = "test-password-123"
 
   val Bob =
       BaseUser.copy(
           username = "Bob",
           dateOfBirth = LocalDate.of(1990, 1, 1),
           tags = setOf(Tag.MUSIC, Tag.METAL))
+  const val bobEmail = "fakebob@epfl.ch"
+  const val bobPassword = "fake-pass123"
 
   val Rocky =
       BaseUser.copy(
