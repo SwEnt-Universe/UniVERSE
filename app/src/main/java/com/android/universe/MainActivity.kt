@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,7 @@ import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +84,6 @@ fun UniverseApp(
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
-  val coroutineScope = rememberCoroutineScope()
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
@@ -107,7 +105,7 @@ fun UniverseApp(
         composable(NavigationScreens.SignIn.route) {
           SignInScreen(
               onSignedIn = {
-                coroutineScope.launch {
+                runBlocking {
                   val destination = resolveUserDestinationScreen(userRepository)
                   navigationActions.navigateTo(destination)
                 }

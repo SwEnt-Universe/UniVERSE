@@ -20,7 +20,7 @@ object UserTestData {
           username = "Test",
           firstName = "Test",
           lastName = "User",
-          country = "Switzerland",
+          country = "CH",
           description = "Just a test user",
           dateOfBirth = DummyDate,
           tags = twoTags)
@@ -30,25 +30,29 @@ object UserTestData {
           uid = "1",
           username = "Alice",
           firstName = "second",
-          lastName = "User2",
-          country = "France",
+          lastName = "Usering",
+          country = "FR",
           description = "a second user",
           dateOfBirth = LocalDate.of(2005, 12, 15),
-          tags = setOf(Tag.TENNIS))
+          tags = noTag)
+  const val aliceEmail = "faketest@epfl.ch"
+  const val alicePassword = "test-password-123"
 
   val Bob =
       BaseUser.copy(
           username = "Bob",
           dateOfBirth = LocalDate.of(1990, 1, 1),
           tags = setOf(Tag.MUSIC, Tag.METAL))
+  const val bobEmail = "fakebob@epfl.ch"
+  const val bobPassword = "fake-pass123"
 
   val Rocky =
       BaseUser.copy(
           uid = "2",
           username = "Rocky",
           firstName = "third",
-          lastName = "User3",
-          country = "Portugal",
+          lastName = "User",
+          country = "PT",
           description = "a third user",
           dateOfBirth = LocalDate.of(2012, 9, 12),
           tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
