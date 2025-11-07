@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.ui.common.FormTestTags
@@ -31,7 +32,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   companion object {
@@ -66,6 +69,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     loginAndWait()
     zoomOnMapAndWait()
     clickOnMapAndCreateEvent()
+    seeAddedEventInEventList()
   }
 
   private fun loginAndWait() {
@@ -136,12 +140,21 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
+        .performTextInput("${FAKE_EVENT.date.hour}")
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
+        .performTextInput("${FAKE_EVENT.date.minute}")
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
 
   private fun seeAddedEventInEventList() {
+    composeTestRule.waitUntil(5_000L) {
+        composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
+    }
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
     composeTestRule.waitUntil(5_000L) {
       composeTestRule

@@ -31,7 +31,9 @@ import com.android.universe.utils.UserTestData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
@@ -116,10 +118,11 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     val createdUser = Firebase.auth.currentUser
     var createdUserProfile: UserProfile? = null
     assertNotNull(createdUser)
-    runBlocking {
-      // This delay avoid race conditions for the tags. Not the best but work for now
-      createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
-    }
+      runTest{
+        // This delay avoid race conditions for the tags. Not the best but work for now
+        delay(10_000L)
+        createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
+      }
     assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile)
   }
 
@@ -195,6 +198,9 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   }
 
   private fun loginAndWait() {
+    composeTestRule.waitUntil(5_000L) {
+        composeTestRule.onNodeWithTag(FormTestTags.EMAIL_FIELD).isDisplayed()
+    }
     composeTestRule
         .onNodeWithTag(FormTestTags.EMAIL_FIELD)
         .performClick()

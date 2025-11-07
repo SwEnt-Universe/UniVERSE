@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -54,7 +55,7 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
   private suspend fun clearAuthUsers() {
     withContext(Dispatchers.IO) {
       val projectId = FirebaseApp.getInstance().options.projectId
-      val host = if (isRobolectric) "127.0.0.1" else "10.0.0.2"
+      val host = if (isRobolectric) "127.0.0.1" else "10.0.2.2"
       val url =
           URL("http://$host:${FirebaseEmulator.AUTH_PORT}/emulator/v1/projects/$projectId/accounts")
       val conn = url.openConnection() as HttpURLConnection
@@ -136,7 +137,7 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
     FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     emulator.connect(isRobolectric)
 
-    runTest {
+    runBlocking {
       clearFirestoreUsers()
       clearAuthUsers()
     }
