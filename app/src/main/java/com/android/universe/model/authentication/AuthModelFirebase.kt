@@ -6,11 +6,15 @@ package com.android.universe.model.authentication
  */
 import android.util.Log
 import androidx.credentials.Credential
+import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.validateEmail
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.tasks.await
 
 /**
  * Firebase implementation of the [AuthModel] interface. Handles authentication with Firebase.
@@ -83,6 +87,36 @@ class AuthModelFirebase(
   }
 
   /**
+   * Signs in a user with an email and password.
+   *
+   * This function first validates the email format. If the format is invalid, it throws an
+   * [InvalidEmailException]. It then attempts to create a new user with the provided credentials.
+   * If an account with that email already exists ([FirebaseAuthUserCollisionException]), it
+   * proceeds to sign in the existing user instead.
+   *
+   * @param email The user's email address.
+   * @param password The user's password.
+   * @return A [Result] object containing the [FirebaseUser] on success, or an [Exception] on
+   *   failure.
+   * @throws InvalidEmailException if the email format is not valid.
+   * @throws SignInFailedException if the user is not available after a successful authentication
+   *   attempt.
+   */
+  override suspend fun signInWithEmail(email: String, password: String): Result<FirebaseUser> =
+      runCatching {
+        (validateEmail(email) as? ValidationResult.Invalid)?.let {
+          throw InvalidEmailException(it.errorMessage)
+        }
+        val authResult =
+            try {
+              auth.createUserWithEmailAndPassword(email, password).await()
+            } catch (_: FirebaseAuthUserCollisionException) {
+              auth.signInWithEmailAndPassword(email, password).await()
+            }
+        authResult?.user ?: throw SignInFailedException()
+      }
+
+  /**
    * Signs out the current user.
    *
    * @param onSuccess The callback to call when the sign-out is successful.
@@ -100,3 +134,9 @@ class AuthModelFirebase(
     }
   }
 }
+
+const val SIGN_IN_FAILED_EXCEPTION_MESSAGE = "Sign in Failed"
+
+class InvalidEmailException(message: String) : Exception(message)
+
+class SignInFailedException() : Exception(SIGN_IN_FAILED_EXCEPTION_MESSAGE)

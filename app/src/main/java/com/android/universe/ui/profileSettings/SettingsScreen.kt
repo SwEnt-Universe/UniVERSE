@@ -1,8 +1,10 @@
 package com.android.universe.ui.profileSettings
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,29 +14,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.Tag
+import com.android.universe.ui.common.LogoutButton
+import com.android.universe.ui.common.LogoutConfirmationDialog
 import com.android.universe.ui.navigation.NavigationTestTags
-import com.android.universe.ui.profile.SettingsUiState
-import com.android.universe.ui.profile.SettingsViewModel
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
 
 /* =========================================================
  * Padding/style constants
  * ========================================================= */
 object SettingsScreenPaddings {
-  val InternalSpacing = 4.dp
-  val DividerPadding = 20.dp
-  val ContentHorizontalPadding = 20.dp
-  val ErrorIndent = 8.dp
-  val FieldIconSpacing = 10.dp
-  val DateFieldSpacing = 8.dp
+  val InternalSpacing = Dimensions.PaddingSmall
+  val DividerPadding = Dimensions.PaddingExtraLarge
+  val ContentHorizontalPadding = Dimensions.PaddingExtraLarge
+  val ErrorIndent = Dimensions.PaddingMedium
+  val FieldIconSpacing = Dimensions.PaddingFieldIconSpacing
+  val DateFieldSpacing = Dimensions.PaddingMedium
 }
 
 object SettingsScreenStyles {
@@ -90,6 +95,7 @@ private fun EditableField(
   if (error != null) {
     Text(
         error,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
   }
@@ -115,13 +121,17 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
  * @param uid Logged-in user's uid.
  * @param onBack Callback when back arrow pressed.
  * @param viewModel Shared [SettingsViewModel] for state and actions.
+ * @param onLogout to log the user out
+ * @param clear to clear the credential state
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     uid: String,
     onBack: () -> Unit = {},
-    viewModel: SettingsViewModel = viewModel()
+    viewModel: SettingsViewModel = viewModel(),
+    onLogout: () -> Unit = {},
+    clear: suspend () -> Unit = {}
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val context = LocalContext.current
@@ -144,7 +154,8 @@ fun SettingsScreen(
       onToggleCountryDropdown = viewModel::toggleCountryDropdown,
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
-      onSaveModal = { viewModel.saveModal(uid) })
+      onSaveModal = { viewModel.saveModal(uid) },
+      onLogout = { viewModel.signOut(clear, onLogout) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -159,12 +170,29 @@ fun SettingsScreenContent(
     onToggleCountryDropdown: (Boolean) -> Unit = {},
     onAddTag: (Tag) -> Unit = {},
     onRemoveTag: (Tag) -> Unit = {},
-    onSaveModal: () -> Unit = {}
+    onSaveModal: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
+  val showDialog = remember { mutableStateOf(false) }
+  LogoutConfirmationDialog(
+      showDialog = showDialog.value,
+      onConfirm = {
+        showDialog.value = false
+        onLogout()
+      },
+      onDismiss = { showDialog.value = false })
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text("Settings") },
+            title = {
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Text("Settings")
+                    LogoutButton(onClick = { showDialog.value = true })
+                  }
+            },
             navigationIcon = {
               IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -176,6 +204,7 @@ fun SettingsScreenContent(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(padding)
+                    .padding(top = Dimensions.PaddingLarge)
                     .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)) {
               item { GeneralSection(uiState = uiState, open = onOpenField) }
               item { ProfileSection(uiState = uiState, open = onOpenField) }
@@ -194,6 +223,17 @@ fun SettingsScreenContent(
               onRemoveTag = onRemoveTag,
               onClose = onCloseModal,
               onSave = onSaveModal)
+        }
+  }
+
+  // This is the loading icon which will appear during the signing out
+  if (uiState.isLoading) {
+    Box(
+        Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .testTag(SettingsTestTags.LOADING_ICON),
+        contentAlignment = Alignment.Center) {
+          CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
   }
 }
@@ -227,7 +267,7 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = 0.5.dp,
+        thickness = Dimensions.DividerThickness,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
     EditableField(
@@ -261,18 +301,21 @@ private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
     uiState.dayError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.monthError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
     uiState.yearError?.let {
       Text(
           it,
+          style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
     }
@@ -285,7 +328,7 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     HorizontalDivider(
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = 0.5.dp,
+        thickness = Dimensions.DividerThickness,
         modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
     Text("Interests", style = SettingsScreenStyles.sectionTitleStyle())
     Tag.Category.entries.forEach { category ->
@@ -301,10 +344,9 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
 /* =========================================================
  * Previews (use stateless content only)
  * ========================================================= */
-/** Preview for Settings screen without modal. */
 fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
     SettingsUiState(
-        email = "preview@example.com",
+        email = "preview@epfl.ch",
         firstName = "Emma",
         lastName = "Prolapse",
         country = "Switzerland",
@@ -320,7 +362,7 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
 @Preview(showBackground = true, name = "Settings")
 @Composable
 private fun SettingsScreenContent_Preview() {
-  MaterialTheme {
+  UniverseTheme {
     SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
   }
 }

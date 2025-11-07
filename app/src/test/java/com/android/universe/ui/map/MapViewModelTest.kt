@@ -7,16 +7,15 @@ import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserRepository
+import com.android.universe.utils.EventTestData
+import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -26,16 +25,27 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapViewModelTest {
+  private lateinit var userId: String
+
+  companion object {
+    const val commonLat = 46.5196535
+    const val commonLng = 6.6322734
+  }
 
   private lateinit var viewModel: MapViewModel
   private lateinit var locationRepository: LocationRepository
 
   private lateinit var eventRepository: EventRepository
+  private lateinit var userRepository: UserRepository
 
   private val testDispatcher = StandardTestDispatcher()
 
@@ -95,9 +105,11 @@ class MapViewModelTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
-    viewModel = MapViewModel(locationRepository, eventRepository)
+    userRepository = mockk(relaxed = true)
+    viewModel = MapViewModel(userId, locationRepository, eventRepository, userRepository)
   }
 
   @After
@@ -210,5 +222,47 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals("Failed to load events: Failed to load", state.error)
+  }
+
+  @Test
+  fun `loadSuggestedEventsForCurrentUser updates eventMarkers with UserTestData`() = runTest {
+    val testUser = UserTestData.ManyTagsUser
+    val suggestedEvents = listOf(EventTestData.dummyEvent1, EventTestData.dummyEvent2)
+
+    coEvery { userRepository.getUser(userId) } returns testUser
+    coEvery { eventRepository.getSuggestedEventsForUser(testUser) } returns suggestedEvents
+
+    viewModel.loadSuggestedEventsForCurrentUser()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val markers = viewModel.eventMarkers.value
+    assertEquals(suggestedEvents.size, markers.size)
+    assertEquals(suggestedEvents, markers)
+  }
+
+  @Test
+  fun `loadSuggestedEventsForCurrentUser sets error on user retrieval failure`() = runTest {
+    coEvery { userRepository.getUser(userId) } throws RuntimeException("User not found")
+
+    viewModel.loadSuggestedEventsForCurrentUser()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("Failed to load events: User not found", state.error)
+  }
+
+  @Test
+  fun `selectLocation updates selectedLat and selectedLng`() = runTest {
+    viewModel.selectLocation(commonLat, commonLng)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(viewModel.uiState.value.selectedLat, commonLat)
+    assertEquals(viewModel.uiState.value.selectedLng, commonLng)
+
+    viewModel.selectLocation(null, null)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(viewModel.uiState.value.selectedLat, null)
+    assertEquals(viewModel.uiState.value.selectedLng, null)
   }
 }

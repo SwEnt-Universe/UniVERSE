@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
@@ -21,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.Dimensions
 
 /**
  * Represents a tab in the bottom navigation bar. Each tab has a destination screen, an icon for its
@@ -75,23 +76,23 @@ fun NavigationBottomMenu(
 ) {
   NavigationBar(
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
-  ) {
-    tabs.forEach { tab ->
-      val selected = tab == selectedTab
-      NavigationBarItem(
-          icon = {
-            Icon(
-                imageVector = if (selected) tab.iconSelected else tab.icon,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp))
-          },
-          selected = false,
-          // false to hide an highlight around the icon if it's selected, since we visualize the
-          // selected tab with an filled icon
-          onClick = { onTabSelected(tab) },
-          modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
-    }
-  }
+      containerColor = MaterialTheme.colorScheme.surface) {
+        tabs.forEach { tab ->
+          val selected = tab == selectedTab
+          NavigationBarItem(
+              icon = {
+                Icon(
+                    imageVector = if (selected) tab.iconSelected else tab.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(Dimensions.IconSizeLarge))
+              },
+              selected = false,
+              // false to hide an highlight around the icon if it's selected, since we visualize the
+              // selected tab with an filled icon
+              onClick = { onTabSelected(tab) },
+              modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
+        }
+      }
 }
 
 /**

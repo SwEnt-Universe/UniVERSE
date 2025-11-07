@@ -3,27 +3,26 @@ package com.android.universe.ui.selectTag
 import com.android.universe.model.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.utils.MainCoroutineRule
 import java.time.LocalDate
-import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
+import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SelectTagViewModelTest {
   // Define the parameters for the tests.
-  private val testDispatcher = StandardTestDispatcher()
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
+
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: SelectTagViewModel
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   @Before
   fun setup() {
-    Dispatchers.setMain(testDispatcher)
     repository = FakeUserRepository()
     viewModel = SelectTagViewModel(repository)
   }
@@ -259,9 +258,9 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     viewModel.loadTags("0")
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
   }
 
@@ -292,7 +291,7 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = emptySet())
     repository.addUser(userProfile)
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val tags =
         listOf(
             Tag.GENEVA,
@@ -309,7 +308,7 @@ class SelectTagViewModelTest {
       viewModel.addTag(tag)
     }
     viewModel.saveTags("0")
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val expectedTags =
         setOf(
             Tag.GENEVA,
@@ -333,7 +332,7 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = expectedTags)
     val actual = repository.getUser("0")
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     assertEquals(expectedUserProfile, actual)
   }
 
@@ -352,14 +351,14 @@ class SelectTagViewModelTest {
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.CAR))
     repository.addUser(userProfile)
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     viewModel.loadTags("0")
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     viewModel.addTag(Tag.HANDBALL)
     viewModel.saveTags("0")
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val updatedUser = repository.getUser("0")
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     assertEquals(setOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
   }
 }

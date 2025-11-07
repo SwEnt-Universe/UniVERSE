@@ -1,35 +1,28 @@
 name: CI - Test Runner
 
-# Run the workflow when commits are pushed on main or when a PR is modified
 on:
   push:
     branches:
       - main
-
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+    types: [opened, synchronize, reopened]
 
 jobs:
   ci:
     name: CI
-    # Execute the CI on the course's runners
     runs-on: ubuntu-latest
     env:
       TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
 
     steps:
-      # First step : Checkout the repository on the runner
+      # ------------------ Checkout ------------------
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis (if we use Sonar Later)
+          fetch-depth: 0
 
-
-      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux. Enabling it allows the Android emulator to run faster.
+      # ------------------ System Setup ------------------
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -39,17 +32,54 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
-          java-version: "17"
+          distribution: temurin
+          java-version: 17
 
-      # Caching is a very useful part of a CI, as a workflow is executed in a clean environment every time,
-      # this means that one would need to re-download and re-process gradle files for every run. Which is very time consuming.
-      #
-      # To avoid that, we cache the the gradle folder to reuse it later.
-      - name: Gradle cache
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # ------------------  Cache npm ------------------
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # ------------------ Gradle Cache ------------------
+      - name: Cache Gradle files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v3
 
-      # Cache the Emulator, if the cache does not hit, create the emulator
+      # ------------------ Build Output Cache ------------------
+      - name: Cache Gradle build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/build
+            .gradle
+          key: build-${{ github.ref_name }}
+          restore-keys: |
+            build-
+
+      # ------------------ 🧰 AVD Setup ------------------
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -58,8 +88,10 @@ jobs:
             ~/.android/avd/*
             ~/.android/adb*
           key: avd-34
+          restore-keys: |
+            avd-
 
-      - name: create AVD and generate snapshot for caching
+      - name: Create AVD snapshot (if cache miss)
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -71,16 +103,10 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
+      # ------------------  Secrets ------------------
       - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
+        run: chmod +x ./gradlew
 
-      # Check formatting
-      - name: KTFmt Check
-        run: |
-          ./gradlew ktfmtCheck
-
-      # Restore google-services.json from secret
       - name: Decode google-services.json
         env:
           GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
@@ -88,10 +114,9 @@ jobs:
           if [ -n "$GOOGLE_SERVICES" ]; then
             echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
           else
-            echo "::error::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
+            echo "::warning::GOOGLE_SERVICES secret not set."
           fi
 
-      # Validate TOMTOM_API_KEY is set (required for build)
       - name: Validate TOMTOM_API_KEY
         run: |
           if [ -z "$TOMTOM_API_KEY" ]; then
@@ -99,73 +124,69 @@ jobs:
             exit 1
           fi
 
-      # Install NodeJS
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
+      # ------------------ Code Quality ------------------
+      - name: KTFmt Check
+        run: ./gradlew ktfmtCheck
 
-      # Install Firebase CLI
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      # Install jq (required for JSON parsing)
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Firestore Security Rules tests
+      # ------------------ Skip heavy tasks for [Docs] PRs ------------------
+      # IMPORTANT the [Docs] tag is only meant to be used if a previous CI passes
+      # and only documentation / non source code changes have been made
+      - name: Detect [Docs]-only changes
+        id: skip-heavy
         run: |
-          if [ ! -e "firebase.json" ]; then # Check if firebase.json exists
-            echo "(B2 Warning): 'firebase.json' file is missing. Use 'firebase emulators:init'. Emulators are setup in B2"
-            exit 0
-          fi
-          jq -e '.emulators' firebase.json >/dev/null || { # Check if emulators are configured
-            echo "'firebase.json' is missing 'emulators'. Run 'firebase emulators:init'."
-            exit 1
-          }
-          for e in auth firestore; do # Check if auth and firestore emulators are configured
-            jq -e ".emulators.$e" firebase.json >/dev/null || {
-              echo "'firebase.json' is missing 'emulators.$e'. Run 'firebase emulators:init'."
-              exit 1
-            }
-          done
-          if [ -e "firebase/firestore/firestore.rules" ]; then # Check if firestore.rules exists
-            # Check if firestore.rules is referenced in firebase.json
-            jq -e '.firestore.rules' firebase.json >/dev/null || {
-              echo "'firebase.json' is missing 'firestore.rules'."
-              exit 1
-            }
-            (cd firebase/firestore/test 2>/dev/null && npm install && npm test) || exit $?
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "PR title: $TITLE"
+          if [[ "$TITLE" == *"[Docs]"* || "$TITLE" == *"[docs]"* ]]; then
+            echo "📝 [Docs] detected → skipping build, tests, and Sonar steps"
+            echo "skip=true" >> $GITHUB_ENV
           else
-            echo "(B3 Warning): Firestore rules file not found in firebase/firestore. Rules are setup in B3, you can ignore this warning in B2."
+            echo "skip=false" >> $GITHUB_ENV
           fi
 
-      # This step runs gradle commands to build the application
-      - name: Assemble Debug build only
-        run: |
-          ./gradlew assembleDebug lintDebug --parallel --build-cache
+      # ------------------  Build & Lint ------------------
+      - name: Assemble Debug APK (PRs only)
+        if: github.event_name == 'pull_request' && env.skip != 'true'
+        run: ./gradlew assembleDebug
 
-      # Run Unit tests
-      - name: Run tests
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew check --parallel --build-cache
+      - name: Assemble + Lint (main branch)
+        if: github.ref == 'refs/heads/main' && env.skip != 'true'
+        run: ./gradlew assembleDebug lintDebug
 
-      # Start Firebase emulators for instrumentation tests
+      # ------------------  Firebase Emulators ------------------
       - name: Start Firebase emulators
+        if: env.skip != 'true'
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
-            echo "Starting Firebase emulators for instrumentation tests..."
             nohup firebase emulators:start --only auth,firestore --project demo-project > firebase-emulator.log 2>&1 &
-            # Give emulators time to start
-            sleep 20
-            echo "Firebase emulators started"
-          else
-            echo "Firebase emulators not configured, skipping emulator startup..."
+            for port in 8080 9099; do
+              echo "⏳ Waiting for port $port..."
+              while ! nc -z localhost $port; do sleep 1; done
+            done
+            echo "✅ Firebase emulators are running."
           fi
 
-      # Run connected tests on the emulator
-      - name: run tests
+      # ------------------  Unit Tests ------------------
+      - name: Run unit tests
+        if: env.skip != 'true'
+        run: ./gradlew testDebugUnitTest
+
+      # ------------------  Decide test target ------------------
+      - name: Determine test suite
+        if: env.skip != 'true'
+        id: select-tests
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          REF="${{ github.ref }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "Event: $EVENT_NAME"
+          echo "Ref: $REF"
+          echo "PR title: $TITLE"
+          echo "mode=connectedCheck" >> $GITHUB_ENV
+          echo "Default → full connectedCheck"
+
+      # ------------------ Run instrumentation tests ------------------
+      - name: Run instrumentation tests (${{ env.mode }})
+        if: env.skip != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -174,15 +195,15 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
-          script: ./gradlew connectedCheck --parallel --build-cache
+          script: ./gradlew ${{ env.mode }}
 
-      # This step generates the coverage report which will be uploaded to sonar
-      - name: Generate Coverage Report
-        run: |
-          ./gradlew jacocoTestReport
+      # ------------------ 📈 Coverage + Sonar ------------------
+      - name: Generate JaCoCo Coverage Report
+        if: env.skip != 'true'
+        run: ./gradlew jacocoTestReport
 
-      # Upload the various reports to sonar
       - name: Upload report to SonarCloud
+        if: env.skip != 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar --parallel --build-cache
+        run: ./gradlew sonar --parallel

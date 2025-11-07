@@ -3,13 +3,17 @@ package com.android.universe.model.event
 import com.android.universe.model.Tag
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
+import com.android.universe.utils.EventTestData
+import com.android.universe.utils.UserTestData
 import java.time.LocalDate
 import java.time.LocalDateTime
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.fail
-import kotlin.test.assertNotNull
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
@@ -30,6 +34,24 @@ class FakeEventRepositoryTest {
     } catch (e: NoSuchElementException) {
       assertEquals(e.message, "No event found with id: nonexistent")
     }
+  }
+
+  @Test
+  fun getSuggestedEvents_returnsEventsMatchingUserTags() = runTest {
+    val user = UserTestData.SomeTagsUser
+    val eventA = EventTestData.dummyEvent1.copy(tags = setOf(Tag.ROCK, Tag.POP))
+    val eventB = EventTestData.dummyEvent2.copy(tags = setOf(Tag.METAL, Tag.JAZZ))
+    val eventC = EventTestData.dummyEvent3.copy(tags = setOf(Tag.TENNIS))
+
+    repository.addEvent(eventA)
+    repository.addEvent(eventB)
+    repository.addEvent(eventC)
+
+    val suggestedEvents = repository.getSuggestedEventsForUser(user)
+
+    assertTrue(suggestedEvents.contains(eventA))
+    assertTrue(suggestedEvents.contains(eventB))
+    assertFalse(suggestedEvents.contains(eventC))
   }
 
   @Test

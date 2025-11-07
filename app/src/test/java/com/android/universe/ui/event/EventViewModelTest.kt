@@ -7,8 +7,6 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
-import junit.framework.TestCase.assertEquals
-import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -18,7 +16,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EventViewModelTest {
@@ -80,7 +80,7 @@ class EventViewModelTest {
                 creator = sampleUsers[1],
                 location = Location(latitude = 46.5196535, longitude = 6.6322734)))
 
-    runBlocking { sampleEvents.forEach { repository.addEvent(it) } }
+    runTest { sampleEvents.forEach { repository.addEvent(it) } }
 
     viewModel = EventViewModel(repository)
   }

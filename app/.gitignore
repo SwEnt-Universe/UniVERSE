@@ -3,3 +3,5 @@
 /build
 /app/build
 local.properties
+release-keystore.jks
+key-releasesecrets.txt

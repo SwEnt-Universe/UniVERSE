@@ -7,18 +7,21 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.android.universe.ui.signIn.SignInViewModel
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +30,10 @@ import org.robolectric.RobolectricTestRunner
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
 class SignInViewModelTest {
+  private val validEmail = "test@epfl.ch"
+  private val invalidEmail = "not-an-email"
+  private val validPassword = "Password123"
+  private val invalidPassword = "123"
 
   // Mocks
   private lateinit var mockAuthModel: AuthModel
@@ -272,5 +279,189 @@ class SignInViewModelTest {
 
     // Assert
     assertNull(viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun `setEmail updates email and clears error when valid`() = runTest {
+    // Act
+    viewModel.setEmail(validEmail)
+    // Assert
+    val state = viewModel.uiState.value
+    assertEquals(validEmail, state.email)
+    assertNull(state.emailErrorMsg)
+  }
+
+  @Test
+  fun `setEmail sets error when invalid`() = runTest {
+    // Act
+    viewModel.setEmail(invalidEmail)
+    // Assert
+    val state = viewModel.uiState.value
+    assertEquals(invalidEmail, state.email)
+    assertTrue(!state.emailErrorMsg.isNullOrEmpty())
+  }
+
+  @Test
+  fun `setPassword updates password and clears error when valid`() = runTest {
+    viewModel.setPassword(validPassword)
+    val state = viewModel.uiState.value
+    assertEquals(validPassword, state.password)
+    assertNull(state.passwordErrorMsg)
+  }
+
+  @Test
+  fun `setPassword sets error when invalid`() = runTest {
+    viewModel.setPassword(invalidPassword)
+    val state = viewModel.uiState.value
+    assertEquals(invalidPassword, state.password)
+    assertTrue(!state.passwordErrorMsg.isNullOrEmpty())
+  }
+
+  @Test
+  fun `setEmail and setPassword ignored when loading`() = runTest {
+    // Arrange: put ViewModel in loading state
+    viewModel.nowLoading()
+    val originalState = viewModel.uiState.value
+    // Act
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(invalidPassword)
+    // Assert: state unchanged
+    assertEquals(originalState, viewModel.uiState.value)
+  }
+
+  @Test
+  fun `signInWithEmail does nothing when loading`() = runTest {
+    viewModel.nowLoading()
+    viewModel.signInWithEmail()
+    coVerify(exactly = 0) { mockAuthModel.signInWithEmail(any(), any()) }
+  }
+
+  @Test
+  fun `signInWithEmail does nothing when signInEnabled is false`() = runTest {
+    // Set invalid email and password
+    viewModel.setEmail(invalidEmail)
+    viewModel.setPassword(validPassword)
+
+    viewModel.signInWithEmail()
+
+    coVerify(exactly = 0) { mockAuthModel.signInWithEmail(any(), any()) }
+  }
+
+  @Test
+  fun `signInWithEmail calls authModel when enabled`() = runTest {
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.success(mockFirebaseUser)
+
+    viewModel.signInWithEmail()
+
+    coVerify(exactly = 1) { mockAuthModel.signInWithEmail(validEmail, validPassword) }
+  }
+
+  @Test
+  fun `signInWithEmail updates state on success`() = runTest {
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.success(mockFirebaseUser)
+
+    viewModel.signInWithEmail()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals(mockFirebaseUser, state.user)
+    assertNull(state.errorMsg)
+    assertNull(state.emailErrorMsg)
+  }
+
+  @Test
+  fun `signInWithEmail updates state on weak password`() = runTest {
+    val exception =
+        FirebaseAuthWeakPasswordException("weak-password", "Password too weak", "Password too weak")
+
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.failure(exception)
+
+    viewModel.signInWithEmail()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    print(state.errorMsg)
+    assertEquals("Password too weak", state.errorMsg)
+  }
+
+  @Test
+  fun `signInWithEmail updates state on invalid credentials`() = runTest {
+    val exception =
+        FirebaseAuthInvalidCredentialsException("invalid-credential", "Invalid password")
+
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.failure(exception)
+
+    viewModel.signInWithEmail()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals("Invalid password", state.errorMsg)
+  }
+
+  @Test
+  fun `signInWithEmail updates state on invalid email`() = runTest {
+    val exception = InvalidEmailException("Invalid email format")
+
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.failure(exception)
+
+    viewModel.signInWithEmail()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals("Invalid email format", state.emailErrorMsg)
+  }
+
+  @Test
+  fun `signInWithEmail updates state on network failure`() = runTest {
+    val exception = FirebaseNetworkException("No network")
+
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.failure(exception)
+
+    viewModel.signInWithEmail()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals("No internet connection", state.errorMsg)
+  }
+
+  @Test
+  fun `signInWithEmail updates state on unknown exception`() = runTest {
+    val exception = RuntimeException("Something went wrong")
+
+    viewModel.setEmail(validEmail)
+    viewModel.setPassword(validPassword)
+
+    coEvery { mockAuthModel.signInWithEmail(validEmail, validPassword) } returns
+        Result.failure(exception)
+
+    viewModel.signInWithEmail()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals(SIGN_IN_FAILED_EXCEPTION_MESSAGE, state.errorMsg)
   }
 }
