@@ -57,7 +57,8 @@ class EmailVerificationViewModelTest {
   fun `initial email is loaded from FirebaseUser`() = runTest {
     every { mockUser.isEmailVerified } returns false
     every { mockTask.isSuccessful } returns true
-    val vm = EmailVerificationViewModel(mockUser)
+    val vm = EmailVerificationViewModel()
+    vm.sendEmailVerification(mockUser)
     advanceUntilIdle() // run all coroutines in the test dispatcher
     assertEquals(TEST_EMAIL, vm.uiState.value.email)
   }
@@ -66,7 +67,8 @@ class EmailVerificationViewModelTest {
   fun `email already verified sets emailVerified true`() = runTest {
     every { mockUser.isEmailVerified } returns true
 
-    val vm = EmailVerificationViewModel(mockUser)
+    val vm = EmailVerificationViewModel()
+    vm.sendEmailVerification(mockUser)
     advanceUntilIdle()
 
     assertTrue(vm.uiState.value.emailVerified)
@@ -78,7 +80,8 @@ class EmailVerificationViewModelTest {
     every { mockUser.isEmailVerified } returns false
     every { mockTask.isSuccessful } returns false
 
-    val vm = EmailVerificationViewModel(mockUser)
+    val vm = EmailVerificationViewModel()
+    vm.sendEmailVerification(mockUser)
     advanceUntilIdle()
 
     assertTrue(vm.uiState.value.sendEmailFailed)
@@ -87,12 +90,13 @@ class EmailVerificationViewModelTest {
 
   @Test
   fun `countDown decreases over time`() = runTest {
-    val isVerifiedSlot = mutableListOf(false, false, false, true)
+    val isVerifiedSlot = mutableListOf(false, false, false, true, true)
     every { mockUser.isEmailVerified } answers { isVerifiedSlot.removeFirst() }
     every { mockTask.isSuccessful } returns true
     coEvery { mockUser.reload() } returns completedTask
 
-    val vm = EmailVerificationViewModel(mockUser)
+    val vm = EmailVerificationViewModel()
+    vm.sendEmailVerification(mockUser)
 
     val initialCountdown = vm.uiState.value.countDown
     assertEquals(COOLDOWN, initialCountdown)
@@ -104,12 +108,13 @@ class EmailVerificationViewModelTest {
   @Test
   fun `email becomes verified during polling`() = runTest {
     // false first, then true
-    val isVerifiedSlot = mutableListOf(false, false, true)
+    val isVerifiedSlot = mutableListOf(false, false, true, true)
     every { mockUser.isEmailVerified } answers { isVerifiedSlot.removeFirst() }
     every { mockTask.isSuccessful } returns true
     coEvery { mockUser.reload() } returns completedTask
 
-    val vm = EmailVerificationViewModel(mockUser)
+    val vm = EmailVerificationViewModel()
+    vm.sendEmailVerification(mockUser)
     // Advance time to pass the delay inside the polling loop
     advanceUntilIdle()
     assertTrue(vm.uiState.value.emailVerified)
@@ -119,7 +124,8 @@ class EmailVerificationViewModelTest {
   fun `resendEnabled is true when countdown is zero`() = runTest {
     every { mockUser.isEmailVerified } returns true
 
-    val vm = EmailVerificationViewModel(mockUser)
+    val vm = EmailVerificationViewModel()
+    vm.sendEmailVerification(mockUser)
 
     // countdown is initially COOLDOWN
     assertFalse(vm.uiState.value.resendEnabled)

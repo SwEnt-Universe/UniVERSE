@@ -2,13 +2,16 @@ package com.android.universe.ui.emailVerification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -47,14 +50,10 @@ data class EmailVerificationUIState(
  *
  * @param user The current [FirebaseUser] whose email needs to be verified.
  */
-class EmailVerificationViewModel(private val user: FirebaseUser) : ViewModel() {
-  private val _uiState = MutableStateFlow(EmailVerificationUIState(email = user.email ?: ""))
+class EmailVerificationViewModel() : ViewModel() {
+  private val _uiState = MutableStateFlow(EmailVerificationUIState())
   val uiState: StateFlow<EmailVerificationUIState> = _uiState.asStateFlow()
   private var awaitEmailJob: Job? = null
-
-  init {
-    sendEmailVerification()
-  }
 
   /**
    * Decrements the countdown timer by one second if it's greater than zero. This is used to control
@@ -65,41 +64,67 @@ class EmailVerificationViewModel(private val user: FirebaseUser) : ViewModel() {
   }
 
   /**
-   * Sends a verification email to the current user.
+   * Sends a verification email to the current user and starts polling for verification status.
    *
-   * First, it cancels any ongoing email verification checks. If the user's email is already
-   * verified, it updates the UI state to reflect this. Otherwise, it attempts to send a
-   * verification email using Firebase Auth. If the email is sent successfully, it starts polling to
-   * check for email verification status. If sending the email fails, it updates the UI state to
-   * show an error and resets the cooldown.
+   * This function first cancels any existing email verification polling jobs. It updates the UI
+   * state with the user's email address. If the user's email is already verified, it updates the
+   * state and returns immediately.
+   *
+   * Otherwise, it attempts to send a verification email using Firebase Authentication.
+   * - If the email is sent successfully, it calls `awaitEmailVerification()` to begin polling.
+   * - If the sending fails with a [FirebaseTooManyRequestsException], it's treated as a success
+   *   (since an email was recently sent), and it proceeds to call `awaitEmailVerification()`.
+   * - For any other failure, it updates the UI to indicate the failure and resets the resend
+   *   cooldown, allowing the user to try again immediately.
+   *
+   * @param user The current [FirebaseUser] to whom the verification email will be sent.
    */
-  fun sendEmailVerification() {
+  fun sendEmailVerification(user: FirebaseUser) {
     awaitEmailJob?.cancel()
+    _uiState.update { it.copy(email = user.email ?: "") }
     if (user.isEmailVerified) _uiState.update { it.copy(emailVerified = true) }
     else
         user.sendEmailVerification().addOnCompleteListener { sendEmail ->
-          if (sendEmail.isSuccessful) awaitEmailVerification()
+          if (sendEmail.isSuccessful) awaitEmailVerification(user)
+          else if // Suppress this error since a validation email was send in the last minute.
+          (sendEmail.exception is FirebaseTooManyRequestsException)
+              awaitEmailVerification(user)
           else _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
         }
   }
 
   /**
-   * Starts a coroutine to periodically check if the user's email has been verified. It resets the
-   * resend cooldown timer and enters a loop that runs every second. Inside the loop, it decrements
-   * the cooldown timer, reloads the user's Firebase profile to get the latest email verification
-   * status, and continues until the email is verified. Once verified, it updates the UI state to
-   * reflect this.
+   * Starts a coroutine to periodically check if the user's email has been verified.
+   *
+   * This function initiates a polling mechanism. It first resets the `sendEmailFailed` flag and
+   * sets the resend cooldown timer to its initial value. It then launches a coroutine that checks
+   * the user's email verification status every second.
+   *
+   * In each iteration, it decrements the cooldown timer and attempts to reload the user's Firebase
+   * profile to get the latest `isEmailVerified` status. The loop continues as long as the coroutine
+   * is active and the email remains unverified.
+   * - If `user.reload()` fails (e.g., due to network issues), the UI state is updated to indicate a
+   *   failure, the cooldown is reset to allow an immediate resend, and the polling job is
+   *   cancelled.
+   * - If the email is successfully verified, the `emailVerified` flag in the UI state is set to
+   *   `true`, and the loop terminates.
+   *
+   * @param user The [FirebaseUser] whose email verification status is being monitored.
    */
-  private fun awaitEmailVerification() {
+  private fun awaitEmailVerification(user: FirebaseUser) {
     _uiState.update { it.copy(countDown = COOLDOWN, sendEmailFailed = false) }
     awaitEmailJob =
         viewModelScope.launch {
-          while (!user.isEmailVerified) {
+          while (isActive && !user.isEmailVerified) {
             delay(ONE_SECOND)
             countDown()
-            user.reload().await()
+            runCatching { user.reload().await() }
+                .onFailure {
+                  _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
+                  cancel()
+                }
           }
-          _uiState.update { it.copy(emailVerified = true) }
+          if (user.isEmailVerified) _uiState.update { it.copy(emailVerified = true) }
         }
   }
 }

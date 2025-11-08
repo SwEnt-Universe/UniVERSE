@@ -42,14 +42,14 @@ class EmailVerificationScreenTest {
     mockViewModel =
         mockk(relaxed = true) {
           every { uiState } returns uiStateFlow
-          justRun { sendEmailVerification() }
+          justRun { sendEmailVerification(mockUser) }
         }
   }
 
   @Test
   fun displaysInitialStateCorrectly() = runTest {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
+      EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Headline displayed
@@ -91,7 +91,7 @@ class EmailVerificationScreenTest {
   @Test
   fun callsOnResend_whenResendButtonClicked() {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
+      EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Click resend button
@@ -99,7 +99,7 @@ class EmailVerificationScreenTest {
     composeTestRule.onNodeWithTag(EmailVerificationScreenTestTags.RESEND_BUTTON).performClick()
 
     // Verify ViewModel's sendEmailVerification called
-    verify { mockViewModel.sendEmailVerification() }
+    verify { mockViewModel.sendEmailVerification(mockUser) }
   }
 
   @Test
@@ -108,9 +108,7 @@ class EmailVerificationScreenTest {
 
     composeTestRule.setContent {
       EmailVerificationScreen(
-          user = mockUser,
-          viewModelInstance = { mockViewModel },
-          onSuccess = { successCalled = true })
+          user = mockUser, viewModel = mockViewModel, onSuccess = { successCalled = true })
     }
 
     // Simulate email verified
@@ -127,7 +125,7 @@ class EmailVerificationScreenTest {
     uiStateFlow.value = uiStateFlow.value.copy(sendEmailFailed = true)
 
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
+      EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Error icon displayed
@@ -137,7 +135,7 @@ class EmailVerificationScreenTest {
   @Test
   fun countdownTextUpdates_whenCountdownChanges() = runTest {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
+      EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Update countdown
@@ -158,7 +156,7 @@ class EmailVerificationScreenTest {
   @Test
   fun resendButtonDisabled_whenResendNotEnabled() = runTest {
     composeTestRule.setContent {
-      EmailVerificationScreen(user = mockUser, viewModelInstance = { mockViewModel })
+      EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Disable resend
