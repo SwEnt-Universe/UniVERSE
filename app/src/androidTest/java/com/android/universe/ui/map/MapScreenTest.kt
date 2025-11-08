@@ -4,18 +4,25 @@ import android.Manifest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.utils.UserTestData
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class MapScreenTest {
   companion object {
     const val commonLat = 46.5196535
@@ -38,10 +45,12 @@ class MapScreenTest {
 
   @Before
   fun setUp() {
-    uid = "test_uid"
+    uid = UserTestData.Alice.uid
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
     fakeUserRepository = FakeUserRepository()
+    // Really important, the MapViewModel init using a load event functions, this breaks if no user are in the repository
+    runTest { fakeUserRepository.addUser(UserTestData.Alice) }
     viewModel =
         MapViewModel(
             currentUserId = uid,
@@ -61,11 +70,6 @@ class MapScreenTest {
 
   @Test
   fun eventCreationButtonAppearsAndClickable() {
-    fakeLocationRepository = FakeLocationRepository()
-    fakeEventRepository = FakeEventRepository()
-    viewModel =
-        MapViewModel(
-            uid, fakeLocationRepository, fakeEventRepository, userRepository = fakeUserRepository)
     var accessed = false
     composeTestRule.setContent {
       MapScreenTestWrapper(
@@ -77,12 +81,11 @@ class MapScreenTest {
 
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
     viewModel.selectLocation(commonLat, commonLng)
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertIsDisplayed()
+    composeTestRule.waitUntil(5_000L) {
+        composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
+    }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
-    composeTestRule.waitUntil(1000, { accessed })
-
-    assert(accessed)
+    composeTestRule.waitUntil(1_000L) { accessed }
   }
 }
 
