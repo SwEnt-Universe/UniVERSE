@@ -1,10 +1,7 @@
 package com.android.universe.model.user
 
 import android.util.Log
-import com.android.universe.model.Tag
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,43 +44,6 @@ class UserReactiveRepository(private val db: FirebaseFirestore) {
           }
           // shareIn makes sure all collectors share the same Firestore listener
           .shareIn(scope = scope, started = SharingStarted.Eagerly, replay = 1)
-    }
-  }
-
-  /** Check if a List is of type T and safely casts it, returning an empty list if not. */
-  private inline fun <reified T> Any?.safeCastList(): List<T> {
-    return if (this is List<*>) {
-      this.filterIsInstance<T>()
-    } else emptyList()
-  }
-
-  /**
-   * Converts a Firestore DocumentSnapshot to a UserProfile object.
-   *
-   * @param doc the DocumentSnapshot to convert.
-   * @return the corresponding UserProfile object.
-   * @throws Exception if any required field is missing or has an invalid format.
-   */
-  private fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
-    return try {
-      UserProfile(
-          uid = doc.getString("uid") ?: "",
-          username = doc.getString("username") ?: "",
-          firstName = doc.getString("firstName") ?: "",
-          lastName = doc.getString("lastName") ?: "",
-          country = doc.getString("country") ?: "",
-          description = doc.getString("description"),
-          dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
-          tags =
-              (doc.get("tags").safeCastList<Number>())
-                  .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                  .toSet())
-    } catch (e: Exception) {
-      Log.e(
-          "UserReactiveRepository.documentToUserProfile",
-          "Error converting document to UserProfile",
-          e)
-      throw e
     }
   }
 }

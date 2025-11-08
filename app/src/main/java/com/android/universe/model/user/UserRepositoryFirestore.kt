@@ -17,6 +17,36 @@ private inline fun <reified T> Any?.safeCastList(): List<T> {
   } else emptyList()
 }
 
+
+/**
+ * Converts a Firestore DocumentSnapshot to a UserProfile object.
+ *
+ * @param doc the DocumentSnapshot to convert.
+ * @return the corresponding UserProfile object.
+ * @throws Exception if any required field is missing or has an invalid format.
+ */
+fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
+    return try {
+        UserProfile(
+            uid = doc.getString("uid") ?: "",
+            username = doc.getString("username") ?: "",
+            firstName = doc.getString("firstName") ?: "",
+            lastName = doc.getString("lastName") ?: "",
+            country = doc.getString("country") ?: "",
+            description = doc.getString("description"),
+            dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
+            tags =
+                (doc.get("tags").safeCastList<Number>())
+                    .map { ordinal -> Tag.entries[ordinal.toInt()] }
+                    .toSet())
+    } catch (e: Exception) {
+        Log.e(
+            "UserRepositoryFirestore.documentToUserProfile",
+            "Error converting document to UserProfile",
+            e)
+        throw e
+    }
+}
 /**
  * Firestore implementation of [UserRepository] to store user profiles in the Firestore database.
  *
@@ -43,35 +73,6 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         "tags" to user.tags.map { it.ordinal })
   }
 
-  /**
-   * Converts a Firestore DocumentSnapshot to a UserProfile object.
-   *
-   * @param doc the DocumentSnapshot to convert.
-   * @return the corresponding UserProfile object.
-   * @throws Exception if any required field is missing or has an invalid format.
-   */
-  private fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
-    return try {
-      UserProfile(
-          uid = doc.getString("uid") ?: "",
-          username = doc.getString("username") ?: "",
-          firstName = doc.getString("firstName") ?: "",
-          lastName = doc.getString("lastName") ?: "",
-          country = doc.getString("country") ?: "",
-          description = doc.getString("description"),
-          dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
-          tags =
-              (doc.get("tags").safeCastList<Number>())
-                  .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                  .toSet())
-    } catch (e: Exception) {
-      Log.e(
-          "UserRepositoryFirestore.documentToUserProfile",
-          "Error converting document to UserProfile",
-          e)
-      throw e
-    }
-  }
 
   /**
    * Retrieves all users currently stored in the database.
