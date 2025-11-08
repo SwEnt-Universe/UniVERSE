@@ -5,6 +5,7 @@ import com.android.universe.model.Tag
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import kotlinx.coroutines.tasks.await
 
 // Firestore collection path for user profiles.
@@ -38,10 +39,16 @@ fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
             (doc.get("tags").safeCastList<Number>())
                 .map { ordinal -> Tag.entries[ordinal.toInt()] }
                 .toSet())
-  } catch (e: Exception) {
+  } catch (e: DateTimeParseException) {
     Log.e(
         "UserRepositoryFirestore.documentToUserProfile",
-        "Error converting document to UserProfile",
+        "Error converting document to UserProfile, invalid date format",
+        e)
+    throw e
+  } catch (e: NullPointerException) {
+    Log.e(
+        "UserRepositoryFirestore.documentToUserProfile",
+        "Error converting document to UserProfile, assigning null to non-nullable field",
         e)
     throw e
   }

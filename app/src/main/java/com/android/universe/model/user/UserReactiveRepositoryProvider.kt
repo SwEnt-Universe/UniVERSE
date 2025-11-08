@@ -14,4 +14,14 @@ object UserReactiveRepositoryProvider {
 
   /** Public repository instance (read-only) */
   val repository: UserReactiveRepository = _repository
+
+  /**
+   * Closes and disposes the shared repository.
+   *
+   * Cancels all active Firestore listeners and releases internal resources. Should be called on app
+   * shutdown (e.g. in Application.onTerminate or tests).
+   */
+  fun close() {
+    _repository.close()
+  }
 }

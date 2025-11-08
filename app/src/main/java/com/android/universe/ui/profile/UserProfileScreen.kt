@@ -129,8 +129,11 @@ fun UserProfileScreen(
 
   val userUIState by userProfileViewModel.userState.collectAsState()
   val errorMsg = userUIState.errorMsg
-  LaunchedEffect(uid) { userProfileViewModel.loadUser(uid) }
-  val userAge = userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
+  LaunchedEffect(uid) {
+    userProfileViewModel.loadUser(uid)
+    userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
+  }
+  val userAge = userUIState.age
 
   val context = LocalContext.current
   // Observe and display asynchronous validation errors as Toast messages.
