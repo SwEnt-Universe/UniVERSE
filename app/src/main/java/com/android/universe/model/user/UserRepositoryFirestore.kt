@@ -17,7 +17,6 @@ private inline fun <reified T> Any?.safeCastList(): List<T> {
   } else emptyList()
 }
 
-
 /**
  * Converts a Firestore DocumentSnapshot to a UserProfile object.
  *
@@ -26,27 +25,28 @@ private inline fun <reified T> Any?.safeCastList(): List<T> {
  * @throws Exception if any required field is missing or has an invalid format.
  */
 fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
-    return try {
-        UserProfile(
-            uid = doc.getString("uid") ?: "",
-            username = doc.getString("username") ?: "",
-            firstName = doc.getString("firstName") ?: "",
-            lastName = doc.getString("lastName") ?: "",
-            country = doc.getString("country") ?: "",
-            description = doc.getString("description"),
-            dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
-            tags =
-                (doc.get("tags").safeCastList<Number>())
-                    .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                    .toSet())
-    } catch (e: Exception) {
-        Log.e(
-            "UserRepositoryFirestore.documentToUserProfile",
-            "Error converting document to UserProfile",
-            e)
-        throw e
-    }
+  return try {
+    UserProfile(
+        uid = doc.getString("uid") ?: "",
+        username = doc.getString("username") ?: "",
+        firstName = doc.getString("firstName") ?: "",
+        lastName = doc.getString("lastName") ?: "",
+        country = doc.getString("country") ?: "",
+        description = doc.getString("description"),
+        dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
+        tags =
+            (doc.get("tags").safeCastList<Number>())
+                .map { ordinal -> Tag.entries[ordinal.toInt()] }
+                .toSet())
+  } catch (e: Exception) {
+    Log.e(
+        "UserRepositoryFirestore.documentToUserProfile",
+        "Error converting document to UserProfile",
+        e)
+    throw e
+  }
 }
+
 /**
  * Firestore implementation of [UserRepository] to store user profiles in the Firestore database.
  *
@@ -72,7 +72,6 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         "dateOfBirth" to user.dateOfBirth.toString(),
         "tags" to user.tags.map { it.ordinal })
   }
-
 
   /**
    * Retrieves all users currently stored in the database.
