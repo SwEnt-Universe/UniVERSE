@@ -31,8 +31,17 @@ class UserReactiveRepository(private val db: FirebaseFirestore) {
                     close(error)
                     return@addSnapshotListener
                   }
-                  val user = documentToUserProfile(snapshot!!)
-                  trySend(user)
+                  /**
+                   * This function is called without reason sometimes as such bad data can be
+                   * received and notably the date of birth will throw an exception which needs to
+                   * be caught but not resent
+                   */
+                  try {
+                    val user = documentToUserProfile(snapshot!!)
+                    trySend(user)
+                  } catch (e: Exception) {
+                    Log.e("UserReactiveRepository", "Error converting document to UserProfile", e)
+                  }
                 }
             awaitClose { listener.remove() }
           }

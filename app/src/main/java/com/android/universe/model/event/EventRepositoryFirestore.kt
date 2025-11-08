@@ -116,7 +116,6 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   override suspend fun getAllEvents(): List<Event> {
     val events = ArrayList<Event>()
     val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get().await()
-    Log.e("EventRepositoryFirestore", "querySnapshot: ${querySnapshot.documents.size}")
     for (document in querySnapshot.documents) {
       val event = documentToEvent(document)
       events.add(event)
