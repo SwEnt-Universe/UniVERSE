@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -49,7 +48,8 @@ class MapScreenTest {
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
     fakeUserRepository = FakeUserRepository()
-    // Really important, the MapViewModel init using a load event functions, this breaks if no user are in the repository
+    // Really important, the MapViewModel init using a load event functions, this breaks if no user
+    // are in the repository
     runTest { fakeUserRepository.addUser(UserTestData.Alice) }
     viewModel =
         MapViewModel(
@@ -82,7 +82,7 @@ class MapScreenTest {
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
     viewModel.selectLocation(commonLat, commonLng)
     composeTestRule.waitUntil(5_000L) {
-        composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
+      composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
     composeTestRule.waitUntil(1_000L) { accessed }
