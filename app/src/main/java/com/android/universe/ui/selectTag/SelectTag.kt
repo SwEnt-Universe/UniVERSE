@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 
 object SelectTagsScreenTestTags {
   const val INTEREST_TAGS = "InterestTags"
