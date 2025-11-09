@@ -3,11 +3,13 @@ package com.android.universe.ui.eventCreation
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.universe.model.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
+import com.android.universe.model.tag.TagTemporaryRepository
+import com.android.universe.model.tag.TagTemporaryRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDate
@@ -30,7 +32,12 @@ import kotlinx.coroutines.withContext
  * @param year the year of the event.
  * @param hour the hour of the event.
  * @param minute the minute of the event.
- * @param tags the tags of the events.
+ * @param titleError the error message for the title.
+ * @param dayError the error message for the day.
+ * @param monthError the error message for the month.
+ * @param yearError the error message for the year.
+ * @param hourError the error message for the hour.
+ * @param minuteError the error message for the minute.
  */
 data class EventCreationUIState(
     val name: String = "",
@@ -40,7 +47,6 @@ data class EventCreationUIState(
     val year: String = "",
     val hour: String = "",
     val minute: String = "",
-    val tags: Set<Tag> = emptySet(),
     val titleError: String? = "Title cannot be empty",
     val dayError: String? = "Day cannot be empty",
     val monthError: String? = "Month cannot be empty",
@@ -69,13 +75,24 @@ object EventInputLimits {
  *
  * @param eventRepository the repository for the event.
  * @param userRepository the repository for the user.
+ * @param tagRepository The repository for the tags.
  */
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
 ) : ViewModel() {
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
+  private val _eventTags = MutableStateFlow(emptySet<Tag>())
+  val eventTags = _eventTags.asStateFlow()
+
+  /** We launch a coroutine that will update the set of tag each time the tag repository change. */
+  init {
+    viewModelScope.launch {
+      tagRepository.tagsFlow.collect { newTags -> _eventTags.value = newTags }
+    }
+  }
 
   /**
    * Update the title error message of the uiState.
@@ -345,12 +362,15 @@ class EventCreationViewModel(
   }
 
   /**
-   * Update the tags of the event.
+   * Update the tags of the event. Only for test purposes.
    *
    * @param tags the new event's tags.
    */
   fun setEventTags(tags: Set<Tag>) {
-    eventCreationUiState.value = eventCreationUiState.value.copy(tags = tags)
+    viewModelScope.launch {
+      _eventTags.value = tags
+      tagRepository.updateTags(tags)
+    }
   }
 
   /**
@@ -398,11 +418,13 @@ class EventCreationViewModel(
                   title = eventCreationUiState.value.name,
                   description = eventCreationUiState.value.description,
                   date = eventDateTime,
-                  tags = eventCreationUiState.value.tags,
+                  tags = _eventTags.value,
                   creator = uid,
                   participants = setOf(uid),
                   location = location)
           withContext(NonCancellable) { eventRepository.addEvent(event) }
+          // The event is saved, we can now delete the current tag Set for the event.
+          tagRepository.deleteAllTags()
         } catch (e: Exception) {
           Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
         }

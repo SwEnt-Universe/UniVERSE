@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.Tag
 import com.android.universe.model.location.Location
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -126,9 +125,10 @@ fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
     location: Location,
     onSave: () -> Unit = {},
-    onAddTag: (Set<Tag>) -> Unit = {}
+    onAddTag: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
+  val tags = eventCreationViewModel.eventTags.collectAsState()
   Scaffold(
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
@@ -217,7 +217,7 @@ fun EventCreationScreen(
                 "Selected Tags:", modifier = Modifier.padding(horizontal = 16.dp, vertical = 28.dp))
 
             Button(
-                onClick = { onAddTag(uiState.value.tags) },
+                onClick = { onAddTag() },
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor = Color.Gray, contentColor = Color.White),
@@ -235,7 +235,7 @@ fun EventCreationScreen(
                       .verticalScroll(rememberScrollState()),
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                uiState.value.tags.toList().forEach { tag ->
+                tags.value.toList().forEach { tag ->
                   Surface(
                       modifier = Modifier.testTag(EventCreationTestTags.TAG),
                       color = MaterialTheme.colorScheme.primary,
