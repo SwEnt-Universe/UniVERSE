@@ -37,7 +37,7 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
       repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
       this.testScheduler.advanceUntilIdle()
     }
-    composeTestRule.setContent { UniverseTheme  { UniverseApp() } }
+    composeTestRule.setContent { UniverseTheme { UniverseApp() } }
     composeTestRule.waitForIdle()
   }
 
