@@ -131,7 +131,6 @@ fun UserProfileScreen(
   val errorMsg = userUIState.errorMsg
   LaunchedEffect(uid) {
     userProfileViewModel.loadUser(uid)
-    userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
   }
   val userAge = userUIState.age
 
