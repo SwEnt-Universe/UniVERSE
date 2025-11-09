@@ -129,9 +129,7 @@ fun UserProfileScreen(
 
   val userUIState by userProfileViewModel.userState.collectAsState()
   val errorMsg = userUIState.errorMsg
-  LaunchedEffect(uid) {
-    userProfileViewModel.loadUser(uid)
-  }
+  LaunchedEffect(uid) { userProfileViewModel.loadUser(uid) }
   val userAge = userUIState.age
 
   val context = LocalContext.current
