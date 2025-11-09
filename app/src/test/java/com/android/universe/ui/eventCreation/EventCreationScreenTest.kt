@@ -51,34 +51,34 @@ class EventCreationScreenTest {
           eventCreationViewModel = viewModel,
           location = Location(0.0, 0.0),
           onSave = {},
-          onAddTag = { tags ->
+          onAddTag = {
             viewModel.setEventTags(
-                tags +
-                    Tag.ROLE_PLAYING_GAMES +
-                    Tag.TABLE_TENNIS +
-                    Tag.ARTIFICIAL_INTELLIGENCE +
-                    Tag.METAL +
-                    Tag.COUNTRY +
-                    Tag.PROGRAMMING +
-                    Tag.HANDBALL +
-                    Tag.RUNNING +
-                    Tag.BICYCLE +
-                    Tag.AARGAU +
-                    Tag.GENEVA +
-                    Tag.FITNESS +
-                    Tag.YOGA +
-                    Tag.MEDITATION +
-                    Tag.RAP +
-                    Tag.BOARD_GAMES +
-                    Tag.BASKETBALL +
-                    Tag.RNB +
-                    Tag.BASEL_LANDSCHAFT +
-                    Tag.APPENZELL_INNERRHODEN +
-                    Tag.JURA +
-                    Tag.HIKING +
-                    Tag.REGGAE +
-                    Tag.KARATE +
-                    Tag.TRAIN)
+                setOf(
+                    Tag.ROLE_PLAYING_GAMES,
+                    Tag.TABLE_TENNIS,
+                    Tag.ARTIFICIAL_INTELLIGENCE,
+                    Tag.METAL,
+                    Tag.COUNTRY,
+                    Tag.PROGRAMMING,
+                    Tag.HANDBALL,
+                    Tag.RUNNING,
+                    Tag.BICYCLE,
+                    Tag.AARGAU,
+                    Tag.GENEVA,
+                    Tag.FITNESS,
+                    Tag.YOGA,
+                    Tag.MEDITATION,
+                    Tag.RAP,
+                    Tag.BOARD_GAMES,
+                    Tag.BASKETBALL,
+                    Tag.RNB,
+                    Tag.BASEL_LANDSCHAFT,
+                    Tag.APPENZELL_INNERRHODEN,
+                    Tag.JURA,
+                    Tag.HIKING,
+                    Tag.REGGAE,
+                    Tag.KARATE,
+                    Tag.TRAIN))
           })
     }
   }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -93,12 +94,13 @@ class EventCreationViewModelTest {
     assert(state.minute == SAMPLE_MINUTE)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun testSetEventTags() {
+  fun testSetEventTags() = runTest {
     val eventTags = setOf(Tag.METAL, Tag.CAR)
     viewModel.setEventTags(eventTags)
-    val state = viewModel.uiStateEventCreation.value
-    assert(state.tags == eventTags)
+    advanceUntilIdle()
+    assert(viewModel.eventTags.value == eventTags)
   }
 
   @Test
