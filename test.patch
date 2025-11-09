@@ -1,0 +1,119 @@
+Subject: [PATCH] ci: Add --stacktrace flag to Gradle commands
+test: Improve stability of `MapScreenTest`
+test: Add wait for interactables in map screen test
+---
+Index: app/src/androidTest/java/com/android/universe/ui/map/MapScreenTest.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/androidTest/java/com/android/universe/ui/map/MapScreenTest.kt b/app/src/androidTest/java/com/android/universe/ui/map/MapScreenTest.kt
+--- a/app/src/androidTest/java/com/android/universe/ui/map/MapScreenTest.kt	(revision 8ce1f5acc29a36a28f03e0bb83ff5c1c972aa948)
++++ b/app/src/androidTest/java/com/android/universe/ui/map/MapScreenTest.kt	(revision 89cffb754d064a191b0fd16005210907ebcd2d4f)
+@@ -4,18 +4,25 @@
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.test.assertIsDisplayed
++import androidx.compose.ui.test.isDisplayed
+ import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.test.onAllNodesWithTag
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.performClick
++import androidx.test.ext.junit.runners.AndroidJUnit4
+ import androidx.test.rule.GrantPermissionRule
+ import com.android.universe.model.event.FakeEventRepository
+ import com.android.universe.model.location.FakeLocationRepository
+ import com.android.universe.model.user.FakeUserRepository
+ import com.android.universe.ui.navigation.Tab
++import com.android.universe.utils.UserTestData
++import kotlinx.coroutines.test.runTest
+ import org.junit.Before
+ import org.junit.Rule
+ import org.junit.Test
++import org.junit.runner.RunWith
+ 
++@RunWith(AndroidJUnit4::class)
+ class MapScreenTest {
+   companion object {
+     const val commonLat = 46.5196535
+@@ -38,13 +45,15 @@
+ 
+   @Before
+   fun setUp() {
+-    uid = "test_uid"
++    uid = UserTestData.Alice.uid
+     fakeLocationRepository = FakeLocationRepository()
+     fakeEventRepository = FakeEventRepository()
+     fakeUserRepository = FakeUserRepository()
++    // Really important, the MapViewModel init using a load event functions, this breaks if no user are in the repository
++    runTest { fakeUserRepository.addUser(UserTestData.Alice) }
+     viewModel =
+         MapViewModel(
+-            currentUserId = uid,
++            currentUserId = uid ,
+             locationRepository = fakeLocationRepository,
+             eventRepository = fakeEventRepository,
+             userRepository = fakeUserRepository)
+@@ -61,11 +70,6 @@
+ 
+   @Test
+   fun eventCreationButtonAppearsAndClickable() {
+-    fakeLocationRepository = FakeLocationRepository()
+-    fakeEventRepository = FakeEventRepository()
+-    viewModel =
+-        MapViewModel(
+-            uid, fakeLocationRepository, fakeEventRepository, userRepository = fakeUserRepository)
+     var accessed = false
+     composeTestRule.setContent {
+       MapScreenTestWrapper(
+@@ -76,13 +80,19 @@
+     }
+ 
+     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
++    composeTestRule.waitUntil(15_000L) {
++      composeTestRule
++          .onAllNodesWithTag(MapScreenTestTags.INTERACTABLE)
++          .fetchSemanticsNodes()
++          .isNotEmpty()
++    }
++
+     viewModel.selectLocation(commonLat, commonLng)
+-    composeTestRule.waitForIdle()
+-    composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertIsDisplayed()
++    composeTestRule.waitUntil(5_000L) {
++        composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
++    }
+     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
+-    composeTestRule.waitUntil(1000, { accessed })
+-
+-    assert(accessed)
++    composeTestRule.waitUntil(1_000L) { accessed }
+   }
+ }
+ 
+Index: .github/workflows/ci.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+--- a/.github/workflows/ci.yml	(revision 89cffb754d064a191b0fd16005210907ebcd2d4f)
++++ b/.github/workflows/ci.yml	(revision f718dd78ba932cf5a498523962a6990030c6dfe1)
+@@ -168,7 +168,7 @@
+       # ------------------  Unit Tests ------------------
+       - name: Run unit tests
+         if: env.skip != 'true'
+-        run: ./gradlew testDebugUnitTest
++        run: ./gradlew testDebugUnitTest --stacktrace
+ 
+       # ------------------  Decide test target ------------------
+       - name: Determine test suite
+@@ -195,7 +195,7 @@
+           force-avd-creation: false
+           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
+           disable-animations: true
+-          script: ./gradlew ${{ env.mode }}
++          script: ./gradlew ${{ env.mode }} --stacktrace
+ 
+       # ------------------ 📈 Coverage + Sonar ------------------
+       - name: Generate JaCoCo Coverage Report

@@ -78,7 +78,7 @@ class MapScreenTest {
           onTabSelected = {},
           createEvent = { _, _ -> accessed = true })
     }
-
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
     viewModel.selectLocation(commonLat, commonLng)
     composeTestRule.waitUntil(5_000L) {
