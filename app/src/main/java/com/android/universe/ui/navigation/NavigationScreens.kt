@@ -26,6 +26,8 @@ sealed class NavigationScreens(
   object SignIn :
       NavigationScreens(route = "signIn", name = "Sign In", isTopLevelDestination = true)
 
+  object EmailValidation : NavigationScreens(route = "emailValidation", name = "Email Validation")
+
   object AddProfile : NavigationScreens(route = "addProfile", name = "Add Profile")
 
   object Settings : NavigationScreens(route = "settings/{uid}", name = "Settings")
