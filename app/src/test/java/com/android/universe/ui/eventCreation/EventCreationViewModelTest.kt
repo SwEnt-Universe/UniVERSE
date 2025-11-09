@@ -3,6 +3,8 @@ package com.android.universe.ui.eventCreation
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
+import com.android.universe.model.tag.TagLocalTemporaryRepository
+import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
@@ -17,11 +19,13 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.Assert.assertEquals
 
 class EventCreationViewModelTest {
   private lateinit var eventRepository: FakeEventRepository
   private lateinit var userRepository: FakeUserRepository
   private lateinit var viewModel: EventCreationViewModel
+  private lateinit var tagRepository: TagTemporaryRepository
   private val testDispatcher = StandardTestDispatcher()
 
   /** Companion object to provides values for the tests. */
@@ -33,6 +37,7 @@ class EventCreationViewModelTest {
     const val SAMPLE_YEAR = "2025"
     const val SAMPLE_HOUR = "12"
     const val SAMPLE_MINUTE = "12"
+    val sample_tags = setOf(Tag.METAL, Tag.ROLE_PLAYING_GAMES, Tag.HANDBALL)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,8 +46,9 @@ class EventCreationViewModelTest {
     Dispatchers.setMain(testDispatcher)
     eventRepository = FakeEventRepository()
     userRepository = FakeUserRepository()
+    tagRepository = TagLocalTemporaryRepository()
     viewModel =
-        EventCreationViewModel(eventRepository = eventRepository, userRepository = userRepository)
+        EventCreationViewModel(eventRepository = eventRepository, userRepository = userRepository, tagRepository = tagRepository)
   }
 
   @Test
@@ -104,6 +110,14 @@ class EventCreationViewModelTest {
   }
 
   @Test
+  fun updateTagInRepoUpdateViewModel() = runTest{
+    tagRepository.updateTags(sample_tags)
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals(sample_tags, viewModel.eventTags.value)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
   fun testSaveEvent() = runTest {
     val userProfile =
         UserProfile(
@@ -129,8 +143,8 @@ class EventCreationViewModelTest {
 
     viewModel.setEventMinute(SAMPLE_MINUTE)
 
-    val eventTags = setOf(Tag.METAL, Tag.CAR)
-    viewModel.setEventTags(eventTags)
+    tagRepository.updateTags(sample_tags)
+    testDispatcher.scheduler.advanceUntilIdle()
 
     viewModel.saveEvent(location = Location(0.0, 0.0), uid = "user123")
     testDispatcher.scheduler.advanceUntilIdle()
@@ -142,11 +156,12 @@ class EventCreationViewModelTest {
     assert(event.creator == userProfile.uid)
     assert(event.participants == setOf(userProfile.uid))
     assert(event.location == Location(0.0, 0.0))
-    assert(event.tags == eventTags)
+    assert(event.tags == sample_tags)
 
     val expectedDate = LocalDateTime.of(2025, 12, 12, 12, 12)
 
     assert(event.date == expectedDate)
+    assertEquals(emptySet<Tag>(), tagRepository.getTags())
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
