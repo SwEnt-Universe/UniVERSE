@@ -13,7 +13,7 @@
 [versions]
 # ===== PLUGINS =====
 androidGradlePlugin = "8.13.0"
-kotlin = "2.0.20"
+kotlin = "2.2.21"
 googleServices = "4.4.4"
 ktfmt = "0.20.1"
 sonarqube = "5.1.0.4882"
@@ -50,6 +50,7 @@ androidxEspresso = "3.7.0"
 androidxTestCore = "1.7.0"
 mockk = "1.14.2"
 kakaocup = "1.0.0"
+backdrop = "1.0.0"
 kaspresso = "1.5.4"
 robolectric = "4.16"
 turbine = "1.0.0"
@@ -137,6 +138,7 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 
 # Other Compose Test
 io-github-kakaocup = { group = "io.github.kakaocup", name = "compose", version.ref = "kakaocup" }
+io-github-backdrop = { group = "io.github.kyant0", name = "backdrop", version.ref = "backdrop"}
 
 # Mocks & UI Automation
 mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }

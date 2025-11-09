@@ -44,13 +44,13 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 
 object EmailVerificationScreenTestTags {
-  const val ICON_BOX = "ICON_BOX"
-  const val HEADLINE_TEXT = "HEADLINE_TEXT"
-  const val MESSAGE_TEXT = "MESSAGE_TEXT"
-  const val INSTRUCTIONS_TEXT = "INSTRUCTIONS_TEXT"
-  const val COUNTDOWN_TEXT = "COUNTDOWN_TEXT"
-  const val RESEND_BUTTON = "RESEND_BUTTON"
-  const val BACK_BUTTON = "BACK_BUTTON"
+    const val ICON_BOX = "ICON_BOX"
+    const val HEADLINE_TEXT = "HEADLINE_TEXT"
+    const val MESSAGE_TEXT = "MESSAGE_TEXT"
+    const val INSTRUCTIONS_TEXT = "INSTRUCTIONS_TEXT"
+    const val COUNTDOWN_TEXT = "COUNTDOWN_TEXT"
+    const val RESEND_BUTTON = "RESEND_BUTTON"
+    const val BACK_BUTTON = "BACK_BUTTON"
 }
 
 /**
@@ -82,45 +82,45 @@ fun EmailVerificationScreen(
     onBack: () -> Unit = {},
     viewModel: EmailVerificationViewModel = viewModel()
 ) {
-  val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-  LaunchedEffect(uiState.emailVerified) {
-    if (uiState.emailVerified) onSuccess()
-    else if (user != null) viewModel.sendEmailVerification(user)
-    else onBack() // User became null, go back to login
-  }
+    LaunchedEffect(uiState.emailVerified) {
+        if (uiState.emailVerified) onSuccess()
+        else if (user != null) viewModel.sendEmailVerification(user)
+        else onBack() // User became null, go back to login
+    }
 
-  Scaffold(
-      topBar = {
-        TopAppBar(
-            title = {},
-            navigationIcon = {
-              IconButton(
-                  onClick = onBack,
-                  modifier = Modifier.testTag(EmailVerificationScreenTestTags.BACK_BUTTON)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to Login")
-                  }
-            })
-      },
-      modifier = Modifier.testTag(NavigationTestTags.EMAIL_VALIDATION_SCREEN)) { paddingValues ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.testTag(EmailVerificationScreenTestTags.BACK_BUTTON)) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back to Login")
+                    }
+                })
+        },
+        modifier = Modifier.testTag(NavigationTestTags.EMAIL_VALIDATION_SCREEN)) { paddingValues ->
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier =
                 Modifier.padding(paddingValues)
                     .padding(top = Dimensions.PaddingExtraLarge * 2)
                     .fillMaxSize()) {
-              EmailStatusScreen(
-                  sendEmailFailed = uiState.sendEmailFailed,
-                  email = uiState.email,
-                  countdown = uiState.countDown,
-                  resendEnabled = uiState.resendEnabled,
-                  onResend = {
+            EmailStatusScreen(
+                sendEmailFailed = uiState.sendEmailFailed,
+                email = uiState.email,
+                countdown = uiState.countDown,
+                resendEnabled = uiState.resendEnabled,
+                onResend = {
                     if (user != null) viewModel.sendEmailVerification(user) else onBack()
-                  })
-            }
-      }
+                })
+        }
+    }
 }
 
 /**
@@ -147,24 +147,24 @@ private fun EmailStatusScreen(
     resendEnabled: Boolean,
     onResend: () -> Unit,
 ) {
-  val icon = if (sendEmailFailed) Icons.Outlined.FlashOn else Icons.Outlined.MarkEmailUnread
-  val primaryColor =
-      if (sendEmailFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-  val backgroundColor =
-      if (sendEmailFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
-      else MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.1f)
-  val messagePrefix =
-      if (sendEmailFailed) "Couldn't send verification link \n to "
-      else "Please verify the email using the link sent \n to "
-  val instructions =
-      if (sendEmailFailed) "Verify the email address, your network connection\nand try again"
-      else null
-  Box(
-      modifier =
-          Modifier.size(Dimensions.IconSizeLarge * 10)
-              .background(color = backgroundColor, shape = CircleShape)
-              .testTag(EmailVerificationScreenTestTags.ICON_BOX),
-      contentAlignment = Alignment.Center) {
+    val icon = if (sendEmailFailed) Icons.Outlined.FlashOn else Icons.Outlined.MarkEmailUnread
+    val primaryColor =
+        if (sendEmailFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+    val backgroundColor =
+        if (sendEmailFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+        else MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.1f)
+    val messagePrefix =
+        if (sendEmailFailed) "Couldn't send verification link \n to "
+        else "Please verify the email using the link sent \n to "
+    val instructions =
+        if (sendEmailFailed) "Verify the email address, your network connection\nand try again"
+        else null
+    Box(
+        modifier =
+            Modifier.size(Dimensions.IconSizeLarge * 10)
+                .background(color = backgroundColor, shape = CircleShape)
+                .testTag(EmailVerificationScreenTestTags.ICON_BOX),
+        contentAlignment = Alignment.Center) {
         Icon(
             imageVector = icon,
             contentDescription = null,
@@ -173,66 +173,66 @@ private fun EmailStatusScreen(
 
         if (!sendEmailFailed)
             CircularProgressIndicator(modifier = Modifier.fillMaxSize(), strokeWidth = 6.dp)
-      }
+    }
 
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-
-  Text(
-      text = "Account Verification",
-      color = primaryColor,
-      fontSize = MaterialTheme.typography.headlineLarge.fontSize,
-      fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
-      fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
-      modifier = Modifier.testTag(EmailVerificationScreenTestTags.HEADLINE_TEXT))
-
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
-
-  Text(
-      text =
-          buildAnnotatedString {
-            append(messagePrefix)
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(email) }
-          },
-      textAlign = TextAlign.Center,
-      fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-      modifier = Modifier.testTag(EmailVerificationScreenTestTags.MESSAGE_TEXT))
-
-  instructions?.let {
     Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-    Text(
-        text = it,
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = Modifier.testTag(EmailVerificationScreenTestTags.INSTRUCTIONS_TEXT))
-  }
 
-  Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-
-  if (countdown != null) {
     Text(
-        text = "Didn't receive the email? Check your spam folder,",
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.bodyLarge,
-    )
+        text = "Account Verification",
+        color = primaryColor,
+        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+        fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
+        fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
+        modifier = Modifier.testTag(EmailVerificationScreenTestTags.HEADLINE_TEXT))
+
+    Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
 
     Text(
         text =
             buildAnnotatedString {
-              append("or resend a link in ")
-              withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$countdown") }
-              append(" second(s)")
+                append(messagePrefix)
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(email) }
             },
-        style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().testTag(EmailVerificationScreenTestTags.COUNTDOWN_TEXT))
+        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+        modifier = Modifier.testTag(EmailVerificationScreenTestTags.MESSAGE_TEXT))
+
+    instructions?.let {
+        Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
+        Text(
+            text = it,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.testTag(EmailVerificationScreenTestTags.INSTRUCTIONS_TEXT))
+    }
 
     Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
-  }
 
-  ResendEmailButton(
-      enabled = resendEnabled,
-      onClick = onResend,
-  )
+    if (countdown != null) {
+        Text(
+            text = "Didn't receive the email? Check your spam folder,",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+
+        Text(
+            text =
+                buildAnnotatedString {
+                    append("or resend a link in ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$countdown") }
+                    append(" second(s)")
+                },
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().testTag(EmailVerificationScreenTestTags.COUNTDOWN_TEXT))
+
+        Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
+    }
+
+    ResendEmailButton(
+        enabled = resendEnabled,
+        onClick = onResend,
+    )
 }
 
 /**
@@ -243,16 +243,16 @@ private fun EmailStatusScreen(
  */
 @Composable
 private fun ResendEmailButton(enabled: Boolean, onClick: () -> Unit) {
-  OutlinedButton(
-      onClick = onClick,
-      enabled = enabled,
-      colors = ButtonDefaults.textButtonColors(),
-      modifier = Modifier.testTag(EmailVerificationScreenTestTags.RESEND_BUTTON)) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        colors = ButtonDefaults.textButtonColors(),
+        modifier = Modifier.testTag(EmailVerificationScreenTestTags.RESEND_BUTTON)) {
         Text(
             text = "Resend Verification Link",
             style =
                 MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Bold,
                 ))
-      }
+    }
 }

@@ -37,19 +37,19 @@ sealed class Tab(
     val icon: ImageVector,
     val iconSelected: ImageVector
 ) {
-  /** Represents the 'Map' tab. */
-  object Map : Tab(NavigationScreens.Map, Icons.Outlined.Explore, Icons.Filled.Explore)
+    /** Represents the 'Map' tab. */
+    object Map : Tab(NavigationScreens.Map, Icons.Outlined.Explore, Icons.Filled.Explore)
 
-  /** Represents the 'Event' tab. */
-  object Event : Tab(NavigationScreens.Event, Icons.Outlined.Event, Icons.Filled.Event)
+    /** Represents the 'Event' tab. */
+    object Event : Tab(NavigationScreens.Event, Icons.Outlined.Event, Icons.Filled.Event)
 
-  /** Represents the 'Profile' tab. */
-  object Profile :
-      Tab(NavigationScreens.Profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle)
+    /** Represents the 'Profile' tab. */
+    object Profile :
+        Tab(NavigationScreens.Profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle)
 
-  /** Represents the 'Chat' tab. */
-  object Chat :
-      Tab(NavigationScreens.Chat, Icons.AutoMirrored.Outlined.Chat, Icons.AutoMirrored.Filled.Chat)
+    /** Represents the 'Chat' tab. */
+    object Chat :
+        Tab(NavigationScreens.Chat, Icons.AutoMirrored.Outlined.Chat, Icons.AutoMirrored.Filled.Chat)
 }
 
 /** A predefined list of [Tab] objects that will be displayed in the bottom navigation bar. */
@@ -74,25 +74,25 @@ fun NavigationBottomMenu(
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
 ) {
-  NavigationBar(
-      modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
-      containerColor = MaterialTheme.colorScheme.surface) {
+    NavigationBar(
+        modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
+        containerColor = MaterialTheme.colorScheme.surface) {
         tabs.forEach { tab ->
-          val selected = tab == selectedTab
-          NavigationBarItem(
-              icon = {
-                Icon(
-                    imageVector = if (selected) tab.iconSelected else tab.icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(Dimensions.IconSizeLarge))
-              },
-              selected = false,
-              // false to hide an highlight around the icon if it's selected, since we visualize the
-              // selected tab with an filled icon
-              onClick = { onTabSelected(tab) },
-              modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
+            val selected = tab == selectedTab
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        imageVector = if (selected) tab.iconSelected else tab.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(Dimensions.IconSizeLarge))
+                },
+                selected = false,
+                // false to hide an highlight around the icon if it's selected, since we visualize the
+                // selected tab with an filled icon
+                onClick = { onTabSelected(tab) },
+                modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
         }
-      }
+    }
 }
 
 /**
@@ -102,6 +102,6 @@ fun NavigationBottomMenu(
 @Preview
 @Composable
 fun NavigationBottomMenuPreview() {
-  val selectedTab: MutableState<Tab> = remember { mutableStateOf(Tab.Map) }
-  NavigationBottomMenu(selectedTab = selectedTab.value, onTabSelected = { selectedTab.value = it })
+    val selectedTab: MutableState<Tab> = remember { mutableStateOf(Tab.Map) }
+    NavigationBottomMenu(selectedTab = selectedTab.value, onTabSelected = { selectedTab.value = it })
 }
