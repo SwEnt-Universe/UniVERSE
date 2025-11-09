@@ -163,12 +163,22 @@ jobs:
               while ! nc -z localhost $port; do sleep 1; done
             done
             echo "✅ Firebase emulators are running."
+          
+            # Start tail loop to auto-click verification links
+            tail -n 0 -F firebase-emulator.log | while read line; do
+              if [[ "$line" =~ http://127.0.0.1:9099/emulator/action\?mode=verifyEmail.* ]]; then
+                url="${BASH_REMATCH[0]}"
+                echo "➡ Clicking verification link: $url"
+                curl -s "$url" >/dev/null
+                fi
+            done &
+            TAIL_PID=$!
           fi
 
       # ------------------  Unit Tests ------------------
       - name: Run unit tests
         if: env.skip != 'true'
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       # ------------------  Decide test target ------------------
       - name: Determine test suite
@@ -195,7 +205,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
-          script: ./gradlew ${{ env.mode }}
+          script: ./gradlew ${{ env.mode }} --stacktrace
 
       # ------------------ 📈 Coverage + Sonar ------------------
       - name: Generate JaCoCo Coverage Report
@@ -207,3 +217,12 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar --parallel
+
+      - name: Shutdown
+        if: env.skip != 'true'
+        run: |
+          echo "🛑 Stopping tail loop and Firebase emulator"
+          if [ -n "${{ env.TAIL_PID }}" ]; then
+            kill ${{ env.TAIL_PID }} || true
+            echo "✅ Tail loop stopped"
+          fi

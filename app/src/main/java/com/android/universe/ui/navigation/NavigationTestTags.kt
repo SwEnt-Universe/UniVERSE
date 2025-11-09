@@ -17,6 +17,7 @@ object NavigationTestTags {
   const val ADD_PROFILE_SCREEN = "AddProfileScreen"
   const val SETTINGS_SCREEN = "SettingsScreen"
   const val SELECT_TAG_SCREEN = "SelectTagScreen"
+  const val EMAIL_VALIDATION_SCREEN = "EmailValidationScreen"
   const val EVENT_CREATION_SCREEN = "EventCreationScreen"
 
   // BOTTOM NAVIGATION MENU
@@ -40,6 +41,13 @@ object NavigationTestTags {
         is Tab.Event -> EVENT_TAB
       }
 
+  /**
+   * Returns the test tag for a given [NavigationScreens] destination. This is used in UI tests to
+   * verify that the correct screen is being displayed.
+   *
+   * @param screen The [NavigationScreens] destination for which to get the test tag.
+   * @return The corresponding test tag as a [String].
+   */
   fun getScreenTestTag(screen: NavigationScreens): String =
       when (screen) {
         is NavigationScreens.Map -> MAP_SCREEN
@@ -50,6 +58,7 @@ object NavigationTestTags {
         is NavigationScreens.AddProfile -> ADD_PROFILE_SCREEN
         is NavigationScreens.Settings -> SETTINGS_SCREEN
         is NavigationScreens.SelectTag -> SELECT_TAG_SCREEN
+        is NavigationScreens.EmailValidation -> EMAIL_VALIDATION_SCREEN
         is NavigationScreens.EventCreation -> EVENT_CREATION_SCREEN
       }
 }

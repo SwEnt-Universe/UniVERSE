@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LinearProgressIndicator
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.navigation.NavType
@@ -31,6 +33,7 @@ import androidx.navigation.navArgument
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
+import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
@@ -53,6 +56,9 @@ import kotlinx.coroutines.runBlocking
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    // Enable edge-to-edge with auto-contrast (icons adapt to content/theme)
+    enableEdgeToEdge()
     setContent {
       UniverseTheme {
         // A surface container using the 'background' color from the theme
@@ -122,6 +128,22 @@ fun UniverseApp(
                   popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
                 }
               })
+        }
+      }
+
+      navigation(
+          startDestination = NavigationScreens.EmailValidation.route,
+          route = NavigationScreens.EmailValidation.name,
+      ) {
+        composable(NavigationScreens.EmailValidation.route) {
+          EmailVerificationScreen(
+              user = Firebase.auth.currentUser!!,
+              onSuccess = {
+                runBlocking {
+                  navigationActions.navigateTo(resolveUserDestinationScreen(userRepository))
+                }
+              },
+              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
         }
       }
 
