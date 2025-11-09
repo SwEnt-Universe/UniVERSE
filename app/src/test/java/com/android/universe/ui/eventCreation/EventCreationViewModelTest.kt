@@ -137,8 +137,8 @@ class EventCreationViewModelTest {
     val event = savedEvent[0]
     assert(event.title == SAMPLE_TITLE)
     assert(event.description == SAMPLE_DESCRIPTION)
-    assert(event.creator == userProfile)
-    assert(event.participants == setOf(userProfile))
+    assert(event.creator == userProfile.uid)
+    assert(event.participants == setOf(userProfile.uid))
     assert(event.location == Location(0.0, 0.0))
     assert(event.tags == eventTags)
 

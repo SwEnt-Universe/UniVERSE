@@ -270,7 +270,7 @@ fun EventCardPreview() {
         description = event.description ?: "",
         date = event.date.toLocalDate().toString(),
         tags = event.tags.map { it.name },
-        creator = event.creator.username,
+        creator = event.creator,
         participants = event.participants.size)
   }
 }

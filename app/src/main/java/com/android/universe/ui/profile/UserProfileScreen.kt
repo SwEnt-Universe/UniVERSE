@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -130,10 +129,8 @@ fun UserProfileScreen(
 
   val userUIState by userProfileViewModel.userState.collectAsState()
   val errorMsg = userUIState.errorMsg
-  val userAge = remember {
-    userProfileViewModel.calculateAge(dateOfBirth = userUIState.userProfile.dateOfBirth)
-  }
   LaunchedEffect(uid) { userProfileViewModel.loadUser(uid) }
+  val userAge = userUIState.age
 
   val context = LocalContext.current
   // Observe and display asynchronous validation errors as Toast messages.
