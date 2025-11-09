@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.jetbrains.annotations.VisibleForTesting
 
 const val ONE_SECOND = 1000L
 const val COOLDOWN = 60
@@ -59,6 +60,7 @@ class EmailVerificationViewModel() : ViewModel() {
    * Decrements the countdown timer by one second if it's greater than zero. This is used to control
    * the cooldown period for resending a verification email.
    */
+  @VisibleForTesting
   fun countDown() {
     if (_uiState.value.countDown > 0) _uiState.update { it.copy(countDown = it.countDown - 1) }
   }
@@ -82,15 +84,21 @@ class EmailVerificationViewModel() : ViewModel() {
   fun sendEmailVerification(user: FirebaseUser) {
     awaitEmailJob?.cancel()
     _uiState.update { it.copy(email = user.email ?: "") }
-    if (user.isEmailVerified) _uiState.update { it.copy(emailVerified = true) }
-    else
-        user.sendEmailVerification().addOnCompleteListener { sendEmail ->
-          if (sendEmail.isSuccessful) awaitEmailVerification(user)
-          else if // Suppress this error since a validation email was send in the last minute.
-          (sendEmail.exception is FirebaseTooManyRequestsException)
-              awaitEmailVerification(user)
-          else _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
-        }
+    if (user.isEmailVerified) {
+      _uiState.update { it.copy(emailVerified = true) }
+      return
+    }
+    viewModelScope.launch {
+      runCatching { user.sendEmailVerification().await() }
+          .onSuccess { awaitEmailVerification(user) }
+          .onFailure { th ->
+            if (th is FirebaseTooManyRequestsException)
+                awaitEmailVerification(
+                    user) // Suppress this error, since a validation email was send in the last
+            // minute.
+            else _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
+          }
+    }
   }
 
   /**

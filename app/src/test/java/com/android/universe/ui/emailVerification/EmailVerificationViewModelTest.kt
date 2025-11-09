@@ -1,6 +1,5 @@
 package com.android.universe.ui.emailVerification
 
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseUser
@@ -27,24 +26,18 @@ private const val TEST_EMAIL = "test@epfl.ch"
 @OptIn(ExperimentalCoroutinesApi::class)
 class EmailVerificationViewModelTest {
   private lateinit var mockUser: FirebaseUser
-  private lateinit var mockTask: Task<Void>
-  private lateinit var completedTask: Task<Void>
+  private lateinit var sendEmailTask: Task<Void>
+  private lateinit var reloadUserTask: Task<Void>
   private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setup() {
     mockUser = mockk(relaxed = true)
-    mockTask = mockk(relaxed = true)
-    completedTask = Tasks.forResult(null)
+    sendEmailTask = Tasks.forResult(null)
+    reloadUserTask = Tasks.forResult(null)
     Dispatchers.setMain(testDispatcher)
     every { mockUser.email } returns TEST_EMAIL
-    every { mockTask.addOnCompleteListener(any()) } answers
-        {
-          val listener = arg<OnCompleteListener<Void>>(0)
-          listener.onComplete(mockTask) // trigger success callback
-          mockTask
-        }
-    every { mockUser.sendEmailVerification() } returns mockTask
+    every { mockUser.sendEmailVerification() } returns sendEmailTask
   }
 
   @After
@@ -56,7 +49,6 @@ class EmailVerificationViewModelTest {
   @Test
   fun `initial email is loaded from FirebaseUser`() = runTest {
     every { mockUser.isEmailVerified } returns false
-    every { mockTask.isSuccessful } returns true
     val vm = EmailVerificationViewModel()
     vm.sendEmailVerification(mockUser)
     advanceUntilIdle() // run all coroutines in the test dispatcher
@@ -78,7 +70,7 @@ class EmailVerificationViewModelTest {
   @Test
   fun `sendEmailVerification failure sets sendEmailFailed and resets cooldown`() = runTest {
     every { mockUser.isEmailVerified } returns false
-    every { mockTask.isSuccessful } returns false
+    every { mockUser.sendEmailVerification() } returns Tasks.forException(Exception())
 
     val vm = EmailVerificationViewModel()
     vm.sendEmailVerification(mockUser)
@@ -92,8 +84,7 @@ class EmailVerificationViewModelTest {
   fun `countDown decreases over time`() = runTest {
     val isVerifiedSlot = mutableListOf(false, false, false, true, true)
     every { mockUser.isEmailVerified } answers { isVerifiedSlot.removeFirst() }
-    every { mockTask.isSuccessful } returns true
-    coEvery { mockUser.reload() } returns completedTask
+    coEvery { mockUser.reload() } returns reloadUserTask
 
     val vm = EmailVerificationViewModel()
     vm.sendEmailVerification(mockUser)
@@ -110,8 +101,7 @@ class EmailVerificationViewModelTest {
     // false first, then true
     val isVerifiedSlot = mutableListOf(false, false, true, true)
     every { mockUser.isEmailVerified } answers { isVerifiedSlot.removeFirst() }
-    every { mockTask.isSuccessful } returns true
-    coEvery { mockUser.reload() } returns completedTask
+    coEvery { mockUser.reload() } returns reloadUserTask
 
     val vm = EmailVerificationViewModel()
     vm.sendEmailVerification(mockUser)
