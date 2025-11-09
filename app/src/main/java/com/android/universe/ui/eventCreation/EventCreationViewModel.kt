@@ -367,10 +367,7 @@ class EventCreationViewModel(
    * @param tags the new event's tags.
    */
   fun setEventTags(tags: Set<Tag>) {
-    viewModelScope.launch {
-      _eventTags.value = tags
-      tagRepository.updateTags(tags)
-    }
+    viewModelScope.launch { tagRepository.updateTags(tags) }
   }
 
   /**
