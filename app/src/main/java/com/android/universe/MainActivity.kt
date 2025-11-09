@@ -33,6 +33,7 @@ import androidx.navigation.navArgument
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
+import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
@@ -127,6 +128,22 @@ fun UniverseApp(
                   popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
                 }
               })
+        }
+      }
+
+      navigation(
+          startDestination = NavigationScreens.EmailValidation.route,
+          route = NavigationScreens.EmailValidation.name,
+      ) {
+        composable(NavigationScreens.EmailValidation.route) {
+          EmailVerificationScreen(
+              user = Firebase.auth.currentUser!!,
+              onSuccess = {
+                runBlocking {
+                  navigationActions.navigateTo(resolveUserDestinationScreen(userRepository))
+                }
+              },
+              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
         }
       }
 
