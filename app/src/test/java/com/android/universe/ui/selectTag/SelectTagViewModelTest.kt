@@ -1,6 +1,6 @@
 package com.android.universe.ui.selectTag
 
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.MainCoroutineRule
@@ -30,7 +30,7 @@ class SelectTagViewModelTest {
   @Test
   fun uiStateTags_initiallyEmpty() = runTest {
     // Check that the selected tags are initially empty.
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -39,7 +39,7 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.MUSIC
     viewModel.addTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.MUSIC), state)
   }
 
@@ -48,7 +48,7 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.JUDO
     viewModel.addTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.JUDO), state)
   }
 
@@ -57,7 +57,7 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.METAL
     viewModel.addTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.METAL), state)
   }
 
@@ -66,7 +66,7 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.BOAT
     viewModel.addTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.BOAT), state)
   }
 
@@ -75,7 +75,7 @@ class SelectTagViewModelTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.GENEVA
     viewModel.addTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.GENEVA), state)
   }
 
@@ -97,7 +97,7 @@ class SelectTagViewModelTest {
     for (tag in tags) {
       viewModel.addTag(tag)
     }
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(tags, state)
   }
 
@@ -123,7 +123,7 @@ class SelectTagViewModelTest {
     val tag = Tag.MUSIC
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -133,7 +133,7 @@ class SelectTagViewModelTest {
     val tag = Tag.JUDO
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -143,7 +143,7 @@ class SelectTagViewModelTest {
     val tag = Tag.METAL
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -153,7 +153,7 @@ class SelectTagViewModelTest {
     val tag = Tag.BOAT
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -163,7 +163,7 @@ class SelectTagViewModelTest {
     val tag = Tag.GENEVA
     viewModel.addTag(tag)
     viewModel.deleteTag(tag)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -203,7 +203,7 @@ class SelectTagViewModelTest {
     for (tag in tags) {
       viewModel.deleteTag(tag)
     }
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -240,7 +240,7 @@ class SelectTagViewModelTest {
             Tag.HANDBALL,
             Tag.MUSIC,
             Tag.ROLE_PLAYING_GAMES)
-    val state = viewModel.uiStateTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(expectedTags, state)
   }
 
@@ -261,7 +261,7 @@ class SelectTagViewModelTest {
     advanceUntilIdle()
     viewModel.loadTags("0")
     advanceUntilIdle()
-    assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
+    assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.selectedTags.value)
   }
 
   @Test
@@ -274,7 +274,7 @@ class SelectTagViewModelTest {
     viewModel.addTag(Tag.CAR)
     viewModel.deleteTag(Tag.HANDBALL)
 
-    assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.uiStateTags.value)
+    assertEquals(listOf(Tag.METAL, Tag.CAR), viewModel.selectedTags.value)
   }
 
   @Test

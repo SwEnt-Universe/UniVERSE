@@ -1,9 +1,9 @@
 package com.android.universe.ui.event
 
-import com.android.universe.model.tag.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
