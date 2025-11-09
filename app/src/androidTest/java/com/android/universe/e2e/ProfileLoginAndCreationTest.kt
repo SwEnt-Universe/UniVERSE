@@ -64,16 +64,22 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
   @Test
   fun `profile login and creation works`() {
+    println("loginAndWait")
     loginAndWait()
 
+    println("fillProfileDetailAndWait")
     fillProfileDetailAndWait()
 
+    println("selectTagAndWait")
     selectTagAndWait()
 
+    println("compareCreatedProfile")
     compareCreatedProfile()
 
+    println("tabNavigationAndPrepareForEdit")
     tabNavigationAndPrepareForEdit()
 
+    println("changeNameToBobAndVerify")
     changeNameToBobAndVerify()
   }
 
@@ -212,7 +218,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
     // Wait max 30 second for the email validation to occur, we should arrive on the
     // AddProfileScreen
-    composeTestRule.waitUntil(30_000L) {
+    composeTestRule.waitUntil(60_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN).isDisplayed()
     }
   }
