@@ -1,6 +1,6 @@
 package com.android.universe.ui.event
 
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location

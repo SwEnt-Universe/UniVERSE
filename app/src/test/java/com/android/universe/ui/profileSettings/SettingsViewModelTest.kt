@@ -1,7 +1,7 @@
 package com.android.universe.ui.profileSettings
 
 import android.util.Log
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository

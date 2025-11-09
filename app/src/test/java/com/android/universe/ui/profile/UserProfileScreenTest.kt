@@ -11,7 +11,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.MainCoroutineRule

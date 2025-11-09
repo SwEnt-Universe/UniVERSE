@@ -1,7 +1,7 @@
 package com.android.universe.model.event
 
 import android.util.Log
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.DocumentSnapshot

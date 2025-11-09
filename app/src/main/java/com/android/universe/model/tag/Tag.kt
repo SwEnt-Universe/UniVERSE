@@ -1,4 +1,4 @@
-package com.android.universe.model
+package com.android.universe.model.tag
 
 /**
  * Enumeration representing various tags that can be associated with user profiles. Each tag has a
