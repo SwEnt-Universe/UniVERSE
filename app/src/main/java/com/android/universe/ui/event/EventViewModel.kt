@@ -25,6 +25,8 @@ import kotlinx.coroutines.launch
  * @property tags A list of tags associated with the event.
  * @property creator The name of the event creator.
  * @property participants The number of participants in the event.
+ * @property index The index of the event in the list.
+ * @property joined Whether the current user has joined the event.
  */
 data class EventUIState(
     val title: String = "",
@@ -32,8 +34,12 @@ data class EventUIState(
     val date: String = "",
     val tags: List<String> = emptyList(),
     val creator: String = "",
-    val participants: Int = 0
+    val participants: Int = 0,
+    val index: Int = 0,
+    val joined: Boolean = false
 )
+
+data class UiState(val errormsg: String? = null)
 
 /**
  * [EventViewModel] orchestrates the retrieval and transformation of event and user data into
@@ -110,12 +116,17 @@ class EventViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
 
+  /** Backing property for the list of event UI states. */
   private val _eventsState = MutableStateFlow<List<EventUIState>>(emptyList())
+  private var localList = emptyList<Event>()
+
+  private val _uiState = MutableStateFlow(UiState())
+  val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+  /** Publicly exposed StateFlow of event UI states. */
   val eventsState: StateFlow<List<EventUIState>> = _eventsState.asStateFlow()
 
-  init {
-    loadEvents()
-  }
+  var storedUid = ""
 
   /**
    * Loads all events and transforms them into [EventUIState]s.
@@ -140,6 +151,7 @@ class EventViewModel(
   fun loadEvents() {
     viewModelScope.launch {
       val events = eventRepository.getAllEvents()
+      localList = events
 
       if (userReactiveRepository != null) {
         // Convert list of creators to distinct set
@@ -151,15 +163,21 @@ class EventViewModel(
                   userReactiveRepository!!.getUserFlow(uid).map { uid to it }
                 }) { userPairs ->
                   val usersMap = userPairs.toMap()
-                  events.map { event ->
+                  events.mapIndexed { index, event ->
                     val user = usersMap[event.creator]
-                    event.toUIState(user)
+                    event.toUIState(
+                        user, index = index, joined = event.participants.contains(storedUid))
                   }
                 }
             .collect { uiStates -> _eventsState.value = uiStates }
       } else {
         val uiStates =
-            events.map { event -> event.toUIState(userRepository.getUser(event.creator)) }
+            events.mapIndexed { index, event ->
+              event.toUIState(
+                  userRepository.getUser(event.creator),
+                  index = index,
+                  joined = event.participants.contains(storedUid))
+            }
         _eventsState.value = uiStates
       }
     }
@@ -169,15 +187,61 @@ class EventViewModel(
    * Converts an [Event] into an [EventUIState].
    *
    * @param user The creator of the event.
+   * @param index The index of the event in the list.
+   * @param joined Whether the current user has joined the event.
    */
-  private fun Event.toUIState(user: UserProfile?): EventUIState {
+  private fun Event.toUIState(
+      user: UserProfile?,
+      index: Int = 0,
+      joined: Boolean = false
+  ): EventUIState {
     return EventUIState(
         title = title,
         description = description ?: "",
         date = formatEventDate(date),
         tags = tags.map { it.displayName }.take(3),
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
-        participants = participants.size)
+        participants = participants.size,
+        index = index,
+        joined = joined)
+  }
+
+  /**
+   * Makes the user join or leave an event based on the current user's join status.
+   *
+   * @param index The index of the event in the list for quick finding
+   */
+  fun joinOrLeaveEvent(index: Int) {
+    viewModelScope.launch {
+      val currentState = _eventsState.value.getOrNull(index) ?: return@launch
+      val currentEvent = localList.getOrNull(index) ?: return@launch
+
+      val isJoined = currentState.joined
+      val updatedParticipants =
+          if (isJoined) {
+            currentEvent.participants.filterNot { it == storedUid }.toSet()
+          } else {
+            currentEvent.participants + storedUid
+          }
+
+      val updatedEvent = currentEvent.copy(participants = updatedParticipants)
+      try {
+        eventRepository.updateEvent(currentEvent.id, updatedEvent)
+      } catch (e: NoSuchElementException) {
+        setErrorMsg("No event ${currentEvent.title} found")
+        return@launch
+      }
+
+      localList = localList.toMutableList().also { it[index] = updatedEvent }
+      _eventsState.value =
+          _eventsState.value.toMutableList().also {
+            it[index] = it[index].copy(joined = !isJoined, participants = updatedParticipants.size)
+          }
+    }
+  }
+
+  fun setErrorMsg(err: String?) {
+    _uiState.value = _uiState.value.copy(errormsg = err)
   }
 
   /**
