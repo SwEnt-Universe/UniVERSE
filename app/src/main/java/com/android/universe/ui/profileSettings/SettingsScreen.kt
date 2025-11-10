@@ -184,7 +184,7 @@ fun SettingsScreenContent(
     onRemoveTag: (Tag) -> Unit = {},
     onSaveModal: () -> Unit = {},
     onLogout: () -> Unit = {},
-    onSelectPicture: (String) -> Unit = {}
+    onSelectPicture: (String?) -> Unit = {}
 ) {
   val showDialog = remember { mutableStateOf(false) }
   LogoutConfirmationDialog(
@@ -262,6 +262,12 @@ fun SettingsScreenContent(
                       modifier = Modifier.size(Dimensions.IconSizeLarge))
                 }
               }
+            Button(
+                onClick = {onSelectPicture(null)},
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text("delete profile picture")
+            }
           LazyColumn(
               modifier =
                   Modifier.fillMaxSize()

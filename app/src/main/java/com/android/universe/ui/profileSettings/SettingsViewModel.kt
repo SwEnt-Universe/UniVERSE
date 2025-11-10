@@ -357,7 +357,7 @@ class SettingsViewModel(
    *
    * @param imageId the string that characterise the image.
    */
-  fun updateProfilePicture(imageId: String, uid: String) {
+  fun updateProfilePicture(imageId: String?, uid: String) {
     _uiState.value = _uiState.value.copy(profileImageUri = imageId)
     saveProfile(uid)
   }
