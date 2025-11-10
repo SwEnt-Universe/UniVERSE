@@ -3,6 +3,7 @@ package com.android.universe.ui.map
 import app.cash.turbine.test
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
@@ -16,9 +17,11 @@ import io.mockk.mockk
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -29,6 +32,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapViewModelTest {
@@ -236,4 +240,46 @@ class MapViewModelTest {
     assertEquals(viewModel.uiState.value.selectedLat, null)
     assertEquals(viewModel.uiState.value.selectedLng, null)
   }
+
+  @Test
+  fun `polling requests update events`() = runTest {
+    val min6: Long = 6 * 60 * 1000
+    val startEvents = viewModel.eventMarkers.value.size
+    val oneMore = startEvents + 1
+
+    //Controlled mutable list that mockk will read from
+    val currentEvents = mutableListOf<Event>()
+    coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
+
+    // start empty
+    assertEquals(startEvents, 0)
+
+    // Add one event, but no polling yet → ViewModel still empty
+    currentEvents.add(fakeEvents.first())
+    testDispatcher.scheduler.advanceTimeBy(min6)
+    assertEquals(viewModel.eventMarkers.value.size, startEvents)
+
+    // Start polling
+    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
+    testDispatcher.scheduler.advanceTimeBy(min6)
+
+    // ViewModel should have seen one event
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+
+    // Stop polling
+    viewModel.stopEventPolling()
+
+    // Add another event while polling stopped → still one event
+    currentEvents.add(fakeEvents[1])
+    testDispatcher.scheduler.advanceTimeBy(min6)
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+
+    // Remove first event and restart polling
+    currentEvents.removeAt(0)
+    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
+    testDispatcher.scheduler.advanceTimeBy(min6)
+
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+  }
+
 }

@@ -157,6 +157,16 @@ fun TomTomMapView(
 ) {
   val context = LocalContext.current
 
+    LaunchedEffect(viewModel.uiState.value.eventCount) {
+        viewModel.loadAllEvents()
+    }
+    LaunchedEffect(Unit) {
+        //Some polling so that we don't need to create a lot of listeners
+        viewModel.startEventPolling(5)
+    }
+    DisposableEffect(Unit) {
+        onDispose { viewModel.stopEventPolling() }
+    }
   val mapView =
       remember(context) { MapView(context, MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)) }
   var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
@@ -188,12 +198,12 @@ fun TomTomMapView(
             tomtomMap = map
 
             if (!isLocationProviderSet && viewModel.locationProvider != null) {
-              map.setLocationProvider(viewModel.locationProvider)
+              /*map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-              map.enableLocationMarker(locationMarkerOptions)
+              map.enableLocationMarker(locationMarkerOptions)*/
             }
             map.addMapClickListener { geoPoint ->
               val latitude = geoPoint.latitude
