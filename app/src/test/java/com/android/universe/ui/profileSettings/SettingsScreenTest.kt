@@ -193,4 +193,18 @@ class SettingsScreenTest {
     setUpScreen(uiState = state.copy(isLoading = true))
     composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertIsDisplayed()
   }
+
+  @Test
+  fun testEditingProfilePictureIsDisplayed() {
+    setUpScreen()
+    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.PICTURE_EDITING).assertIsDisplayed()
+  }
+
+  @Test
+  fun testDeleteProfilePictureIsDisplayed() {
+    setUpScreen()
+    composeTestRule
+        .onNodeWithTag(testTag = SettingsTestTags.DELETE_PICTURE_BUTTON)
+        .assertIsDisplayed()
+  }
 }

@@ -252,7 +252,8 @@ fun SettingsScreenContent(
                   Modifier.align(Alignment.CenterHorizontally)
                       .padding(Dimensions.PaddingSmall)
                       .size(100.dp)
-                      .background(MaterialTheme.colorScheme.surface, CircleShape),
+                      .background(MaterialTheme.colorScheme.surface, CircleShape)
+                      .testTag(SettingsTestTags.PICTURE_EDITING),
               contentAlignment = Alignment.Center) {
                 IconButton(onClick = { launcher.launch("image/*") }) {
                   Icon(
@@ -262,12 +263,13 @@ fun SettingsScreenContent(
                       modifier = Modifier.size(Dimensions.IconSizeLarge))
                 }
               }
-            Button(
-                onClick = {onSelectPicture(null)},
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
+          Button(
+              onClick = { onSelectPicture(null) },
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .testTag(SettingsTestTags.DELETE_PICTURE_BUTTON)) {
                 Text("delete profile picture")
-            }
+              }
           LazyColumn(
               modifier =
                   Modifier.fillMaxSize()
