@@ -160,7 +160,7 @@ fun TomTomMapView(
   LaunchedEffect(viewModel.uiState.value.eventCount) { viewModel.loadAllEvents() }
   LaunchedEffect(Unit) {
     // Some polling so that we don't need to create a lot of listeners
-    viewModel.startEventPolling(5)
+    viewModel.startEventPolling(1)
   }
   DisposableEffect(Unit) { onDispose { viewModel.stopEventPolling() } }
   val mapView =
