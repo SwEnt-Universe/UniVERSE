@@ -261,8 +261,8 @@ dependencies {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
         exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
     }
-
-    implementation("io.coil-kt:coil-compose:2.7.0")
+    // ------------------- Image -------------------
+    implementation(libs.coil)
 
     // ==========================================================================
     // TESTING
