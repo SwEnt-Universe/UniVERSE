@@ -14,6 +14,7 @@ import java.time.LocalDate
  * @property description An optional short bio or "about me" text.
  * @property dateOfBirth The user's date of birth.
  * @property tags A set of [Tag]s representing the user's interests.
+ * @property profileImageUri the profile picture of the user.
  */
 data class UserProfile(
     val uid: String,
@@ -23,5 +24,6 @@ data class UserProfile(
     val country: String,
     val description: String? = null,
     val dateOfBirth: LocalDate,
-    val tags: Set<Tag>
+    val tags: Set<Tag>,
+    val profileImageUri: String? = null
 )

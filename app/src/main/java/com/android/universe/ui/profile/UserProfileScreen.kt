@@ -2,7 +2,9 @@ package com.android.universe.ui.profile
 
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,8 +25,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.android.universe.model.isoToCountryName
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -40,6 +45,7 @@ import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.UniverseTheme
+import java.io.File
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
@@ -159,13 +165,27 @@ fun UserProfileScreen(
                       modifier =
                           Modifier.align(Alignment.Center)
                               .size(UserProfileDimensions.profilePictureSize)
-                              .background(MaterialTheme.colorScheme.surface, CircleShape),
+                              .clip(CircleShape)
+                              .background(MaterialTheme.colorScheme.surface, CircleShape)
+                              .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                       contentAlignment = Alignment.Center) {
-                        Icon(
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            contentDescription = "Image",
-                            imageVector = Icons.Filled.Image,
-                            modifier = Modifier.size(Dimensions.IconSizeLarge))
+                      if(userUIState.userProfile.profileImageUri == null) {
+                          Icon(
+                              tint = MaterialTheme.colorScheme.onSurface,
+                              contentDescription = "Image",
+                              imageVector = Icons.Filled.Image,
+                              modifier = Modifier.size(Dimensions.IconSizeLarge)
+                          )
+                      }else{
+                          Image(
+                              painter = rememberAsyncImagePainter(model = userUIState.userProfile.profileImageUri?.let { File(it) }),
+                              contentDescription = "Selected image",
+                              modifier = Modifier
+                                  .clip(CircleShape)
+                                  .fillMaxSize(),
+                              contentScale = ContentScale.Crop
+                          )
+                      }
                       }
                   // Setting icon to navigate to the edit profile screen.
                   IconButton(

@@ -51,6 +51,7 @@ data class SettingsUiState(
     val month: String = "",
     val year: String = "",
     val selectedTags: List<Tag> = emptyList(),
+    val profileImageUri: String? = null,
     val tempSelectedTags: List<Tag> = emptyList(),
     val tempValue: String = "",
     val tempDay: String = "",
@@ -126,7 +127,8 @@ class SettingsViewModel(
                 day = userProfile.dateOfBirth.dayOfMonth.toString(),
                 month = userProfile.dateOfBirth.monthValue.toString(),
                 year = userProfile.dateOfBirth.year.toString(),
-                selectedTags = userProfile.tags.toList())
+                selectedTags = userProfile.tags.toList(),
+                profileImageUri = userProfile.profileImageUri)
       } catch (e: Exception) {
         _uiState.value = _uiState.value.copy(errorMsg = "Failed to load user: ${e.message}")
       }
@@ -350,6 +352,11 @@ class SettingsViewModel(
     }
   }
 
+    fun updateProfilePicture(imageId: String, uid: String){
+        _uiState.value = _uiState.value.copy(profileImageUri = imageId)
+        saveProfile(uid)
+    }
+
   /**
    * Validates and applies changes from the modal to the main state.
    *
@@ -453,7 +460,8 @@ class SettingsViewModel(
                 description = cleanedDescription,
                 dateOfBirth =
                     LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
-                tags = state.selectedTags.toSet())
+                tags = state.selectedTags.toSet(),
+                profileImageUri = state.profileImageUri)
 
         userRepository.repository.updateUser(uid, updatedProfile)
 

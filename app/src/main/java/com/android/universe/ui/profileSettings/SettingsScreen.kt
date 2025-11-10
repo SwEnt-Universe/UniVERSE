@@ -1,14 +1,20 @@
 package com.android.universe.ui.profileSettings
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,19 +22,26 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutButton
 import com.android.universe.ui.common.LogoutConfirmationDialog
 import com.android.universe.ui.navigation.NavigationTestTags
+import com.android.universe.ui.profile.UserProfileDimensions
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
+import java.io.File
 
 /* =========================================================
  * Padding/style constants
@@ -155,7 +168,9 @@ fun SettingsScreen(
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
       onSaveModal = { viewModel.saveModal(uid) },
-      onLogout = { viewModel.signOut(clear, onLogout) })
+      onLogout = { viewModel.signOut(clear, onLogout) },
+      onSelectPicture = {string -> viewModel.updateProfilePicture(string, uid)},
+      ulrImage = uiState.profileImageUri)
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -171,7 +186,9 @@ fun SettingsScreenContent(
     onAddTag: (Tag) -> Unit = {},
     onRemoveTag: (Tag) -> Unit = {},
     onSaveModal: () -> Unit = {},
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onSelectPicture: (String) -> Unit = {},
+    ulrImage: String? = null,
 ) {
   val showDialog = remember { mutableStateOf(false) }
   LogoutConfirmationDialog(
@@ -200,16 +217,58 @@ fun SettingsScreenContent(
             },
             modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
-        LazyColumn(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .padding(top = Dimensions.PaddingLarge)
-                    .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)) {
+      Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+          // Profile picture of the user.
+          val context = LocalContext.current
+          var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+          val launcher = rememberLauncherForActivityResult(
+              contract = ActivityResultContracts.GetContent()
+          ) { uri: Uri? ->
+              uri?.let { selectedUri ->
+                  val file = File(context.filesDir, "profile_picture.jpg")
+                  try {
+                      context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                          file.outputStream().use { output ->
+                              input.copyTo(output)
+                          }
+                      }
+                      // On stocke maintenant le chemin local
+                      onSelectPicture(file.absolutePath)
+                  } catch (e: Exception) {
+                      Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+                  }
+              }
+          }
+          Box(
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .padding(Dimensions.PaddingSmall)
+                      .size(100.dp)
+                      .background(MaterialTheme.colorScheme.surface, CircleShape),
+              contentAlignment = Alignment.Center
+          ) {
+              IconButton(
+                  onClick = { launcher.launch("image/*") }
+              ) {
+                  Icon(
+                      tint = MaterialTheme.colorScheme.onSurface,
+                      contentDescription = "Image",
+                      imageVector = Icons.Filled.Image,
+                      modifier = Modifier.size(Dimensions.IconSizeLarge)
+                  )
+              }
+          }
+          LazyColumn(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding, vertical = Dimensions.PaddingSmall)
+          ) {
               item { GeneralSection(uiState = uiState, open = onOpenField) }
               item { ProfileSection(uiState = uiState, open = onOpenField) }
               item { InterestsSection(uiState = uiState, open = onOpenField) }
-            }
+          }
+  }
       }
 
   if (uiState.showModal) {

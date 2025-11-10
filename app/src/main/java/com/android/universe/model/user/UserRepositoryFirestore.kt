@@ -38,7 +38,8 @@ fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
         tags =
             (doc.get("tags").safeCastList<Number>())
                 .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                .toSet())
+                .toSet(),
+        profileImageUri = doc.getString("profilePicture"))
   } catch (e: DateTimeParseException) {
     Log.e(
         "UserRepositoryFirestore.documentToUserProfile",
@@ -77,7 +78,8 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         "country" to user.country,
         "description" to user.description,
         "dateOfBirth" to user.dateOfBirth.toString(),
-        "tags" to user.tags.map { it.ordinal })
+        "tags" to user.tags.map { it.ordinal },
+        "profilePicture" to user.profileImageUri)
   }
 
   /**
