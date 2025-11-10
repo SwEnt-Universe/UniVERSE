@@ -6,7 +6,6 @@ import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData

@@ -2,7 +2,6 @@ package com.android.universe.model.event
 
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
-import com.android.universe.model.user.UserProfile
 import java.time.LocalDateTime
 
 /**
