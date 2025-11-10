@@ -193,12 +193,12 @@ fun TomTomMapView(
             tomtomMap = map
 
             if (!isLocationProviderSet && viewModel.locationProvider != null) {
-              /*map.setLocationProvider(viewModel.locationProvider)
+              map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-              map.enableLocationMarker(locationMarkerOptions)*/
+              map.enableLocationMarker(locationMarkerOptions)
             }
             map.addMapClickListener { geoPoint ->
               val latitude = geoPoint.latitude
