@@ -43,9 +43,6 @@ googleId = "1.1.1"
 # ===== MAPS =====
 tomtom = "1.26.0"
 
-# ===== Image =====
-coil = "2.7.0"
-
 # ===== TESTING =====
 junit4 = "4.13.2"
 androidxTestJunit = "1.3.0"
@@ -117,11 +114,6 @@ google-id = { group = "com.google.android.libraries.identity.googleid", name = "
 tomtom-maps = { group = "com.tomtom.sdk.maps", name = "map-display", version.ref = "tomtom" }
 tomtom-location = { group = "com.tomtom.sdk.location", name = "provider-default", version.ref = "tomtom" }
 tomtom-search = { group = "com.tomtom.sdk.search", name = "search-online", version.ref = "tomtom" }
-
-# ==============================================================================
-# Image
-# ==============================================================================
-coil = {group = "io.coil-kt", name = "coil-compose", version.ref = "coil"}
 
 # ==============================================================================
 # TESTING
