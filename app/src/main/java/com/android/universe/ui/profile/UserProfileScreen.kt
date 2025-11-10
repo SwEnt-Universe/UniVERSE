@@ -1,5 +1,7 @@
 package com.android.universe.ui.profile
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -36,7 +39,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
 import com.android.universe.model.isoToCountryName
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -45,7 +47,6 @@ import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.UniverseTheme
-import java.io.File
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
@@ -169,23 +170,22 @@ fun UserProfileScreen(
                               .background(MaterialTheme.colorScheme.surface, CircleShape)
                               .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                       contentAlignment = Alignment.Center) {
-                      if(userUIState.userProfile.profileImageUri == null) {
+                        val base64StringImage: String? = userUIState.userProfile.profileImageUri
+                        if (base64StringImage == null) {
                           Icon(
                               tint = MaterialTheme.colorScheme.onSurface,
                               contentDescription = "Image",
                               imageVector = Icons.Filled.Image,
-                              modifier = Modifier.size(Dimensions.IconSizeLarge)
-                          )
-                      }else{
+                              modifier = Modifier.size(Dimensions.IconSizeLarge))
+                        } else {
+                          val bytes = Base64.decode(base64StringImage, Base64.DEFAULT)
+                          val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                           Image(
-                              painter = rememberAsyncImagePainter(model = userUIState.userProfile.profileImageUri?.let { File(it) }),
+                              bitmap = bitmap.asImageBitmap(),
                               contentDescription = "Selected image",
-                              modifier = Modifier
-                                  .clip(CircleShape)
-                                  .fillMaxSize(),
-                              contentScale = ContentScale.Crop
-                          )
-                      }
+                              modifier = Modifier.clip(CircleShape).fillMaxSize(),
+                              contentScale = ContentScale.Crop)
+                        }
                       }
                   // Setting icon to navigate to the edit profile screen.
                   IconButton(

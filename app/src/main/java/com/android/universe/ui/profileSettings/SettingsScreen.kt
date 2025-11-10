@@ -1,10 +1,12 @@
 package com.android.universe.ui.profileSettings
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,18 +31,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.scale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutButton
 import com.android.universe.ui.common.LogoutConfirmationDialog
 import com.android.universe.ui.navigation.NavigationTestTags
-import com.android.universe.ui.profile.UserProfileDimensions
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
-import coil.compose.rememberAsyncImagePainter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.clip
-import java.io.File
+import java.io.ByteArrayOutputStream
 
 /* =========================================================
  * Padding/style constants
@@ -169,8 +167,7 @@ fun SettingsScreen(
       onRemoveTag = viewModel::removeTag,
       onSaveModal = { viewModel.saveModal(uid) },
       onLogout = { viewModel.signOut(clear, onLogout) },
-      onSelectPicture = {string -> viewModel.updateProfilePicture(string, uid)},
-      ulrImage = uiState.profileImageUri)
+      onSelectPicture = { string -> viewModel.updateProfilePicture(string, uid) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -187,8 +184,7 @@ fun SettingsScreenContent(
     onRemoveTag: (Tag) -> Unit = {},
     onSaveModal: () -> Unit = {},
     onLogout: () -> Unit = {},
-    onSelectPicture: (String) -> Unit = {},
-    ulrImage: String? = null,
+    onSelectPicture: (String) -> Unit = {}
 ) {
   val showDialog = remember { mutableStateOf(false) }
   LogoutConfirmationDialog(
@@ -217,58 +213,66 @@ fun SettingsScreenContent(
             },
             modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
-      Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
           // Profile picture of the user.
           val context = LocalContext.current
-          var imageUri by remember { mutableStateOf<Uri?>(null) }
+          val launcher =
+              rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {
+                  uri: Uri? ->
+                uri?.let { selectedUri ->
+                  val inputStream = context.contentResolver.openInputStream(selectedUri)
+                  val bitmap = BitmapFactory.decodeStream(inputStream)
 
-          val launcher = rememberLauncherForActivityResult(
-              contract = ActivityResultContracts.GetContent()
-          ) { uri: Uri? ->
-              uri?.let { selectedUri ->
-                  val file = File(context.filesDir, "profile_picture.jpg")
-                  try {
-                      context.contentResolver.openInputStream(selectedUri)?.use { input ->
-                          file.outputStream().use { output ->
-                              input.copyTo(output)
-                          }
-                      }
-                      // On stocke maintenant le chemin local
-                      onSelectPicture(file.absolutePath)
-                  } catch (e: Exception) {
-                      Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+                  // We redimension the image to have a 256*256 image to reduce the space of the
+                  // image.
+                  val maxSize = Dimensions.ProfilePictureSize
+                  val ratio: Float = bitmap.width.toFloat() / bitmap.height.toFloat()
+                  val width: Int
+                  val height: Int
+                  if (ratio > 1) {
+                    width = maxSize
+                    height = (maxSize / ratio).toInt()
+                  } else {
+                    height = maxSize
+                    width = (maxSize * ratio).toInt()
                   }
+                  val resizedBitmap = bitmap.scale(width, height)
+
+                  val stream = ByteArrayOutputStream()
+                  // We compress the image with a low quality to reduce the space of the image.
+                  resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+                  val byteArray = stream.toByteArray()
+                  // We encode the image in base64.
+                  val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+                  onSelectPicture(base64String)
+                }
               }
-          }
           Box(
               modifier =
                   Modifier.align(Alignment.CenterHorizontally)
                       .padding(Dimensions.PaddingSmall)
                       .size(100.dp)
                       .background(MaterialTheme.colorScheme.surface, CircleShape),
-              contentAlignment = Alignment.Center
-          ) {
-              IconButton(
-                  onClick = { launcher.launch("image/*") }
-              ) {
+              contentAlignment = Alignment.Center) {
+                IconButton(onClick = { launcher.launch("image/*") }) {
                   Icon(
                       tint = MaterialTheme.colorScheme.onSurface,
                       contentDescription = "Image",
                       imageVector = Icons.Filled.Image,
-                      modifier = Modifier.size(Dimensions.IconSizeLarge)
-                  )
+                      modifier = Modifier.size(Dimensions.IconSizeLarge))
+                }
               }
-          }
           LazyColumn(
               modifier =
                   Modifier.fillMaxSize()
-                      .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding, vertical = Dimensions.PaddingSmall)
-          ) {
-              item { GeneralSection(uiState = uiState, open = onOpenField) }
-              item { ProfileSection(uiState = uiState, open = onOpenField) }
-              item { InterestsSection(uiState = uiState, open = onOpenField) }
-          }
-  }
+                      .padding(
+                          horizontal = SettingsScreenPaddings.ContentHorizontalPadding,
+                          vertical = Dimensions.PaddingSmall)) {
+                item { GeneralSection(uiState = uiState, open = onOpenField) }
+                item { ProfileSection(uiState = uiState, open = onOpenField) }
+                item { InterestsSection(uiState = uiState, open = onOpenField) }
+              }
+        }
       }
 
   if (uiState.showModal) {

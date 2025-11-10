@@ -352,10 +352,10 @@ class SettingsViewModel(
     }
   }
 
-    fun updateProfilePicture(imageId: String, uid: String){
-        _uiState.value = _uiState.value.copy(profileImageUri = imageId)
-        saveProfile(uid)
-    }
+  fun updateProfilePicture(imageId: String, uid: String) {
+    _uiState.value = _uiState.value.copy(profileImageUri = imageId)
+    saveProfile(uid)
+  }
 
   /**
    * Validates and applies changes from the modal to the main state.
