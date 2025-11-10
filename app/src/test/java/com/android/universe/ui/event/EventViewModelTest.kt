@@ -8,6 +8,8 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -20,17 +22,16 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EventViewModelTest {
 
-    companion object{
-        val FORMATTER = DateTimeFormatter.ofPattern("d MMM hh:mm a", Locale.ENGLISH)
-        const val EVENT1TITLE = "Morning Run at the Lake"
-        const val EVENT1DESC = "Join us for a casual 5km run around the lake followed by coffee."
-    }
+  companion object {
+    val FORMATTER = DateTimeFormatter.ofPattern("d MMM hh:mm a", Locale.ENGLISH)
+    const val EVENT1TITLE = "Morning Run at the Lake"
+    const val EVENT1DESC = "Join us for a casual 5km run around the lake followed by coffee."
+  }
+
   private lateinit var repository: FakeEventRepository
   private lateinit var userRepo: FakeUserRepository
   private lateinit var viewModel: EventViewModel
@@ -65,25 +66,25 @@ class EventViewModelTest {
               dateOfBirth = LocalDate.of(1992, 3, 22),
               tags = emptySet()))
 
-    val sampleEvents =
-        listOf(
-            Event(
-                id = "event-001",
-                title = EVENT1TITLE,
-                description = EVENT1DESC,
-                date = LocalDateTime.of(2025, 10, 15, 7, 30),
-                tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
-                participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
-                creator = sampleUsers[0].uid,
-                location = Location(latitude = 46.5196535, longitude = 6.6322734)),
-            Event(
-                id = "event-002",
-                title = "Tech Hackathon 2025",
-                date = LocalDateTime.of(2025, 11, 3, 9, 0),
-                tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
-                participants = emptySet(),
-                creator = sampleUsers[1].uid,
-                location = Location(latitude = 46.5196535, longitude = 6.6322734)))
+  val sampleEvents =
+      listOf(
+          Event(
+              id = "event-001",
+              title = EVENT1TITLE,
+              description = EVENT1DESC,
+              date = LocalDateTime.of(2025, 10, 15, 7, 30),
+              tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
+              participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
+              creator = sampleUsers[0].uid,
+              location = Location(latitude = 46.5196535, longitude = 6.6322734)),
+          Event(
+              id = "event-002",
+              title = "Tech Hackathon 2025",
+              date = LocalDateTime.of(2025, 11, 3, 9, 0),
+              tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
+              participants = emptySet(),
+              creator = sampleUsers[1].uid,
+              location = Location(latitude = 46.5196535, longitude = 6.6322734)))
 
   @Before
   fun setup() {
@@ -98,11 +99,11 @@ class EventViewModelTest {
     }
 
     viewModel = EventViewModel(repository, null, userRepo)
-      viewModel.storedUid = sampleUsers[0].uid
-      runTest {
-          viewModel.loadEvents()
-          advanceUntilIdle()
-      }
+    viewModel.storedUid = sampleUsers[0].uid
+    runTest {
+      viewModel.loadEvents()
+      advanceUntilIdle()
+    }
   }
 
   @After
@@ -180,23 +181,21 @@ class EventViewModelTest {
     assertEquals(listOf("Tennis", "Artificial intelligence", "Programming"), megaTagEvent.tags)
   }
 
-    @Test
-    fun joinOrLeaveEventUpdatesParticipants() = runTest {
-            advanceUntilIdle()
-            val events = viewModel.eventsState.value
-            assert(events.isNotEmpty())
-            val first = events.first()
+  @Test
+  fun joinOrLeaveEventUpdatesParticipants() = runTest {
+    advanceUntilIdle()
+    val events = viewModel.eventsState.value
+    assert(events.isNotEmpty())
+    val first = events.first()
 
-            val initialParticipants = first.participants
-            assertEquals(true, first.joined)
+    val initialParticipants = first.participants
+    assertEquals(true, first.joined)
 
-            viewModel.joinOrLeaveEvent(first.index)
-            advanceUntilIdle()
+    viewModel.joinOrLeaveEvent(first.index)
+    advanceUntilIdle()
 
-            val updated = viewModel.eventsState.value[first.index]
-            assertEquals(false, updated.joined)
-            assertEquals(initialParticipants - 1, updated.participants)
-
-    }
-
+    val updated = viewModel.eventsState.value[first.index]
+    assertEquals(false, updated.joined)
+    assertEquals(initialParticipants - 1, updated.participants)
+  }
 }

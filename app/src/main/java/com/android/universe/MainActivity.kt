@@ -51,7 +51,6 @@ import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
@@ -173,7 +172,9 @@ fun UniverseApp(
           startDestination = NavigationScreens.Event.route,
           route = NavigationScreens.Event.name,
       ) {
-        composable(NavigationScreens.Event.route) { EventScreen(onTabSelected, uid = Firebase.auth.currentUser!!.uid) }
+        composable(NavigationScreens.Event.route) {
+          EventScreen(onTabSelected, uid = Firebase.auth.currentUser!!.uid)
+        }
       }
 
       navigation(
