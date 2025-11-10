@@ -175,7 +175,9 @@ fun UniverseApp(
           startDestination = NavigationScreens.Event.route,
           route = NavigationScreens.Event.name,
       ) {
-        composable(NavigationScreens.Event.route) { EventScreen(onTabSelected) }
+        composable(NavigationScreens.Event.route) {
+          EventScreen(onTabSelected, uid = Firebase.auth.currentUser!!.uid)
+        }
       }
 
       navigation(
