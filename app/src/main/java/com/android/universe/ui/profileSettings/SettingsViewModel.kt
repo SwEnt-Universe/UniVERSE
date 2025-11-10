@@ -352,6 +352,11 @@ class SettingsViewModel(
     }
   }
 
+  /**
+   * update the profile picture of the user and automatically save it in his user profile.
+   *
+   * @param imageId the string that characterise the image.
+   */
   fun updateProfilePicture(imageId: String, uid: String) {
     _uiState.value = _uiState.value.copy(profileImageUri = imageId)
     saveProfile(uid)
