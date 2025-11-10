@@ -25,14 +25,14 @@ class SelectTagViewModelTest {
   private lateinit var viewModelUser: SelectTagViewModel
   private lateinit var viewModelEvent: SelectTagViewModel
 
-
   val tags = setOf(Tag.HANDBALL, Tag.METAL, Tag.ROLE_PLAYING_GAMES)
+
   @Before
   fun setup() {
     repository = FakeUserRepository()
-      tagRepository = TagLocalTemporaryRepository()
+    tagRepository = TagLocalTemporaryRepository()
     viewModelUser = SelectTagViewModel(repository)
-      viewModelEvent = SelectTagViewModel(repository, SelectTagMode.EVENT_CREATION, tagRepository)
+    viewModelEvent = SelectTagViewModel(repository, SelectTagMode.EVENT_CREATION, tagRepository)
   }
 
   @Test
@@ -370,29 +370,29 @@ class SelectTagViewModelTest {
     assertEquals(setOf(Tag.METAL, Tag.CAR, Tag.HANDBALL), updatedUser.tags)
   }
 
-    @Test
-    fun loadTagsEventCreation() = runTest{
-        tagRepository.updateTags(tags)
-        advanceUntilIdle()
-        viewModelEvent.loadTags("0")
-        val resultTags = viewModelEvent.selectedTags.value.toSet()
-        assertEquals(tags, resultTags)
-    }
+  @Test
+  fun loadTagsEventCreation() = runTest {
+    tagRepository.updateTags(tags)
+    advanceUntilIdle()
+    viewModelEvent.loadTags("0")
+    val resultTags = viewModelEvent.selectedTags.value.toSet()
+    assertEquals(tags, resultTags)
+  }
 
-    @Test
-    fun loadTagsWhenRepositoryChange() = runTest{
-        tagRepository.updateTags(tags)
-        advanceUntilIdle()
-        val resultTags = viewModelEvent.selectedTags.value.toSet()
-        assertEquals(tags, resultTags)
-    }
+  @Test
+  fun loadTagsWhenRepositoryChange() = runTest {
+    tagRepository.updateTags(tags)
+    advanceUntilIdle()
+    val resultTags = viewModelEvent.selectedTags.value.toSet()
+    assertEquals(tags, resultTags)
+  }
 
-    @Test
-    fun saveTagsEventCreation() = runTest{
-        tags.forEach { tag ->  viewModelEvent.addTag(tag) }
-        viewModelEvent.saveTags("0")
-        advanceUntilIdle()
-        val resultTags = tagRepository.getTags()
-        assertEquals(tags, resultTags)
-    }
+  @Test
+  fun saveTagsEventCreation() = runTest {
+    tags.forEach { tag -> viewModelEvent.addTag(tag) }
+    viewModelEvent.saveTags("0")
+    advanceUntilIdle()
+    val resultTags = tagRepository.getTags()
+    assertEquals(tags, resultTags)
+  }
 }

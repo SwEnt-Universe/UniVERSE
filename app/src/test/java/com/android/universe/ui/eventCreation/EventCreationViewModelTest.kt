@@ -17,9 +17,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.assertEquals
 
 class EventCreationViewModelTest {
   private lateinit var eventRepository: FakeEventRepository
@@ -48,7 +48,10 @@ class EventCreationViewModelTest {
     userRepository = FakeUserRepository()
     tagRepository = TagLocalTemporaryRepository()
     viewModel =
-        EventCreationViewModel(eventRepository = eventRepository, userRepository = userRepository, tagRepository = tagRepository)
+        EventCreationViewModel(
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            tagRepository = tagRepository)
   }
 
   @Test
@@ -110,7 +113,7 @@ class EventCreationViewModelTest {
   }
 
   @Test
-  fun updateTagInRepoUpdateViewModel() = runTest{
+  fun updateTagInRepoUpdateViewModel() = runTest {
     tagRepository.updateTags(sample_tags)
     testDispatcher.scheduler.advanceUntilIdle()
     assertEquals(sample_tags, viewModel.eventTags.value)
