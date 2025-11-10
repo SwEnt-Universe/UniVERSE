@@ -6,7 +6,6 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
@@ -14,7 +13,6 @@ import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,32 +55,14 @@ class MapViewModelTest {
               description = "Join us for a casual 5km run around the lake followed by coffee.",
               date = LocalDateTime.of(2025, 10, 15, 7, 30),
               tags = setOf(Tag.JAZZ, Tag.COUNTRY),
-              creator =
-                  UserProfile(
-                      uid = "0",
-                      username = "alice_smith",
-                      firstName = "Alice",
-                      lastName = "Smith",
-                      country = "US",
-                      description = "Loves running",
-                      dateOfBirth = LocalDate.of(1990, 1, 1),
-                      tags = setOf(Tag.SCULPTURE)),
+              creator = UserTestData.Alice.uid,
               location = Location(latitude = 46.5196535, longitude = 6.6322734)),
           Event(
               id = "event-002",
               title = "Tech Hackathon 2025",
               date = LocalDateTime.of(2025, 11, 3, 9, 0),
               tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
-              creator =
-                  UserProfile(
-                      uid = "0",
-                      username = "alice_smith",
-                      firstName = "Alice",
-                      lastName = "Smith",
-                      country = "US",
-                      description = "Loves running",
-                      dateOfBirth = LocalDate.of(1990, 1, 1),
-                      tags = setOf(Tag.SCULPTURE)),
+              creator = UserTestData.Alice.uid,
               location = Location(latitude = 37.423021, longitude = -122.086808)),
           Event(
               id = "event-003",
@@ -90,16 +70,7 @@ class MapViewModelTest {
               description = "Relaxed evening mixing painting, wine, and music.",
               date = LocalDateTime.of(2025, 10, 22, 19, 0),
               tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
-              creator =
-                  UserProfile(
-                      uid = "0",
-                      username = "alice_smith",
-                      firstName = "Alice",
-                      lastName = "Smith",
-                      country = "US",
-                      description = "Loves running",
-                      dateOfBirth = LocalDate.of(1990, 1, 1),
-                      tags = setOf(Tag.SCULPTURE)),
+              creator = UserTestData.Alice.uid,
               location = Location(latitude = 47.3769, longitude = 8.5417)))
 
   @Before

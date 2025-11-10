@@ -28,6 +28,7 @@ data class UserProfileUIState(
             country = "",
             dateOfBirth = LocalDate.now(),
             tags = emptySet()),
+    val age: Int = 0,
     val errorMsg: String? = null
 )
 
@@ -52,7 +53,9 @@ class UserProfileViewModel(
     viewModelScope.launch {
       try {
         val userProfile = userRepository.getUser(uid)
-        _userState.value = UserProfileUIState(userProfile)
+        _userState.value =
+            _userState.value.copy(
+                userProfile = userProfile, age = calculateAge(userProfile.dateOfBirth))
       } catch (e: Exception) {
         Log.e("UserProfileViewModel", "User $uid not found")
         setErrorMsg("Username not Found")

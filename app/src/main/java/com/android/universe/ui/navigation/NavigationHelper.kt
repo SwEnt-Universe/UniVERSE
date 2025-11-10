@@ -28,7 +28,9 @@ suspend fun resolveUserDestinationScreen(
 ): NavigationScreens =
     when {
       user == null -> NavigationScreens.SignIn
-      user.isAnonymous || userRepository.hasProfile(user.uid) -> NavigationScreens.Map
+      user.isAnonymous -> NavigationScreens.Map
+      user.isEmailVerified.not() -> NavigationScreens.EmailValidation
+      userRepository.hasProfile(user.uid) -> NavigationScreens.Map
       else -> NavigationScreens.AddProfile
     }
 
