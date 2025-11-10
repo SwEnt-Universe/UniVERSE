@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -93,8 +92,8 @@ object EventScreenTestTags {
 @Composable
 fun EventScreen(onTabSelected: (Tab) -> Unit = {}, uid: String = "", viewModel: EventViewModel = viewModel()) {
     LaunchedEffect(uid) {
-        if (viewModel.thisuid != uid) {
-            viewModel.thisuid = uid
+        if (viewModel.storedUid != uid) {
+            viewModel.storedUid = uid
             viewModel.loadEvents()
         }
     }
@@ -141,6 +140,9 @@ fun EventScreen(onTabSelected: (Tab) -> Unit = {}, uid: String = "", viewModel: 
  * @param tags A list of up to three tag strings associated with the event.
  * @param creator The full name of the user who created the event.
  * @param participants The number of participants who joined the event.
+ * @param onJoin A callback function invoked when the "Join In" button is clicked.
+ * @param joined Whether the current user has joined the event.
+ * @param index The index of the event in the list of events of the viewmodel
  */
 @Composable
 fun EventCard(
@@ -247,7 +249,7 @@ fun EventCard(
                     shape = RoundedCornerShape(Dimensions.RoundedCorner),
                     colors =
                         ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary),
+                            containerColor = if(joined) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary),
                     modifier = Modifier.testTag(EventScreenTestTags.EVENT_JOIN_BUTTON)) {
                       Text(text = if(joined) {"Leave"} else "Join In", color = MaterialTheme.colorScheme.onPrimary)
                     }
