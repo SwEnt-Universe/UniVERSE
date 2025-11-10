@@ -8,8 +8,7 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import kotlin.collections.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -27,7 +26,6 @@ import org.junit.Test
 class EventViewModelTest {
 
   companion object {
-    val FORMATTER = DateTimeFormatter.ofPattern("d MMM hh:mm a", Locale.ENGLISH)
     const val EVENT1TITLE = "Morning Run at the Lake"
     const val EVENT1DESC = "Join us for a casual 5km run around the lake followed by coffee."
   }
@@ -85,6 +83,19 @@ class EventViewModelTest {
               participants = emptySet(),
               creator = sampleUsers[1].uid,
               location = Location(latitude = 46.5196535, longitude = 6.6322734)))
+
+  val thirdEvent =
+      Event(
+          id = "event-100",
+          title = "Mega Tag Event",
+          description = "Event with too many tags",
+          date = LocalDateTime.of(2025, 12, 1, 10, 0),
+          tags =
+              setOf(
+                  Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
+          participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
+          creator = sampleUsers[0].uid,
+          location = Location(latitude = 46.5196535, longitude = 6.6322734))
 
   @Before
   fun setup() {
@@ -152,22 +163,7 @@ class EventViewModelTest {
 
   @Test
   fun eventsWithMoreThanThreeTagsAreCropped() = runTest {
-    val extraEvent =
-        Event(
-            id = "event-100",
-            title = "Mega Tag Event",
-            description = "Event with too many tags",
-            date = LocalDateTime.of(2025, 12, 1, 10, 0),
-            tags =
-                setOf(
-                    Tag.TENNIS,
-                    Tag.ARTIFICIAL_INTELLIGENCE,
-                    Tag.PROGRAMMING,
-                    Tag.RUNNING,
-                    Tag.MUSIC),
-            participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
-            creator = sampleUsers[0].uid,
-            location = Location(latitude = 46.5196535, longitude = 6.6322734))
+    val extraEvent = thirdEvent
 
     runBlocking { repository.addEvent(extraEvent) }
 
@@ -197,5 +193,14 @@ class EventViewModelTest {
     val updated = viewModel.eventsState.value[first.index]
     assertEquals(false, updated.joined)
     assertEquals(initialParticipants - 1, updated.participants)
+    assertEquals(viewModel.uiState.value.errormsg, null)
+  }
+
+  @Test
+  fun joinOrLeaveEventHandlesUpdateError() {
+    viewModel.setErrorMsg("No event $EVENT1TITLE found")
+    assertEquals("No event $EVENT1TITLE found", viewModel.uiState.value.errormsg)
+    viewModel.setErrorMsg(null)
+    assertEquals(null, viewModel.uiState.value.errormsg)
   }
 }

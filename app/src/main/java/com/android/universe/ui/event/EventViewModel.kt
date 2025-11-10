@@ -39,6 +39,8 @@ data class EventUIState(
     val joined: Boolean = false
 )
 
+data class UiState(val errormsg: String? = null)
+
 /**
  * [EventViewModel] orchestrates the retrieval and transformation of event and user data into
  * reactive, UI-friendly state for Compose or other reactive consumers.
@@ -117,6 +119,9 @@ class EventViewModel(
   /** Backing property for the list of event UI states. */
   private val _eventsState = MutableStateFlow<List<EventUIState>>(emptyList())
   private var localList = emptyList<Event>()
+
+  private val _uiState = MutableStateFlow(UiState())
+  val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
   /** Publicly exposed StateFlow of event UI states. */
   val eventsState: StateFlow<List<EventUIState>> = _eventsState.asStateFlow()
@@ -220,7 +225,12 @@ class EventViewModel(
           }
 
       val updatedEvent = currentEvent.copy(participants = updatedParticipants)
-      eventRepository.updateEvent(currentEvent.id, updatedEvent)
+      try {
+        eventRepository.updateEvent(currentEvent.id, updatedEvent)
+      } catch (e: NoSuchElementException) {
+        setErrorMsg("No event ${currentEvent.title} found")
+        return@launch
+      }
 
       localList = localList.toMutableList().also { it[index] = updatedEvent }
       _eventsState.value =
@@ -228,6 +238,10 @@ class EventViewModel(
             it[index] = it[index].copy(joined = !isJoined, participants = updatedParticipants.size)
           }
     }
+  }
+
+  fun setErrorMsg(err: String?) {
+    _uiState.value = _uiState.value.copy(errormsg = err)
   }
 
   /**
