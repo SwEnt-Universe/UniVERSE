@@ -58,6 +58,7 @@ object UserProfileScreenTestTags {
   const val TAG = "userProfileTag"
   const val EDIT_BUTTON = "userProfileEditButton"
   const val TAGLIST = "userProfileTagList"
+  const val PROFILE_PICTURE = "userProfilePicture"
 
   fun getTagTestTag(index: Int): String {
     return "userProfileTag$index"
@@ -183,7 +184,10 @@ fun UserProfileScreen(
                           Image(
                               bitmap = bitmap.asImageBitmap(),
                               contentDescription = "Selected image",
-                              modifier = Modifier.clip(CircleShape).fillMaxSize(),
+                              modifier =
+                                  Modifier.clip(CircleShape)
+                                      .fillMaxSize()
+                                      .testTag(UserProfileScreenTestTags.PROFILE_PICTURE),
                               contentScale = ContentScale.Crop)
                         }
                       }

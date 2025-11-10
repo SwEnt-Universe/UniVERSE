@@ -59,6 +59,8 @@ class UserProfileScreenTest : FirestoreUserTest() {
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
 
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.PROFILE_PICTURE).assertIsDisplayed()
+
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME)
         .assertIsDisplayed()
@@ -162,5 +164,17 @@ class UserProfileScreenTest : FirestoreUserTest() {
     }
 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun profilePictureNotDisplayedIfNull() {
+    runTest { repository.addUser(dummyUser2) }
+
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
+    }
+
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.PROFILE_PICTURE).assertIsNotDisplayed()
   }
 }
