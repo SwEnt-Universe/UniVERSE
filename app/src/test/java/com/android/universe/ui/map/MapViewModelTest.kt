@@ -3,7 +3,6 @@ package com.android.universe.ui.map
 import app.cash.turbine.test
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
-import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
@@ -17,7 +16,6 @@ import io.mockk.mockk
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -32,7 +30,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapViewModelTest {
@@ -247,7 +244,7 @@ class MapViewModelTest {
     val startEvents = viewModel.eventMarkers.value.size
     val oneMore = startEvents + 1
 
-    //Controlled mutable list that mockk will read from
+    // Controlled mutable list that mockk will read from
     val currentEvents = mutableListOf<Event>()
     coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
 
@@ -281,5 +278,4 @@ class MapViewModelTest {
 
     assertEquals(oneMore, viewModel.eventMarkers.value.size)
   }
-
 }

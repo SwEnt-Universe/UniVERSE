@@ -41,7 +41,6 @@ import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.image.ImageFactory
-import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.ui.MapView
 
@@ -157,16 +156,12 @@ fun TomTomMapView(
 ) {
   val context = LocalContext.current
 
-    LaunchedEffect(viewModel.uiState.value.eventCount) {
-        viewModel.loadAllEvents()
-    }
-    LaunchedEffect(Unit) {
-        //Some polling so that we don't need to create a lot of listeners
-        viewModel.startEventPolling(5)
-    }
-    DisposableEffect(Unit) {
-        onDispose { viewModel.stopEventPolling() }
-    }
+  LaunchedEffect(viewModel.uiState.value.eventCount) { viewModel.loadAllEvents() }
+  LaunchedEffect(Unit) {
+    // Some polling so that we don't need to create a lot of listeners
+    viewModel.startEventPolling(5)
+  }
+  DisposableEffect(Unit) { onDispose { viewModel.stopEventPolling() } }
   val mapView =
       remember(context) { MapView(context, MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)) }
   var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
