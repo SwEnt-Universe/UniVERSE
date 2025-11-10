@@ -1,11 +1,11 @@
 package com.android.universe.ui.map
 
 import app.cash.turbine.test
-import com.android.universe.model.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData

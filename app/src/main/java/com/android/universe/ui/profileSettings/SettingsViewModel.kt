@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.CountryData.countryToIsoCode
-import com.android.universe.model.Tag
 import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.isoToCountryName
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.ErrorMessages

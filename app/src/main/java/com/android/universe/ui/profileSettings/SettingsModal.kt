@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.CountryData
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
 import com.android.universe.ui.selectTag.TagColors
 
