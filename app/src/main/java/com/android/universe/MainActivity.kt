@@ -46,7 +46,9 @@ import com.android.universe.ui.navigation.resolveUserDestinationScreen
 import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
+import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
+import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
@@ -121,7 +123,7 @@ fun UniverseApp(
         composable(NavigationScreens.AddProfile.route) {
           AddProfileScreen(
               uid = Firebase.auth.currentUser!!.uid,
-              navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTag) },
+              navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
               onBack = {
                 // Navigate back to Sign In
                 navController.navigate(NavigationScreens.SignIn.route) {
@@ -148,14 +150,15 @@ fun UniverseApp(
       }
 
       navigation(
-          route = NavigationScreens.SelectTag.name,
-          startDestination = NavigationScreens.SelectTag.route) {
-            composable(NavigationScreens.SelectTag.route) {
+          route = NavigationScreens.SelectTagUser.name,
+          startDestination = NavigationScreens.SelectTagUser.route) {
+            composable(NavigationScreens.SelectTagUser.route) {
               SelectTagScreen(
                   uid = Firebase.auth.currentUser!!.uid,
                   navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
             }
           }
+
       navigation(
           startDestination = NavigationScreens.Map.route,
           route = NavigationScreens.Map.name,
@@ -231,8 +234,24 @@ fun UniverseApp(
 
               EventCreationScreen(
                   location = Location(latitude.toDouble(), longitude.toDouble()),
-                  onSave = { navController.popBackStack() })
+                  onAddTag = { navController.navigate("selectTagEvent") },
+                  onSave = {
+                    navController.popBackStack(
+                        route = NavigationScreens.EventCreation.route, inclusive = true)
+                  })
             }
+        composable(
+            route = NavigationScreens.SelectTagEvent.route,
+        ) {
+          val selectTagViewModel =
+              SelectTagViewModel(
+                  selectTagMode = SelectTagMode.EVENT_CREATION,
+              )
+          SelectTagScreen(
+              selectedTagOverview = selectTagViewModel,
+              uid = Firebase.auth.currentUser!!.uid,
+              navigateOnSave = { navController.popBackStack() })
+        }
       }
     }
   }

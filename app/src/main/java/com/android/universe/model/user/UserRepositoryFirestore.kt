@@ -1,7 +1,7 @@
 package com.android.universe.model.user
 
 import android.util.Log
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate

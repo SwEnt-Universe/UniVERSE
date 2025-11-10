@@ -1,6 +1,6 @@
 package com.android.universe.model.user
 
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import java.time.LocalDate
 
 /**
