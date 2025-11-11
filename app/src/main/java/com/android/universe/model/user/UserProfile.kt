@@ -41,7 +41,9 @@ data class UserProfile(
     if (description != other.description) return false
     if (dateOfBirth != other.dateOfBirth) return false
     if (tags != other.tags) return false
-    if ((profileImageUri != null || other.profileImageUri != null ) && (!profileImageUri.contentEquals(other.profileImageUri))) return false
+    if ((profileImageUri != null || other.profileImageUri != null) &&
+        (!profileImageUri.contentEquals(other.profileImageUri)))
+        return false
 
     return true
   }
