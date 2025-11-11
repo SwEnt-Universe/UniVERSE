@@ -11,7 +11,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object ChatManager {
   private val chats = ConcurrentHashMap<String, Chat>()
-  private val chatRepository = ChatRepositoryProvider.chatRepository
+  private val chatRepository: ChatRepository
+    get() = ChatRepositoryProvider.chatRepository
 
   /**
    * Loads a chat by its ID.
@@ -49,5 +50,16 @@ object ChatManager {
     val chat = chatRepository.createChat(chatID, admin)
     chats[chatID] = chat
     return chat
+  }
+
+  /**
+   * Clears the in-memory chat cache.
+   *
+   * This function removes all chat instances from the local cache. It is useful for resetting the
+   * state. Subsequent requests for chats will need to be fetched again from the `chatRepository`.
+   */
+  fun clear() {
+    chats.forEach { (_, chat) -> chat.clearListeners() }
+    chats.clear()
   }
 }

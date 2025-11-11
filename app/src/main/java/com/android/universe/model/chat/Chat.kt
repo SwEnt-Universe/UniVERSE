@@ -105,4 +105,13 @@ class Chat(val chatID: String = "", val admin: String = "", initialLastMessage: 
   suspend fun sendMessage(message: Message) {
     chatRepository.sendMessage(chatID, message)
   }
+
+  /**
+   * Removes the real-time listeners for message updates from the underlying data source.
+   *
+   * This function should be called when the chat is no longer being observed.
+   */
+  fun clearListeners() {
+    chatRepository.removeMessageListener(chatID)
+  }
 }
