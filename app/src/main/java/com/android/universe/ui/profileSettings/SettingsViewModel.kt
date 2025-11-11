@@ -51,7 +51,7 @@ data class SettingsUiState(
     val month: String = "",
     val year: String = "",
     val selectedTags: List<Tag> = emptyList(),
-    val profileImageUri: String? = null,
+    val profileImageUri: ByteArray? = null,
     val tempSelectedTags: List<Tag> = emptyList(),
     val tempValue: String = "",
     val tempDay: String = "",
@@ -357,7 +357,7 @@ class SettingsViewModel(
    *
    * @param imageId the string that characterise the image.
    */
-  fun updateProfilePicture(imageId: String?, uid: String) {
+  fun updateProfilePicture(imageId: ByteArray?, uid: String) {
     _uiState.value = _uiState.value.copy(profileImageUri = imageId)
     saveProfile(uid)
   }

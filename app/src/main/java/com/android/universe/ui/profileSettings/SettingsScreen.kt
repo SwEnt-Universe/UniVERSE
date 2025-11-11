@@ -3,7 +3,6 @@ package com.android.universe.ui.profileSettings
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Base64
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -167,7 +166,7 @@ fun SettingsScreen(
       onRemoveTag = viewModel::removeTag,
       onSaveModal = { viewModel.saveModal(uid) },
       onLogout = { viewModel.signOut(clear, onLogout) },
-      onSelectPicture = { string -> viewModel.updateProfilePicture(string, uid) })
+      onSelectPicture = { byteArray -> viewModel.updateProfilePicture(byteArray, uid) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -184,7 +183,7 @@ fun SettingsScreenContent(
     onRemoveTag: (Tag) -> Unit = {},
     onSaveModal: () -> Unit = {},
     onLogout: () -> Unit = {},
-    onSelectPicture: (String?) -> Unit = {}
+    onSelectPicture: (ByteArray?) -> Unit = {}
 ) {
   val showDialog = remember { mutableStateOf(false) }
   LogoutConfirmationDialog(
@@ -242,9 +241,7 @@ fun SettingsScreenContent(
                   // We compress the image with a low quality to reduce the space of the image.
                   resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
                   val byteArray = stream.toByteArray()
-                  // We encode the image in base64.
-                  val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
-                  onSelectPicture(base64String)
+                  onSelectPicture(byteArray)
                 }
               }
           Box(

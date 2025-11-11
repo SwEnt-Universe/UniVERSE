@@ -1,6 +1,7 @@
 package com.android.universe.model.user
 
 import android.util.Log
+import com.google.firebase.firestore.Blob
 import com.android.universe.model.tag.Tag
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -39,7 +40,7 @@ fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
             (doc.get("tags").safeCastList<Number>())
                 .map { ordinal -> Tag.entries[ordinal.toInt()] }
                 .toSet(),
-        profileImageUri = doc.getString("profilePicture"))
+        profileImageUri = doc.getBlob("profilePicture")?.toBytes())
   } catch (e: DateTimeParseException) {
     Log.e(
         "UserRepositoryFirestore.documentToUserProfile",
@@ -79,7 +80,12 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         "description" to user.description,
         "dateOfBirth" to user.dateOfBirth.toString(),
         "tags" to user.tags.map { it.ordinal },
-        "profilePicture" to user.profileImageUri)
+        "profilePicture" to
+            (if (user.profileImageUri != null) {
+              Blob.fromBytes(user.profileImageUri)
+            } else {
+              null
+            }))
   }
 
   /**

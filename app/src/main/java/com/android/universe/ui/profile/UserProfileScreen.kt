@@ -1,7 +1,6 @@
 package com.android.universe.ui.profile
 
 import android.graphics.BitmapFactory
-import android.util.Base64
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -171,16 +170,15 @@ fun UserProfileScreen(
                               .background(MaterialTheme.colorScheme.surface, CircleShape)
                               .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                       contentAlignment = Alignment.Center) {
-                        val base64StringImage: String? = userUIState.userProfile.profileImageUri
-                        if (base64StringImage == null) {
+                        val imageBytes = userUIState.userProfile.profileImageUri
+                        if (imageBytes == null) {
                           Icon(
                               tint = MaterialTheme.colorScheme.onSurface,
                               contentDescription = "Image",
                               imageVector = Icons.Filled.Image,
                               modifier = Modifier.size(Dimensions.IconSizeLarge))
                         } else {
-                          val bytes = Base64.decode(base64StringImage, Base64.DEFAULT)
-                          val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                          val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                           Image(
                               bitmap = bitmap.asImageBitmap(),
                               contentDescription = "Selected image",
