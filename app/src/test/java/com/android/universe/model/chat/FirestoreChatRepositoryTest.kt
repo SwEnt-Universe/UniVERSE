@@ -124,5 +124,18 @@ class FirestoreChatRepositoryTest : FirestoreChatTest() {
     shadowOf(Looper.getMainLooper()).idle()
     val deletedMessage = withTimeout(5000) { deletedDeferred.await() }
     assertEquals("Updated text", deletedMessage.message)
+
+    chatRepository.removeMessageListener(chatID)
+  }
+
+  @Test
+  fun `loadChat throws NoSuchElementException for non-existent chat`() = runTest {
+    val chatID = getNewSampleChatID()
+    try {
+      chatRepository.loadChat(chatID)
+      fail("Expected NoSuchElementException")
+    } catch (e: NoSuchElementException) {
+      assertEquals("Chat not found", e.message)
+    }
   }
 }
