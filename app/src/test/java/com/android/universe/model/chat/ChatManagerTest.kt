@@ -1,5 +1,7 @@
 package com.android.universe.model.chat
 
+import com.android.universe.model.chat.Utils.getNewSampleChat
+import com.android.universe.model.chat.Utils.getNewSampleChatID
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -22,7 +24,7 @@ class ChatManagerTest {
 
   @Before
   fun setup() {
-    mockRepository = mockk<ChatRepository>(relaxed = true)
+    mockRepository = mockk(relaxed = true)
     ChatRepositoryProvider.setTestChatRepository(mockRepository)
     ChatManager.clear()
     every { mockRepository.setMessageListener(any(), any(), any(), any()) } returns Unit
@@ -37,8 +39,8 @@ class ChatManagerTest {
 
   @Test
   fun `loadChat returns chat from repository if not cached`() = runBlocking {
-    val chatID = "chat1"
-    val expectedChat = Chat(chatID, admin = "user1")
+    val chatID = getNewSampleChatID()
+    val expectedChat = getNewSampleChat(chatID, mockRepository)
 
     coEvery { mockRepository.loadChat(chatID) } returns expectedChat
 
@@ -50,34 +52,33 @@ class ChatManagerTest {
 
   @Test
   fun `loadChat returns cached chat without calling repository`() = runBlocking {
-    val chatID = "chat2"
-    val cachedChat = Chat(chatID, admin = "user2")
+    val chatID = getNewSampleChatID()
+    val cachedChat = getNewSampleChat(chatID, mockRepository)
 
     // Prime the cache
-    coEvery { mockRepository.createChat(chatID, "user2") } returns cachedChat
-    ChatManager.createChat(chatID, "user2")
+    coEvery { mockRepository.createChat(chatID, cachedChat.admin) } returns cachedChat
+    ChatManager.createChat(chatID, cachedChat.admin)
 
     // Repository returns something else if called
-    coEvery { mockRepository.loadChat(chatID) } returns Chat(chatID, admin = "different")
+    coEvery { mockRepository.loadChat(chatID) } returns getNewSampleChat(chatID, mockRepository)
 
     val result = ChatManager.loadChat(chatID)
-    print(result)
+
     // Repository should NOT be called because cached
     coVerify(exactly = 0) { mockRepository.loadChat(chatID) }
-    assertEquals("user2", result.admin)
+    assertEquals(cachedChat.admin, result.admin)
   }
 
   @Test
   fun `createChat calls repository and caches chat`() = runBlocking {
-    val chatID = "chat3"
-    val admin = "adminUser"
-    val createdChat = Chat(chatID, admin)
+    val chatID = getNewSampleChatID()
+    val createdChat = getNewSampleChat(chatID, mockRepository)
 
-    coEvery { mockRepository.createChat(chatID, admin) } returns createdChat
+    coEvery { mockRepository.createChat(chatID, createdChat.admin) } returns createdChat
 
-    val result = ChatManager.createChat(chatID, admin)
+    val result = ChatManager.createChat(chatID, createdChat.admin)
 
-    coVerify(exactly = 1) { mockRepository.createChat(chatID, admin) }
+    coVerify(exactly = 1) { mockRepository.createChat(chatID, createdChat.admin) }
     assertEquals(createdChat, result)
 
     val cached = ChatManager.loadChat(chatID)

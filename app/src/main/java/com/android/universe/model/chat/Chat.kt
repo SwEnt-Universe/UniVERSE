@@ -16,8 +16,12 @@ import androidx.compose.runtime.mutableStateOf
  * @param initialLastMessage An optional initial value for the last message in the chat, which can
  *   be used for display purposes before the full message list is loaded.
  */
-class Chat(val chatID: String = "", val admin: String = "", initialLastMessage: Message? = null) {
-  private val chatRepository = ChatRepositoryProvider.chatRepository
+class Chat(
+    val chatID: String = "",
+    val admin: String = "",
+    initialLastMessage: Message? = null,
+    private val chatRepository: ChatRepository = ChatRepositoryProvider.chatRepository
+) {
 
   private val _messages = mutableStateListOf<Message>()
   private val _lastMessage = mutableStateOf(initialLastMessage)
