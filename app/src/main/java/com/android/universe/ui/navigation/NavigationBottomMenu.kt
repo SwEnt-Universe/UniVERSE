@@ -1,6 +1,11 @@
 package com.android.universe.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.outlined.Chat
@@ -14,15 +19,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.isSpecified
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.android.universe.ui.theme.Dimensions
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 
 /**
  * Represents a tab in the bottom navigation bar. Each tab has a destination screen, an icon for its
@@ -73,8 +88,9 @@ val tabs =
 fun NavigationBottomMenu(
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
+    backdrop: Backdrop,
 ) {
-    NavigationBar(
+    /*NavigationBar(
         modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
         containerColor = MaterialTheme.colorScheme.surface) {
         tabs.forEach { tab ->
@@ -92,6 +108,27 @@ fun NavigationBottomMenu(
                 onClick = { onTabSelected(tab) },
                 modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)))
         }
+    }*/
+
+    Box(
+        Modifier
+            .safeContentPadding()
+            .drawBackdrop(
+                backdrop = backdrop,
+                shape = { CircleShape },
+                effects = {
+                    // Only apply lens if size is known
+                    if (size.isSpecified) {
+                        vibrancy()
+                        blur(4f.dp.toPx())
+                        lens(16f, 32f)
+                    }
+                }
+            )
+            .height(64.dp)
+            .fillMaxWidth()
+    ) {
+        Text("Glass Bar", Modifier.align(Alignment.Center), color = Color.DarkGray)
     }
 }
 
@@ -99,9 +136,9 @@ fun NavigationBottomMenu(
  * A preview Composable for the [NavigationBottomMenu]. It shows the component with a default
  * selected tab.
  */
-@Preview
+/*@Preview
 @Composable
 fun NavigationBottomMenuPreview() {
     val selectedTab: MutableState<Tab> = remember { mutableStateOf(Tab.Map) }
     NavigationBottomMenu(selectedTab = selectedTab.value, onTabSelected = { selectedTab.value = it })
-}
+}*/

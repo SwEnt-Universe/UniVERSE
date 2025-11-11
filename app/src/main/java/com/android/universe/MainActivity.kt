@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -51,6 +52,7 @@ import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
@@ -82,6 +84,13 @@ fun UniverseApp(
     context: Context = LocalContext.current,
     credentialManager: CredentialManager = CredentialManager.create(context)
 ) {
+
+    val backgroundColor = Color.White
+    val backdrop = rememberLayerBackdrop {
+        drawRect(backgroundColor)
+        drawContent()
+    }
+
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
@@ -164,7 +173,8 @@ fun UniverseApp(
           MapScreen(
               uid = Firebase.auth.currentUser!!.uid,
               onTabSelected = onTabSelected,
-              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") },
+              backdrop = backdrop)
         }
       }
 
@@ -172,7 +182,7 @@ fun UniverseApp(
           startDestination = NavigationScreens.Event.route,
           route = NavigationScreens.Event.name,
       ) {
-        composable(NavigationScreens.Event.route) { EventScreen(onTabSelected) }
+        composable(NavigationScreens.Event.route) { EventScreen(onTabSelected, backdrop = backdrop) }
       }
 
       navigation(
@@ -185,6 +195,7 @@ fun UniverseApp(
               selectedTab = Tab.Chat,
               onTabSelected = onTabSelected,
               testTag = NavigationTestTags.CHAT_SCREEN,
+              backdrop = backdrop
           )
         }
       }
@@ -199,7 +210,8 @@ fun UniverseApp(
               onTabSelected = onTabSelected,
               onEditProfileClick = { uid ->
                 navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
-              })
+              },
+              backdrop = backdrop)
         }
       }
       composable(

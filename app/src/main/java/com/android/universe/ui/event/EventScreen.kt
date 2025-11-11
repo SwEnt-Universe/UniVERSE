@@ -44,6 +44,7 @@ import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.Dimensions.PaddingSmall
 import com.android.universe.ui.theme.UniverseTheme
+import com.kyant.backdrop.Backdrop
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -89,11 +90,11 @@ object EventScreenTestTags {
  *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
  */
 @Composable
-fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = viewModel()) {
+fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = viewModel(), backdrop: Backdrop) {
   val events by viewModel.eventsState.collectAsState()
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected) },
+      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected, backdrop) },
   ) { paddingValues ->
     LazyColumn(
         modifier =
