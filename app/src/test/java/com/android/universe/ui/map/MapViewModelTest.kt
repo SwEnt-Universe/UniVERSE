@@ -238,6 +238,47 @@ class MapViewModelTest {
   }
 
   @Test
+  fun `polling requests update events`() = runTest {
+    val min6: Long = 6 * 60 * 1000
+    val startEvents = viewModel.eventMarkers.value.size
+    val oneMore = startEvents + 1
+
+    // Controlled mutable list that mockk will read from
+    val currentEvents = mutableListOf<Event>()
+    coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
+
+    // start empty
+    assertEquals(startEvents, 0)
+
+    // Add one event, but no polling yet → ViewModel still empty
+    currentEvents.add(fakeEvents.first())
+    testDispatcher.scheduler.advanceTimeBy(min6)
+    assertEquals(viewModel.eventMarkers.value.size, startEvents)
+
+    // Start polling
+    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
+    testDispatcher.scheduler.advanceTimeBy(min6)
+
+    // ViewModel should have seen one event
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+
+    // Stop polling
+    viewModel.stopEventPolling()
+
+    // Add another event while polling stopped → still one event
+    currentEvents.add(fakeEvents[1])
+    testDispatcher.scheduler.advanceTimeBy(min6)
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+
+    // Remove first event and restart polling
+    currentEvents.removeAt(0)
+    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
+    testDispatcher.scheduler.advanceTimeBy(min6)
+
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+  }
+
+  @Test
   fun `selectEvent updates selectedEvent with given event`() = runTest {
     val testEvent = EventTestData.dummyEvent1
 

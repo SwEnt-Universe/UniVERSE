@@ -35,7 +35,6 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.map.EventInfoPopup
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -166,6 +165,12 @@ fun TomTomMapView(
 ) {
   val context = LocalContext.current
 
+  LaunchedEffect(viewModel.uiState.value.eventCount) { viewModel.loadAllEvents() }
+  LaunchedEffect(Unit) {
+    // Some polling so that we don't need to create a lot of listeners
+    viewModel.startEventPolling(1)
+  }
+  DisposableEffect(Unit) { onDispose { viewModel.stopEventPolling() } }
   val mapView =
       remember(context) { MapView(context, MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)) }
   var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }

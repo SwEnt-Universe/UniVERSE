@@ -64,6 +64,38 @@ class MapViewModel(
     loadSuggestedEventsForCurrentUser()
   }
 
+  private var pollingJob: Job? = null
+
+  /**
+   * Starts polling for events at regular intervals.
+   *
+   * @param intervalMinutes The interval in minutes between polling events.
+   * @param maxIterations The maximum number of iterations before stopping polling. user only for
+   *   tests
+   */
+  fun startEventPolling(intervalMinutes: Long = 5, maxIterations: Int? = null) {
+    pollingJob?.cancel()
+    pollingJob =
+        viewModelScope.launch {
+          var count = 0
+          while (maxIterations == null || count < maxIterations) {
+            try {
+              loadAllEvents()
+            } catch (e: Exception) {
+              _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
+            }
+            count++
+            kotlinx.coroutines.delay(intervalMinutes * 60 * 1000)
+          }
+        }
+  }
+
+  /** Stops polling for events. */
+  fun stopEventPolling() {
+    pollingJob?.cancel()
+    pollingJob = null
+  }
+
   /**
    * Loads the last known location from the repository.
    *
