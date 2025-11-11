@@ -8,7 +8,7 @@ import com.google.firebase.firestore.firestore
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.tasks.await
 
-private const val COLLECTION_NAME = "chats"
+const val COLLECTION_NAME = "chats"
 
 /**
  * An implementation of [ChatRepository] that uses Google's Cloud Firestore as the data source. This

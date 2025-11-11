@@ -20,7 +20,8 @@ interface ChatRepository {
    * use [setMessageListener].
    *
    * @param chatID The unique identifier of the chat to send the message to.
-   * @param message The [Message] object to be sent.
+   * @param message The [Message] object to be sent. The `messageID` field will be ignored and a new
+   *   one will be generated.
    */
   suspend fun sendMessage(chatID: String, message: Message)
 
