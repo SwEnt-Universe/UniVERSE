@@ -1,13 +1,19 @@
 package com.android.universe.model.chat
 
+import android.os.Looper
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.chat.Utils.getNewSampleChatID
 import com.android.universe.utils.FirestoreChatTest
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 
 @RunWith(AndroidJUnit4::class)
 class FirestoreChatRepositoryTest : FirestoreChatTest() {
@@ -22,7 +28,7 @@ class FirestoreChatRepositoryTest : FirestoreChatTest() {
 
   @Test
   fun `createChat stores chat in Firestore`() = runTest {
-    val chatID = "testChat1"
+    val chatID = getNewSampleChatID()
     val admin = "adminUser"
 
     val chat = chatRepository.createChat(chatID, admin)
@@ -39,7 +45,7 @@ class FirestoreChatRepositoryTest : FirestoreChatTest() {
 
   @Test
   fun `loadChat returns stored chat`() = runTest {
-    val chatID = "testChat2"
+    val chatID = getNewSampleChatID()
     val admin = "adminUser2"
 
     chatRepository.createChat(chatID, admin)
@@ -52,12 +58,12 @@ class FirestoreChatRepositoryTest : FirestoreChatTest() {
 
   @Test
   fun `sendMessage adds a message to chat subcollection`() = runTest {
-    val chatID = "testChat3"
+    val chatID = getNewSampleChatID()
     val admin = "adminUser3"
 
     chatRepository.createChat(chatID, admin)
 
-    val msg = Message(messageID = "", senderID = "sender", message = "Hello!")
+    val msg = Message(senderID = "sender", message = "Hello!")
 
     chatRepository.sendMessage(chatID, msg)
 
@@ -76,52 +82,47 @@ class FirestoreChatRepositoryTest : FirestoreChatTest() {
     assertEquals("Hello!", stored!!.message)
     assertEquals("sender", stored.senderID)
   }
-  /*
+
   @Test
   fun `setMessageListener receives added, updated, and removed events`() = runBlocking {
-    val chatID = "testChat4"
-    val admin = "adminUser4"
+    val chatID = getNewSampleChatID()
+    val admin = "adminUser"
 
-    // Create the chat document
     chatRepository.createChat(chatID, admin)
 
-    // CompletableDeferred to capture listener events
     val addedDeferred = CompletableDeferred<Message>()
     val updatedDeferred = CompletableDeferred<Message>()
     val deletedDeferred = CompletableDeferred<Message>()
 
-    // Attach listener
     chatRepository.setMessageListener(
-      chatID,
-      onMessageAdded = { addedDeferred.complete(it) },
-      onMessageUpdated = { updatedDeferred.complete(it) },
-      onMessageDeleted = { deletedDeferred.complete(it) }
-    )
+        chatID,
+        onMessageAdded = { addedDeferred.complete(it) },
+        onMessageUpdated = { updatedDeferred.complete(it) },
+        onMessageDeleted = { deletedDeferred.complete(it) })
 
-    // --- Add message ---
-    val msgRef = emulator.firestore
-      .collection(COLLECTION_NAME)
-      .document(chatID)
-      .collection("messages")
-      .document()
+    val messageRef =
+        emulator.firestore
+            .collection(COLLECTION_NAME)
+            .document(chatID)
+            .collection("messages")
+            .document()
+    val message = Message(messageID = messageRef.id, senderID = "user1", message = "Hello")
+    messageRef.set(message).await()
 
-    val message = Message(messageID = msgRef.id, senderID = "user", message = "Hello")
-    msgRef.set(message).await()
-
-    // Wait for listener to fire
+    shadowOf(Looper.getMainLooper()).idle()
     val addedMessage = withTimeout(5000) { addedDeferred.await() }
     assertEquals("Hello", addedMessage.message)
 
-    // --- Update message ---
-    val updatedMessage = addedMessage.copy(message = "Updated text")
-    msgRef.set(updatedMessage).await()
-    val updatedResult = withTimeout(5000) { updatedDeferred.await() }
-    assertEquals("Updated text", updatedResult.message)
+    val updatedMessageData = message.copy(message = "Updated text")
+    messageRef.set(updatedMessageData).await()
 
-    // --- Delete message ---
-    msgRef.delete().await()
-    val deletedResult = withTimeout(5000) { deletedDeferred.await() }
-    assertEquals("Updated text", deletedResult.message)
+    shadowOf(Looper.getMainLooper()).idle()
+    val updatedMessage = withTimeout(5000) { updatedDeferred.await() }
+    assertEquals("Updated text", updatedMessage.message)
+
+    messageRef.delete().await()
+    shadowOf(Looper.getMainLooper()).idle()
+    val deletedMessage = withTimeout(5000) { deletedDeferred.await() }
+    assertEquals("Updated text", deletedMessage.message)
   }
-  */
 }
