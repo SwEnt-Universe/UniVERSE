@@ -31,9 +31,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
+import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.event.EventInfoPopup
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -77,6 +79,7 @@ fun MapScreen(
 ) {
 
   val uiState by viewModel.uiState.collectAsState()
+  val selectedEvent by viewModel.selectedEvent.collectAsState()
 
   val hasPermission =
       ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -103,40 +106,46 @@ fun MapScreen(
 
   DisposableEffect(Unit) { onDispose { viewModel.stopLocationTracking() } }
 
-  Scaffold(
-      modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
-        Box(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .then(
-                        if (uiState.isMapInteractive)
-                            Modifier.testTag(MapScreenTestTags.INTERACTABLE)
-                        else Modifier)) {
-              TomTomMapView(
-                  viewModel = viewModel,
-                  modifier = Modifier.fillMaxSize(),
-                  createEvent = createEvent)
+  Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
+        bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { padding ->
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(padding)
+                      .then(
+                          if (uiState.isMapInteractive)
+                              Modifier.testTag(MapScreenTestTags.INTERACTABLE)
+                          else Modifier)) {
+                TomTomMapView(
+                    viewModel = viewModel,
+                    modifier = Modifier.fillMaxSize(),
+                    createEvent = createEvent)
 
-              if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier.align(Alignment.Center)
-                            .testTag(MapScreenTestTags.LOADING_INDICATOR))
-              }
+                if (uiState.isLoading) {
+                  CircularProgressIndicator(
+                      modifier =
+                          Modifier.align(Alignment.Center)
+                              .testTag(MapScreenTestTags.LOADING_INDICATOR))
+                }
 
-              uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage) }
-              }
+                uiState.error?.let { errorMessage ->
+                  Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage) }
+                }
 
-              if (uiState.isPermissionRequired) {
-                Snackbar(modifier = Modifier.padding(16.dp)) {
-                  Text("Location permission required")
+                if (uiState.isPermissionRequired) {
+                  Snackbar(modifier = Modifier.padding(16.dp)) {
+                    Text("Location permission required")
+                  }
                 }
               }
-            }
-      }
+        }
+
+    if (selectedEvent != null) {
+      EventInfoPopup(event = selectedEvent!!, onDismiss = { viewModel.selectEvent(null) })
+    }
+  }
 }
 
 /**
@@ -165,6 +174,9 @@ fun TomTomMapView(
   val state = viewModel.uiState.collectAsState()
   val eventMarkers by viewModel.eventMarkers.collectAsState()
 
+  // Use coordinates as key instead of Marker objects because they may not have proper equality
+  val coordinateEventMap = remember { mutableMapOf<Pair<Double, Double>, Event>() }
+
   AndroidView(
       modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
       factory = { ctx ->
@@ -176,15 +188,6 @@ fun TomTomMapView(
           onStart()
 
           getMapAsync { map ->
-            eventMarkers.forEach { event ->
-              event.location?.let { loc ->
-                map.addMarker(
-                    MarkerOptions(
-                        coordinate = GeoPoint(loc.latitude, loc.longitude),
-                        pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
-                        pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
-              }
-            }
             tomtomMap = map
 
             if (!isLocationProviderSet && viewModel.locationProvider != null) {
@@ -208,20 +211,40 @@ fun TomTomMapView(
       update = { view -> view.onStart() },
       onReset = { mapView.onStop() })
 
+  // Update markers whenever eventMarkers changes
   LaunchedEffect(eventMarkers) {
     tomtomMap?.let { map ->
       map.clear()
+      coordinateEventMap.clear()
+
       eventMarkers.forEach { event ->
         event.location?.let { loc ->
+          val coordinate = Pair(loc.latitude, loc.longitude)
           map.addMarker(
               MarkerOptions(
                   coordinate = GeoPoint(loc.latitude, loc.longitude),
                   pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
                   pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+          coordinateEventMap[coordinate] = event
         }
       }
     }
   }
+
+  // Register click listener only once when map is ready
+  LaunchedEffect(tomtomMap) {
+    tomtomMap?.let { map ->
+      map.addMarkerClickListener { clickedMarker ->
+        val clickedCoordinate =
+            Pair(clickedMarker.coordinate.latitude, clickedMarker.coordinate.longitude)
+
+        coordinateEventMap[clickedCoordinate]?.let { clickedEvent ->
+          viewModel.selectEvent(clickedEvent)
+        } ?: true
+      }
+    }
+  }
+
   if (state.value.selectedLat != null && state.value.selectedLng != null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
       Button(

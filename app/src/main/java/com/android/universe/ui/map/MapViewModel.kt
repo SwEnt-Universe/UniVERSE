@@ -57,6 +57,9 @@ class MapViewModel(
   private val _eventMarkers = MutableStateFlow<List<Event>>(emptyList())
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
+  private val _selectedEvent = MutableStateFlow<Event?>(null)
+  val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+
   init {
     loadSuggestedEventsForCurrentUser()
   }
@@ -176,4 +179,13 @@ class MapViewModel(
 
   /** Updates the UI state to indicate that the map is now interactable. */
   fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
+
+  /**
+   * Selects an event to be the currently selected event by the user.
+   *
+   * @param event The event to select, or null to clear the selection.
+   */
+  fun selectEvent(event: Event?) {
+    viewModelScope.launch { _selectedEvent.emit(event) }
+  }
 }
