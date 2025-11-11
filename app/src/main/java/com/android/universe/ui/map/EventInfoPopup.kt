@@ -1,4 +1,4 @@
-package com.android.universe.ui.event
+package com.android.universe.ui.map
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
