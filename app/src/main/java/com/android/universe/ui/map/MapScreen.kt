@@ -156,8 +156,8 @@ fun TomTomMapView(
     createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
 ) {
   val context = LocalContext.current
-
-  LaunchedEffect(viewModel.uiState.value.eventCount) { viewModel.loadAllEvents() }
+  val state = viewModel.uiState.collectAsState()
+  LaunchedEffect(state.value.eventCount) { viewModel.loadAllEvents() }
   LaunchedEffect(Unit) {
     // Some polling so that we don't need to create a lot of listeners
     viewModel.startEventPolling(1)
@@ -168,7 +168,6 @@ fun TomTomMapView(
   var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
   var isInitialized by remember { mutableStateOf(false) }
   var isLocationProviderSet by remember { mutableStateOf(false) }
-  val state = viewModel.uiState.collectAsState()
   val eventMarkers by viewModel.eventMarkers.collectAsState()
 
   AndroidView(
