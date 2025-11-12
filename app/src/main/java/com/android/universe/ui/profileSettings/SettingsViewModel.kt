@@ -359,7 +359,63 @@ class SettingsViewModel(
     val state = _uiState.value
     var newState = state
 
-    // Sanitize & validate only when saving
+    // Handle DATE modal explicitly
+    if (state.currentField == "date") {
+      val d = state.tempDay
+      val m = state.tempMonth
+      val y = state.tempYear
+
+      val dayRes = validateDay(d)
+      val monthRes = validateMonth(m)
+      val yearRes = validateYear(y)
+
+      val allValid =
+          dayRes is ValidationResult.Valid &&
+              monthRes is ValidationResult.Valid &&
+              yearRes is ValidationResult.Valid
+
+      val logicalRes =
+          if (allValid) {
+            validateBirthDate(d.toInt(), m.toInt(), y.toInt())
+          } else ValidationResult.Valid
+
+      val (finalDayError, finalMonthError, finalYearError) =
+          deriveDateErrors(dayRes, monthRes, yearRes, logicalRes)
+
+      // If any invalid → keep modal open
+      if (finalDayError is ValidationResult.Invalid ||
+          finalMonthError is ValidationResult.Invalid ||
+          finalYearError is ValidationResult.Invalid) {
+        _uiState.update {
+          it.copy(
+              tempDayError = finalDayError.toStringOrNull(),
+              tempMonthError = finalMonthError.toStringOrNull(),
+              tempYearError = finalYearError.toStringOrNull(),
+              modalError = logicalRes.toStringOrNull(),
+              showModal = true)
+        }
+        return
+      }
+
+      // All valid → commit values and close modal
+      newState =
+          newState.copy(
+              day = d,
+              month = m,
+              year = y,
+              tempDayError = null,
+              tempMonthError = null,
+              tempYearError = null,
+              modalError = null,
+              showModal = false,
+              currentField = "")
+
+      _uiState.value = newState
+      saveProfile(uid)
+      return
+    }
+
+    // ─── Regular text/country/tag logic ──────────────────────────────
     val cleanedValue = sanitize(state.tempValue)
     val result =
         when (state.currentField) {
@@ -377,7 +433,6 @@ class SettingsViewModel(
       return
     }
 
-    // Apply normalization only for names
     val finalValue =
         when (state.currentField) {
           "firstName",
@@ -392,19 +447,19 @@ class SettingsViewModel(
       "password" -> newState = newState.copy(password = finalValue)
       "description" -> newState = newState.copy(description = finalValue)
       "country" -> newState = newState.copy(country = finalValue)
-
       else -> {
-        // Tag category saving logic
-        Tag.Category.entries.find { it.fieldName == state.currentField }?.let { category ->
-          val tagList = Tag.getTagsForCategory(category)
-          newState = newState.copy(
-            selectedTags = state.selectedTags.filter { it !in tagList } + state.tempSelectedTags
-          )
-        }
+        Tag.Category.entries
+            .find { it.fieldName == state.currentField }
+            ?.let { category ->
+              val tagList = Tag.getTagsForCategory(category)
+              newState =
+                  newState.copy(
+                      selectedTags =
+                          state.selectedTags.filter { it !in tagList } + state.tempSelectedTags)
+            }
       }
     }
 
-    // Close modal
     _uiState.value =
         newState.copy(
             showModal = false,
@@ -415,7 +470,6 @@ class SettingsViewModel(
             tempYearError = null)
 
     saveProfile(uid)
-
   }
 
   /**
