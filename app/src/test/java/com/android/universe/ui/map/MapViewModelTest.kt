@@ -19,7 +19,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -277,5 +276,23 @@ class MapViewModelTest {
     testDispatcher.scheduler.advanceTimeBy(min6)
 
     assertEquals(oneMore, viewModel.eventMarkers.value.size)
+  }
+
+  @Test
+  fun `selectEvent updates selectedEvent with given event`() = runTest {
+    val testEvent = EventTestData.dummyEvent1
+
+    viewModel.selectEvent(testEvent)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(testEvent, viewModel.selectedEvent.value)
+  }
+
+  @Test
+  fun `selectEvent sets selectedEvent to null when null passed`() = runTest {
+    viewModel.selectEvent(null)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertNull(viewModel.selectedEvent.value)
   }
 }

@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
+import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -50,6 +51,7 @@ object MapScreenTestTags {
   const val INTERACTABLE = "interactable"
   const val LOADING_INDICATOR = "loading_indicator"
   const val CREATE_EVENT_BUTTON = "create_event_button"
+  const val EVENT_INFO_POPUP = "event_info_popup"
 }
 
 /**
@@ -77,6 +79,7 @@ fun MapScreen(
 ) {
 
   val uiState by viewModel.uiState.collectAsState()
+  val selectedEvent by viewModel.selectedEvent.collectAsState()
 
   val hasPermission =
       ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -135,6 +138,10 @@ fun MapScreen(
                   Text("Location permission required")
                 }
               }
+
+              if (selectedEvent != null) {
+                EventInfoPopup(event = selectedEvent!!, onDismiss = { viewModel.selectEvent(null) })
+              }
             }
       }
 }
@@ -181,13 +188,16 @@ fun TomTomMapView(
           onStart()
 
           getMapAsync { map ->
+            val coordinateEventMap = mutableMapOf<Pair<Double, Double>, Event>()
             eventMarkers.forEach { event ->
               event.location?.let { loc ->
+                val coordinate = GeoPoint(loc.latitude, loc.longitude)
                 map.addMarker(
                     MarkerOptions(
                         coordinate = GeoPoint(loc.latitude, loc.longitude),
                         pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
                         pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+                coordinateEventMap[Pair(loc.latitude, loc.longitude)] = event
               }
             }
             tomtomMap = map
@@ -200,12 +210,24 @@ fun TomTomMapView(
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
               map.enableLocationMarker(locationMarkerOptions)
             }
+
             map.addMapClickListener { geoPoint ->
               val latitude = geoPoint.latitude
               val longitude = geoPoint.longitude
               viewModel.selectLocation(latitude, longitude)
               true
             }
+
+            map.addMarkerClickListener { clickedMarker ->
+              val clickedCoordinate =
+                  Pair(clickedMarker.coordinate.latitude, clickedMarker.coordinate.longitude)
+
+              coordinateEventMap[clickedCoordinate]?.let { clickedEvent ->
+                viewModel.selectEvent(clickedEvent)
+                true
+              } ?: false
+            }
+
             viewModel.nowInteractable()
           }
         }
@@ -218,6 +240,7 @@ fun TomTomMapView(
       map.clear()
       eventMarkers.forEach { event ->
         event.location?.let { loc ->
+          val coordinate = Pair(loc.latitude, loc.longitude)
           map.addMarker(
               MarkerOptions(
                   coordinate = GeoPoint(loc.latitude, loc.longitude),
@@ -227,6 +250,7 @@ fun TomTomMapView(
       }
     }
   }
+
   if (state.value.selectedLat != null && state.value.selectedLng != null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
       Button(
