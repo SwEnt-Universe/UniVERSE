@@ -59,10 +59,12 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
-      composeTestRule.waitUntil(timeoutMillis = 5000) {
-          composeTestRule.onAllNodesWithTag(UserProfileScreenTestTags.PROFILE_PICTURE)
-              .fetchSemanticsNodes().isNotEmpty()
-      }
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithTag(UserProfileScreenTestTags.PROFILE_PICTURE)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.PROFILE_PICTURE).assertIsDisplayed()
 
