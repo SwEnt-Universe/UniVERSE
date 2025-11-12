@@ -25,6 +25,19 @@ object MessageListTestTags {
   const val ITEM_PREFIX = "MESSAGE_ITEM_"
 }
 
+/**
+ * A composable that displays a list of messages in a chat.
+ *
+ * This component uses a [LazyColumn] to efficiently display a potentially long list of messages. It
+ * automatically scrolls to the bottom of the list when new messages arrive, if the user is already
+ * at the end, or if it's the initial load. It also scrolls down if the user sends a new message.
+ *
+ * @param userID The ID of the current user, used to determine if a message is sent by them.
+ * @param messages The list of [Message] objects to display.
+ * @param modifier The [Modifier] to be applied to the list.
+ * @param messageItemViewModel The [MessageItemViewModel] instance used by [MessageItem] composables
+ *   within the list.
+ */
 @Composable
 fun MessageList(
     userID: String,
@@ -60,11 +73,25 @@ fun MessageList(
       }
 }
 
+/**
+ * Converts a Firebase Timestamp into a display-friendly time string.
+ *
+ * @param timestamp The Firebase Timestamp to be formatted.
+ * @return A string representing the time in "HH:mm" format based on the default locale.
+ */
 fun timeStampToDisplayTime(timestamp: Timestamp): String {
   val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
   return formatter.format(timestamp.toDate())
 }
 
+/**
+ * Extension function on [LazyListState] to check if the user has scrolled to the end of the list.
+ * It determines this by checking if the last visible item's index is at or near the total number of
+ * items, with a small threshold to account for layout variations and provide a smoother user
+ * experience.
+ *
+ * @return `true` if the list is scrolled to the end, `false` otherwise.
+ */
 private fun LazyListState.isScrolledToEnd(): Boolean {
   val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
   val totalItems = layoutInfo.totalItemsCount

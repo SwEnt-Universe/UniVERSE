@@ -25,6 +25,17 @@ object SendMessageInputTestTags {
   const val SEND_BUTTON = "SEND_BUTTON"
 }
 
+/**
+ * A composable function that provides a text input field and a send button for sending messages in
+ * a chat.
+ *
+ * This component manages its own state for the message text, enforces a maximum message length, and
+ * handles the sending of the message via the provided [Chat] object. The send button is only
+ * enabled when there is text to send.
+ *
+ * @param chat The [Chat] object that handles the business logic of sending a message.
+ * @param userID The ID of the current user sending the message.
+ */
 @Composable
 fun SendMessageInput(chat: Chat, userID: String) {
   var messageText by remember { mutableStateOf("") }
