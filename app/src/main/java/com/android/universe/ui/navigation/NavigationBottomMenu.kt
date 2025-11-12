@@ -93,7 +93,7 @@ fun NavigationBottomMenu(
                     imageVector = if (selected) tab.iconSelected else tab.icon,
                     contentDescription = null,
                     modifier = Modifier.size(Dimensions.IconSizeLarge),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
         }

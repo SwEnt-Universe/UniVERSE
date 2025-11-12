@@ -1,3 +1,11 @@
+/**
+ * Original source: https://github.com/Kyant0/AndroidLiquidGlass/blob/master/catalog/src/main/java/com/kyant/backdrop/catalog/utils/DragGestureInspector.kt
+ * Date taken: 2025-11-13
+ *
+ * Description: This file was originally created by Kyant0
+ * Minor modifications were made for integration into UniVERSE
+ */
+
 package com.android.universe.ui.components
 
 import androidx.compose.foundation.gestures.awaitEachGesture

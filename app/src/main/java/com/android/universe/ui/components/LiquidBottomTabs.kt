@@ -1,3 +1,11 @@
+/**
+ * Original source: https://github.com/Kyant0/AndroidLiquidGlass/blob/master/catalog/src/main/java/com/kyant/backdrop/catalog/components/LiquidBottomTabs.kt
+ * Date taken: 2025-11-13
+ *
+ * Description: This file was originally created by Kyant0
+ * Minor modifications were made for integration into UniVERSE
+ */
+
 package com.android.universe.ui.components
 
 import androidx.compose.animation.core.Animatable
@@ -11,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +44,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -64,17 +74,14 @@ fun LiquidBottomTabs(
     content: @Composable RowScope.() -> Unit
 ) {
     val isDarkTheme = UniverseTheme.isDark
-    val accentColor =
-        if (!isDarkTheme) Color(0xFF0088FF)
-        else Color(0xFF0091FF)
-    val containerColor =
-        if (!isDarkTheme) Color(0xFFFAFAFA).copy(0.4f)
-        else Color(0xFF121212).copy(0.4f)
+    val containerColor = MaterialTheme.colorScheme.background.copy(0.4f)
 
     val tabsBackdrop = rememberLayerBackdrop()
 
     BoxWithConstraints(
-        modifier,
+        modifier = modifier
+            .padding(horizontal = Dimensions.PaddingExtraLarge)
+            .padding(bottom = Dimensions.PaddingExtraLarge),
         contentAlignment = Alignment.CenterStart
     ) {
         val density = LocalDensity.current
@@ -107,9 +114,9 @@ fun LiquidBottomTabs(
                 pressedScale = 78f / 56f,
                 onDragStarted = {},
                 onDragStopped = {
-                    val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat()) // I modified here
+                    val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat())
                     currentIndex = targetIndex.toInt()
-                    animateToValue(targetIndex.toFloat())
+                    animateToValue(targetIndex)
                     animationScope.launch {
                         offsetAnimation.animateTo(
                             0f,
@@ -145,7 +152,7 @@ fun LiquidBottomTabs(
         val interactiveHighlight = remember(animationScope) {
             InteractiveHighlight(
                 animationScope = animationScope,
-                position = { size, offset ->
+                position = { size, _ ->
                     Offset(
                         if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
                         else size.width - (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset,
