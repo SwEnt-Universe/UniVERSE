@@ -3,6 +3,7 @@ package com.android.universe.ui.profileSettings
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -24,7 +25,9 @@ class ProfileValidatorsTest {
   // A mock map to test country validation
   private val mockCountryMap = mapOf("Switzerland" to "CH", "France" to "FR", "Germany" to "DE")
 
-  @Before fun setUp() {}
+  @Before
+  fun setUp() {
+  }
 
   // --- Email Validation ---
 
@@ -62,8 +65,9 @@ class ProfileValidatorsTest {
 
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.EMAIL_TOO_LONG.format(InputLimits.EMAIL_MAX_LENGTH),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.EMAIL_TOO_LONG.format(InputLimits.EMAIL_MAX_LENGTH),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -106,8 +110,9 @@ class ProfileValidatorsTest {
     val result = validatePassword(password)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.PASSWORD_TOO_SHORT.format(InputLimits.PASSWORD_MIN_LENGTH),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.PASSWORD_TOO_SHORT.format(InputLimits.PASSWORD_MIN_LENGTH),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- Username Validation ---
@@ -148,8 +153,9 @@ class ProfileValidatorsTest {
     val result = validateUsername(username)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.USERNAME_TOO_LONG.format(InputLimits.USERNAME),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.USERNAME_TOO_LONG.format(InputLimits.USERNAME),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -158,7 +164,8 @@ class ProfileValidatorsTest {
     val result = validateUsername(username)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.USERNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.USERNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- First Name Validation ---
@@ -206,8 +213,9 @@ class ProfileValidatorsTest {
     val result = validateFirstName(name)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.FIRSTNAME_TOO_LONG.format(InputLimits.FIRST_NAME),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.FIRSTNAME_TOO_LONG.format(InputLimits.FIRST_NAME),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -216,7 +224,8 @@ class ProfileValidatorsTest {
     val result = validateFirstName(name)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.FIRSTNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.FIRSTNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -225,7 +234,8 @@ class ProfileValidatorsTest {
     val result = validateFirstName(name)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.FIRSTNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.FIRSTNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- Last Name Validation ---
@@ -273,8 +283,9 @@ class ProfileValidatorsTest {
     val result = validateLastName(name)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.LASTNAME_TOO_LONG.format(InputLimits.LAST_NAME),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.LASTNAME_TOO_LONG.format(InputLimits.LAST_NAME),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -283,7 +294,8 @@ class ProfileValidatorsTest {
     val result = validateLastName(name)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.LASTNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.LASTNAME_INVALID_FORMAT, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- Description Validation ---
@@ -315,8 +327,9 @@ class ProfileValidatorsTest {
     val result = validateDescription(description)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- Country Validation ---
@@ -397,7 +410,8 @@ class ProfileValidatorsTest {
     val result = validateDay(day)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.DAY_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.DAY_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -406,7 +420,8 @@ class ProfileValidatorsTest {
     val result = validateDay(day)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.DAY_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.DAY_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -470,7 +485,8 @@ class ProfileValidatorsTest {
     val result = validateMonth(month)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.MONTH_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.MONTH_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -479,7 +495,8 @@ class ProfileValidatorsTest {
     val result = validateMonth(month)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.MONTH_OUT_OF_RANGE, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.MONTH_OUT_OF_RANGE, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -488,7 +505,8 @@ class ProfileValidatorsTest {
     val result = validateMonth(month)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.MONTH_OUT_OF_RANGE, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.MONTH_OUT_OF_RANGE, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- Year Validation ---
@@ -537,7 +555,8 @@ class ProfileValidatorsTest {
     val result = validateYear(year)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.YEAR_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.YEAR_INVALID_NUMBER, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -547,8 +566,9 @@ class ProfileValidatorsTest {
     val currentYear = LocalDate.now().year
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.YEAR_OUT_OF_RANGE.format(InputLimits.MIN_BIRTH_YEAR, currentYear),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.YEAR_OUT_OF_RANGE.format(InputLimits.MIN_BIRTH_YEAR, currentYear),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -558,8 +578,9 @@ class ProfileValidatorsTest {
     val result = validateYear(year)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.YEAR_OUT_OF_RANGE.format(InputLimits.MIN_BIRTH_YEAR, currentYear),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.YEAR_OUT_OF_RANGE.format(InputLimits.MIN_BIRTH_YEAR, currentYear),
+      (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   // --- BirthDate Validation ---
@@ -593,7 +614,8 @@ class ProfileValidatorsTest {
     val result = validateBirthDate(30, 2, 2000)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.DATE_INVALID_LOGICAL, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.DATE_INVALID_LOGICAL, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -602,7 +624,8 @@ class ProfileValidatorsTest {
     val result = validateBirthDate(29, 2, 2001)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.DATE_INVALID_LOGICAL, (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.DATE_INVALID_LOGICAL, (result as ValidationResult.Invalid).errorMessage
+    )
   }
 
   @Test
@@ -620,10 +643,31 @@ class ProfileValidatorsTest {
     // 1 day before 13th birthday (e.g., 12 years and 364 days old)
     val tooYoungDate = today.minusYears((InputLimits.MIN_AGE).toLong()).plusDays(1)
     val result =
-        validateBirthDate(tooYoungDate.dayOfMonth, tooYoungDate.monthValue, tooYoungDate.year)
+      validateBirthDate(tooYoungDate.dayOfMonth, tooYoungDate.monthValue, tooYoungDate.year)
     assert(result is ValidationResult.Invalid)
     assertEquals(
-        ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE),
-        (result as ValidationResult.Invalid).errorMessage)
+      ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE),
+      (result as ValidationResult.Invalid).errorMessage
+    )
+  }
+
+  @Test
+  fun toTitleCase_capitalizesSingleWord() {
+    assertEquals("Hello", "hello".toTitleCase())
+  }
+
+  @Test
+  fun toTitleCase_capitalizesMultipleWords() {
+    assertEquals("Hello World", "hello world".toTitleCase())
+  }
+
+  @Test
+  fun toTitleCase_convertsMixedCaseCorrectly() {
+    assertEquals("Hello World", "hElLo wOrLd".toTitleCase())
+  }
+
+  @Test
+  fun toTitleCase_handlesSingleLetterWords() {
+    assertEquals("A B C", "a b c".toTitleCase())
   }
 }
