@@ -60,7 +60,7 @@ object UserTestData {
   val Arthur =
       BaseUser.copy(
           country = "CH",
-          profileImageUri = ByteArray(126 * 126) { index -> (index % 256).toByte() })
+          profilePicture = ByteArray(126 * 126) { index -> (index % 256).toByte() })
   val FullDescription = BaseUser.copy(uid = "20")
 
   val EmptyDescription = BaseUser.copy(uid = "20", description = "")

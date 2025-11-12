@@ -14,7 +14,7 @@ import java.time.LocalDate
  * @property description An optional short bio or "about me" text.
  * @property dateOfBirth The user's date of birth.
  * @property tags A set of [Tag]s representing the user's interests.
- * @property profileImageUri the profile picture of the user.
+ * @property profilePicture the profile picture of the user.
  */
 data class UserProfile(
     val uid: String,
@@ -25,7 +25,7 @@ data class UserProfile(
     val description: String? = null,
     val dateOfBirth: LocalDate,
     val tags: Set<Tag>,
-    val profileImageUri: ByteArray? = null
+    val profilePicture: ByteArray? = null
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -41,8 +41,8 @@ data class UserProfile(
     if (description != other.description) return false
     if (dateOfBirth != other.dateOfBirth) return false
     if (tags != other.tags) return false
-    if ((profileImageUri != null || other.profileImageUri != null) &&
-        (!profileImageUri.contentEquals(other.profileImageUri)))
+    if ((profilePicture != null || other.profilePicture != null) &&
+        (!profilePicture.contentEquals(other.profilePicture)))
         return false
 
     return true
@@ -57,7 +57,7 @@ data class UserProfile(
     result = 31 * result + (description?.hashCode() ?: 0)
     result = 31 * result + dateOfBirth.hashCode()
     result = 31 * result + tags.hashCode()
-    result = 31 * result + (profileImageUri?.contentHashCode() ?: 0)
+    result = 31 * result + (profilePicture?.contentHashCode() ?: 0)
     return result
   }
 }

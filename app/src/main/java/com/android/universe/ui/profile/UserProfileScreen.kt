@@ -166,7 +166,7 @@ fun UserProfileScreen(
               horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                   // Profile picture of the user.
-                  val imageBytes = userUIState.userProfile.profileImageUri
+                  val imageBytes = userUIState.userProfile.profilePicture
                   val bitmap =
                       produceState<Bitmap?>(initialValue = null, imageBytes) {
                             value =
