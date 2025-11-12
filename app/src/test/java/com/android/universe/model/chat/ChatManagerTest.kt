@@ -1,5 +1,6 @@
 package com.android.universe.model.chat
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleChat
 import com.android.universe.model.chat.Utils.getNewSampleChatID
 import io.mockk.coEvery
@@ -14,10 +15,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
 @ExperimentalCoroutinesApi
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class ChatManagerTest {
 
   private lateinit var mockRepository: ChatRepository

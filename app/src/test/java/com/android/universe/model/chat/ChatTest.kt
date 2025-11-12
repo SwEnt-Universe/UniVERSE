@@ -1,5 +1,6 @@
 package com.android.universe.model.chat
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleChat
 import com.android.universe.model.chat.Utils.getNewSampleChatID
 import io.mockk.*
@@ -10,8 +11,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
+@RunWith(AndroidJUnit4::class)
 class ChatTest {
   private lateinit var mockRepository: ChatRepository
   private val message1 = Message("msg1", "sender1", "content1")
