@@ -3,6 +3,7 @@ package com.android.universe.ui.profileSettings
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -225,29 +226,46 @@ fun SettingsScreenContent(
                   uri: Uri? ->
                 uri?.let { selectedUri ->
                   scope.launch(Dispatchers.IO) {
-                    val inputStream = context.contentResolver.openInputStream(selectedUri)
-                    val bitmap = BitmapFactory.decodeStream(inputStream)
-
                     // We redimension the image to have a 256*256 image to reduce the space of the
                     // image.
                     val maxSize = Dimensions.ProfilePictureSize
-                    val ratio: Float = bitmap.width.toFloat() / bitmap.height.toFloat()
-                    val width: Int
-                    val height: Int
-                    if (ratio > 1) {
-                      width = maxSize
-                      height = (maxSize / ratio).toInt()
-                    } else {
-                      height = maxSize
-                      width = (maxSize * ratio).toInt()
-                    }
-                    val resizedBitmap = bitmap.scale(width, height)
 
-                    val stream = ByteArrayOutputStream()
-                    // We compress the image with a low quality to reduce the space of the image.
-                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-                    val byteArray = stream.toByteArray()
-                    withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
+                      val options = BitmapFactory.Options().apply {
+                          inJustDecodeBounds = true
+                      }
+
+                      context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                          BitmapFactory.decodeStream(input, null, options)
+                      }
+
+                      val (height: Int, width: Int) = options.run { outHeight to outWidth }
+                      var inSampleSize = 1
+                      if (height > maxSize || width > maxSize) {
+                          val halfHeight = height / 2
+                          val halfWidth = width / 2
+                          while ((halfHeight / inSampleSize) >= maxSize &&
+                              (halfWidth / inSampleSize) >= maxSize) {
+                              inSampleSize *= 2
+                          }
+                      }
+
+                      options.inSampleSize = inSampleSize
+                      options.inJustDecodeBounds = false
+
+                      val bitmap = context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                          BitmapFactory.decodeStream(input, null, options)
+                      }
+
+                      if (bitmap == null){
+                          Log.e("ImageError", "Failed to decode bitmap from URI $selectedUri")
+                      }
+                      else {
+                          val stream = ByteArrayOutputStream()
+                          // We compress the image with a low quality to reduce the space of the image.
+                          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+                          val byteArray = stream.toByteArray()
+                          withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
+                      }
                   }
                 }
               }
