@@ -360,15 +360,16 @@ class SettingsViewModel(
 
     // Sanitize & validate only when saving
     val cleanedValue = sanitize(state.tempValue)
-    val result = when (state.currentField) {
-      "firstName" -> validateFirstName(cleanedValue)
-      "lastName" -> validateLastName(cleanedValue)
-      "email" -> validateEmail(cleanedValue)
-      "password" -> validatePassword(cleanedValue)
-      "description" -> validateDescription(cleanedValue)
-      "country" -> validateCountry(cleanedValue, countryToIsoCode)
-      else -> ValidationResult.Valid
-    }
+    val result =
+        when (state.currentField) {
+          "firstName" -> validateFirstName(cleanedValue)
+          "lastName" -> validateLastName(cleanedValue)
+          "email" -> validateEmail(cleanedValue)
+          "password" -> validatePassword(cleanedValue)
+          "description" -> validateDescription(cleanedValue)
+          "country" -> validateCountry(cleanedValue, countryToIsoCode)
+          else -> ValidationResult.Valid
+        }
 
     if (result is ValidationResult.Invalid) {
       _uiState.update { it.copy(modalError = result.errorMessage) }
@@ -386,14 +387,14 @@ class SettingsViewModel(
     }
 
     // Close modal etc...
-    _uiState.value = newState.copy(
-      showModal = false,
-      currentField = "",
-      modalError = null,
-      tempDayError = null,
-      tempMonthError = null,
-      tempYearError = null
-    )
+    _uiState.value =
+        newState.copy(
+            showModal = false,
+            currentField = "",
+            modalError = null,
+            tempDayError = null,
+            tempMonthError = null,
+            tempYearError = null)
 
     saveProfile(uid)
   }
