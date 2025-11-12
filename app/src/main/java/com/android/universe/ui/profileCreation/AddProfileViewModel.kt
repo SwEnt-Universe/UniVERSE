@@ -10,6 +10,7 @@ import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -144,8 +145,8 @@ open class AddProfileViewModel(
           UserProfile(
               uid = uid,
               username = sanitize(state.username),
-              firstName = sanitize(state.firstName),
-              lastName = sanitize(state.lastName),
+              firstName = sanitize(state.firstName).toTitleCase(),
+              lastName = sanitize(state.lastName).toTitleCase(),
               description = state.description?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = dateOfBirth,
