@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutTestTags
@@ -130,7 +131,7 @@ class SettingsScreenTest {
             "SettingsTestTags.MUSIC_BUTTON",
             "SettingsTestTags.TRANSPORT_BUTTON",
             "SettingsTestTags.CANTON_BUTTON")
-        .forEach { tag -> composeTestRule.onNodeWithTag(tag).assertIsDisplayed() }
+        .forEach { tag -> composeTestRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed() }
   }
 
   @Test
@@ -191,5 +192,19 @@ class SettingsScreenTest {
     val state = sampleSettingsState()
     setUpScreen(uiState = state.copy(isLoading = true))
     composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertIsDisplayed()
+  }
+
+  @Test
+  fun testEditingProfilePictureIsDisplayed() {
+    setUpScreen()
+    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.PICTURE_EDITING).assertIsDisplayed()
+  }
+
+  @Test
+  fun testDeleteProfilePictureIsDisplayed() {
+    setUpScreen()
+    composeTestRule
+        .onNodeWithTag(testTag = SettingsTestTags.DELETE_PICTURE_BUTTON)
+        .assertIsDisplayed()
   }
 }
