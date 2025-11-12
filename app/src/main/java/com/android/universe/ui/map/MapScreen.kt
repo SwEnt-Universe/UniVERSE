@@ -212,9 +212,16 @@ fun TomTomMapView(
             }
 
             map.addMapClickListener { geoPoint ->
+              map.removeMarkers(tag = "coordinate")
               val latitude = geoPoint.latitude
               val longitude = geoPoint.longitude
               viewModel.selectLocation(latitude, longitude)
+
+              map.addMarker(
+                  MarkerOptions(
+                      tag = "coordinate",
+                      coordinate = GeoPoint(latitude, longitude),
+                      pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
               true
             }
 
