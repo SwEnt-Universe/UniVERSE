@@ -392,9 +392,19 @@ class SettingsViewModel(
       "password" -> newState = newState.copy(password = finalValue)
       "description" -> newState = newState.copy(description = finalValue)
       "country" -> newState = newState.copy(country = finalValue)
+
+      else -> {
+        // Tag category saving logic
+        Tag.Category.entries.find { it.fieldName == state.currentField }?.let { category ->
+          val tagList = Tag.getTagsForCategory(category)
+          newState = newState.copy(
+            selectedTags = state.selectedTags.filter { it !in tagList } + state.tempSelectedTags
+          )
+        }
+      }
     }
 
-    // Close modal etc...
+    // Close modal
     _uiState.value =
         newState.copy(
             showModal = false,
@@ -405,6 +415,7 @@ class SettingsViewModel(
             tempYearError = null)
 
     saveProfile(uid)
+
   }
 
   /**
