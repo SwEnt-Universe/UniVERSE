@@ -178,16 +178,12 @@ class SettingsViewModel(
           validationResult = validatePassword(finalValue)
         }
         "firstName" -> {
-          // Sanitize *then* truncate at LIMIT + 1
-          val cleaned = sanitize(value)
-          finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
-          validationResult = validateFirstName(finalValue)
+          finalValue = value.take(InputLimits.FIRST_NAME + 1)
+          validationResult = ValidationResult.Valid // no real-time validation
         }
         "lastName" -> {
-          // Sanitize *then* truncate at LIMIT + 1
-          val cleaned = sanitize(value)
-          finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
-          validationResult = validateLastName(finalValue)
+          finalValue = value.take(InputLimits.LAST_NAME + 1)
+          validationResult = ValidationResult.Valid // no real-time validation
         }
         "description" -> {
           // No truncation, (soft limit), matches AddProfileViewModel
@@ -360,62 +356,45 @@ class SettingsViewModel(
    */
   fun saveModal(uid: String) {
     val state = _uiState.value
-
-    // Check for any validation errors that are already displayed
-    if (state.modalError != null ||
-        state.tempDayError != null ||
-        state.tempMonthError != null ||
-        state.tempYearError != null) {
-      return // Don't save, errors are present
-    }
-
     var newState = state
 
-    // No errors, so commit the temp values to the real state fields
-    when (state.currentField) {
-      "email" -> newState = newState.copy(email = state.tempValue, emailError = null)
-      "password" -> newState = newState.copy(password = state.tempValue, passwordError = null)
-      "firstName" -> newState = newState.copy(firstName = state.tempValue, firstNameError = null)
-      "lastName" -> newState = newState.copy(lastName = state.tempValue, lastNameError = null)
-      "description" ->
-          newState = newState.copy(description = state.tempValue, descriptionError = null)
-      "country" ->
-          newState = newState.copy(country = state.tempValue) // No main error field for country
-      "date" -> {
-        newState =
-            newState.copy(
-                day = state.tempDay,
-                month = state.tempMonth,
-                year = state.tempYear,
-                dayError = null,
-                monthError = null,
-                yearError = null)
-      }
-      else -> {
-        // Handle Tag saving logic
-        Tag.Category.entries
-            .find { it.fieldName == state.currentField }
-            ?.let { category ->
-              val tagList = Tag.getTagsForCategory(category)
-              newState =
-                  newState.copy(
-                      selectedTags =
-                          state.selectedTags.filter { it !in tagList } + state.tempSelectedTags)
-            }
-      }
+    // Sanitize & validate only when saving
+    val cleanedValue = sanitize(state.tempValue)
+    val result = when (state.currentField) {
+      "firstName" -> validateFirstName(cleanedValue)
+      "lastName" -> validateLastName(cleanedValue)
+      "email" -> validateEmail(cleanedValue)
+      "password" -> validatePassword(cleanedValue)
+      "description" -> validateDescription(cleanedValue)
+      "country" -> validateCountry(cleanedValue, countryToIsoCode)
+      else -> ValidationResult.Valid
     }
 
-    // Close modal and clear temp fields
-    _uiState.value =
-        newState.copy(
-            showModal = false,
-            currentField = "",
-            modalError = null,
-            tempDayError = null,
-            tempMonthError = null,
-            tempYearError = null)
+    if (result is ValidationResult.Invalid) {
+      _uiState.update { it.copy(modalError = result.errorMessage) }
+      return
+    }
 
-    // Persist all changes
+    // If valid, commit the sanitized value
+    when (state.currentField) {
+      "firstName" -> newState = newState.copy(firstName = cleanedValue)
+      "lastName" -> newState = newState.copy(lastName = cleanedValue)
+      "email" -> newState = newState.copy(email = cleanedValue)
+      "password" -> newState = newState.copy(password = cleanedValue)
+      "description" -> newState = newState.copy(description = cleanedValue)
+      "country" -> newState = newState.copy(country = cleanedValue)
+    }
+
+    // Close modal etc...
+    _uiState.value = newState.copy(
+      showModal = false,
+      currentField = "",
+      modalError = null,
+      tempDayError = null,
+      tempMonthError = null,
+      tempYearError = null
+    )
+
     saveProfile(uid)
   }
 
