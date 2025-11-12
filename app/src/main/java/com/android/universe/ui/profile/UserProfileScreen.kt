@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +48,8 @@ import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.UniverseTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
@@ -162,6 +166,19 @@ fun UserProfileScreen(
               horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                   // Profile picture of the user.
+                  val imageBytes = userUIState.userProfile.profileImageUri
+                  val bitmap =
+                      produceState<Bitmap?>(initialValue = null, imageBytes) {
+                            value =
+                                if (imageBytes != null) {
+                                  withContext(Dispatchers.IO) {
+                                    BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                                  }
+                                } else {
+                                  null
+                                }
+                          }
+                          .value
                   Box(
                       modifier =
                           Modifier.align(Alignment.Center)
@@ -170,15 +187,13 @@ fun UserProfileScreen(
                               .background(MaterialTheme.colorScheme.surface, CircleShape)
                               .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                       contentAlignment = Alignment.Center) {
-                        val imageBytes = userUIState.userProfile.profileImageUri
-                        if (imageBytes == null) {
+                        if (bitmap == null) {
                           Icon(
                               tint = MaterialTheme.colorScheme.onSurface,
                               contentDescription = "Image",
                               imageVector = Icons.Filled.Image,
                               modifier = Modifier.size(Dimensions.IconSizeLarge))
                         } else {
-                          val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                           Image(
                               bitmap = bitmap.asImageBitmap(),
                               contentDescription = "Selected image",

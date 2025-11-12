@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +40,9 @@ import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /* =========================================================
  * Padding/style constants
@@ -215,33 +219,36 @@ fun SettingsScreenContent(
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
           // Profile picture of the user.
           val context = LocalContext.current
+          val scope = rememberCoroutineScope()
           val launcher =
               rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {
                   uri: Uri? ->
                 uri?.let { selectedUri ->
-                  val inputStream = context.contentResolver.openInputStream(selectedUri)
-                  val bitmap = BitmapFactory.decodeStream(inputStream)
+                  scope.launch(Dispatchers.IO) {
+                    val inputStream = context.contentResolver.openInputStream(selectedUri)
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
 
-                  // We redimension the image to have a 256*256 image to reduce the space of the
-                  // image.
-                  val maxSize = Dimensions.ProfilePictureSize
-                  val ratio: Float = bitmap.width.toFloat() / bitmap.height.toFloat()
-                  val width: Int
-                  val height: Int
-                  if (ratio > 1) {
-                    width = maxSize
-                    height = (maxSize / ratio).toInt()
-                  } else {
-                    height = maxSize
-                    width = (maxSize * ratio).toInt()
+                    // We redimension the image to have a 256*256 image to reduce the space of the
+                    // image.
+                    val maxSize = Dimensions.ProfilePictureSize
+                    val ratio: Float = bitmap.width.toFloat() / bitmap.height.toFloat()
+                    val width: Int
+                    val height: Int
+                    if (ratio > 1) {
+                      width = maxSize
+                      height = (maxSize / ratio).toInt()
+                    } else {
+                      height = maxSize
+                      width = (maxSize * ratio).toInt()
+                    }
+                    val resizedBitmap = bitmap.scale(width, height)
+
+                    val stream = ByteArrayOutputStream()
+                    // We compress the image with a low quality to reduce the space of the image.
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+                    val byteArray = stream.toByteArray()
+                    withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
                   }
-                  val resizedBitmap = bitmap.scale(width, height)
-
-                  val stream = ByteArrayOutputStream()
-                  // We compress the image with a low quality to reduce the space of the image.
-                  resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-                  val byteArray = stream.toByteArray()
-                  onSelectPicture(byteArray)
                 }
               }
           Box(
