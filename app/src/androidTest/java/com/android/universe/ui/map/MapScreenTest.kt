@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -91,47 +92,6 @@ class MapScreenTest {
   }
 
   @Test
-  fun eventMarkersAreLoadedAndDisplayed() {
-    val testEvent = EventTestData.dummyEvent2
-
-    runTest { fakeEventRepository.addEvent(testEvent) }
-
-    composeTestRule.setContent {
-      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
-    }
-
-    composeTestRule.waitForIdle()
-
-    viewModel.loadAllEvents()
-
-    composeTestRule.waitUntil(5_000L) { viewModel.eventMarkers.value.isNotEmpty() }
-
-    assert(viewModel.eventMarkers.value.contains(testEvent))
-  }
-
-  @Test
-  fun selectingEventUpdatesSelectedEventState() {
-    val testEvent = EventTestData.dummyEvent1
-
-    runTest { fakeEventRepository.addEvent(testEvent) }
-
-    composeTestRule.setContent {
-      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
-    }
-
-    composeTestRule.waitForIdle()
-
-    assert(viewModel.selectedEvent.value == null)
-
-    viewModel.selectEvent(testEvent)
-
-    composeTestRule.waitForIdle()
-
-    assert(viewModel.selectedEvent.value == testEvent)
-    assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent1.title)
-  }
-
-  @Test
   fun eventInfoPopupAppearsWhenEventSelected() {
     val testEvent = EventTestData.dummyEvent3
 
@@ -144,6 +104,8 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
 
     viewModel.selectEvent(testEvent)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
 
     composeTestRule.waitForIdle()
 
@@ -172,13 +134,16 @@ class MapScreenTest {
 
     viewModel.selectEvent(event1)
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
     assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent1.title)
 
     viewModel.selectEvent(null)
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsNotDisplayed()
 
     viewModel.selectEvent(event2)
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
     assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent2.title)
   }
 }

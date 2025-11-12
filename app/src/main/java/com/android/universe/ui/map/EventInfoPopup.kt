@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.event.Event
 import com.android.universe.ui.theme.Dimensions
@@ -32,7 +33,8 @@ fun EventInfoPopup(event: Event, onDismiss: () -> Unit) {
       modifier =
           Modifier.fillMaxSize()
               .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f))
-              .clickable(onClick = onDismiss),
+              .clickable(onClick = onDismiss)
+              .testTag(MapScreenTestTags.EVENT_INFO_POPUP),
       contentAlignment = Alignment.BottomCenter) {
         AnimatedVisibility(
             visible = true,

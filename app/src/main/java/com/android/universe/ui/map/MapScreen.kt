@@ -51,6 +51,7 @@ object MapScreenTestTags {
   const val INTERACTABLE = "interactable"
   const val LOADING_INDICATOR = "loading_indicator"
   const val CREATE_EVENT_BUTTON = "create_event_button"
+  const val EVENT_INFO_POPUP = "event_info_popup"
 }
 
 /**
