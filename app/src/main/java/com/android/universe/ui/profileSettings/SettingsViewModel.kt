@@ -378,10 +378,12 @@ class SettingsViewModel(
     }
 
     // Apply normalization only for names
-    val finalValue = when (state.currentField) {
-      "firstName", "lastName" -> sanitize(cleanedValue).toTitleCase()
-      else -> cleanedValue
-    }
+    val finalValue =
+        when (state.currentField) {
+          "firstName",
+          "lastName" -> sanitize(cleanedValue).toTitleCase()
+          else -> cleanedValue
+        }
 
     when (state.currentField) {
       "firstName" -> newState = newState.copy(firstName = finalValue)

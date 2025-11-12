@@ -342,9 +342,7 @@ fun validateBirthDate(day: Int, month: Int, year: Int): ValidationResult {
  */
 fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
 
-/**
- * Capitalizes the first letters of words in a string
- */
+/** Capitalizes the first letters of words in a string */
 fun String.toTitleCase(): String {
   return this.split(" ").joinToString(" ") { word ->
     when {
