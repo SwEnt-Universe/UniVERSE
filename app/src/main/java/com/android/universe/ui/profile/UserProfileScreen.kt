@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,7 +39,6 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
-import com.android.universe.ui.theme.UniverseTheme
 import com.kyant.backdrop.Backdrop
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */

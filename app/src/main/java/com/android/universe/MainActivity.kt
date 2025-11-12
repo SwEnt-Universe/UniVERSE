@@ -85,11 +85,11 @@ fun UniverseApp(
     credentialManager: CredentialManager = CredentialManager.create(context)
 ) {
 
-    val backgroundColor = Color.White
-    val backdrop = rememberLayerBackdrop {
-        drawRect(backgroundColor)
-        drawContent()
-    }
+  val backgroundColor = Color.White
+  val backdrop = rememberLayerBackdrop {
+    drawRect(backgroundColor)
+    drawContent()
+  }
 
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -182,7 +182,9 @@ fun UniverseApp(
           startDestination = NavigationScreens.Event.route,
           route = NavigationScreens.Event.name,
       ) {
-        composable(NavigationScreens.Event.route) { EventScreen(onTabSelected, backdrop = backdrop) }
+        composable(NavigationScreens.Event.route) {
+          EventScreen(onTabSelected, backdrop = backdrop)
+        }
       }
 
       navigation(
@@ -195,8 +197,7 @@ fun UniverseApp(
               selectedTab = Tab.Chat,
               onTabSelected = onTabSelected,
               testTag = NavigationTestTags.CHAT_SCREEN,
-              backdrop = backdrop
-          )
+              backdrop = backdrop)
         }
       }
 

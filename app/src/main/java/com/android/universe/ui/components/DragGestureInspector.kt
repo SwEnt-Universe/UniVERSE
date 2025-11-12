@@ -1,11 +1,11 @@
 /**
- * Original source: https://github.com/Kyant0/AndroidLiquidGlass/blob/master/catalog/src/main/java/com/kyant/backdrop/catalog/utils/DragGestureInspector.kt
+ * Original source:
+ * https://github.com/Kyant0/AndroidLiquidGlass/blob/master/catalog/src/main/java/com/kyant/backdrop/catalog/utils/DragGestureInspector.kt
  * Date taken: 2025-11-13
  *
- * Description: This file was originally created by Kyant0
- * Minor modifications were made for integration into UniVERSE
+ * Description: This file was originally created by Kyant0 Minor modifications were made for
+ * integration into UniVERSE
  */
-
 package com.android.universe.ui.components
 
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -26,68 +26,64 @@ suspend fun PointerInputScope.inspectDragGestures(
     onDragCancel: () -> Unit = {},
     onDrag: (change: PointerInputChange, dragAmount: Offset) -> Unit
 ) {
-    awaitEachGesture {
-        val initialDown = awaitFirstDown(false, PointerEventPass.Initial)
+  awaitEachGesture {
+    val initialDown = awaitFirstDown(false, PointerEventPass.Initial)
 
-        val down = awaitFirstDown(false)
-        val drag = initialDown
+    val down = awaitFirstDown(false)
+    val drag = initialDown
 
-        onDragStart(down)
-        onDrag(drag, Offset.Zero)
-        val upEvent =
-            drag(
-                pointerId = drag.id,
-                onDrag = { onDrag(it, it.positionChange()) }
-            )
-        if (upEvent == null) {
-            onDragCancel()
-        } else {
-            onDragEnd(upEvent)
-        }
+    onDragStart(down)
+    onDrag(drag, Offset.Zero)
+    val upEvent = drag(pointerId = drag.id, onDrag = { onDrag(it, it.positionChange()) })
+    if (upEvent == null) {
+      onDragCancel()
+    } else {
+      onDragEnd(upEvent)
     }
+  }
 }
 
 private suspend inline fun AwaitPointerEventScope.drag(
     pointerId: PointerId,
     onDrag: (PointerInputChange) -> Unit
 ): PointerInputChange? {
-    val isPointerUp = currentEvent.changes.fastFirstOrNull { it.id == pointerId }?.pressed != true
-    if (isPointerUp) {
-        return null
+  val isPointerUp = currentEvent.changes.fastFirstOrNull { it.id == pointerId }?.pressed != true
+  if (isPointerUp) {
+    return null
+  }
+  var pointer = pointerId
+  while (true) {
+    val change = awaitDragOrUp(pointer) ?: return null
+    if (change.isConsumed) {
+      return null
     }
-    var pointer = pointerId
-    while (true) {
-        val change = awaitDragOrUp(pointer) ?: return null
-        if (change.isConsumed) {
-            return null
-        }
-        if (change.changedToUpIgnoreConsumed()) {
-            return change
-        }
-        onDrag(change)
-        pointer = change.id
+    if (change.changedToUpIgnoreConsumed()) {
+      return change
     }
+    onDrag(change)
+    pointer = change.id
+  }
 }
 
 private suspend inline fun AwaitPointerEventScope.awaitDragOrUp(
     pointerId: PointerId
 ): PointerInputChange? {
-    var pointer = pointerId
-    while (true) {
-        val event = awaitPointerEvent()
-        val dragEvent = event.changes.fastFirstOrNull { it.id == pointer } ?: return null
-        if (dragEvent.changedToUpIgnoreConsumed()) {
-            val otherDown = event.changes.fastFirstOrNull { it.pressed }
-            if (otherDown == null) {
-                return dragEvent
-            } else {
-                pointer = otherDown.id
-            }
-        } else {
-            val hasDragged = dragEvent.previousPosition != dragEvent.position
-            if (hasDragged) {
-                return dragEvent
-            }
-        }
+  var pointer = pointerId
+  while (true) {
+    val event = awaitPointerEvent()
+    val dragEvent = event.changes.fastFirstOrNull { it.id == pointer } ?: return null
+    if (dragEvent.changedToUpIgnoreConsumed()) {
+      val otherDown = event.changes.fastFirstOrNull { it.pressed }
+      if (otherDown == null) {
+        return dragEvent
+      } else {
+        pointer = otherDown.id
+      }
+    } else {
+      val hasDragged = dragEvent.previousPosition != dragEvent.position
+      if (hasDragged) {
+        return dragEvent
+      }
     }
+  }
 }

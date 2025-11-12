@@ -90,11 +90,17 @@ object EventScreenTestTags {
  *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
  */
 @Composable
-fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = viewModel(), backdrop: Backdrop) {
+fun EventScreen(
+    onTabSelected: (Tab) -> Unit = {},
+    viewModel: EventViewModel = viewModel(),
+    backdrop: Backdrop
+) {
   val events by viewModel.eventsState.collectAsState()
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected, backdrop) },
+      bottomBar = {
+        NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected, backdrop)
+      },
   ) { paddingValues ->
     LazyColumn(
         modifier =

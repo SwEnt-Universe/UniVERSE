@@ -34,19 +34,19 @@ sealed class Tab(
     val icon: ImageVector,
     val iconSelected: ImageVector
 ) {
-    /** Represents the 'Map' tab. */
-    object Map : Tab(NavigationScreens.Map, Icons.Outlined.Explore, Icons.Filled.Explore)
+  /** Represents the 'Map' tab. */
+  object Map : Tab(NavigationScreens.Map, Icons.Outlined.Explore, Icons.Filled.Explore)
 
-    /** Represents the 'Event' tab. */
-    object Event : Tab(NavigationScreens.Event, Icons.Outlined.Event, Icons.Filled.Event)
+  /** Represents the 'Event' tab. */
+  object Event : Tab(NavigationScreens.Event, Icons.Outlined.Event, Icons.Filled.Event)
 
-    /** Represents the 'Profile' tab. */
-    object Profile :
-        Tab(NavigationScreens.Profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle)
+  /** Represents the 'Profile' tab. */
+  object Profile :
+      Tab(NavigationScreens.Profile, Icons.Outlined.AccountCircle, Icons.Filled.AccountCircle)
 
-    /** Represents the 'Chat' tab. */
-    object Chat :
-        Tab(NavigationScreens.Chat, Icons.AutoMirrored.Outlined.Chat, Icons.AutoMirrored.Filled.Chat)
+  /** Represents the 'Chat' tab. */
+  object Chat :
+      Tab(NavigationScreens.Chat, Icons.AutoMirrored.Outlined.Chat, Icons.AutoMirrored.Filled.Chat)
 }
 
 /** A predefined list of [Tab] objects that will be displayed in the bottom navigation bar. */
@@ -72,32 +72,28 @@ fun NavigationBottomMenu(
     onTabSelected: (Tab) -> Unit,
     backdrop: Backdrop,
 ) {
-    val selectedTabIndex = tabs.indexOf(selectedTab)
+  val selectedTabIndex = tabs.indexOf(selectedTab)
 
-    LiquidBottomTabs(
-        selectedTabIndex = { selectedTabIndex },
-        onTabSelected = { index -> onTabSelected(tabs[index]) },
-        backdrop = backdrop,
-        tabsCount = tabs.size,
-        modifier = Modifier
-            .testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
-    ) {
+  LiquidBottomTabs(
+      selectedTabIndex = { selectedTabIndex },
+      onTabSelected = { index -> onTabSelected(tabs[index]) },
+      backdrop = backdrop,
+      tabsCount = tabs.size,
+      modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)) {
         tabs.forEach { tab ->
-            val selected = tab == selectedTab
+          val selected = tab == selectedTab
 
-            LiquidBottomTab(
-                onClick = { onTabSelected(tab) },
-                modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab))
-            ) {
+          LiquidBottomTab(
+              onClick = { onTabSelected(tab) },
+              modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab))) {
                 Icon(
                     imageVector = if (selected) tab.iconSelected else tab.icon,
                     contentDescription = null,
                     modifier = Modifier.size(Dimensions.IconSizeLarge),
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
+                    tint = MaterialTheme.colorScheme.onBackground)
+              }
         }
-    }
+      }
 }
 
 /**

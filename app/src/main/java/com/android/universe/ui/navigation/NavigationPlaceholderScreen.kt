@@ -29,8 +29,9 @@ fun NavigationPlaceholderScreen(
 ) {
   Scaffold(
       modifier = if (testTag != null) Modifier.testTag(testTag) else Modifier,
-      bottomBar = { if (enableBottomBar) NavigationBottomMenu(selectedTab, onTabSelected, backdrop) }) {
-          padding ->
+      bottomBar = {
+        if (enableBottomBar) NavigationBottomMenu(selectedTab, onTabSelected, backdrop)
+      }) { padding ->
         Text(text = title, modifier = Modifier.padding(padding))
       }
 }
