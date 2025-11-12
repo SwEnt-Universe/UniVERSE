@@ -8,8 +8,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.android.universe.model.chat.Message
 import com.google.firebase.Timestamp
@@ -24,14 +27,14 @@ fun MessageList(
 ) {
 
   val listState = rememberLazyListState()
-  val init = remember { mutableStateOf(true) }
+  var isFirstLoad by remember { mutableStateOf(true) }
+  val isScrolledToEnd by remember { derivedStateOf { listState.isScrolledToEnd() } }
 
   LaunchedEffect(messages.size) {
     val lastMessageIsFromUser = messages.lastOrNull()?.senderID == userID
-    if (messages.isNotEmpty() &&
-        (listState.isScrolledToEnd() || init.value || lastMessageIsFromUser)) {
+    if (messages.isNotEmpty() && (isScrolledToEnd || isFirstLoad || lastMessageIsFromUser)) {
       listState.animateScrollToItem(index = messages.size - 1)
-      init.value = false
+      isFirstLoad = false
     }
   }
 

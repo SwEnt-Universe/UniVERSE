@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,11 +30,10 @@ fun MessageItem(
     vm: MessageItemViewModel = viewModel()
 ) {
 
-  val userName by vm.userName.collectAsState()
+  val userName by vm.getUserName(senderID).collectAsState()
+
   val messageCornerRadius: Dp = Dimensions.RoundedCorner * 2
   val arrangement = if (isUserMe) Arrangement.End else Arrangement.Start
-
-  LaunchedEffect(senderID) { vm.loadUserName(senderID) }
 
   Row(modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = arrangement) {
     Row(modifier = Modifier.fillMaxWidth(0.9f), horizontalArrangement = arrangement) {

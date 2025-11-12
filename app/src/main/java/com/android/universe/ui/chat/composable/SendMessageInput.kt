@@ -24,7 +24,7 @@ fun SendMessageInput(chat: Chat, userID: String) {
 
   TextField(
       value = messageText,
-      onValueChange = { messageText = it },
+      onValueChange = { if (it.length < 256) messageText = it },
       placeholder = { Text("Type a message...") },
       modifier = Modifier.fillMaxWidth(),
       singleLine = false,
