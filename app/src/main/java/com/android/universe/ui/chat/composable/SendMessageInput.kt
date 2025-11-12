@@ -13,9 +13,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.android.universe.model.chat.Chat
 import com.android.universe.model.chat.Message
 import kotlinx.coroutines.launch
+
+const val MAX_MESSAGE_LENGTH = 256
+
+object SendMessageInputTestTags {
+  const val TEXT_FIELD = "SEND_MESSAGE_TEXT_FIELD"
+  const val SEND_BUTTON = "SEND_BUTTON"
+}
 
 @Composable
 fun SendMessageInput(chat: Chat, userID: String) {
@@ -24,9 +32,12 @@ fun SendMessageInput(chat: Chat, userID: String) {
 
   TextField(
       value = messageText,
-      onValueChange = { if (it.length < 256) messageText = it },
+      onValueChange = {
+        messageText =
+            if (it.length <= MAX_MESSAGE_LENGTH) it else it.substring(0, MAX_MESSAGE_LENGTH)
+      },
       placeholder = { Text("Type a message...") },
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().testTag(SendMessageInputTestTags.TEXT_FIELD),
       singleLine = false,
       maxLines = 8,
       trailingIcon = {
@@ -40,7 +51,8 @@ fun SendMessageInput(chat: Chat, userID: String) {
                 }
                 messageText = ""
               }
-            }) {
+            },
+            modifier = Modifier.testTag(SendMessageInputTestTags.SEND_BUTTON)) {
               androidx.compose.material3.Icon(
                   imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
             }

@@ -1,6 +1,5 @@
 package com.android.universe.ui.chat.composable
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -14,18 +13,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.chat.Message
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+object MessageListTestTags {
+  const val LIST = "MESSAGE_LIST"
+  const val ITEM_PREFIX = "MESSAGE_ITEM_"
+}
 
 @Composable
 fun MessageList(
     userID: String,
     messages: List<Message>,
     modifier: Modifier,
+    messageItemViewModel: MessageItemViewModel = viewModel()
 ) {
-
   val listState = rememberLazyListState()
   var isFirstLoad by remember { mutableStateOf(true) }
   val isScrolledToEnd by remember { derivedStateOf { listState.isScrolledToEnd() } }
@@ -38,15 +44,20 @@ fun MessageList(
     }
   }
 
-  LazyColumn(modifier = modifier, state = listState, verticalArrangement = Arrangement.Bottom) {
-    itemsIndexed(messages, key = { _, message -> message.messageID }) { _, message ->
-      MessageItem(
-          senderID = message.senderID,
-          message = message.message,
-          time = timeStampToDisplayTime(timestamp = message.timestamp),
-          isUserMe = message.senderID == userID)
-    }
-  }
+  LazyColumn(
+      modifier = modifier.testTag(MessageListTestTags.LIST),
+      state = listState,
+      verticalArrangement = Arrangement.Bottom) {
+        itemsIndexed(messages, key = { _, message -> message.messageID }) { _, message ->
+          MessageItem(
+              senderID = message.senderID,
+              message = message.message,
+              time = timeStampToDisplayTime(timestamp = message.timestamp),
+              isUserMe = message.senderID == userID,
+              modifier = Modifier.testTag(MessageListTestTags.ITEM_PREFIX + message.messageID),
+              vm = messageItemViewModel)
+        }
+      }
 }
 
 fun timeStampToDisplayTime(timestamp: Timestamp): String {
@@ -54,9 +65,8 @@ fun timeStampToDisplayTime(timestamp: Timestamp): String {
   return formatter.format(timestamp.toDate())
 }
 
-fun LazyListState.isScrolledToEnd(): Boolean {
+private fun LazyListState.isScrolledToEnd(): Boolean {
   val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
   val totalItems = layoutInfo.totalItemsCount
-  Log.w("isScrolledToEnd", "lastVisible: $lastVisible, totalItems: $totalItems")
   return lastVisible >= totalItems - 2 // threshold of 1-2 items
 }
