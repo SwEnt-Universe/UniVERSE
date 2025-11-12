@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
@@ -58,6 +59,14 @@ class UserProfileScreenTest : FirestoreUserTest() {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithTag(UserProfileScreenTestTags.PROFILE_PICTURE)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.PROFILE_PICTURE).assertIsDisplayed()
 
     composeTestRule
         .onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME)
@@ -162,5 +171,17 @@ class UserProfileScreenTest : FirestoreUserTest() {
     }
 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun profilePictureNotDisplayedIfNull() {
+    runTest { repository.addUser(dummyUser2) }
+
+    composeTestRule.setContent {
+      val viewModel = UserProfileViewModel(repository)
+      UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
+    }
+
+    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.PROFILE_PICTURE).assertIsNotDisplayed()
   }
 }

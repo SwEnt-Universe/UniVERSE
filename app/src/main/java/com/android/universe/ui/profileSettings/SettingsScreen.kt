@@ -1,14 +1,22 @@
 package com.android.universe.ui.profileSettings
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,12 +24,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutButton
@@ -29,6 +39,10 @@ import com.android.universe.ui.common.LogoutConfirmationDialog
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
+import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /* =========================================================
  * Padding/style constants
@@ -155,7 +169,8 @@ fun SettingsScreen(
       onAddTag = viewModel::addTag,
       onRemoveTag = viewModel::removeTag,
       onSaveModal = { viewModel.saveModal(uid) },
-      onLogout = { viewModel.signOut(clear, onLogout) })
+      onLogout = { viewModel.signOut(clear, onLogout) },
+      onSelectPicture = { byteArray -> viewModel.updateProfilePicture(byteArray, uid) })
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
@@ -171,7 +186,8 @@ fun SettingsScreenContent(
     onAddTag: (Tag) -> Unit = {},
     onRemoveTag: (Tag) -> Unit = {},
     onSaveModal: () -> Unit = {},
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onSelectPicture: (ByteArray?) -> Unit = {}
 ) {
   val showDialog = remember { mutableStateOf(false) }
   LogoutConfirmationDialog(
@@ -200,16 +216,90 @@ fun SettingsScreenContent(
             },
             modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
-        LazyColumn(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(padding)
-                    .padding(top = Dimensions.PaddingLarge)
-                    .padding(horizontal = SettingsScreenPaddings.ContentHorizontalPadding)) {
-              item { GeneralSection(uiState = uiState, open = onOpenField) }
-              item { ProfileSection(uiState = uiState, open = onOpenField) }
-              item { InterestsSection(uiState = uiState, open = onOpenField) }
-            }
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+          // Profile picture of the user.
+          val context = LocalContext.current
+          val scope = rememberCoroutineScope()
+          val launcher =
+              rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {
+                  uri: Uri? ->
+                uri?.let { selectedUri ->
+                  scope.launch(Dispatchers.IO) {
+                    // We redimension the image to have a 256*256 image to reduce the space of the
+                    // image.
+                    val maxSize = Dimensions.ProfilePictureSize
+
+                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
+                    context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                      BitmapFactory.decodeStream(input, null, options)
+                    }
+
+                    val (height: Int, width: Int) = options.run { outHeight to outWidth }
+                    var inSampleSize = 1
+                    if (height > maxSize || width > maxSize) {
+                      val halfHeight = height / 2
+                      val halfWidth = width / 2
+                      while ((halfHeight / inSampleSize) >= maxSize &&
+                          (halfWidth / inSampleSize) >= maxSize) {
+                        inSampleSize *= 2
+                      }
+                    }
+
+                    options.inSampleSize = inSampleSize
+                    options.inJustDecodeBounds = false
+
+                    val bitmap =
+                        context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                          BitmapFactory.decodeStream(input, null, options)
+                        }
+
+                    if (bitmap == null) {
+                      Log.e("ImageError", "Failed to decode bitmap from URI $selectedUri")
+                    } else {
+                      val stream = ByteArrayOutputStream()
+                      // We compress the image with a low quality to reduce the space of the image.
+                      bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+                      val byteArray = stream.toByteArray()
+                      withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
+                    }
+                  }
+                }
+              }
+          Box(
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .padding(Dimensions.PaddingSmall)
+                      .size(100.dp)
+                      .background(MaterialTheme.colorScheme.surface, CircleShape)
+                      .testTag(SettingsTestTags.PICTURE_EDITING),
+              contentAlignment = Alignment.Center) {
+                IconButton(onClick = { launcher.launch("image/*") }) {
+                  Icon(
+                      tint = MaterialTheme.colorScheme.onSurface,
+                      contentDescription = "Image",
+                      imageVector = Icons.Filled.Image,
+                      modifier = Modifier.size(Dimensions.IconSizeLarge))
+                }
+              }
+          Button(
+              onClick = { onSelectPicture(null) },
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .testTag(SettingsTestTags.DELETE_PICTURE_BUTTON)) {
+                Text("delete profile picture")
+              }
+          LazyColumn(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(
+                          horizontal = SettingsScreenPaddings.ContentHorizontalPadding,
+                          vertical = Dimensions.PaddingSmall)) {
+                item { GeneralSection(uiState = uiState, open = onOpenField) }
+                item { ProfileSection(uiState = uiState, open = onOpenField) }
+                item { InterestsSection(uiState = uiState, open = onOpenField) }
+              }
+        }
       }
 
   if (uiState.showModal) {
