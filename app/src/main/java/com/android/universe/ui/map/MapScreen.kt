@@ -201,10 +201,7 @@ fun TomTomMapView(
               map.enableLocationMarker(locationMarkerOptions)
             }
             map.addMapClickListener { geoPoint ->
-              if (viewModel.uiState.value.selectedLat != null &&
-                  viewModel.uiState.value.selectedLng != null) {
-                map.removeMarkers(tag = "coordinate")
-              }
+              map.removeMarkers(tag = "coordinate")
               val latitude = geoPoint.latitude
               val longitude = geoPoint.longitude
               viewModel.selectLocation(latitude, longitude)
@@ -213,8 +210,7 @@ fun TomTomMapView(
                   MarkerOptions(
                       tag = "coordinate",
                       coordinate = GeoPoint(latitude, longitude),
-                      pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
-                      pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+                      pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
               true
             }
             viewModel.nowInteractable()
