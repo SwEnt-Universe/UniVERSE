@@ -14,6 +14,7 @@ import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -376,14 +377,19 @@ class SettingsViewModel(
       return
     }
 
-    // If valid, commit the sanitized value
+    // Apply normalization only for names
+    val finalValue = when (state.currentField) {
+      "firstName", "lastName" -> sanitize(cleanedValue).toTitleCase()
+      else -> cleanedValue
+    }
+
     when (state.currentField) {
-      "firstName" -> newState = newState.copy(firstName = cleanedValue)
-      "lastName" -> newState = newState.copy(lastName = cleanedValue)
-      "email" -> newState = newState.copy(email = cleanedValue)
-      "password" -> newState = newState.copy(password = cleanedValue)
-      "description" -> newState = newState.copy(description = cleanedValue)
-      "country" -> newState = newState.copy(country = cleanedValue)
+      "firstName" -> newState = newState.copy(firstName = finalValue)
+      "lastName" -> newState = newState.copy(lastName = finalValue)
+      "email" -> newState = newState.copy(email = finalValue)
+      "password" -> newState = newState.copy(password = finalValue)
+      "description" -> newState = newState.copy(description = finalValue)
+      "country" -> newState = newState.copy(country = finalValue)
     }
 
     // Close modal etc...
@@ -419,8 +425,8 @@ class SettingsViewModel(
 
       // ─── 2. Attempt to update the user profile ─────────────────────
       try {
-        val cleanedFirstName = sanitize(state.firstName)
-        val cleanedLastName = sanitize(state.lastName)
+        val cleanedFirstName = sanitize(state.firstName).toTitleCase()
+        val cleanedLastName = sanitize(state.lastName).toTitleCase()
         val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
 
         val updatedProfile =
