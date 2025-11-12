@@ -32,7 +32,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.scale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutButton
@@ -230,42 +229,40 @@ fun SettingsScreenContent(
                     // image.
                     val maxSize = Dimensions.ProfilePictureSize
 
-                      val options = BitmapFactory.Options().apply {
-                          inJustDecodeBounds = true
-                      }
+                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
 
-                      context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                    context.contentResolver.openInputStream(selectedUri)?.use { input ->
+                      BitmapFactory.decodeStream(input, null, options)
+                    }
+
+                    val (height: Int, width: Int) = options.run { outHeight to outWidth }
+                    var inSampleSize = 1
+                    if (height > maxSize || width > maxSize) {
+                      val halfHeight = height / 2
+                      val halfWidth = width / 2
+                      while ((halfHeight / inSampleSize) >= maxSize &&
+                          (halfWidth / inSampleSize) >= maxSize) {
+                        inSampleSize *= 2
+                      }
+                    }
+
+                    options.inSampleSize = inSampleSize
+                    options.inJustDecodeBounds = false
+
+                    val bitmap =
+                        context.contentResolver.openInputStream(selectedUri)?.use { input ->
                           BitmapFactory.decodeStream(input, null, options)
-                      }
+                        }
 
-                      val (height: Int, width: Int) = options.run { outHeight to outWidth }
-                      var inSampleSize = 1
-                      if (height > maxSize || width > maxSize) {
-                          val halfHeight = height / 2
-                          val halfWidth = width / 2
-                          while ((halfHeight / inSampleSize) >= maxSize &&
-                              (halfWidth / inSampleSize) >= maxSize) {
-                              inSampleSize *= 2
-                          }
-                      }
-
-                      options.inSampleSize = inSampleSize
-                      options.inJustDecodeBounds = false
-
-                      val bitmap = context.contentResolver.openInputStream(selectedUri)?.use { input ->
-                          BitmapFactory.decodeStream(input, null, options)
-                      }
-
-                      if (bitmap == null){
-                          Log.e("ImageError", "Failed to decode bitmap from URI $selectedUri")
-                      }
-                      else {
-                          val stream = ByteArrayOutputStream()
-                          // We compress the image with a low quality to reduce the space of the image.
-                          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-                          val byteArray = stream.toByteArray()
-                          withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
-                      }
+                    if (bitmap == null) {
+                      Log.e("ImageError", "Failed to decode bitmap from URI $selectedUri")
+                    } else {
+                      val stream = ByteArrayOutputStream()
+                      // We compress the image with a low quality to reduce the space of the image.
+                      bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+                      val byteArray = stream.toByteArray()
+                      withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
+                    }
                   }
                 }
               }
