@@ -34,14 +34,13 @@ import androidx.navigation.navArgument
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
+import com.android.universe.ui.chat.ChatScreen
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
-import com.android.universe.ui.navigation.NavigationPlaceholderScreen
 import com.android.universe.ui.navigation.NavigationScreens
-import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.navigation.resolveUserDestinationScreen
 import com.android.universe.ui.profile.UserProfileScreen
@@ -196,12 +195,10 @@ fun UniverseApp(
           route = NavigationScreens.Chat.name,
       ) {
         composable(NavigationScreens.Chat.route) {
-          NavigationPlaceholderScreen(
-              title = NavigationScreens.Chat.name,
-              selectedTab = Tab.Chat,
-              onTabSelected = onTabSelected,
-              testTag = NavigationTestTags.CHAT_SCREEN,
-          )
+          ChatScreen(
+              chatID = "test",
+              userID = Firebase.auth.currentUser!!.uid,
+              onTabSelected = onTabSelected)
         }
       }
 
