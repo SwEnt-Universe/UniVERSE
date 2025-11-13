@@ -191,7 +191,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun profilePictureNotDisplayedIfNull() {
     runTest { repository.addUser(dummyUser2) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
