@@ -35,10 +35,10 @@ import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import io.mockk.every
 import io.mockk.mockkObject
 import kotlinx.coroutines.Dispatchers
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest

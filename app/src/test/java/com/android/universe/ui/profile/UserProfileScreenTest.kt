@@ -48,6 +48,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   }
 
   private lateinit var repository: UserRepository
+  private lateinit var viewModel: UserProfileViewModel
 
   companion object {
     private val allTags = Tag.Category.entries.flatMap { Tag.Companion.getTagsForCategory(it) }
@@ -63,6 +64,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   override fun setUp() {
     super.setUp()
     repository = createInitializedRepository()
+    viewModel = UserProfileViewModel(repository)
   }
 
   @Test
@@ -70,7 +72,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(dummyUser) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -113,7 +114,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(dummyUser2) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
 
@@ -125,7 +125,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(dummyUser2) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
 
@@ -152,7 +151,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(dummyUser3) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
 
@@ -165,7 +163,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(profile) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
     }
 
@@ -180,7 +177,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(dummyUser5) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }
 
@@ -192,7 +188,6 @@ class UserProfileScreenTest : FirestoreUserTest() {
     runTest { repository.addUser(dummyUser2) }
 
     setContentWithStubBackdrop {
-      val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
 

@@ -55,11 +55,8 @@ import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import kotlinx.coroutines.runBlocking
 import com.google.firebase.auth.FirebaseAuth
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
