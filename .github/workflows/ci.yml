@@ -176,16 +176,6 @@ jobs:
           fi
 
       # ------------------  Unit Tests ------------------
-      - name: DEBUG - Check Java Version
-        if: env.skip != 'true'
-        run: |
-          echo "--- JAVA_HOME ---"
-          echo $JAVA_HOME
-          echo "--- java -version ---"
-          java -version
-          echo "--- gradlew -version ---"
-          ./gradlew -version
-
       - name: Run unit tests
         if: env.skip != 'true'
         run: ./gradlew testDebugUnitTest --stacktrace
