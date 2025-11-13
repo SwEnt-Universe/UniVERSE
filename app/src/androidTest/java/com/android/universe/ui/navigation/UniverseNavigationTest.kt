@@ -1,5 +1,8 @@
 package com.android.universe.ui.navigation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -9,8 +12,10 @@ import com.android.universe.UniverseApp
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -24,6 +29,15 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
+
+  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
+    composeTestRule.setContent {
+      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
+
+      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
+    }
+  }
+
   private lateinit var repository: UserRepository
 
   // This is a placeholder setup for the test to correctly launch while the FirebaseEmulator is in
@@ -37,7 +51,7 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
       repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
       this.testScheduler.advanceUntilIdle()
     }
-    composeTestRule.setContent { UniverseTheme { UniverseApp() } }
+    setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
     composeTestRule.waitForIdle()
   }
 

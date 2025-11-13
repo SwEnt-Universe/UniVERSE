@@ -1,5 +1,8 @@
 package com.android.universe.e2e
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
@@ -26,10 +29,12 @@ import com.android.universe.ui.profileSettings.SettingsTestTags
 import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -48,6 +53,14 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
+  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
+    composeTestRule.setContent {
+      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
+
+      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
+    }
+  }
+
   companion object {
     private const val FAKE_EMAIL = UserTestData.aliceEmail
     private const val FAKE_PASSWORD = UserTestData.alicePassword
@@ -57,8 +70,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   @Before
   override fun setUp() {
     super.setUp()
-
-    composeTestRule.setContent { UniverseTheme { UniverseApp() } }
+    setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
     composeTestRule.waitForIdle()
   }
 

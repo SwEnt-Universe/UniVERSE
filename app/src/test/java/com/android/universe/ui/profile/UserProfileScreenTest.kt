@@ -1,5 +1,8 @@
 package com.android.universe.ui.profile
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assert
@@ -13,9 +16,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.Tag
 import com.android.universe.model.user.UserRepository
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -32,6 +37,15 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule val mainCoroutineRule = MainCoroutineRule(UnconfinedTestDispatcher())
+
+  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
+    composeTestRule.setContent {
+      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
+
+      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
+    }
+  }
+
   private lateinit var repository: UserRepository
 
   companion object {
@@ -54,7 +68,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun profileDisplaysBasicInformationCorrectly() {
     runTest { repository.addUser(dummyUser) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
@@ -89,7 +103,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun tooManyTagsImpliesScrollable() {
     runTest { repository.addUser(dummyUser2) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
@@ -101,7 +115,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun tagsAreUniqueAndInAllowedList() {
     runTest { repository.addUser(dummyUser2) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
@@ -128,7 +142,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun descriptionDisplaysNothingWhenNull() {
     runTest { repository.addUser(dummyUser3) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
@@ -141,7 +155,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
     val profile = dummyUser4.copy(description = "Hello World")
     runTest { repository.addUser(profile) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
     }
@@ -156,7 +170,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun descriptionDisplaysNoDescriptionMessageWhenEmpty() {
     runTest { repository.addUser(dummyUser5) }
 
-    composeTestRule.setContent {
+    setContentWithStubBackdrop {
       val viewModel = UserProfileViewModel(repository)
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }

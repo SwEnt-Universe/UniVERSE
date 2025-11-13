@@ -3,6 +3,8 @@ package com.android.universe.ui.map
 import android.Manifest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -14,7 +16,9 @@ import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.UserTestData
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -34,6 +38,14 @@ class MapScreenTest {
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
+
+  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
+    composeTestRule.setContent {
+      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
+
+      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
+    }
+  }
 
   private lateinit var uid: String
   private lateinit var fakeLocationRepository: FakeLocationRepository
@@ -61,7 +73,8 @@ class MapScreenTest {
 
   @Test
   fun mapIsDisplayed() {
-    composeTestRule.setContent {
+
+    setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 
@@ -71,13 +84,15 @@ class MapScreenTest {
   @Test
   fun eventCreationButtonAppearsAndClickable() {
     var accessed = false
-    composeTestRule.setContent {
+
+    setContentWithStubBackdrop {
       MapScreenTestWrapper(
           uid = uid,
           viewModel = viewModel,
           onTabSelected = {},
           createEvent = { _, _ -> accessed = true })
     }
+
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
     viewModel.selectLocation(commonLat, commonLng)
