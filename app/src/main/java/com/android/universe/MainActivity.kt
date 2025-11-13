@@ -197,7 +197,7 @@ fun UniverseApp(
         composable(NavigationScreens.Chat.route) {
           ChatScreen(
               chatID = "test",
-              userID = Firebase.auth.currentUser!!.uid,
+              userID = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected)
         }
       }
