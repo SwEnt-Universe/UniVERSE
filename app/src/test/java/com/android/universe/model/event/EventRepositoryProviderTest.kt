@@ -1,12 +1,15 @@
 package com.android.universe.model.event
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.EventTestData
 import com.google.firebase.firestore.Source
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class EventRepositoryProviderTest {
   companion object {
     private val event1 = EventTestData.dummyEvent1

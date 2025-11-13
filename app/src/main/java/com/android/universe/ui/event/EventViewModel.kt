@@ -12,12 +12,18 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.network.ConnectivityObserver
 import com.android.universe.network.ConnectivityObserverProvider
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Source
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -169,17 +175,6 @@ class EventViewModel(
     viewModelScope.launch {
       val cacheEvents = eventRepository.getAllEvents(Source.CACHE)
       processEvents(cacheEvents)
-
-      if (isConnected.value) {
-        launch {
-          try {
-            val serverEvents = eventRepository.getAllEvents(Source.SERVER)
-            processEvents(serverEvents)
-          } catch (e: FirebaseFirestoreException) {
-            setErrorMsg("Failed to load events")
-          }
-        }
-      }
     }
   }
 
@@ -198,7 +193,7 @@ class EventViewModel(
       // Combine all event flows
       combine(
               distinctCreators.map { uid ->
-                userReactiveRepository!!.getUserFlow(uid).map { uid to it }
+                userReactiveRepository.getUserFlow(uid).map { uid to it }
               }) { userPairs ->
                 val usersMap = userPairs.toMap()
                 events.mapIndexed { index, event ->

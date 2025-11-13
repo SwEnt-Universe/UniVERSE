@@ -1,7 +1,8 @@
 package com.android.universe.model.chat
 
 object Utils {
-  private var sampleNumber = 1
+  private var sampleChatNumber = 1
+  private var sampleMessageNumber = 1
 
   /**
    * Returns a new sample chat ID. The sample chat ID is a string that is unique for each call. The
@@ -10,7 +11,7 @@ object Utils {
    *
    * @return A new sample chat ID.
    */
-  fun getNewSampleChatID(): String = "chat${sampleNumber++}"
+  fun getNewSampleChatID(): String = "chat${sampleChatNumber++}"
 
   /**
    * Creates a new sample [Chat] instance.
@@ -22,5 +23,13 @@ object Utils {
   fun getNewSampleChat(chatID: String, repository: ChatRepository): Chat {
     val adminName = "user-$chatID"
     return Chat(chatID = chatID, admin = adminName, chatRepository = repository)
+  }
+
+  fun getNewSampleMessage(): Message {
+    val messageNumber = sampleMessageNumber++
+    return Message(
+        messageID = "messageID-$messageNumber",
+        senderID = "userID-$messageNumber",
+        message = "Message$messageNumber")
   }
 }

@@ -45,6 +45,9 @@ object Dimensions {
   val IconSizeMedium = 18.dp // Check icon in tags
   val IconSizeLarge = 32.dp // General icons (e.g., Edit, ArrowBack)
 
+  // Image size
+  val ProfilePictureSize = 256
+
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
 

@@ -1,5 +1,6 @@
 package com.android.universe.ui.map
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
@@ -32,8 +33,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class MapViewModelTest {
   private lateinit var userId: String
 

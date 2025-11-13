@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
@@ -10,20 +11,17 @@ import com.android.universe.network.ConnectivityObserver
 import com.android.universe.network.FakeConnectivityObserver
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class EventViewModelTest {
 
   companion object {
@@ -101,8 +99,6 @@ class EventViewModelTest {
 
   @Before
   fun setup() {
-    Dispatchers.setMain(testDispatcher)
-
     repository = FakeEventRepository()
     userRepo = FakeUserRepository()
     connectivityObserver = FakeConnectivityObserver(isConnected = true)
@@ -118,11 +114,6 @@ class EventViewModelTest {
       viewModel.loadEvents()
       advanceUntilIdle()
     }
-  }
-
-  @After
-  fun tearDown() {
-    Dispatchers.resetMain()
   }
 
   @Test
@@ -167,8 +158,7 @@ class EventViewModelTest {
   @Test
   fun eventsWithMoreThanThreeTagsAreCropped() = runTest {
     val extraEvent = thirdEvent
-
-    runBlocking { repository.addEvent(extraEvent) }
+    repository.addEvent(extraEvent)
 
     // Refresh events in the ViewModel
     viewModel.loadEvents()

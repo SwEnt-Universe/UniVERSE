@@ -10,6 +10,8 @@ import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.sanitizeLead
+import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -27,7 +29,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Represents the UI state for the Add Profile screen.
@@ -83,14 +84,11 @@ data class AddProfileUIState(
  * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
  *   Defaults to [Dispatchers.Default].
  * @param repositoryDispatcher The [CoroutineDispatcher] used for executing repository operations.
- *   Defaults to [Dispatchers.IO].
+ *   Defaults to [DDP.io].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 open class AddProfileViewModel(
     private val repository: UserRepository = UserRepositoryProvider.repository,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
@@ -126,7 +124,7 @@ open class AddProfileViewModel(
    *   successfully created.
    */
   fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
-    viewModelScope.launch(dispatcher) {
+    viewModelScope.launch {
       if (!validateAllInputs()) {
         return@launch
       }
@@ -144,15 +142,15 @@ open class AddProfileViewModel(
           UserProfile(
               uid = uid,
               username = sanitize(state.username),
-              firstName = sanitize(state.firstName),
-              lastName = sanitize(state.lastName),
+              firstName = sanitize(state.firstName).toTitleCase(),
+              lastName = sanitize(state.lastName).toTitleCase(),
               description = state.description?.takeIf { it.isNotBlank() },
               country = isoCode,
               dateOfBirth = dateOfBirth,
               tags = emptySet())
 
-      withContext(repositoryDispatcher) { repository.addUser(userProfile) }
-      withContext(mainDispatcher) { onSuccess() }
+      repository.addUser(userProfile)
+      onSuccess()
     }
   }
 
@@ -175,8 +173,7 @@ open class AddProfileViewModel(
     val yearResult = validateYear(state.year)
 
     if (usernameResult is ValidationResult.Valid) {
-      val isUnique =
-          withContext(repositoryDispatcher) { repository.isUsernameUnique(state.username) }
+      val isUnique = repository.isUsernameUnique(state.username)
       if (!isUnique) {
         usernameResult = ValidationResult.Invalid(ErrorMessages.USERNAME_TAKEN)
       }
@@ -256,7 +253,7 @@ open class AddProfileViewModel(
    * @param firstName The new first name string from the UI.
    */
   fun setFirstName(firstName: String) {
-    val cleaned = sanitize(firstName)
+    val cleaned = sanitizeLead(firstName)
     val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
     val validationResult = validateFirstName(finalName)
     _uiState.update {
@@ -271,7 +268,7 @@ open class AddProfileViewModel(
    * @param lastName The new last name string from the UI.
    */
   fun setLastName(lastName: String) {
-    val cleaned = sanitize(lastName)
+    val cleaned = sanitizeLead(lastName)
     val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
     val validationResult = validateLastName(finalName)
     _uiState.update {

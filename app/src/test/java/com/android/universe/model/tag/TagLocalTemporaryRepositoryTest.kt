@@ -1,5 +1,6 @@
 package com.android.universe.model.tag
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -9,7 +10,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class TagLocalTemporaryRepositoryTest {
   private lateinit var repository: TagTemporaryRepository
   private val tags1 = setOf(Tag.ROLE_PLAYING_GAMES, Tag.METAL, Tag.HANDBALL)

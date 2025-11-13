@@ -1,9 +1,8 @@
 package com.android.universe.ui.navigation
 
 import com.android.universe.model.user.UserRepository
-import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.auth
 
 /**
  * Determines the appropriate initial screen for the user based on their authentication state and
@@ -24,7 +23,7 @@ import com.google.firebase.auth.auth
  */
 suspend fun resolveUserDestinationScreen(
     userRepository: UserRepository,
-    user: FirebaseUser? = Firebase.auth.currentUser
+    user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
 ): NavigationScreens =
     when {
       user == null -> NavigationScreens.SignIn

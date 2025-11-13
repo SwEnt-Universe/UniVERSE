@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,14 +36,13 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.network.ConnectivityObserverProvider
 import com.android.universe.network.NetworkConnectivityObserver
 import com.android.universe.resources.C
+import com.android.universe.ui.chat.ChatScreen
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
-import com.android.universe.ui.navigation.NavigationPlaceholderScreen
 import com.android.universe.ui.navigation.NavigationScreens
-import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.navigation.resolveUserDestinationScreen
 import com.android.universe.ui.profile.UserProfileScreen
@@ -53,9 +53,8 @@ import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import kotlinx.coroutines.runBlocking
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,11 +84,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UniverseApp(
     context: Context = LocalContext.current,
-    credentialManager: CredentialManager = CredentialManager.create(context)
+    credentialManager: CredentialManager = CredentialManager.create(context),
 ) {
+  val authInstance = remember { FirebaseAuth.getInstance() }
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
+  val mainActivityScope = rememberCoroutineScope()
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
@@ -109,11 +110,15 @@ fun UniverseApp(
           startDestination = NavigationScreens.SignIn.route,
       ) {
         composable(NavigationScreens.SignIn.route) {
+          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
+
+          LaunchedEffect(navigateToDestination) {
+            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
+          }
           SignInScreen(
               onSignedIn = {
-                runBlocking {
-                  val destination = resolveUserDestinationScreen(userRepository)
-                  navigationActions.navigateTo(destination)
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
                 }
               },
               credentialManager = credentialManager)
@@ -125,7 +130,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.AddProfile.route) {
           AddProfileScreen(
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
               onBack = {
                 // Navigate back to Sign In
@@ -141,11 +146,16 @@ fun UniverseApp(
           route = NavigationScreens.EmailValidation.name,
       ) {
         composable(NavigationScreens.EmailValidation.route) {
+          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
+
+          LaunchedEffect(navigateToDestination) {
+            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
+          }
           EmailVerificationScreen(
-              user = Firebase.auth.currentUser!!,
+              user = authInstance.currentUser!!,
               onSuccess = {
-                runBlocking {
-                  navigationActions.navigateTo(resolveUserDestinationScreen(userRepository))
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
                 }
               },
               onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
@@ -157,7 +167,7 @@ fun UniverseApp(
           startDestination = NavigationScreens.SelectTagUser.route) {
             composable(NavigationScreens.SelectTagUser.route) {
               SelectTagScreen(
-                  uid = Firebase.auth.currentUser!!.uid,
+                  uid = authInstance.currentUser!!.uid,
                   navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
             }
           }
@@ -168,7 +178,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.Map.route) {
           MapScreen(
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
@@ -179,7 +189,7 @@ fun UniverseApp(
           route = NavigationScreens.Event.name,
       ) {
         composable(NavigationScreens.Event.route) {
-          EventScreen(onTabSelected, uid = Firebase.auth.currentUser!!.uid)
+          EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
         }
       }
 
@@ -188,12 +198,10 @@ fun UniverseApp(
           route = NavigationScreens.Chat.name,
       ) {
         composable(NavigationScreens.Chat.route) {
-          NavigationPlaceholderScreen(
-              title = NavigationScreens.Chat.name,
-              selectedTab = Tab.Chat,
-              onTabSelected = onTabSelected,
-              testTag = NavigationTestTags.CHAT_SCREEN,
-          )
+          ChatScreen(
+              chatID = "test",
+              userID = authInstance.currentUser!!.uid,
+              onTabSelected = onTabSelected)
         }
       }
 
@@ -203,7 +211,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.Profile.route) {
           UserProfileScreen(
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               onEditProfileClick = { uid ->
                 navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
@@ -254,7 +262,7 @@ fun UniverseApp(
               )
           SelectTagScreen(
               selectedTagOverview = selectTagViewModel,
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navController.popBackStack() })
         }
       }

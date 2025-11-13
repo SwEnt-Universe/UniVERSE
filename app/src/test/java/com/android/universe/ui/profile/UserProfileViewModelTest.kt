@@ -1,39 +1,32 @@
 package com.android.universe.ui.profile
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.utils.MainCoroutineRule
 import java.time.LocalDate
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class UserProfileViewModelTest {
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: UserProfileViewModel
 
-  private val testDispatcher = StandardTestDispatcher()
+  @get:Rule val mainCoroutinesRule = MainCoroutineRule()
 
   @Before
   fun setup() {
-    Dispatchers.setMain(testDispatcher)
-
     repository = FakeUserRepository()
     viewModel = UserProfileViewModel(repository)
-  }
-
-  @After
-  fun tearDown() {
-    // 👇 Always reset to avoid leaking the test dispatcher
-    Dispatchers.resetMain()
   }
 
   @Test
@@ -53,7 +46,7 @@ class UserProfileViewModelTest {
 
     viewModel.loadUser(profile.uid)
 
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
     val state = viewModel.userState.value
     assertEquals("alice", state.userProfile.username)
     assertEquals("Alice", state.userProfile.firstName)

@@ -29,7 +29,7 @@ object UserTestData {
       BaseUser.copy(
           uid = "1",
           username = "Alice",
-          firstName = "second",
+          firstName = "Second",
           lastName = "Usering",
           country = "FR",
           description = "a second user",
@@ -50,15 +50,16 @@ object UserTestData {
       BaseUser.copy(
           uid = "2",
           username = "Rocky",
-          firstName = "third",
+          firstName = "Third",
           lastName = "User",
           country = "PT",
           description = "a third user",
           dateOfBirth = LocalDate.of(2012, 9, 12),
           tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
 
-  val Arthur = BaseUser.copy(country = "CH")
-
+  val Arthur =
+      BaseUser.copy(
+          country = "CH", profilePicture = ByteArray(126 * 126) { index -> (index % 256).toByte() })
   val FullDescription = BaseUser.copy(uid = "20")
 
   val EmptyDescription = BaseUser.copy(uid = "20", description = "")

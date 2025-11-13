@@ -27,7 +27,8 @@ data class UserProfileUIState(
             lastName = "",
             country = "",
             dateOfBirth = LocalDate.now(),
-            tags = emptySet()),
+            tags = emptySet(),
+            profilePicture = null),
     val age: Int = 0,
     val errorMsg: String? = null
 )

@@ -1,5 +1,6 @@
 package com.android.universe.ui.eventCreation
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
@@ -21,7 +22,9 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class EventCreationViewModelTest {
   private lateinit var eventRepository: FakeEventRepository
   private lateinit var userRepository: FakeUserRepository

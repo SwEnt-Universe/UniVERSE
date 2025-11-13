@@ -2,8 +2,10 @@ package com.android.universe.ui.emailVerification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.di.DefaultDP
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 const val ONE_SECOND = 1000L
@@ -51,7 +54,10 @@ data class EmailVerificationUIState(
  *
  * @param user The current [FirebaseUser] whose email needs to be verified.
  */
-class EmailVerificationViewModel() : ViewModel() {
+class EmailVerificationViewModel(
+    private val iODispatcher: CoroutineDispatcher = DefaultDP.io,
+    private val mainDispatcher: CoroutineDispatcher = DefaultDP.main
+) : ViewModel() {
   private val _uiState = MutableStateFlow(EmailVerificationUIState())
   val uiState: StateFlow<EmailVerificationUIState> = _uiState.asStateFlow()
   private var awaitEmailJob: Job? = null
@@ -89,15 +95,20 @@ class EmailVerificationViewModel() : ViewModel() {
       return
     }
     viewModelScope.launch {
-      runCatching { user.sendEmailVerification().await() }
-          .onSuccess { awaitEmailVerification(user) }
-          .onFailure { th ->
-            if (th is FirebaseTooManyRequestsException)
-                awaitEmailVerification(
-                    user) // Suppress this error, since a validation email was send in the last
-            // minute.
-            else _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
-          }
+      withContext(iODispatcher) {
+        runCatching { user.sendEmailVerification().await() }
+            .onSuccess { awaitEmailVerification(user) }
+            .onFailure { th ->
+              if (th is FirebaseTooManyRequestsException)
+                  awaitEmailVerification(
+                      user) // Suppress this error, since a validation email was send in the last
+              // minute.
+              else
+                  withContext(mainDispatcher) {
+                    _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
+                  }
+            }
+      }
     }
   }
 
@@ -126,6 +137,7 @@ class EmailVerificationViewModel() : ViewModel() {
           while (isActive && !user.isEmailVerified) {
             delay(ONE_SECOND)
             countDown()
+
             runCatching { user.reload().await() }
                 .onFailure {
                   _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }

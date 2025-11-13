@@ -39,9 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
-import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.auth
 
 object EmailVerificationScreenTestTags {
   const val ICON_BOX = "ICON_BOX"
@@ -77,7 +76,7 @@ object EmailVerificationScreenTestTags {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmailVerificationScreen(
-    user: FirebaseUser? = Firebase.auth.currentUser,
+    user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
     onSuccess: () -> Unit = {},
     onBack: () -> Unit = {},
     viewModel: EmailVerificationViewModel = viewModel()
