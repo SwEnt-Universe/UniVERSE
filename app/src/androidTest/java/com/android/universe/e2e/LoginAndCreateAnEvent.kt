@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
+import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventScreenTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
@@ -28,12 +29,18 @@ import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import io.mockk.every
+import io.mockk.mockkObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
@@ -52,6 +59,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Before
   override fun setUp() {
     super.setUp()
+    mockkObject(DefaultDP)
+    every { DefaultDP.io } returns UnconfinedTestDispatcher()
+    every { DefaultDP.default } returns UnconfinedTestDispatcher()
+    every { DefaultDP.main } returns Dispatchers.Main
     runTest {
       val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
       fakeUser = fakeUser.copy(uid = uid)
