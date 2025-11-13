@@ -33,17 +33,6 @@ kotlin {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Java Toolchain Configuration
-// - Explicitly tells Gradle to use Java 17 for compilation,
-// - testing, and daemon execution.
-// ─────────────────────────────────────────────────────────────────────────────
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Versions & constants (from Version Catalog)
 // - Single source of truth for JaCoCo engine version.
 // ─────────────────────────────────────────────────────────────────────────────
