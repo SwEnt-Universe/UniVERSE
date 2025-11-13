@@ -1,31 +1,30 @@
 package com.android.universe.ui.profileCreation
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
-import java.time.LocalDate
-import kotlinx.coroutines.Dispatchers
+import com.android.universe.utils.MainCoroutineRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class AddProfileViewModelTest {
-
-  private val testDispatcher = StandardTestDispatcher()
-
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: AddProfileViewModel
 
   @Before
   fun setup() {
-    Dispatchers.setMain(testDispatcher)
     repository = FakeUserRepository()
     viewModel = AddProfileViewModel(repository)
   }
@@ -142,8 +141,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyFirstName() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("")
@@ -164,8 +162,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyLastName() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -186,8 +183,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyDay() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -208,8 +204,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileNonNumericDay() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -230,8 +225,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyMonth() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -252,8 +246,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileNonNumericMonth() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -274,8 +267,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyYear() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -296,8 +288,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileNonNumericYear() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -318,8 +309,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyCountry() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -340,8 +330,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileInvalidCountry() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -362,8 +351,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileInvalidDate1() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher, testDispatcher, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -384,8 +372,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileInvalidDate2() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -406,8 +393,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileInvalidDate3() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -428,8 +414,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileInvalidDate4() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher, testDispatcher, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -452,8 +437,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileEmptyUsername() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("")
     viewModel.setFirstName("John")
@@ -474,9 +458,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileValid() = runTest {
     val repository = FakeUserRepository()
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    val testRepositoryDispatcher = StandardTestDispatcher(testScheduler)
-    val viewModel = AddProfileViewModel(repository, testDispatcher, testRepositoryDispatcher)
+    val viewModel = AddProfileViewModel(repository)
 
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
@@ -630,8 +612,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileRejectsInvalidUsernameCharacters() = runTest {
     val repository = FakeUserRepository()
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("invalid@name")
     vm.setFirstName("John")
@@ -651,8 +632,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileRejectsTooLongUsername() = runTest {
     val repository = FakeUserRepository()
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("a".repeat(InputLimits.USERNAME + 2))
     vm.setFirstName("John")
@@ -674,8 +654,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileRejectsInvalidNameCharacters() = runTest {
     val repository = FakeUserRepository()
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("john_doe")
     vm.setFirstName("John1")
@@ -695,8 +674,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileRejectsTooLongFirstName() = runTest {
     val repository = FakeUserRepository()
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("john_doe")
     vm.setFirstName("A".repeat(InputLimits.FIRST_NAME + 5))
@@ -718,8 +696,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileRejectsTooLongLastName() = runTest {
     val repository = FakeUserRepository()
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("john_doe")
     vm.setFirstName("John")
@@ -741,8 +718,7 @@ class AddProfileViewModelTest {
   @Test
   fun addProfileRejectsTooLongDescription() = runTest {
     val repository = FakeUserRepository()
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("john_doe")
     vm.setFirstName("John")
@@ -764,9 +740,7 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileTrimsAndAddsCleanedNames() = runTest {
-    val dispatcher = StandardTestDispatcher(testScheduler)
-    val testRepositoryDispatcher = StandardTestDispatcher(testScheduler)
-    val vm = AddProfileViewModel(repository, dispatcher, testRepositoryDispatcher)
+    val vm = AddProfileViewModel(repository)
 
     vm.setUsername("john_doe")
     vm.setFirstName("   Jean   Luc   ")

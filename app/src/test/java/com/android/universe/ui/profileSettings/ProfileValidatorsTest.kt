@@ -1,5 +1,6 @@
 package com.android.universe.ui.profileSettings
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
@@ -14,17 +15,16 @@ import com.android.universe.ui.common.validateMonth
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.common.validateYear
-import java.time.LocalDate
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import java.time.LocalDate
 
+@RunWith(AndroidJUnit4::class)
 class ProfileValidatorsTest {
 
   // A mock map to test country validation
   private val mockCountryMap = mapOf("Switzerland" to "CH", "France" to "FR", "Germany" to "DE")
-
-  @Before fun setUp() {}
 
   // --- Email Validation ---
 

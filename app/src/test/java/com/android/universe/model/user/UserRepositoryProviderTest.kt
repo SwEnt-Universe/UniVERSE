@@ -1,10 +1,13 @@
 package com.android.universe.model.user
 
-import java.time.LocalDate
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import java.time.LocalDate
 
+@RunWith(AndroidJUnit4::class)
 class UserRepositoryProviderTest {
 
   @Test

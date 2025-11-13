@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
@@ -53,7 +55,8 @@ import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,11 +85,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UniverseApp(
     context: Context = LocalContext.current,
-    credentialManager: CredentialManager = CredentialManager.create(context)
+    credentialManager: CredentialManager = CredentialManager.create(context),
+    IODispatcher: CoroutineDispatcher = DefaultDP.io
 ) {
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
+  val mainActivityScope = rememberCoroutineScope()
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
@@ -108,10 +113,13 @@ fun UniverseApp(
         composable(NavigationScreens.SignIn.route) {
           SignInScreen(
               onSignedIn = {
-                runBlocking {
-                  val destination = resolveUserDestinationScreen(userRepository)
-                  navigationActions.navigateTo(destination)
-                }
+                var destination: NavigationScreens? = null
+                mainActivityScope
+                    .launch {
+                      destination =
+                          resolveUserDestinationScreen(userRepository, iODispatcher = IODispatcher)
+                    }
+                    .invokeOnCompletion { navigationActions.navigateTo(destination!!) }
               },
               credentialManager = credentialManager)
         }
@@ -141,8 +149,11 @@ fun UniverseApp(
           EmailVerificationScreen(
               user = Firebase.auth.currentUser!!,
               onSuccess = {
-                runBlocking {
-                  navigationActions.navigateTo(resolveUserDestinationScreen(userRepository))
+                var destination : NavigationScreens? = null
+                mainActivityScope.launch{
+                  destination = resolveUserDestinationScreen(userRepository)
+                }.invokeOnCompletion {
+                   navigationActions.navigateTo(destination!!)
                 }
               },
               onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })

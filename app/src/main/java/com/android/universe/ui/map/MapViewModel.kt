@@ -2,6 +2,7 @@ package com.android.universe.ui.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
@@ -10,7 +11,9 @@ import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class MapUiState(
     val isLoading: Boolean = false,
@@ -41,7 +45,8 @@ class MapViewModel(
     private val currentUserId: String,
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
@@ -82,7 +87,7 @@ class MapViewModel(
               _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
             }
             count++
-            kotlinx.coroutines.delay(intervalMinutes * 60 * 1000)
+            withContext(ioDispatcher) { delay(intervalMinutes * 60 * 1000) }
           }
         }
   }

@@ -1,6 +1,8 @@
 package com.android.universe.ui.profileSettings
 
 import android.util.Log
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
@@ -11,24 +13,35 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import io.mockk.*
-import java.time.LocalDate
-import junit.framework.TestCase.*
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+import io.mockk.verify
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class SettingsViewModelTest {
 
   @get:Rule val mainCoroutineRule = MainCoroutineRule()
-  private val testDispatcher
-    get() = mainCoroutineRule.dispatcher
 
   private lateinit var fakeRepo: FakeUserRepository
   private lateinit var mockRepo: UserRepository
@@ -41,7 +54,11 @@ class SettingsViewModelTest {
   @Before
   fun setUp() {
 
-    runTest(testDispatcher) {
+    runTest {
+      // Mock Dispatchers
+      mockkObject(DefaultDP)
+      every { DefaultDP.io } returns UnconfinedTestDispatcher()
+      every { DefaultDP.default } returns UnconfinedTestDispatcher()
       // Mock FirebaseAuth
       mockkStatic(FirebaseAuth::class)
       val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
@@ -106,7 +123,7 @@ class SettingsViewModelTest {
   // Initialization Tests
   @Test
   fun `init sets email from Firebase if available`() =
-      runTest(testDispatcher) {
+      runTest  {
         val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
@@ -117,12 +134,12 @@ class SettingsViewModelTest {
 
   @Test
   fun `init does not set email if Firebase user is null`() =
-      runTest(testDispatcher) { assertEquals("preview@epfl.ch", viewModel.uiState.value.email) }
+      runTest  { assertEquals("preview@epfl.ch", viewModel.uiState.value.email) }
 
   // loadUser Tests
   @Test
   fun `loadUser populates UiState from repository`() =
-      runTest(testDispatcher) {
+      runTest {
         viewModel.loadUser("0")
         advanceUntilIdle()
 
@@ -139,7 +156,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `loadUser sets errorMsg on repository failure`() =
-      runTest(testDispatcher) {
+      runTest {
         coEvery { mockRepo.getUser("0") } throws NoSuchElementException("No user found")
         every { UserRepositoryProvider.repository } returns mockRepo
         val viewModel = SettingsViewModel(UserRepositoryProvider)
@@ -153,7 +170,7 @@ class SettingsViewModelTest {
   // clearErrorMsg Tests
   @Test
   fun `clearErrorMsg resets errorMsg`() =
-      runTest(testDispatcher) {
+      runTest  {
         coEvery { mockRepo.getUser("0") } throws NoSuchElementException("No user found")
         every { UserRepositoryProvider.repository } returns mockRepo
         val viewModel = SettingsViewModel(UserRepositoryProvider)
@@ -169,7 +186,7 @@ class SettingsViewModelTest {
   // updateTemp Tests
   @Test
   fun `updateTemp updates tempValue and clears modalError`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.openModal("email")
         viewModel.updateTemp("tempValue", "invalid")
         viewModel.saveModal("0")
@@ -183,7 +200,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `updateTemp updates tempDay and clears tempDayError`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.openModal("date")
         viewModel.updateTemp("tempDay", "32")
         viewModel.updateTemp("tempMonth", "13")
@@ -199,7 +216,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `updateTemp ignores invalid key`() =
-      runTest(testDispatcher) {
+      runTest  {
         val initialState = viewModel.uiState.value
         viewModel.updateTemp("invalid", "value")
         assertEquals(initialState, viewModel.uiState.value)
@@ -208,7 +225,7 @@ class SettingsViewModelTest {
   // openModal Tests
   @Test
   fun `openModal prefills temp for text fields`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
 
@@ -233,7 +250,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `openModal prefills date triplet`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
 
@@ -246,7 +263,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `openModal sets tempSelectedTags for tag category`() =
-      runTest(testDispatcher) {
+      runTest  {
         val interestTags = Tag.getTagsForCategory(Tag.Category.INTEREST).take(2)
         fakeRepo.updateUser(
             "0",
@@ -269,7 +286,7 @@ class SettingsViewModelTest {
   // closeModal Tests
   @Test
   fun `closeModal resets modal state`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.openModal("date")
         viewModel.updateTemp("tempDay", "32")
         viewModel.updateTemp("tempMonth", "13")
@@ -288,7 +305,7 @@ class SettingsViewModelTest {
   // toggleCountryDropdown Tests
   @Test
   fun `toggleCountryDropdown updates showCountryDropdown`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.toggleCountryDropdown(true)
         assertTrue(viewModel.uiState.value.showCountryDropdown)
         viewModel.toggleCountryDropdown(false)
@@ -298,7 +315,7 @@ class SettingsViewModelTest {
   // addTag and removeTag Tests
   @Test
   fun `addTag adds new tag and logs error for duplicate`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.openModal(Tag.Category.INTEREST.fieldName)
         val tag = Tag.getTagsForCategory(Tag.Category.INTEREST).first()
 
@@ -311,7 +328,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `removeTag removes tag and logs error for non-existent`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.openModal(Tag.Category.INTEREST.fieldName)
         val tag = Tag.getTagsForCategory(Tag.Category.INTEREST).first()
         viewModel.addTag(tag)
@@ -326,7 +343,7 @@ class SettingsViewModelTest {
   // saveModal Tests
   @Test
   fun `saveModal updates email when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
@@ -341,7 +358,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets modalError for invalid email`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("email")
@@ -355,7 +372,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal updates password when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("password")
@@ -370,7 +387,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets modalError for invalid password`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("password")
@@ -384,7 +401,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal updates firstName when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("firstName")
@@ -399,7 +416,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets modalError for invalid firstName`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("firstName")
@@ -413,7 +430,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal updates lastName when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("lastName")
@@ -428,7 +445,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets modalError for invalid lastName`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("lastName")
@@ -442,7 +459,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal updates description when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("description")
@@ -457,7 +474,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets modalError for invalid description`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("description")
@@ -471,7 +488,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal updates country when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("country")
@@ -486,7 +503,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets modalError for empty country`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("country")
@@ -500,7 +517,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal updates date when valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("date")
@@ -522,7 +539,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal sets date errors for invalid date`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("date")
@@ -541,7 +558,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveModal commits selected interest tags replacing category`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal(Tag.Category.INTEREST.fieldName)
@@ -557,7 +574,7 @@ class SettingsViewModelTest {
   // saveProfile Tests
   @Test
   fun `saveProfile updates repository when all valid`() =
-      runTest(testDispatcher) {
+      runTest  {
         viewModel.loadUser("0")
         advanceUntilIdle()
         viewModel.openModal("firstName")
@@ -580,7 +597,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveProfile updates email in Firebase when changed`() =
-      runTest(testDispatcher) {
+      runTest  {
         val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
@@ -599,7 +616,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveProfile does not update email if unchanged`() =
-      runTest(testDispatcher) {
+      runTest  {
         val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
@@ -615,7 +632,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveProfile updates password in Firebase when provided`() =
-      runTest(testDispatcher) {
+      runTest  {
         val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
@@ -634,7 +651,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `saveProfile does not update password if empty`() =
-      runTest(testDispatcher) {
+      runTest  {
         val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
         every { FirebaseAuth.getInstance() } returns fakeAuth
         every { fakeAuth.currentUser } returns mockFirebaseUser
@@ -651,7 +668,7 @@ class SettingsViewModelTest {
   fun signOutTest() {
     var cleared = false
     var navigated = false
-    runTest(testDispatcher) {
+    runTest  {
       viewModel.signOut(clear = suspend { cleared = true }, navigate = { navigated = true })
       delay(1000)
     }

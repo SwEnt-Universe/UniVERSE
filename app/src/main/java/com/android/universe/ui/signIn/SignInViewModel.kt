@@ -14,6 +14,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.authentication.InvalidEmailException
@@ -27,7 +28,6 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,7 +67,7 @@ data class SignInUIState(
  */
 class SignInViewModel(
     private val authModel: AuthModel = AuthModelFirebase(),
-    private val iODispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val iODispatcher: CoroutineDispatcher = DefaultDP.io
 ) : ViewModel() {
 
   companion object {

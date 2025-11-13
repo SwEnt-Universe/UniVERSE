@@ -1,10 +1,10 @@
 package com.android.universe.model.user
 
 import android.util.Log
+import com.android.universe.di.DefaultDP
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -94,7 +94,7 @@ import kotlinx.coroutines.flow.shareIn
  */
 class UserReactiveRepository(
     private val db: FirebaseFirestore,
-    scopeDispatcher: CoroutineDispatcher = Dispatchers.IO
+    scopeDispatcher: CoroutineDispatcher = DefaultDP.io
 ) {
   // Cache of user flows so we don't re-subscribe for the same uid
   private val userFlows = mutableMapOf<String, SharedFlow<UserProfile?>>()

@@ -10,11 +10,16 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 /**
  * UI state for an event item.
@@ -113,7 +118,7 @@ class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
 ) : ViewModel() {
 
   /** Backing property for the list of event UI states. */
@@ -160,7 +165,7 @@ class EventViewModel(
         // Combine all event flows
         combine(
                 distinctCreators.map { uid ->
-                  userReactiveRepository!!.getUserFlow(uid).map { uid to it }
+                  userReactiveRepository.getUserFlow(uid).map { uid to it }
                 }) { userPairs ->
                   val usersMap = userPairs.toMap()
                   events.mapIndexed { index, event ->

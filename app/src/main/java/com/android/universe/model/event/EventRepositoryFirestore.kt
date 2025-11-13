@@ -1,14 +1,17 @@
 package com.android.universe.model.event
 
 import android.util.Log
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlinx.coroutines.tasks.await
 
 // Firestore collection path for events.
 const val EVENTS_COLLECTION_PATH = "events"
@@ -35,7 +38,10 @@ private inline fun <reified K, reified V> Any?.safeCastMap(): Map<K, V> {
  *
  * Stores events in the database and persist data between app launches.
  */
-class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventRepository {
+class EventRepositoryFirestore(
+    private val db: FirebaseFirestore,
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
+) : EventRepository {
 
   /**
    * Converts a Location object to a Map<String, Any?>.
@@ -115,7 +121,8 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    */
   override suspend fun getAllEvents(): List<Event> {
     val events = ArrayList<Event>()
-    val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get().await()
+    val querySnapshot =
+        withContext(ioDispatcher) { db.collection(EVENTS_COLLECTION_PATH).get().await() }
     for (document in querySnapshot.documents) {
       val event = documentToEvent(document)
       events.add(event)
@@ -131,7 +138,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    * @throws NoSuchElementException if no event with the given [eventId] exists.
    */
   override suspend fun getEvent(eventId: String): Event {
-    val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+    val event =
+        withContext(ioDispatcher) {
+          db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+        }
     if (event.exists()) {
       return documentToEvent(event)
     } else {
@@ -157,7 +167,9 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    * @param event the [Event] to add.
    */
   override suspend fun addEvent(event: Event) {
-    db.collection(EVENTS_COLLECTION_PATH).document(event.id).set(eventToMap(event)).await()
+    withContext(ioDispatcher) {
+      db.collection(EVENTS_COLLECTION_PATH).document(event.id).set(eventToMap(event)).await()
+    }
   }
 
   /**
@@ -168,12 +180,17 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    * @throws NoSuchElementException if no event with the given [eventId] exists.
    */
   override suspend fun updateEvent(eventId: String, newEvent: Event) {
-    val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+    val event =
+        withContext(ioDispatcher) {
+          db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+        }
     if (event.exists()) {
-      db.collection(EVENTS_COLLECTION_PATH)
-          .document(eventId)
-          .set(eventToMap(newEvent.copy(id = eventId)))
-          .await()
+      withContext(ioDispatcher) {
+        db.collection(EVENTS_COLLECTION_PATH)
+            .document(eventId)
+            .set(eventToMap(newEvent.copy(id = eventId)))
+            .await()
+      }
     } else {
       throw NoSuchElementException("No event with ID $eventId found")
     }
@@ -193,11 +210,12 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     if (userTagOrdinals.isEmpty()) return emptyList()
 
     val querySnapshot =
-        db.collection(EVENTS_COLLECTION_PATH)
-            .whereArrayContainsAny("tags", userTagOrdinals.take(10))
-            .get()
-            .await()
-
+        withContext(ioDispatcher) {
+          db.collection(EVENTS_COLLECTION_PATH)
+              .whereArrayContainsAny("tags", userTagOrdinals.take(10))
+              .get()
+              .await()
+        }
     return querySnapshot.documents.map { doc -> documentToEvent(doc) }
   }
 
@@ -225,9 +243,14 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    * @throws NoSuchElementException if no event with the given [eventId] exists.
    */
   override suspend fun deleteEvent(eventId: String) {
-    val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+    val event =
+        withContext(ioDispatcher) {
+          db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+        }
     if (event.exists()) {
-      db.collection(EVENTS_COLLECTION_PATH).document(eventId).delete().await()
+      withContext(ioDispatcher) {
+        db.collection(EVENTS_COLLECTION_PATH).document(eventId).delete().await()
+      }
     } else {
       throw NoSuchElementException("No event with ID $eventId found")
     }

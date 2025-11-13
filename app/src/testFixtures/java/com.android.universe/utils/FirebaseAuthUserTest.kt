@@ -2,6 +2,7 @@ package com.android.universe.utils
 
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EVENTS_COLLECTION_PATH
 import com.android.universe.model.user.USERS_COLLECTION_PATH
 import com.android.universe.model.user.UserProfile
@@ -11,14 +12,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import java.net.HttpURLConnection
-import java.net.URL
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Before
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * Base class for tests that require both Firebase Auth and Firestore emulators. Combines
@@ -55,7 +55,7 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
 
   /** Clears all users from the Firebase Auth emulator. */
   private suspend fun clearAuthUsers() {
-    withContext(Dispatchers.IO) {
+    withContext(DefaultDP.io) {
       val projectId = FirebaseApp.getInstance().options.projectId
       val host = if (isRobolectric) "127.0.0.1" else "10.0.2.2"
       val url =
