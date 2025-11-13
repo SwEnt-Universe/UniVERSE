@@ -6,7 +6,9 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.signIn.SignInViewModel
+import com.android.universe.utils.MainCoroutineRule
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -16,6 +18,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -23,12 +27,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
 @ExperimentalCoroutinesApi
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class SignInViewModelTest {
   private val validEmail = "test@epfl.ch"
   private val invalidEmail = "not-an-email"
@@ -45,6 +49,8 @@ class SignInViewModelTest {
 
   // ViewModel under test
   private lateinit var viewModel: SignInViewModel
+
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
   @Before
   fun setUp() {
@@ -63,7 +69,7 @@ class SignInViewModelTest {
     every { mockGetCredentialResponse.credential } returns mockCredential
 
     // Instantiate ViewModel
-    viewModel = SignInViewModel(mockAuthModel)
+    viewModel = SignInViewModel(mockAuthModel, UnconfinedTestDispatcher())
   }
 
   /**
@@ -241,10 +247,11 @@ class SignInViewModelTest {
     } coAnswers { mockCredential }
     runTest {
       viewModel.signIn(context = mockContext, credentialManager = mockCredentialManager)
-
+      advanceUntilIdle()
       // Act
       // Try to sign in again while the first one is in progress
       viewModel.signIn(context = mockContext, credentialManager = mockCredentialManager)
+      advanceUntilIdle()
     }
     // Assert
     // Verify that getCredential was only called once for the first invocation.
@@ -333,6 +340,7 @@ class SignInViewModelTest {
   fun `signInWithEmail does nothing when loading`() = runTest {
     viewModel.nowLoading()
     viewModel.signInWithEmail()
+    advanceUntilIdle()
     coVerify(exactly = 0) { mockAuthModel.signInWithEmail(any(), any()) }
   }
 
@@ -343,6 +351,7 @@ class SignInViewModelTest {
     viewModel.setPassword(validPassword)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     coVerify(exactly = 0) { mockAuthModel.signInWithEmail(any(), any()) }
   }
@@ -356,6 +365,7 @@ class SignInViewModelTest {
         Result.success(mockFirebaseUser)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     coVerify(exactly = 1) { mockAuthModel.signInWithEmail(validEmail, validPassword) }
   }
@@ -369,6 +379,7 @@ class SignInViewModelTest {
         Result.success(mockFirebaseUser)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
@@ -389,6 +400,7 @@ class SignInViewModelTest {
         Result.failure(exception)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
@@ -408,6 +420,7 @@ class SignInViewModelTest {
         Result.failure(exception)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
@@ -425,6 +438,7 @@ class SignInViewModelTest {
         Result.failure(exception)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
@@ -442,6 +456,7 @@ class SignInViewModelTest {
         Result.failure(exception)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
@@ -459,6 +474,7 @@ class SignInViewModelTest {
         Result.failure(exception)
 
     viewModel.signInWithEmail()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)

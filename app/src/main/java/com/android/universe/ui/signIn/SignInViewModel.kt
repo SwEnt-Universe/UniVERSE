@@ -14,6 +14,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.authentication.InvalidEmailException
@@ -26,11 +27,13 @@ import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Represents the UI state for the Sign In screen.
@@ -62,7 +65,10 @@ data class SignInUIState(
  *
  * @param authModel The authentication model responsible for handling authentication logic.
  */
-class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : ViewModel() {
+class SignInViewModel(
+    private val authModel: AuthModel = AuthModelFirebase(),
+    private val iODispatcher: CoroutineDispatcher = DefaultDP.io
+) : ViewModel() {
 
   companion object {
     private const val TAG = "SignInViewModel"
@@ -176,7 +182,8 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
       val signInRequest = googleSignInRequest(signInOptions)
 
       try {
-        val credential = getCredential(context, signInRequest, credentialManager)
+        val credential =
+            withContext(iODispatcher) { getCredential(context, signInRequest, credentialManager) }
 
         authModel.signInWithGoogle(
             credential,

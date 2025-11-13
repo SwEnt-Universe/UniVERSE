@@ -33,8 +33,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.google.firebase.auth.FirebaseAuth
 
 /** All the tags that are used to test the EventCreation screen. */
 object EventCreationTestTags {
@@ -252,7 +251,7 @@ fun EventCreationScreen(
                       .fillMaxWidth()
                       .padding(16.dp),
               onClick = {
-                val currentUser = Firebase.auth.currentUser?.uid
+                val currentUser = FirebaseAuth.getInstance().currentUser?.uid
                 if (currentUser != null) {
                   eventCreationViewModel.saveEvent(location = location, uid = currentUser)
                   onSave()

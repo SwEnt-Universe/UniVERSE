@@ -296,8 +296,8 @@ dependencies {
     globalTestImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.turbine)
-    testImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
-    testImplementation(libs.mockk.agent)
+    globalTestImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
+    globalTestImplementation(libs.mockk.agent)
     testImplementation(libs.robolectric)
     // WARNING: logback can only be used in local tests, not instrumented tests.
     testImplementation(libs.logback)
