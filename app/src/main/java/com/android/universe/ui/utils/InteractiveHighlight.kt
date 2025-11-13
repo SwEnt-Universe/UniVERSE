@@ -37,11 +37,12 @@ import kotlinx.coroutines.launch
  *
  * These should be applied to the same composable.
  *
- * @param animationScope The [kotlinx.coroutines.CoroutineScope] used to launch animations for press, release, and
- *   drag.
+ * @param animationScope The [kotlinx.coroutines.CoroutineScope] used to launch animations for
+ *   press, release, and drag.
  * @param position A lambda function to calculate the final highlight position. It receives the
- *   [androidx.compose.ui.geometry.Size] of the composable and the current drag [androidx.compose.ui.geometry.Offset] and returns the [androidx.compose.ui.geometry.Offset] where the
- *   highlight should be centered.
+ *   [androidx.compose.ui.geometry.Size] of the composable and the current drag
+ *   [androidx.compose.ui.geometry.Offset] and returns the [androidx.compose.ui.geometry.Offset]
+ *   where the highlight should be centered.
  */
 class InteractiveHighlight(
     val animationScope: CoroutineScope,
@@ -62,8 +63,7 @@ class InteractiveHighlight(
       Animatable(
           Offset.Companion.Zero,
           Offset.Companion.VectorConverter,
-          Offset.Companion.VisibilityThreshold
-      )
+          Offset.Companion.VisibilityThreshold)
 
   /** Stores the initial pointer down position to calculate drag offset. */
   private var startPosition = Offset.Companion.Zero
@@ -77,13 +77,13 @@ class InteractiveHighlight(
     get() = positionAnimation.value - startPosition
 
   /**
-   * The [android.graphics.RuntimeShader] used for the advanced highlight effect on API 33+. It creates a smooth
-   * radial gradient.
+   * The [android.graphics.RuntimeShader] used for the advanced highlight effect on API 33+. It
+   * creates a smooth radial gradient.
    */
   private val shader =
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          RuntimeShader(
-              """
+        RuntimeShader(
+            """
 uniform float2 size;
 layout(color) uniform half4 color;
 uniform float radius;
@@ -93,16 +93,17 @@ half4 main(float2 coord) {
     float dist = distance(coord, position);
     float intensity = smoothstep(radius, radius * 0.5, dist);
     return color * intensity;
-}"""
-          )
+}""")
       } else {
         null
       }
 
   /**
-   * The [androidx.compose.ui.Modifier] responsible for drawing the highlight effect. It draws a radial gradient via
-   * [RuntimeShader] on API 33+ or a simple translucent [androidx.compose.ui.graphics.Color.Companion.White] rectangle as a fallback. The
-   * effect is drawn with [androidx.compose.ui.graphics.BlendMode.Companion.Plus] to create an additive light effect.
+   * The [androidx.compose.ui.Modifier] responsible for drawing the highlight effect. It draws a
+   * radial gradient via [RuntimeShader] on API 33+ or a simple translucent
+   * [androidx.compose.ui.graphics.Color.Companion.White] rectangle as a fallback. The effect is
+   * drawn with [androidx.compose.ui.graphics.BlendMode.Companion.Plus] to create an additive light
+   * effect.
    */
   val modifier: Modifier =
       Modifier.Companion.drawWithContent {
@@ -110,7 +111,8 @@ half4 main(float2 coord) {
         if (progress > 0f) {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && shader != null) {
             // Base layer of highlight
-            drawRect(Color.Companion.White.copy(0.08f * progress), blendMode = BlendMode.Companion.Plus)
+            drawRect(
+                Color.Companion.White.copy(0.08f * progress), blendMode = BlendMode.Companion.Plus)
 
             // Configure and draw the shader-based highlight
             shader.apply {
@@ -126,7 +128,8 @@ half4 main(float2 coord) {
             drawRect(ShaderBrush(shader), blendMode = BlendMode.Companion.Plus)
           } else {
             // Fallback for older Android versions
-            drawRect(Color.Companion.White.copy(0.25f * progress), blendMode = BlendMode.Companion.Plus)
+            drawRect(
+                Color.Companion.White.copy(0.25f * progress), blendMode = BlendMode.Companion.Plus)
           }
         }
 

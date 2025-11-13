@@ -228,12 +228,17 @@ fun TomTomMapView(
             createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
             viewModel.selectLocation(null, null)
           },
-          modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+          modifier =
+              Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
             Text("Create your Event !")
           }
     }
   }
-  Button(onClick = { viewModel.loadAllEvents() }) { Text("Reload events") }
+  Button(
+      onClick = { viewModel.loadAllEvents() },
+      modifier = Modifier.padding(top = 32.dp).padding(horizontal = 16.dp)) {
+        Text("Reload events")
+      }
 
   LaunchedEffect(Unit) {
     viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }

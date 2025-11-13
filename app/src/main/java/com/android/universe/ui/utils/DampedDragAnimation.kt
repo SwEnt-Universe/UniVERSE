@@ -9,12 +9,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.unit.IntSize
+import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 /**
  * Original source:
@@ -35,8 +35,8 @@ import kotlin.math.abs
  *
  * It provides a [modifier] that should be attached to the Composable to enable drag detection.
  *
- * @param animationScope The [kotlinx.coroutines.CoroutineScope] used to run all animations. Typically, this is
- *   `rememberCoroutineScope()`.
+ * @param animationScope The [kotlinx.coroutines.CoroutineScope] used to run all animations.
+ *   Typically, this is `rememberCoroutineScope()`.
  * @param initialValue The starting float value of the drag (e.g., 0f).
  * @param valueRange The allowed range for the main drag value. Dragging will be clamped to this
  *   range.
@@ -109,9 +109,9 @@ class DampedDragAnimation(
     get() = velocityAnimation.value
 
   /**
-   * The [androidx.compose.ui.Modifier] that should be attached to the Composable that needs to respond to the damped
-   * drag. This handles all pointer input events (start, end, cancel, drag) and triggers the
-   * corresponding animation and lifecycle functions.
+   * The [androidx.compose.ui.Modifier] that should be attached to the Composable that needs to
+   * respond to the damped drag. This handles all pointer input events (start, end, cancel, drag)
+   * and triggers the corresponding animation and lifecycle functions.
    */
   val modifier: Modifier =
       Modifier.Companion.pointerInput(Unit) {

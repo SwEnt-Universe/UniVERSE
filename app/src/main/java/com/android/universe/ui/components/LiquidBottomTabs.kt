@@ -137,34 +137,28 @@ fun LiquidBottomTabs(
         var currentIndex by remember(selectedTabIndex) { mutableIntStateOf(selectedTabIndex()) }
         val dampedDragAnimation =
             remember(animationScope) {
-                DampedDragAnimation(
-                    animationScope = animationScope,
-                    initialValue = selectedTabIndex().toFloat(),
-                    valueRange = 0f..(tabsCount - 1).toFloat(),
-                    visibilityThreshold = 0.001f,
-                    initialScale = 1f,
-                    pressedScale = 78f / 56f,
-                    onDragStarted = {},
-                    onDragStopped = {
-                        val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat())
-                        currentIndex = targetIndex.toInt()
-                        animateToValue(targetIndex)
-                        animationScope.launch {
-                            offsetAnimation.animateTo(
-                                0f,
-                                spring(1f, 300f, 0.5f)
-                            )
-                        }
-                    },
-                    onDrag = { _, dragAmount ->
-                        updateValue(
-                            (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f)
-                                .fastCoerceIn(0f, (tabsCount - 1).toFloat())
-                        )
-                        animationScope.launch {
-                            offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
-                        }
-                    })
+              DampedDragAnimation(
+                  animationScope = animationScope,
+                  initialValue = selectedTabIndex().toFloat(),
+                  valueRange = 0f..(tabsCount - 1).toFloat(),
+                  visibilityThreshold = 0.001f,
+                  initialScale = 1f,
+                  pressedScale = 78f / 56f,
+                  onDragStarted = {},
+                  onDragStopped = {
+                    val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat())
+                    currentIndex = targetIndex.toInt()
+                    animateToValue(targetIndex)
+                    animationScope.launch { offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f)) }
+                  },
+                  onDrag = { _, dragAmount ->
+                    updateValue(
+                        (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f)
+                            .fastCoerceIn(0f, (tabsCount - 1).toFloat()))
+                    animationScope.launch {
+                      offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
+                    }
+                  })
             }
         LaunchedEffect(selectedTabIndex) {
           snapshotFlow { selectedTabIndex() }.collectLatest { index -> currentIndex = index }
@@ -179,17 +173,16 @@ fun LiquidBottomTabs(
         }
         val interactiveHighlight =
             remember(animationScope) {
-                InteractiveHighlight(
-                    animationScope = animationScope,
-                    position = { size, _ ->
-                        Offset(
-                            if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
-                            else
-                                size.width - (dampedDragAnimation.value + 0.5f) * tabWidth +
-                                        panelOffset,
-                            size.height / 2f
-                        )
-                    })
+              InteractiveHighlight(
+                  animationScope = animationScope,
+                  position = { size, _ ->
+                    Offset(
+                        if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
+                        else
+                            size.width - (dampedDragAnimation.value + 0.5f) * tabWidth +
+                                panelOffset,
+                        size.height / 2f)
+                  })
             }
 
         Row(
