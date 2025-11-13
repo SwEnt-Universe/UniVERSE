@@ -1,3 +1,5 @@
+package com.android.universe.ui.chat
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -62,7 +64,7 @@ class SendMessageInputTest {
 
     // 2. Simulate text input by updating the ViewModel's state flow
     // We update the flow directly to simulate the ViewModel receiving the text.
-    composeTestRule.runOnUiThread { messageFlow.value = testMessage }
+    messageFlow.value = testMessage
     composeTestRule.waitForIdle()
 
     // 3. Now button should be enabled
