@@ -128,7 +128,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.AddProfile.route) {
           AddProfileScreen(
-              uid = FirebaseAuth.getInstance().currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
               onBack = {
                 // Navigate back to Sign In

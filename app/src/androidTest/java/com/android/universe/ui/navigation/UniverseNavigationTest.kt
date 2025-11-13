@@ -18,7 +18,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class UniverseAppNavigationTest : FirestoreUserTest(true) {
+class UniverseAppNavigationTest : FirestoreUserTest(false) {
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule
