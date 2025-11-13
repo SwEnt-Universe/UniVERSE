@@ -18,6 +18,13 @@ object SendMessageInputTestTags {
   const val SEND_BUTTON = "SEND_BUTTON"
 }
 
+/**
+ * A composable function that provides a text input field and a send button for a chat interface. It
+ * observes the state from the provided ViewModel to manage the input text and trigger send actions.
+ *
+ * @param vm The [ChatUIViewModel] instance that provides the state and handles user interactions
+ *   for the message input.
+ */
 @Composable
 fun SendMessageInput(vm: ChatUIViewModel) {
   val messageText by vm.messageText.collectAsState()

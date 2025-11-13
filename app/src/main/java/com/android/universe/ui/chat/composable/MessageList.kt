@@ -24,6 +24,20 @@ object MessageListTestTags {
   const val ITEM_PREFIX = "MESSAGE_ITEM_"
 }
 
+/**
+ * A composable that displays a list of messages in a chat interface.
+ *
+ * This composable uses a `LazyColumn` to efficiently display a potentially long list of messages.
+ * It automatically scrolls to the bottom of the list when new messages are added, if the user is
+ * already at the end, or if the new message is from the current user. This ensures a natural chat
+ * experience.
+ *
+ * @param userID The ID of the current user, used to determine if a message is sent by them.
+ * @param messages The list of [Message] objects to be displayed.
+ * @param modifier The [Modifier] to be applied to the `LazyColumn`.
+ * @param vm The [ChatUIViewModel] instance, passed down to child composables like [MessageItem] to
+ *   handle user interactions or access user data.
+ */
 @Composable
 fun MessageList(userID: String, messages: List<Message>, modifier: Modifier, vm: ChatUIViewModel) {
   val listState = rememberLazyListState()

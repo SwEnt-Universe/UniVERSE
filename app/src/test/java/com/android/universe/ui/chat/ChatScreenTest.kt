@@ -6,12 +6,12 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Chat
 import com.android.universe.model.chat.Utils.getNewSampleMessage
+import com.android.universe.ui.chat.ChatScreenTestTags.LOADING
 import com.android.universe.ui.chat.composable.ChatUIViewModel
 import com.android.universe.ui.chat.composable.MessageItemTestTags
 import com.android.universe.ui.chat.composable.SendMessageInputTestTags
@@ -70,7 +70,7 @@ class ChatScreenTest {
     }
 
     // Initially shows loading state (from mockUiStateFlow)
-    composeTestRule.onNodeWithText("Loading chat...").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(LOADING).assertIsDisplayed()
 
     // Simulate successful data load from the ViewModel
     composeTestRule.runOnUiThread {

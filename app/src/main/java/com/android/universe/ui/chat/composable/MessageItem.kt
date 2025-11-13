@@ -29,6 +29,20 @@ object MessageItemTestTags {
   const val MESSAGE_CONTAINER = "MESSAGE_CONTAINER"
 }
 
+/**
+ * A composable that displays a single chat message. It can be aligned to the start or end of the
+ * screen depending on whether the message is from the current user or another user.
+ *
+ * @param senderID The unique identifier of the message sender. Used to fetch the user's name.
+ * @param message The text content of the message.
+ * @param time A formatted string representing when the message was sent.
+ * @param modifier The [Modifier] to be applied to the component.
+ * @param isUserMe A boolean indicating if the message was sent by the current user. This controls
+ *   the alignment and color scheme of the message bubble. `true` for the current user's message
+ *   (aligned to the end), `false` otherwise (aligned to the start).
+ * @param vm An instance of [ChatUIViewModel] used to fetch user data like the sender's name. It
+ *   defaults to the ViewModel provided by `viewModel()`.
+ */
 @Composable
 fun MessageItem(
     senderID: String,
