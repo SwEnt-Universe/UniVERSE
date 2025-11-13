@@ -1,13 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Imports
 // ─────────────────────────────────────────────────────────────────────────────
-import org.gradle.kotlin.dsl.androidTestImplementation
-import org.gradle.kotlin.dsl.testImplementation
-import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
-import org.gradle.testing.jacoco.tasks.JacocoReport
-import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.File
 import java.util.Properties
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -289,6 +283,7 @@ dependencies {
     testFixturesImplementation(libs.mockk.agent)
     testFixturesImplementation(libs.androidx.compose.ui)
     testFixturesImplementation(libs.androidx.compose.ui.test.junit4)
+    testFixturesImplementation(libs.io.github.backdrop)
 
 
     // ----------------- Unit Testing (test/) -----------------

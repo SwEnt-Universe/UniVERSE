@@ -3,8 +3,6 @@ package com.android.universe.ui.map
 import android.Manifest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.isDisplayed
@@ -18,10 +16,9 @@ import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -41,14 +38,6 @@ class MapScreenTest {
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
-
-  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
-    composeTestRule.setContent {
-      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
-
-      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
-    }
-  }
 
   private lateinit var uid: String
   private lateinit var fakeLocationRepository: FakeLocationRepository
@@ -77,7 +66,7 @@ class MapScreenTest {
   @Test
   fun mapIsDisplayed() {
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 
@@ -88,7 +77,7 @@ class MapScreenTest {
   fun eventCreationButtonAppearsAndClickable() {
     var accessed = false
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(
           uid = uid,
           viewModel = viewModel,
@@ -112,7 +101,7 @@ class MapScreenTest {
 
     runTest { fakeEventRepository.addEvent(testEvent) }
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 
@@ -138,7 +127,7 @@ class MapScreenTest {
       fakeEventRepository.addEvent(event2)
     }
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 

@@ -1,10 +1,7 @@
 package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
@@ -27,13 +24,12 @@ import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
-import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import io.mockk.every
 import io.mockk.mockkObject
 import kotlinx.coroutines.Dispatchers
@@ -61,14 +57,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @get:Rule
   val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)
 
-  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
-    composeTestRule.setContent {
-      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
-
-      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
-    }
-  }
-
   @Before
   override fun setUp() {
     super.setUp()
@@ -81,7 +69,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       fakeUser = fakeUser.copy(uid = uid)
       Firebase.auth.signOut()
     }
-    setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
+    composeTestRule.setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
     composeTestRule.waitForIdle()
   }
 

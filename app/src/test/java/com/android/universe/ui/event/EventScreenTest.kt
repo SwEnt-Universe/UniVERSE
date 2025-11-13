@@ -1,8 +1,5 @@
 package com.android.universe.ui.event
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.isDisplayed
@@ -13,11 +10,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
-import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -33,14 +29,6 @@ class EventScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule val mainCoroutineRule = MainCoroutineRule()
-
-  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
-    composeTestRule.setContent {
-      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
-
-      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
-    }
-  }
 
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var fakeUserRepository: FakeUserRepository
@@ -71,7 +59,7 @@ class EventScreenTest {
 
     viewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
 
-    setContentWithStubBackdrop { EventScreen(viewModel = viewModel) }
+    composeTestRule.setContentWithStubBackdrop { EventScreen(viewModel = viewModel) }
 
     viewModel.loadEvents()
 

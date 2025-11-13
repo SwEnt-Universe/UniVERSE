@@ -1,13 +1,12 @@
 package com.android.universe.ui.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.ui.utils.LocalLayerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.android.universe.utils.setContentWithStubBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -18,19 +17,11 @@ class NavigationPlaceholderScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private fun setContentWithStubBackdrop(content: @Composable () -> Unit) {
-    composeTestRule.setContent {
-      val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
-
-      CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
-    }
-  }
-
   @Test
   fun displaysTitle() {
     val title = "Test Screen"
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = title, selectedTab = Tab.Map, onTabSelected = {}, testTag = null)
     }
@@ -42,7 +33,7 @@ class NavigationPlaceholderScreenTest {
   fun hasTestTag_whenProvided() {
     val testTag = "example_test_tag"
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "Title", selectedTab = Tab.Map, onTabSelected = {}, testTag = testTag)
     }
@@ -53,7 +44,7 @@ class NavigationPlaceholderScreenTest {
   @Test
   fun bottomBar_isVisible_whenEnabled() {
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "With Bottom Bar",
           selectedTab = Tab.Map,
@@ -67,7 +58,7 @@ class NavigationPlaceholderScreenTest {
   @Test
   fun bottomBar_isHidden_whenDisabled() {
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "No Bottom Bar",
           selectedTab = Tab.Map,
@@ -82,7 +73,7 @@ class NavigationPlaceholderScreenTest {
   fun clickingTab_invokesCallback() {
     var selectedTab: Tab? = null
 
-    setContentWithStubBackdrop {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "Tabs",
           selectedTab = Tab.Map,
