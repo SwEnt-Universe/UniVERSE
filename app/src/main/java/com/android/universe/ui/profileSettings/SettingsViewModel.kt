@@ -14,6 +14,8 @@ import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.sanitizeLead
+import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -181,13 +183,13 @@ class SettingsViewModel(
         }
         "firstName" -> {
           // Sanitize *then* truncate at LIMIT + 1
-          val cleaned = sanitize(value)
+          val cleaned = sanitizeLead(value)
           finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
           validationResult = validateFirstName(finalValue)
         }
         "lastName" -> {
           // Sanitize *then* truncate at LIMIT + 1
-          val cleaned = sanitize(value)
+          val cleaned = sanitizeLead(value)
           finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
           validationResult = validateLastName(finalValue)
         }
@@ -372,39 +374,97 @@ class SettingsViewModel(
    */
   fun saveModal(uid: String) {
     val state = _uiState.value
-
-    // Check for any validation errors that are already displayed
-    if (state.modalError != null ||
-        state.tempDayError != null ||
-        state.tempMonthError != null ||
-        state.tempYearError != null) {
-      return // Don't save, errors are present
-    }
-
     var newState = state
 
-    // No errors, so commit the temp values to the real state fields
-    when (state.currentField) {
-      "email" -> newState = newState.copy(email = state.tempValue, emailError = null)
-      "password" -> newState = newState.copy(password = state.tempValue, passwordError = null)
-      "firstName" -> newState = newState.copy(firstName = state.tempValue, firstNameError = null)
-      "lastName" -> newState = newState.copy(lastName = state.tempValue, lastNameError = null)
-      "description" ->
-          newState = newState.copy(description = state.tempValue, descriptionError = null)
-      "country" ->
-          newState = newState.copy(country = state.tempValue) // No main error field for country
-      "date" -> {
-        newState =
-            newState.copy(
-                day = state.tempDay,
-                month = state.tempMonth,
-                year = state.tempYear,
-                dayError = null,
-                monthError = null,
-                yearError = null)
+    // Handle DATE modal explicitly
+    if (state.currentField == "date") {
+      val d = state.tempDay
+      val m = state.tempMonth
+      val y = state.tempYear
+
+      val dayRes = validateDay(d)
+      val monthRes = validateMonth(m)
+      val yearRes = validateYear(y)
+
+      val allValid =
+          dayRes is ValidationResult.Valid &&
+              monthRes is ValidationResult.Valid &&
+              yearRes is ValidationResult.Valid
+
+      val logicalRes =
+          if (allValid) {
+            validateBirthDate(d.toInt(), m.toInt(), y.toInt())
+          } else ValidationResult.Valid
+
+      val (finalDayError, finalMonthError, finalYearError) =
+          deriveDateErrors(dayRes, monthRes, yearRes, logicalRes)
+
+      // If any invalid → keep modal open
+      if (finalDayError is ValidationResult.Invalid ||
+          finalMonthError is ValidationResult.Invalid ||
+          finalYearError is ValidationResult.Invalid) {
+        _uiState.update {
+          it.copy(
+              tempDayError = finalDayError.toStringOrNull(),
+              tempMonthError = finalMonthError.toStringOrNull(),
+              tempYearError = finalYearError.toStringOrNull(),
+              modalError = logicalRes.toStringOrNull(),
+              showModal = true)
+        }
+        return
       }
+
+      // All valid → commit values and close modal
+      newState =
+          newState.copy(
+              day = d,
+              month = m,
+              year = y,
+              tempDayError = null,
+              tempMonthError = null,
+              tempYearError = null,
+              modalError = null,
+              showModal = false,
+              currentField = "")
+
+      _uiState.value = newState
+      saveProfile(uid)
+      return
+    }
+
+    // ─── Regular text/country/tag logic ──────────────────────────────
+    val cleanedValue = sanitize(state.tempValue)
+    val result =
+        when (state.currentField) {
+          "firstName" -> validateFirstName(cleanedValue)
+          "lastName" -> validateLastName(cleanedValue)
+          "email" -> validateEmail(cleanedValue)
+          "password" -> validatePassword(cleanedValue)
+          "description" -> validateDescription(cleanedValue)
+          "country" -> validateCountry(cleanedValue, countryToIsoCode)
+          else -> ValidationResult.Valid
+        }
+
+    if (result is ValidationResult.Invalid) {
+      _uiState.update { it.copy(modalError = result.errorMessage) }
+      return
+    }
+
+    val finalValue =
+        when (state.currentField) {
+          "firstName",
+          "lastName" -> sanitize(cleanedValue).toTitleCase()
+          else -> cleanedValue
+        }
+
+    when (state.currentField) {
+      "firstName" -> newState = newState.copy(firstName = finalValue)
+      "lastName" -> newState = newState.copy(lastName = finalValue)
+      "email" -> newState = newState.copy(email = finalValue)
+      "password" -> newState = newState.copy(password = finalValue)
+      "description" -> newState = newState.copy(description = finalValue)
+      "country" -> newState = newState.copy(country = finalValue)
       else -> {
-        // Handle Tag saving logic
         Tag.Category.entries
             .find { it.fieldName == state.currentField }
             ?.let { category ->
@@ -417,7 +477,6 @@ class SettingsViewModel(
       }
     }
 
-    // Close modal and clear temp fields
     _uiState.value =
         newState.copy(
             showModal = false,
@@ -427,7 +486,6 @@ class SettingsViewModel(
             tempMonthError = null,
             tempYearError = null)
 
-    // Persist all changes
     saveProfile(uid)
   }
 
@@ -451,8 +509,8 @@ class SettingsViewModel(
 
       // ─── 2. Attempt to update the user profile ─────────────────────
       try {
-        val cleanedFirstName = sanitize(state.firstName)
-        val cleanedLastName = sanitize(state.lastName)
+        val cleanedFirstName = sanitize(state.firstName).toTitleCase()
+        val cleanedLastName = sanitize(state.lastName).toTitleCase()
         val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
 
         val updatedProfile =

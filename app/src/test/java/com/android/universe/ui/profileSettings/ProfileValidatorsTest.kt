@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
 import com.android.universe.ui.common.validateDay
@@ -625,5 +626,25 @@ class ProfileValidatorsTest {
     assertEquals(
         ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE),
         (result as ValidationResult.Invalid).errorMessage)
+  }
+
+  @Test
+  fun toTitleCase_capitalizesSingleWord() {
+    assertEquals("Hello", "hello".toTitleCase())
+  }
+
+  @Test
+  fun toTitleCase_capitalizesMultipleWords() {
+    assertEquals("Hello World", "hello world".toTitleCase())
+  }
+
+  @Test
+  fun toTitleCase_convertsMixedCaseCorrectly() {
+    assertEquals("Hello World", "hElLo wOrLd".toTitleCase())
+  }
+
+  @Test
+  fun toTitleCase_handlesSingleLetterWords() {
+    assertEquals("A B C", "a b c".toTitleCase())
   }
 }

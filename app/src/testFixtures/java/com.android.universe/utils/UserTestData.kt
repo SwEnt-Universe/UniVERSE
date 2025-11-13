@@ -29,7 +29,7 @@ object UserTestData {
       BaseUser.copy(
           uid = "1",
           username = "Alice",
-          firstName = "second",
+          firstName = "Second",
           lastName = "Usering",
           country = "FR",
           description = "a second user",
@@ -50,7 +50,7 @@ object UserTestData {
       BaseUser.copy(
           uid = "2",
           username = "Rocky",
-          firstName = "third",
+          firstName = "Third",
           lastName = "User",
           country = "PT",
           description = "a third user",
