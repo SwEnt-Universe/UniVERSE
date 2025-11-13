@@ -112,7 +112,7 @@ class MapScreenTest {
 
     runTest { fakeEventRepository.addEvent(testEvent) }
 
-      setContentWithStubBackdrop {
+    setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 
@@ -138,7 +138,7 @@ class MapScreenTest {
       fakeEventRepository.addEvent(event2)
     }
 
-      setContentWithStubBackdrop {
+    setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 

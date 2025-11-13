@@ -12,12 +12,12 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
-import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.android.universe.utils.UserTestData
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
