@@ -19,6 +19,7 @@ import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validateMonth
 import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.common.validateYear
+import java.time.LocalDate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 /**
  * Represents the UI state for the Add Profile screen.

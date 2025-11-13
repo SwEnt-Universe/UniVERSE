@@ -10,6 +10,9 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * UI state for an event item.

@@ -6,6 +6,8 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
+import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,8 +18,6 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class FakeEventRepositoryTest {
   companion object {

@@ -7,6 +7,7 @@ import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.MainCoroutineRule
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -15,7 +16,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)

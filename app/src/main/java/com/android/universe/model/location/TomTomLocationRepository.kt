@@ -10,10 +10,10 @@ import com.tomtom.sdk.location.DefaultLocationProviderFactory
 import com.tomtom.sdk.location.GeoLocation
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.location.LocationProviderConfig
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Implementation of [LocationRepository] using TomTom SDK.

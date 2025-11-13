@@ -6,11 +6,11 @@ import com.android.universe.model.tag.Tag
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.time.format.DateTimeParseException
 
 // Firestore collection path for user profiles.
 const val USERS_COLLECTION_PATH = "users"
