@@ -32,6 +32,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.network.ConnectivityObserverProvider
+import com.android.universe.network.NetworkConnectivityObserver
 import com.android.universe.resources.C
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
@@ -58,6 +60,7 @@ import kotlinx.coroutines.runBlocking
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    ConnectivityObserverProvider.observer = NetworkConnectivityObserver(this)
     WindowCompat.setDecorFitsSystemWindows(window, false)
     // Enable edge-to-edge with auto-contrast (icons adapt to content/theme)
     enableEdgeToEdge()

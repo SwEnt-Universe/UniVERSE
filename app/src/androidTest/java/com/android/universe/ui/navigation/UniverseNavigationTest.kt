@@ -7,6 +7,8 @@ import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.model.user.UserRepository
+import com.android.universe.network.ConnectivityObserverProvider
+import com.android.universe.network.FakeConnectivityObserver
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirestoreUserTest
@@ -31,7 +33,9 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
   @Before
   override fun setUp() {
     super.setUp()
+    ConnectivityObserverProvider.observer = FakeConnectivityObserver(isConnected = true)
     repository = createInitializedRepository()
+
     runTest {
       emulator.auth.signInAnonymously().await()
       repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))

@@ -7,8 +7,11 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepository
+import com.android.universe.network.ConnectivityObserver
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
 import io.mockk.every
@@ -44,6 +47,7 @@ class MapViewModelTest {
 
   private lateinit var eventRepository: EventRepository
   private lateinit var userRepository: UserRepository
+  private lateinit var connectivityObserver: ConnectivityObserver
 
   private val testDispatcher = StandardTestDispatcher()
 
@@ -80,7 +84,10 @@ class MapViewModelTest {
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
     userRepository = mockk(relaxed = true)
-    viewModel = MapViewModel(userId, locationRepository, eventRepository, userRepository)
+    connectivityObserver = mockk(relaxed = true)
+    viewModel =
+        MapViewModel(
+            userId, locationRepository, eventRepository, userRepository, connectivityObserver)
   }
 
   @After
@@ -172,7 +179,7 @@ class MapViewModelTest {
 
   @Test
   fun `loadAllEvents updates eventMarkers on success`() = runTest {
-    coEvery { eventRepository.getAllEvents() } returns fakeEvents
+    coEvery { eventRepository.getAllEvents(Source.SERVER) } returns fakeEvents
 
     viewModel.loadAllEvents()
     testDispatcher.scheduler.advanceUntilIdle()
@@ -185,14 +192,15 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadAllEvents sets error on failure`() = runTest {
-    coEvery { eventRepository.getAllEvents() } throws RuntimeException("Failed to load")
+  fun `loadAllEvents sets error on server failure`() = runTest {
+    coEvery { eventRepository.getAllEvents(Source.SERVER) } throws
+        mockk<FirebaseFirestoreException>()
 
     viewModel.loadAllEvents()
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertEquals("Failed to load events: Failed to load", state.error)
+    assertEquals("Failed to get updated events. Showing cached.", state.error)
   }
 
   @Test
@@ -201,7 +209,8 @@ class MapViewModelTest {
     val suggestedEvents = listOf(EventTestData.dummyEvent1, EventTestData.dummyEvent2)
 
     coEvery { userRepository.getUser(userId) } returns testUser
-    coEvery { eventRepository.getSuggestedEventsForUser(testUser) } returns suggestedEvents
+    coEvery { eventRepository.getSuggestedEventsForUser(testUser, Source.SERVER) } returns
+        suggestedEvents
 
     viewModel.loadSuggestedEventsForCurrentUser()
     testDispatcher.scheduler.advanceUntilIdle()
@@ -212,14 +221,18 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadSuggestedEventsForCurrentUser sets error on user retrieval failure`() = runTest {
-    coEvery { userRepository.getUser(userId) } throws RuntimeException("User not found")
+  fun `loadSuggestedEventsForCurrentUser sets error on server failure`() = runTest {
+    val testUser = UserTestData.ManyTagsUser
+
+    coEvery { userRepository.getUser(userId) } returns testUser
+    coEvery { eventRepository.getSuggestedEventsForUser(testUser, Source.SERVER) } throws
+        mockk<FirebaseFirestoreException>()
 
     viewModel.loadSuggestedEventsForCurrentUser()
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertEquals("Failed to load events: User not found", state.error)
+    assertEquals("Failed to get updated events. Showing cached.", state.error)
   }
 
   @Test
@@ -245,7 +258,7 @@ class MapViewModelTest {
 
     // Controlled mutable list that mockk will read from
     val currentEvents = mutableListOf<Event>()
-    coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
+    coEvery { eventRepository.getAllEvents(Source.SERVER) } answers { currentEvents.toList() }
 
     // start empty
     assertEquals(startEvents, 0)

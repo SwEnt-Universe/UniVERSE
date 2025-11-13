@@ -16,6 +16,8 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
+import com.android.universe.network.ConnectivityObserverProvider
+import com.android.universe.network.FakeConnectivityObserver
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventScreenTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
@@ -52,6 +54,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Before
   override fun setUp() {
     super.setUp()
+    ConnectivityObserverProvider.observer = FakeConnectivityObserver(isConnected = true)
     runTest {
       val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
       fakeUser = fakeUser.copy(uid = uid)

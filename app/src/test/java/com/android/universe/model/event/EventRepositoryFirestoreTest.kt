@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirestoreEventTest
 import com.android.universe.utils.UserTestData
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,7 +33,8 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   @Test
   fun canAddEventAndRetrieve() = runTest {
     eventRepository.addEvent(event1)
-    val resultEvent = eventRepository.getEvent(event1.id)
+
+    val resultEvent = eventRepository.getEvent(event1.id, source = Source.DEFAULT)
     assertEquals(event1, resultEvent)
   }
 
@@ -42,9 +44,9 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
 
-    val resultEvent1 = eventRepository.getEvent(event1.id)
-    val resultEvent2 = eventRepository.getEvent(event2.id)
-    val resultEvent3 = eventRepository.getEvent(event3.id)
+    val resultEvent1 = eventRepository.getEvent(event1.id, Source.DEFAULT)
+    val resultEvent2 = eventRepository.getEvent(event2.id, Source.DEFAULT)
+    val resultEvent3 = eventRepository.getEvent(event3.id, Source.DEFAULT)
 
     assertEquals(event1, resultEvent1)
     assertEquals(event2, resultEvent2)
@@ -57,7 +59,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
 
-    val result = eventRepository.getAllEvents().toSet()
+    val result = eventRepository.getAllEvents(Source.DEFAULT).toSet()
 
     assertEquals(3, result.size)
 
@@ -68,7 +70,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
 
   @Test(expected = NoSuchElementException::class)
   fun getEventThrowsExceptionWhenEventNotFound() = runTest {
-    eventRepository.getEvent("NonExistentEvent")
+    eventRepository.getEvent("NonExistentEvent", Source.DEFAULT)
   }
 
   @Test
@@ -78,7 +80,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user, Source.DEFAULT)
 
     assertEquals(1, suggestedEvents.size)
     assertTrue(suggestedEvents.contains(EventTestData.SomeTagsEvent))
@@ -92,7 +94,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user, Source.DEFAULT)
 
     assertTrue(suggestedEvents.isEmpty())
   }
@@ -101,7 +103,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   fun updateEventReplacesExistingEventCompletely() = runTest {
     eventRepository.addEvent(event1)
     eventRepository.updateEvent(event1.id, event2)
-    val resultEvent = eventRepository.getEvent(event1.id)
+    val resultEvent = eventRepository.getEvent(event1.id, Source.DEFAULT)
     assertEquals(event2.copy(id = event1.id), resultEvent)
   }
 
@@ -111,7 +113,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
 
     eventRepository.updateEvent(event1.id, event3)
-    val result = eventRepository.getAllEvents().toSet()
+    val result = eventRepository.getAllEvents(Source.DEFAULT).toSet()
     assertEquals(2, result.size)
 
     val expectedSet = setOf(event3.copy(id = event1.id), event2)
@@ -127,7 +129,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   fun deleteEvent() = runTest {
     eventRepository.addEvent(event1)
     eventRepository.deleteEvent(event1.id)
-    val result = eventRepository.getAllEvents()
+    val result = eventRepository.getAllEvents(Source.DEFAULT)
     assertEquals(0, result.size)
   }
 
@@ -138,7 +140,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event3)
 
     eventRepository.deleteEvent(event2.id)
-    val result = eventRepository.getAllEvents().toSet()
+    val result = eventRepository.getAllEvents(Source.DEFAULT).toSet()
     assertEquals(2, result.size)
 
     val expectedSet = setOf(event1, event3)

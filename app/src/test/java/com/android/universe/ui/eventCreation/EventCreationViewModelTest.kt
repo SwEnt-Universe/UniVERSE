@@ -7,6 +7,7 @@ import com.android.universe.model.tag.TagLocalTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.google.firebase.firestore.Source
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
@@ -151,7 +152,7 @@ class EventCreationViewModelTest {
 
     viewModel.saveEvent(location = Location(0.0, 0.0), uid = "user123")
     testDispatcher.scheduler.advanceUntilIdle()
-    val savedEvent = eventRepository.getAllEvents()
+    val savedEvent = eventRepository.getAllEvents(Source.SERVER)
     assert(savedEvent.size == 1)
     val event = savedEvent[0]
     assert(event.title == SAMPLE_TITLE)

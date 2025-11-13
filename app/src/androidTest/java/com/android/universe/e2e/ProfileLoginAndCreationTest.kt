@@ -17,6 +17,8 @@ import com.android.universe.UniverseApp
 import com.android.universe.model.isoToCountryName
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.network.ConnectivityObserverProvider
+import com.android.universe.network.FakeConnectivityObserver
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -56,6 +58,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
   @Before
   override fun setUp() {
+    ConnectivityObserverProvider.observer = FakeConnectivityObserver(isConnected = true)
     super.setUp()
 
     composeTestRule.setContent { UniverseTheme { UniverseApp() } }

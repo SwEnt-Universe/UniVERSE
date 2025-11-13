@@ -10,6 +10,10 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.network.ConnectivityObserver
+import com.android.universe.network.ConnectivityObserverProvider
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -108,13 +112,20 @@ data class UiState(val errormsg: String? = null)
  * @property eventRepository Source of event documents (Firestore).
  * @property userReactiveRepository Reactive Firestore listener source for user profiles.
  * @property userRepository Non-reactive fallback for one-time user fetches.
+ * @property connectivityObserver Observer for network connectivity status.
  */
 class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val connectivityObserver: ConnectivityObserver = ConnectivityObserverProvider.observer
 ) : ViewModel() {
+  val isConnected =
+      connectivityObserver
+          .observe()
+          .map { it == ConnectivityObserver.Status.Available }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
   /** Backing property for the list of event UI states. */
   private val _eventsState = MutableStateFlow<List<EventUIState>>(emptyList())
@@ -129,7 +140,13 @@ class EventViewModel(
   var storedUid = ""
 
   /**
-   * Loads all events and transforms them into [EventUIState]s.
+   * Loads all events and uses [processEvents] to transform them into [EventUIState]s.
+   *
+   * ### Loading behavior
+   * 1. **Cached events are loaded first** to provide immediate UI content.
+   * 2. If the device is online, a **background server refresh** is triggered:
+   *     - Fresh events are fetched from the backend.
+   *     - UI state is re-computed with the new data.
    *
    * If a [UserReactiveRepository] is available, it will:
    * - Subscribe to a [Flow] of each creator’s user document in Firestore.
@@ -150,36 +167,56 @@ class EventViewModel(
    */
   fun loadEvents() {
     viewModelScope.launch {
-      val events = eventRepository.getAllEvents()
-      localList = events
+      val cacheEvents = eventRepository.getAllEvents(Source.CACHE)
+      processEvents(cacheEvents)
 
-      if (userReactiveRepository != null) {
-        // Convert list of creators to distinct set
-        val distinctCreators = events.map { it.creator }.distinct()
-
-        // Combine all event flows
-        combine(
-                distinctCreators.map { uid ->
-                  userReactiveRepository!!.getUserFlow(uid).map { uid to it }
-                }) { userPairs ->
-                  val usersMap = userPairs.toMap()
-                  events.mapIndexed { index, event ->
-                    val user = usersMap[event.creator]
-                    event.toUIState(
-                        user, index = index, joined = event.participants.contains(storedUid))
-                  }
-                }
-            .collect { uiStates -> _eventsState.value = uiStates }
-      } else {
-        val uiStates =
-            events.mapIndexed { index, event ->
-              event.toUIState(
-                  userRepository.getUser(event.creator),
-                  index = index,
-                  joined = event.participants.contains(storedUid))
-            }
-        _eventsState.value = uiStates
+      if (isConnected.value) {
+        launch {
+          try {
+            val serverEvents = eventRepository.getAllEvents(Source.SERVER)
+            processEvents(serverEvents)
+          } catch (e: FirebaseFirestoreException) {
+            setErrorMsg("Failed to load events")
+          }
+        }
       }
+    }
+  }
+
+  /**
+   * Processes a list of events to update the UI state.
+   *
+   * @param events The list of [Event] objects to process.
+   */
+  private suspend fun processEvents(events: List<Event>) {
+    localList = events
+
+    if (userReactiveRepository != null) {
+      // Convert list of creators to distinct set
+      val distinctCreators = events.map { it.creator }.distinct()
+
+      // Combine all event flows
+      combine(
+              distinctCreators.map { uid ->
+                userReactiveRepository!!.getUserFlow(uid).map { uid to it }
+              }) { userPairs ->
+                val usersMap = userPairs.toMap()
+                events.mapIndexed { index, event ->
+                  val user = usersMap[event.creator]
+                  event.toUIState(
+                      user, index = index, joined = event.participants.contains(storedUid))
+                }
+              }
+          .collect { uiStates -> _eventsState.value = uiStates }
+    } else {
+      val uiStates =
+          events.mapIndexed { index, event ->
+            event.toUIState(
+                userRepository.getUser(event.creator),
+                index = index,
+                joined = event.participants.contains(storedUid))
+          }
+      _eventsState.value = uiStates
     }
   }
 

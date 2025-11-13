@@ -5,6 +5,7 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
+import com.google.firebase.firestore.Source
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
@@ -33,7 +34,7 @@ class FakeEventRepositoryTest {
   @Test
   fun getEvent_throwsException_forNonExistentEvent() = runTest {
     try {
-      repository.getEvent("nonexistent")
+      repository.getEvent("nonexistent", Source.DEFAULT)
       fail("Expected NoSuchElementException to be thrown")
     } catch (e: NoSuchElementException) {
       assertEquals(e.message, "No event found with id: nonexistent")
@@ -51,7 +52,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(eventB)
     repository.addEvent(eventC)
 
-    val suggestedEvents = repository.getSuggestedEventsForUser(user)
+    val suggestedEvents = repository.getSuggestedEventsForUser(user, Source.DEFAULT)
 
     assertTrue(suggestedEvents.contains(eventA))
     assertTrue(suggestedEvents.contains(eventB))
@@ -72,7 +73,7 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
-    val result = repository.getEvent("event-001")
+    val result = repository.getEvent("event-001", Source.DEFAULT)
     assertNotNull(result)
     assertEquals("event-001", result.id)
     assertEquals("Morning Run at the Lake", result.title)
@@ -100,7 +101,7 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
-    val result = repository.getEvent("event-002")
+    val result = repository.getEvent("event-002", Source.DEFAULT)
     assertNotNull(result)
     assertEquals("event-002", result.id)
     assertEquals("Evening Cycling Tour", result.title)
@@ -126,7 +127,7 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
 
-    val result = repository.getEvent("event-003")
+    val result = repository.getEvent("event-003", Source.DEFAULT)
     assertNotNull(result)
     assertEquals("event-003", result.id)
     assertEquals("Tech Talk on AI", result.title)
@@ -162,7 +163,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(event1)
     repository.addEvent(event2)
 
-    val result = repository.getAllEvents()
+    val result = repository.getAllEvents(Source.DEFAULT)
     assertEquals(2, result.size)
     assertEquals("event-001", result[0].id)
     assertEquals("event-002", result[1].id)
@@ -230,9 +231,9 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-001", newEvent)
 
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(1, result1.size)
-    val result2 = repository.getEvent("event-001")
+    val result2 = repository.getEvent("event-001", Source.DEFAULT)
     assertNotNull(result2)
     assertEquals("event-001", result2.id)
     assertEquals("Morning Run and Yoga at the Lake", result2.title)
@@ -280,9 +281,9 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-002", newEvent)
 
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(1, result1.size)
-    val result2 = repository.getEvent("event-002")
+    val result2 = repository.getEvent("event-002", Source.DEFAULT)
     assertNotNull(result2)
     assertEquals("event-002", result2.id)
     assertEquals("Evening Cycling and Photography Tour", result2.title)
@@ -331,9 +332,9 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.updateEvent("event-003", newEvent)
 
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(1, result1.size)
-    val result2 = repository.getEvent("event-003")
+    val result2 = repository.getEvent("event-003", Source.DEFAULT)
     assertNotNull(result2)
     assertEquals("event-003", result2.id)
     assertEquals("Advanced Tech Talk on AI", result2.title)
@@ -405,11 +406,11 @@ class FakeEventRepositoryTest {
             creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event2)
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(result1.size, 2)
 
     repository.deleteEvent("event-001")
-    val result2 = repository.getAllEvents()
+    val result2 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(1, result2.size)
     assertEquals("event-002", result2[0].id)
     assertEquals("Evening Cycling Tour", result2[0].title)
@@ -443,7 +444,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(event)
 
     // verify initial state
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(1, result1.size)
 
     // Attempt to delete a non-existent event
@@ -455,7 +456,7 @@ class FakeEventRepositoryTest {
     }
 
     // Verify the existing event is still intact
-    val result2 = repository.getAllEvents()
+    val result2 = repository.getAllEvents(Source.DEFAULT)
     assertEquals(1, result2.size)
     assertEquals("event-001", result2[0].id)
     assertEquals("Morning Run at the Lake", result2[0].title)

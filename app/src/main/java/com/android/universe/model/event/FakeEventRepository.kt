@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.user.UserProfile
+import com.google.firebase.firestore.Source
 import java.util.UUID
 
 /**
@@ -17,9 +18,10 @@ class FakeEventRepository : EventRepository {
   /**
    * Retrieves all events currently stored in the repository.
    *
+   * @param source the source from which to fetch the events (not used in this fake implementation).
    * @return a list of [Event] objects. Returns a copy to prevent external modification.
    */
-  override suspend fun getAllEvents(): List<Event> {
+  override suspend fun getAllEvents(source: Source): List<Event> {
     return events.toList()
   }
 
@@ -27,10 +29,11 @@ class FakeEventRepository : EventRepository {
    * Retrieves an event by its ID.
    *
    * @param eventId the unique ID of the event.
+   * @param source the source from which to fetch the event (not used in this fake implementation).
    * @return the [Event] associated with the given ID.
    * @throws NoSuchElementException if no event with the given [eventId] exists.
    */
-  override suspend fun getEvent(eventId: String): Event {
+  override suspend fun getEvent(eventId: String, source: Source): Event {
     return events.firstOrNull { it.id == eventId }
         ?: throw NoSuchElementException("No event found with id: $eventId")
   }
@@ -39,9 +42,10 @@ class FakeEventRepository : EventRepository {
    * Retrieves suggested events for a given user based on their profile (tags).
    *
    * @param user the [UserProfile] for whom to suggest events.
+   * @param source the source from which to fetch the events (not used in this fake implementation).
    * @return a list of suggested [Event] objects.
    */
-  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
+  override suspend fun getSuggestedEventsForUser(user: UserProfile, source: Source): List<Event> {
     return events.filter { event -> event.tags.any { it in user.tags } }
   }
 

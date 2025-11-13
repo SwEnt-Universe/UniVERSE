@@ -6,6 +6,7 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.coroutines.tasks.await
@@ -109,13 +110,14 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   /**
-   * Retrieves all events currently stored in the repository.
+   * Retrieves all events currently stored in the repository from the given source.
    *
+   * @param source the Firestore [Source] to fetch data from (DEFAULT/SERVER/CACHE).
    * @return a list of [Event] objects.
    */
-  override suspend fun getAllEvents(): List<Event> {
+  override suspend fun getAllEvents(source: Source): List<Event> {
     val events = ArrayList<Event>()
-    val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get().await()
+    val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get(source).await()
     for (document in querySnapshot.documents) {
       val event = documentToEvent(document)
       events.add(event)
@@ -124,14 +126,15 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   /**
-   * Retrieves an event by its ID.
+   * Retrieves an event by its ID from the given source.
    *
    * @param eventId the unique ID of the event.
+   * @param source the Firestore [Source] to fetch data from (DEFAULT/SERVER/CACHE).
    * @return the [Event] associated with the given ID.
    * @throws NoSuchElementException if no event with the given [eventId] exists.
    */
-  override suspend fun getEvent(eventId: String): Event {
-    val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+  override suspend fun getEvent(eventId: String, source: Source): Event {
+    val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get(source).await()
     if (event.exists()) {
       return documentToEvent(event)
     } else {
@@ -143,10 +146,11 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    * Retrieves suggested events for a given user based on their profile (tags).
    *
    * @param user the [UserProfile] for whom to suggest events.
+   * @param source the [Source] from which to fetch the events (DEFAULT/CACHE/SERVER).
    * @return a list of suggested [Event] objects.
    */
-  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
-    val matchedEvents = getEventsMatchingUserTags(user)
+  override suspend fun getSuggestedEventsForUser(user: UserProfile, source: Source): List<Event> {
+    val matchedEvents = getEventsMatchingUserTags(user, source)
     val rankedEvents = rankEventsByTagMatch(user, matchedEvents)
     return rankedEvents.take(50).map { it.first }
   }
@@ -186,16 +190,17 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
    * accepts up to 10 elements.
    *
    * @param user the [UserProfile] whose tags are used to match events.
+   * @param source the [Source] from which to fetch the events (DEFAULT/CACHE/SERVER).
    * @return a list of [Event] objects that match at least one of the user's tags.
    */
-  private suspend fun getEventsMatchingUserTags(user: UserProfile): List<Event> {
+  private suspend fun getEventsMatchingUserTags(user: UserProfile, source: Source): List<Event> {
     val userTagOrdinals = user.tags.map { it.ordinal }.shuffled()
     if (userTagOrdinals.isEmpty()) return emptyList()
 
     val querySnapshot =
         db.collection(EVENTS_COLLECTION_PATH)
             .whereArrayContainsAny("tags", userTagOrdinals.take(10))
-            .get()
+            .get(source)
             .await()
 
     return querySnapshot.documents.map { doc -> documentToEvent(doc) }

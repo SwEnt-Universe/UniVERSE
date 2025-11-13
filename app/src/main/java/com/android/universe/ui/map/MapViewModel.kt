@@ -7,16 +7,23 @@ import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.user.UserRepository
+import com.android.universe.network.ConnectivityObserver
+import com.android.universe.network.ConnectivityObserverProvider
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -41,8 +48,14 @@ class MapViewModel(
     private val currentUserId: String,
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val connectivityObserver: ConnectivityObserver = ConnectivityObserverProvider.observer
 ) : ViewModel() {
+  val isConnected =
+      connectivityObserver
+          .observe()
+          .map { it == ConnectivityObserver.Status.Available }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
   private val _uiState = MutableStateFlow(MapUiState())
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
@@ -166,36 +179,54 @@ class MapViewModel(
   }
 
   /**
-   * Loads all event markers from the event repository.
+   * Loads all event markers from the event repository. First loads from cache, then attempts to
+   * refresh from server if connected.
    *
    * Updates the state flow with the list of events or an error message if loading fails.
    */
   fun loadAllEvents() {
     viewModelScope.launch {
-      try {
-        val events = eventRepository.getAllEvents()
-        _eventMarkers.value = events
-        // This is added so that the ui updates correctly when a new event is added
-        _uiState.update { it.copy(eventCount = events.size) }
-      } catch (e: Exception) {
-        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      val cacheEvents = eventRepository.getAllEvents(source = Source.CACHE)
+      _eventMarkers.value = cacheEvents
+      _uiState.update { it.copy(eventCount = cacheEvents.size) }
+
+      if (isConnected.value) {
+        launch {
+          try {
+            val freshEvents = eventRepository.getAllEvents(Source.SERVER)
+            _eventMarkers.value = freshEvents
+          } catch (e: FirebaseFirestoreException) {
+            // Device offline or server error. Show cached data and alert the user.
+            _uiState.update { it.copy(error = "Failed to get updated events. Showing cached.") }
+          }
+        }
       }
     }
   }
 
   /**
-   * Loads suggested event markers for the current user from the event repository.
+   * Loads suggested event markers for the current user from the event repository. First loads from
+   * cache, then attempts to refresh from server if connected.
    *
    * Updates the state flow with the list of suggested events or an error message if loading fails.
    */
   fun loadSuggestedEventsForCurrentUser() {
     viewModelScope.launch {
-      try {
-        val user = userRepository.getUser(currentUserId)
-        val events = eventRepository.getSuggestedEventsForUser(user)
-        _eventMarkers.value = events
-      } catch (e: Exception) {
-        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      val user = userRepository.getUser(currentUserId)
+      val cacheEvents = eventRepository.getSuggestedEventsForUser(user, source = Source.CACHE)
+      _eventMarkers.value = cacheEvents
+
+      if (isConnected.value) {
+        launch {
+          try {
+            val freshEvents =
+                eventRepository.getSuggestedEventsForUser(user, source = Source.SERVER)
+            _eventMarkers.value = freshEvents
+          } catch (e: FirebaseFirestoreException) {
+            // Device offline or server error. Show cached data and alert the user.
+            _uiState.update { it.copy(error = "Failed to get updated events. Showing cached.") }
+          }
+        }
       }
     }
   }

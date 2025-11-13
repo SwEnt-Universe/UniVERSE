@@ -15,6 +15,8 @@ import androidx.test.rule.GrantPermissionRule
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.network.ConnectivityObserver
+import com.android.universe.network.FakeConnectivityObserver
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
@@ -43,6 +45,7 @@ class MapScreenTest {
 
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var fakeUserRepository: FakeUserRepository
+  private lateinit var fakeConnectivityObserver: ConnectivityObserver
   private lateinit var viewModel: MapViewModel
 
   @Before
@@ -51,6 +54,7 @@ class MapScreenTest {
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
     fakeUserRepository = FakeUserRepository()
+    fakeConnectivityObserver = FakeConnectivityObserver(isConnected = true)
     // Really important, the MapViewModel init using a load event functions, this breaks if no user
     // are in the repository
     runTest { fakeUserRepository.addUser(UserTestData.Alice) }
@@ -59,7 +63,8 @@ class MapScreenTest {
             currentUserId = uid,
             locationRepository = fakeLocationRepository,
             eventRepository = fakeEventRepository,
-            userRepository = fakeUserRepository)
+            userRepository = fakeUserRepository,
+            connectivityObserver = fakeConnectivityObserver)
   }
 
   @Test

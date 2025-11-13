@@ -6,9 +6,10 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import com.android.universe.network.ConnectivityObserver
+import com.android.universe.network.FakeConnectivityObserver
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.collections.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -33,6 +34,7 @@ class EventViewModelTest {
   private lateinit var repository: FakeEventRepository
   private lateinit var userRepo: FakeUserRepository
   private lateinit var viewModel: EventViewModel
+  private lateinit var connectivityObserver: ConnectivityObserver
   private val testDispatcher = StandardTestDispatcher()
 
   // Sample users for events
@@ -103,13 +105,14 @@ class EventViewModelTest {
 
     repository = FakeEventRepository()
     userRepo = FakeUserRepository()
+    connectivityObserver = FakeConnectivityObserver(isConnected = true)
 
     runTest {
       sampleEvents.forEach { repository.addEvent(it) }
       sampleUsers.forEach { userRepo.addUser(it) }
     }
 
-    viewModel = EventViewModel(repository, null, userRepo)
+    viewModel = EventViewModel(repository, null, userRepo, connectivityObserver)
     viewModel.storedUid = sampleUsers[0].uid
     runTest {
       viewModel.loadEvents()

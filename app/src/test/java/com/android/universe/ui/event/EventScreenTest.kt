@@ -10,9 +10,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.network.ConnectivityObserver
+import com.android.universe.network.FakeConnectivityObserver
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -32,6 +35,7 @@ class EventScreenTest {
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var fakeUserRepository: FakeUserRepository
   private lateinit var viewModel: EventViewModel
+  private lateinit var fakeConnectivityObserver: ConnectivityObserver
 
   companion object {
     private val firstEvent = EventTestData.FullDescriptionEvent
@@ -50,13 +54,15 @@ class EventScreenTest {
     // Create a fresh fake repository for every test (isolated)
     fakeEventRepository = FakeEventRepository()
     fakeUserRepository = FakeUserRepository()
+    fakeConnectivityObserver = FakeConnectivityObserver(isConnected = true)
 
     runTest {
       sampleEvents.forEach { fakeEventRepository.addEvent(it) }
       sampleUsers.forEach { fakeUserRepository.addUser(it) }
     }
 
-    viewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
+    viewModel =
+        EventViewModel(fakeEventRepository, null, fakeUserRepository, fakeConnectivityObserver)
 
     composeTestRule.setContent { EventScreen(viewModel = viewModel) }
     viewModel.loadEvents()
@@ -104,7 +110,9 @@ class EventScreenTest {
   fun eventsWithMoreThanThreeTagsAreCropped() {
     // Add an event with 6 tags to the repository
     runTest {
-      fakeEventRepository.getAllEvents().forEach { fakeEventRepository.deleteEvent(it.id) }
+      fakeEventRepository.getAllEvents(Source.DEFAULT).forEach {
+        fakeEventRepository.deleteEvent(it.id)
+      }
       fakeEventRepository.addEvent(megaTagEvent)
       // Reload events in the ViewModel (suspending call)
       viewModel.loadEvents()
