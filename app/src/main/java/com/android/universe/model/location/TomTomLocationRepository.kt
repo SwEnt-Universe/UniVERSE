@@ -27,7 +27,7 @@ class TomTomLocationRepository(private val context: Context) : LocationRepositor
     val config =
         LocationProviderConfig(
             minTimeInterval = 250L.milliseconds, minDistance = Distance.meters(20.0))
-    DefaultLocationProviderFactory.create(context, DefaultDP.default , config)
+    DefaultLocationProviderFactory.create(context, DefaultDP.default, config)
   }
 
   /**

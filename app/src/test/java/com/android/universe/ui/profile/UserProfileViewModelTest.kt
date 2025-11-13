@@ -21,8 +21,7 @@ class UserProfileViewModelTest {
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: UserProfileViewModel
 
-  @get:Rule
-  val mainCoroutinesRule = MainCoroutineRule()
+  @get:Rule val mainCoroutinesRule = MainCoroutineRule()
 
   @Before
   fun setup() {

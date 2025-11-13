@@ -3,8 +3,7 @@ package com.android.universe.model.event
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepositoryProvider.sampleUsers
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDateTime
 
 /**
@@ -15,7 +14,9 @@ import java.time.LocalDateTime
  * the application.
  */
 object EventRepositoryProvider {
-  private val _repository: EventRepository by lazy { EventRepositoryFirestore(Firebase.firestore) }
+  private val _repository: EventRepository by lazy {
+    EventRepositoryFirestore(FirebaseFirestore.getInstance())
+  }
 
   /** Public repository instance (read-only) */
   var repository: EventRepository = _repository

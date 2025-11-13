@@ -58,8 +58,8 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   override fun setUp() {
     super.setUp()
     runTest {
-        composeTestRule.setContent { UniverseTheme { UniverseApp() } }
-        composeTestRule.waitForIdle()
+      composeTestRule.setContent { UniverseTheme { UniverseApp() } }
+      composeTestRule.waitForIdle()
     }
   }
 

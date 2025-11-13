@@ -31,7 +31,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
@@ -53,9 +52,7 @@ import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import kotlinx.coroutines.CoroutineDispatcher
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -86,8 +83,8 @@ class MainActivity : ComponentActivity() {
 fun UniverseApp(
     context: Context = LocalContext.current,
     credentialManager: CredentialManager = CredentialManager.create(context),
-    IODispatcher: CoroutineDispatcher = DefaultDP.io
 ) {
+  val authInstance = remember { FirebaseAuth.getInstance() }
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
@@ -111,15 +108,16 @@ fun UniverseApp(
           startDestination = NavigationScreens.SignIn.route,
       ) {
         composable(NavigationScreens.SignIn.route) {
+          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
+
+          LaunchedEffect(navigateToDestination) {
+            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
+          }
           SignInScreen(
               onSignedIn = {
-                var destination: NavigationScreens? = null
-                mainActivityScope
-                    .launch {
-                      destination =
-                          resolveUserDestinationScreen(userRepository, iODispatcher = IODispatcher)
-                    }
-                    .invokeOnCompletion { navigationActions.navigateTo(destination!!) }
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
+                }
               },
               credentialManager = credentialManager)
         }
@@ -130,7 +128,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.AddProfile.route) {
           AddProfileScreen(
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = FirebaseAuth.getInstance().currentUser!!.uid,
               navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
               onBack = {
                 // Navigate back to Sign In
@@ -146,14 +144,16 @@ fun UniverseApp(
           route = NavigationScreens.EmailValidation.name,
       ) {
         composable(NavigationScreens.EmailValidation.route) {
+          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
+
+          LaunchedEffect(navigateToDestination) {
+            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
+          }
           EmailVerificationScreen(
-              user = Firebase.auth.currentUser!!,
+              user = authInstance.currentUser!!,
               onSuccess = {
-                var destination : NavigationScreens? = null
-                mainActivityScope.launch{
-                  destination = resolveUserDestinationScreen(userRepository)
-                }.invokeOnCompletion {
-                   navigationActions.navigateTo(destination!!)
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
                 }
               },
               onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
@@ -165,7 +165,7 @@ fun UniverseApp(
           startDestination = NavigationScreens.SelectTagUser.route) {
             composable(NavigationScreens.SelectTagUser.route) {
               SelectTagScreen(
-                  uid = Firebase.auth.currentUser!!.uid,
+                  uid = authInstance.currentUser!!.uid,
                   navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
             }
           }
@@ -176,7 +176,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.Map.route) {
           MapScreen(
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
@@ -187,7 +187,7 @@ fun UniverseApp(
           route = NavigationScreens.Event.name,
       ) {
         composable(NavigationScreens.Event.route) {
-          EventScreen(onTabSelected, uid = Firebase.auth.currentUser!!.uid)
+          EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
         }
       }
 
@@ -211,7 +211,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.Profile.route) {
           UserProfileScreen(
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               onEditProfileClick = { uid ->
                 navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
@@ -262,7 +262,7 @@ fun UniverseApp(
               )
           SelectTagScreen(
               selectedTagOverview = selectTagViewModel,
-              uid = Firebase.auth.currentUser!!.uid,
+              uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navController.popBackStack() })
         }
       }

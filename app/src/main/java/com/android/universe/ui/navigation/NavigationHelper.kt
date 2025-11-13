@@ -1,12 +1,8 @@
 package com.android.universe.ui.navigation
 
-import com.android.universe.di.DefaultDP
 import com.android.universe.model.user.UserRepository
-import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.auth
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 
 /**
  * Determines the appropriate initial screen for the user based on their authentication state and
@@ -27,14 +23,13 @@ import kotlinx.coroutines.withContext
  */
 suspend fun resolveUserDestinationScreen(
     userRepository: UserRepository,
-    user: FirebaseUser? = Firebase.auth.currentUser,
-    iODispatcher: CoroutineDispatcher = DefaultDP.io
+    user: FirebaseUser? = FirebaseAuth.getInstance().currentUser,
 ): NavigationScreens =
     when {
       user == null -> NavigationScreens.SignIn
       user.isAnonymous -> NavigationScreens.Map
       user.isEmailVerified.not() -> NavigationScreens.EmailValidation
-      withContext(iODispatcher) { userRepository.hasProfile(user.uid) } -> NavigationScreens.Map
+      userRepository.hasProfile(user.uid) -> NavigationScreens.Map
       else -> NavigationScreens.AddProfile
     }
 

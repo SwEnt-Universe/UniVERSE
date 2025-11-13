@@ -138,11 +138,11 @@ class EmailVerificationViewModel(
             delay(ONE_SECOND)
             countDown()
 
-              runCatching { user.reload().await() }
-                  .onFailure {
-                    _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
-                    cancel()
-                  }
+            runCatching { user.reload().await() }
+                .onFailure {
+                  _uiState.update { it.copy(sendEmailFailed = true, countDown = 0) }
+                  cancel()
+                }
           }
           if (user.isEmailVerified) _uiState.update { it.copy(emailVerified = true) }
         }

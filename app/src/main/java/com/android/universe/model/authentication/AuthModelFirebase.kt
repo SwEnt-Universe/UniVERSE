@@ -10,11 +10,9 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.validateEmail
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -27,7 +25,7 @@ import kotlinx.coroutines.withContext
  * @property emailRegex The regex to validate the email address.
  */
 class AuthModelFirebase(
-    private val auth: FirebaseAuth = Firebase.auth,
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val helper: GoogleSignInHelper = DefaultGoogleSignInHelper(),
     private val emailRegex: Regex = Regex("^[a-zA-Z0-9._%+-]+@epfl\\.ch$"),
     private val iODispatcher: CoroutineDispatcher = DefaultDP.io
