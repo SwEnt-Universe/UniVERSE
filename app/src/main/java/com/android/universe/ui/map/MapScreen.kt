@@ -37,7 +37,6 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.kyant.backdrop.Backdrop
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
@@ -74,8 +73,7 @@ fun MapScreen(
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
           UserRepositoryProvider.repository)
-    },
-    backdrop: Backdrop
+    }
 ) {
 
   val uiState by viewModel.uiState.collectAsState()
@@ -107,7 +105,7 @@ fun MapScreen(
 
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected, backdrop) }) {
+      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) {
         Box(
             modifier =
                 Modifier.fillMaxSize()

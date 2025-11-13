@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,7 +40,7 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
-import com.kyant.backdrop.Backdrop
+import com.android.universe.ui.theme.UniverseTheme
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
@@ -124,8 +125,7 @@ fun UserProfileScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit = {},
     onEditProfileClick: (String) -> Unit = {},
-    userProfileViewModel: UserProfileViewModel = viewModel(),
-    backdrop: Backdrop
+    userProfileViewModel: UserProfileViewModel = viewModel()
 ) {
 
   val userUIState by userProfileViewModel.userState.collectAsState()
@@ -146,7 +146,7 @@ fun UserProfileScreen(
 
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected, backdrop) }) { padding ->
+      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding).background(Color.White)) {
           // Box that contains the decoration background.
           Box(modifier = Modifier.fillMaxWidth()) { CurvedTopHeader() }
@@ -300,11 +300,11 @@ fun InterestTag(text: String, testTagIndex: Int) {
       }
 }
 
-/*@Preview
+@Preview
 @Composable
-//fun UserProfileScreenPreview() {
+fun UserProfileScreenPreview() {
   UniverseTheme { UserProfileScreen(uid = "1") }
-}*/
+}
 
 /**
  * Background for the profile screen. It uses Canvas to make the form of a circle surrounding the

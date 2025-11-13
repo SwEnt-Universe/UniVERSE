@@ -13,13 +13,17 @@ import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.android.universe.ui.components.LiquidBottomTab
 import com.android.universe.ui.components.LiquidBottomTabs
 import com.android.universe.ui.theme.Dimensions
-import com.kyant.backdrop.Backdrop
+import com.android.universe.ui.utils.LocalLayerBackdrop
 
 /**
  * Represents a tab in the bottom navigation bar. Each tab has a destination screen, an icon for its
@@ -70,9 +74,9 @@ val tabs =
 fun NavigationBottomMenu(
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
-    backdrop: Backdrop,
 ) {
   val selectedTabIndex = tabs.indexOf(selectedTab)
+  val backdrop = LocalLayerBackdrop.current
 
   LiquidBottomTabs(
       selectedTabIndex = { selectedTabIndex },
@@ -100,9 +104,9 @@ fun NavigationBottomMenu(
  * A preview Composable for the [NavigationBottomMenu]. It shows the component with a default
  * selected tab.
  */
-/*@Preview
+@Preview
 @Composable
 fun NavigationBottomMenuPreview() {
-    val selectedTab: MutableState<Tab> = remember { mutableStateOf(Tab.Map) }
-    NavigationBottomMenu(selectedTab = selectedTab.value, onTabSelected = { selectedTab.value = it })
-}*/
+  val selectedTab: MutableState<Tab> = remember { mutableStateOf(Tab.Map) }
+  NavigationBottomMenu(selectedTab = selectedTab.value, onTabSelected = { selectedTab.value = it })
+}

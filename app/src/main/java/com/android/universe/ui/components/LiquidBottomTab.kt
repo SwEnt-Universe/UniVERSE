@@ -74,7 +74,7 @@ fun RowScope.LiquidBottomTab(
           .fillMaxHeight()
           .weight(1f)
           .graphicsLayer { // Applies low level, high-performance visual transformations without
-                           // triggering a full layout pass.
+            // triggering a full layout pass.
             val scale = scale()
             scaleX = scale
             scaleY = scale

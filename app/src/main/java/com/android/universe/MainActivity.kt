@@ -11,6 +11,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +51,7 @@ import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -63,12 +65,20 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     setContent {
       UniverseTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-            color = MaterialTheme.colorScheme.background) {
-              UniverseApp()
-            }
+        val backgroundColor = Color.White
+        val backdrop = rememberLayerBackdrop {
+          drawRect(backgroundColor)
+          drawContent()
+        }
+
+        CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
+          // A surface container using the 'background' color from the theme
+          Surface(
+              modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+              color = MaterialTheme.colorScheme.background) {
+                UniverseApp()
+              }
+        }
       }
     }
   }
@@ -84,12 +94,6 @@ fun UniverseApp(
     context: Context = LocalContext.current,
     credentialManager: CredentialManager = CredentialManager.create(context)
 ) {
-
-  val backgroundColor = Color.White
-  val backdrop = rememberLayerBackdrop {
-    drawRect(backgroundColor)
-    drawContent()
-  }
 
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -174,7 +178,7 @@ fun UniverseApp(
               uid = Firebase.auth.currentUser!!.uid,
               onTabSelected = onTabSelected,
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") },
-              backdrop = backdrop)
+          )
         }
       }
 
@@ -182,9 +186,7 @@ fun UniverseApp(
           startDestination = NavigationScreens.Event.route,
           route = NavigationScreens.Event.name,
       ) {
-        composable(NavigationScreens.Event.route) {
-          EventScreen(onTabSelected, backdrop = backdrop)
-        }
+        composable(NavigationScreens.Event.route) { EventScreen(onTabSelected) }
       }
 
       navigation(
@@ -196,8 +198,7 @@ fun UniverseApp(
               title = NavigationScreens.Chat.name,
               selectedTab = Tab.Chat,
               onTabSelected = onTabSelected,
-              testTag = NavigationTestTags.CHAT_SCREEN,
-              backdrop = backdrop)
+              testTag = NavigationTestTags.CHAT_SCREEN)
         }
       }
 
@@ -211,8 +212,7 @@ fun UniverseApp(
               onTabSelected = onTabSelected,
               onEditProfileClick = { uid ->
                 navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
-              },
-              backdrop = backdrop)
+              })
         }
       }
       composable(

@@ -6,7 +6,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.kyant.backdrop.Backdrop
 
 /**
  * A placeholder screen that displays a title and an optional bottom navigation menu. This is used
@@ -24,14 +23,12 @@ fun NavigationPlaceholderScreen(
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
     enableBottomBar: Boolean = true,
-    testTag: String? = null,
-    backdrop: Backdrop
+    testTag: String? = null
 ) {
   Scaffold(
       modifier = if (testTag != null) Modifier.testTag(testTag) else Modifier,
-      bottomBar = {
-        if (enableBottomBar) NavigationBottomMenu(selectedTab, onTabSelected, backdrop)
-      }) { padding ->
+      bottomBar = { if (enableBottomBar) NavigationBottomMenu(selectedTab, onTabSelected) }) {
+          padding ->
         Text(text = title, modifier = Modifier.padding(padding))
       }
 }
