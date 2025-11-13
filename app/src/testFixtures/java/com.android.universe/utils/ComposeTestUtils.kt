@@ -8,9 +8,9 @@ import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 fun ComposeContentTestRule.setContentWithStubBackdrop(content: @Composable () -> Unit) {
-    this.setContent {
-        val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
+  this.setContent {
+    val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
 
-        CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
-    }
+    CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) { content() }
+  }
 }
