@@ -66,6 +66,7 @@ class ChatUIViewModel(
         val message = Message(senderID = userID, message = message)
         currentState.chat.sendMessage(message)
       }
+      _messageText.value = ""
     }
   }
 
