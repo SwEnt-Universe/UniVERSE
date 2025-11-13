@@ -62,6 +62,8 @@ import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.DampedDragAnimation
+import com.android.universe.ui.utils.InteractiveHighlight
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
@@ -79,6 +81,25 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
+/**
+ * A composable that renders a "liquid glass" bottom navigation bar.
+ *
+ * It displays a row of tabs (provided via [content]) and highlights the selected tab with a fluid,
+ * animated, and draggable indicator. This component relies heavily on the `com.kyant.backdrop`
+ * library and must be provided with a [Backdrop] to render its effects against.
+ *
+ * @param selectedTabIndex A lambda function that returns the index of the currently selected tab.
+ *   This is used to control the component's state.
+ * @param onTabSelected A callback invoked when a new tab is selected, typically after a drag or tap
+ *   animation completes.
+ * @param backdrop The `Backdrop` instance from the `com.kyant.backdrop` library. This is the
+ *   background layer that the component's glass effects will interact with.
+ * @param tabsCount The total number of tabs in the bar. This is crucial for calculating the width
+ *   of each tab and the animation bounds.
+ * @param modifier The [Modifier] to be applied to the component's container.
+ * @param content The composable content for the tabs, typically a series of `Tab` or `Icon`
+ *   composables. This lambda is executed within a [RowScope].
+ */
 @Composable
 fun LiquidBottomTabs(
     selectedTabIndex: () -> Int,
@@ -116,28 +137,34 @@ fun LiquidBottomTabs(
         var currentIndex by remember(selectedTabIndex) { mutableIntStateOf(selectedTabIndex()) }
         val dampedDragAnimation =
             remember(animationScope) {
-              DampedDragAnimation(
-                  animationScope = animationScope,
-                  initialValue = selectedTabIndex().toFloat(),
-                  valueRange = 0f..(tabsCount - 1).toFloat(),
-                  visibilityThreshold = 0.001f,
-                  initialScale = 1f,
-                  pressedScale = 78f / 56f,
-                  onDragStarted = {},
-                  onDragStopped = {
-                    val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat())
-                    currentIndex = targetIndex.toInt()
-                    animateToValue(targetIndex)
-                    animationScope.launch { offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f)) }
-                  },
-                  onDrag = { _, dragAmount ->
-                    updateValue(
-                        (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f)
-                            .fastCoerceIn(0f, (tabsCount - 1).toFloat()))
-                    animationScope.launch {
-                      offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
-                    }
-                  })
+                DampedDragAnimation(
+                    animationScope = animationScope,
+                    initialValue = selectedTabIndex().toFloat(),
+                    valueRange = 0f..(tabsCount - 1).toFloat(),
+                    visibilityThreshold = 0.001f,
+                    initialScale = 1f,
+                    pressedScale = 78f / 56f,
+                    onDragStarted = {},
+                    onDragStopped = {
+                        val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat())
+                        currentIndex = targetIndex.toInt()
+                        animateToValue(targetIndex)
+                        animationScope.launch {
+                            offsetAnimation.animateTo(
+                                0f,
+                                spring(1f, 300f, 0.5f)
+                            )
+                        }
+                    },
+                    onDrag = { _, dragAmount ->
+                        updateValue(
+                            (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f)
+                                .fastCoerceIn(0f, (tabsCount - 1).toFloat())
+                        )
+                        animationScope.launch {
+                            offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
+                        }
+                    })
             }
         LaunchedEffect(selectedTabIndex) {
           snapshotFlow { selectedTabIndex() }.collectLatest { index -> currentIndex = index }
@@ -152,16 +179,17 @@ fun LiquidBottomTabs(
         }
         val interactiveHighlight =
             remember(animationScope) {
-              InteractiveHighlight(
-                  animationScope = animationScope,
-                  position = { size, _ ->
-                    Offset(
-                        if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
-                        else
-                            size.width - (dampedDragAnimation.value + 0.5f) * tabWidth +
-                                panelOffset,
-                        size.height / 2f)
-                  })
+                InteractiveHighlight(
+                    animationScope = animationScope,
+                    position = { size, _ ->
+                        Offset(
+                            if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
+                            else
+                                size.width - (dampedDragAnimation.value + 0.5f) * tabWidth +
+                                        panelOffset,
+                            size.height / 2f
+                        )
+                    })
             }
 
         Row(

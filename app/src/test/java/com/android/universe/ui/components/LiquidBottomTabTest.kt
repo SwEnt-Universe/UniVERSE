@@ -14,44 +14,29 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LiquidBottomTabTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    @Test
-    fun liquidBottomTab_onClick_isCalled() {
-        var clicked = false
-        composeTestRule.setContent {
-            Row {
-                LiquidBottomTab(
-                    onClick = { clicked = true }
-                ) {
-                    Text("Home")
-                }
-            }
-        }
-
-        composeTestRule.onNodeWithText("Home").performClick()
-        composeTestRule.runOnIdle {
-            assert(clicked)
-        }
+  @Test
+  fun liquidBottomTab_onClick_isCalled() {
+    var clicked = false
+    composeTestRule.setContent {
+      Row { LiquidBottomTab(onClick = { clicked = true }) { Text("Home") } }
     }
 
-    @Test
-    fun liquidBottomTab_consumes_localScale() {
-        val testScale = 0.5f
+    composeTestRule.onNodeWithText("Home").performClick()
+    composeTestRule.runOnIdle { assert(clicked) }
+  }
 
-        composeTestRule.setContent {
-            CompositionLocalProvider(
-                LocalLiquidBottomTabScale provides { testScale }
-            ) {
-                Row {
-                    LiquidBottomTab(onClick = {}) {
-                        Text("Settings")
-                    }
-                }
-            }
-        }
+  @Test
+  fun liquidBottomTab_consumes_localScale() {
+    val testScale = 0.5f
 
-        composeTestRule.onNodeWithText("Settings").assertExists()
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalLiquidBottomTabScale provides { testScale }) {
+        Row { LiquidBottomTab(onClick = {}) { Text("Settings") } }
+      }
     }
+
+    composeTestRule.onNodeWithText("Settings").assertExists()
+  }
 }
