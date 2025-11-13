@@ -257,8 +257,7 @@ open class AddProfileViewModel(
    * @param firstName The new first name string from the UI.
    */
   fun setFirstName(firstName: String) {
-    val cleaned = sanitize(firstName)
-    val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
+    val finalName = firstName.take(InputLimits.FIRST_NAME + 1)
     val validationResult = validateFirstName(finalName)
     _uiState.update {
       it.copy(firstName = finalName, firstNameError = validationResult.toStringOrNull())
@@ -272,8 +271,7 @@ open class AddProfileViewModel(
    * @param lastName The new last name string from the UI.
    */
   fun setLastName(lastName: String) {
-    val cleaned = sanitize(lastName)
-    val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
+    val finalName = lastName.take(InputLimits.LAST_NAME + 1)
     val validationResult = validateLastName(finalName)
     _uiState.update {
       it.copy(lastName = finalName, lastNameError = validationResult.toStringOrNull())
