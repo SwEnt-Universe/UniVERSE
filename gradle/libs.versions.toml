@@ -25,10 +25,10 @@ androidxNavigation = "2.8.9"
 
 # ===== UI & COMPOSE =====
 # The Compose BOM controls the versions of all core Compose libraries.
-composeBom = "2025.02.00"
+composeBom = "2025.11.00"
 
 # ===== LEGACY UI =====
-appcompat = "1.6.1"
+appcompat = "1.7.1"
 material = "1.13.0"
 constraintlayout = "2.2.1"
 

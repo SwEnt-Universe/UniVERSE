@@ -61,7 +61,7 @@ val tomtomApiKey: String = System.getenv("TOMTOM_API_KEY")
 // ─────────────────────────────────────────────────────────────────────────────
 android {
     namespace = "com.android.universe"
-    compileSdk = 34
+    compileSdk = 36
 
     // BuildConfig is required for injecting TOMTOM_API_KEY
     buildFeatures {
