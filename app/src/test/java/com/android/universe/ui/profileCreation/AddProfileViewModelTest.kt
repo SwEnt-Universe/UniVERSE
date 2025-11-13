@@ -101,7 +101,6 @@ class AddProfileViewModelTest {
     assertEquals("John Michael Doe ", viewModel.uiState.value.firstName)
   }
 
-
   @Test
   fun lastNameCleansProperly() = runTest {
     viewModel.setLastName("   Van   der   Waals   ")
