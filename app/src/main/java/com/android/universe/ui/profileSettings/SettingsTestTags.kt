@@ -23,4 +23,6 @@ object SettingsTestTags {
   const val LAST_NAME_FIELD = "last_name_field"
   const val DESCRIPTION_FIELD = "description_field"
   const val LOADING_ICON = "loading_icon"
+  const val PICTURE_EDITING = "picture editing"
+  const val DELETE_PICTURE_BUTTON = "delete picture"
 }

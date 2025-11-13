@@ -98,7 +98,8 @@ class SettingsViewModelTest {
               country = "Switzerland",
               description = "hello",
               dateOfBirth = LocalDate.of(2000, 1, 5),
-              tags = emptySet()))
+              tags = emptySet(),
+              profilePicture = ByteArray(126 * 126) { index -> (index % 256).toByte() }))
       fakeRepo.addUser(
           UserProfile(
               uid = "1",
@@ -108,7 +109,8 @@ class SettingsViewModelTest {
               country = "United States",
               description = "bio",
               dateOfBirth = LocalDate.of(1990, 8, 12),
-              tags = emptySet()))
+              tags = emptySet(),
+              profilePicture = null))
 
       // Set up ViewModel
       viewModel = SettingsViewModel(UserRepositoryProvider)
@@ -641,5 +643,23 @@ class SettingsViewModelTest {
     }
     assertTrue(cleared)
     assertTrue(navigated)
+  }
+
+  @Test
+  fun savingProfilePictureIfEmptyPicture() = runTest {
+    val profilePicture = ByteArray(126 * 126) { index -> ((index * 3) % 256).toByte() }
+    viewModel.updateProfilePicture(imageId = profilePicture, uid = "1")
+    advanceUntilIdle()
+    val resultProfilePicture = viewModel.uiState.value.profilePicture
+    assertEquals(profilePicture, resultProfilePicture)
+  }
+
+  @Test
+  fun savingProfilePictureIfNonEmptyPicture() = runTest {
+    val profilePicture = ByteArray(126 * 126) { index -> ((index * 3) % 256).toByte() }
+    viewModel.updateProfilePicture(imageId = profilePicture, uid = "0")
+    advanceUntilIdle()
+    val resultProfilePicture = viewModel.uiState.value.profilePicture
+    assertEquals(profilePicture, resultProfilePicture)
   }
 }

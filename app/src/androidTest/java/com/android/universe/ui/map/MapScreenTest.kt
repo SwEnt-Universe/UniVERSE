@@ -4,9 +4,11 @@ import android.Manifest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -14,6 +16,7 @@ import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -86,6 +89,62 @@ class MapScreenTest {
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
     composeTestRule.waitUntil(1_000L) { accessed }
+  }
+
+  @Test
+  fun eventInfoPopupAppearsWhenEventSelected() {
+    val testEvent = EventTestData.dummyEvent3
+
+    runTest { fakeEventRepository.addEvent(testEvent) }
+
+    composeTestRule.setContent {
+      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
+    }
+
+    composeTestRule.waitForIdle()
+
+    viewModel.selectEvent(testEvent)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
+
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText(EventTestData.dummyEvent3.title).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Close").assertIsDisplayed()
+  }
+
+  @Test
+  fun multipleEventsCanBeLoadedAndSelected() {
+    val event1 = EventTestData.dummyEvent1
+    val event2 = EventTestData.dummyEvent2
+
+    runTest {
+      fakeEventRepository.addEvent(event1)
+      fakeEventRepository.addEvent(event2)
+    }
+
+    composeTestRule.setContent {
+      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
+    }
+
+    composeTestRule.waitForIdle()
+    viewModel.loadAllEvents()
+
+    composeTestRule.waitUntil(5_000L) { viewModel.eventMarkers.value.size == 2 }
+
+    viewModel.selectEvent(event1)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
+    assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent1.title)
+
+    viewModel.selectEvent(null)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsNotDisplayed()
+
+    viewModel.selectEvent(event2)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
+    assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent2.title)
   }
 }
 

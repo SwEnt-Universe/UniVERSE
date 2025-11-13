@@ -280,4 +280,22 @@ class MapViewModelTest {
 
     assertEquals(oneMore, viewModel.eventMarkers.value.size)
   }
+
+  @Test
+  fun `selectEvent updates selectedEvent with given event`() = runTest {
+    val testEvent = EventTestData.dummyEvent1
+
+    viewModel.selectEvent(testEvent)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(testEvent, viewModel.selectedEvent.value)
+  }
+
+  @Test
+  fun `selectEvent sets selectedEvent to null when null passed`() = runTest {
+    viewModel.selectEvent(null)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertNull(viewModel.selectedEvent.value)
+  }
 }

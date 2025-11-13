@@ -1,8 +1,12 @@
 package com.android.universe.ui.profile
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,10 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +48,8 @@ import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.UniverseTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
@@ -51,6 +61,7 @@ object UserProfileScreenTestTags {
   const val TAG = "userProfileTag"
   const val EDIT_BUTTON = "userProfileEditButton"
   const val TAGLIST = "userProfileTagList"
+  const val PROFILE_PICTURE = "userProfilePicture"
 
   fun getTagTestTag(index: Int): String {
     return "userProfileTag$index"
@@ -155,17 +166,43 @@ fun UserProfileScreen(
               horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                   // Profile picture of the user.
+                  val imageBytes = userUIState.userProfile.profilePicture
+                  val bitmap =
+                      produceState<Bitmap?>(initialValue = null, imageBytes) {
+                            value =
+                                if (imageBytes != null) {
+                                  withContext(Dispatchers.IO) {
+                                    BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                                  }
+                                } else {
+                                  null
+                                }
+                          }
+                          .value
                   Box(
                       modifier =
                           Modifier.align(Alignment.Center)
                               .size(UserProfileDimensions.profilePictureSize)
-                              .background(MaterialTheme.colorScheme.surface, CircleShape),
+                              .clip(CircleShape)
+                              .background(MaterialTheme.colorScheme.surface, CircleShape)
+                              .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
                       contentAlignment = Alignment.Center) {
-                        Icon(
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            contentDescription = "Image",
-                            imageVector = Icons.Filled.Image,
-                            modifier = Modifier.size(Dimensions.IconSizeLarge))
+                        if (bitmap == null) {
+                          Icon(
+                              tint = MaterialTheme.colorScheme.onSurface,
+                              contentDescription = "Image",
+                              imageVector = Icons.Filled.Image,
+                              modifier = Modifier.size(Dimensions.IconSizeLarge))
+                        } else {
+                          Image(
+                              bitmap = bitmap.asImageBitmap(),
+                              contentDescription = "Selected image",
+                              modifier =
+                                  Modifier.clip(CircleShape)
+                                      .fillMaxSize()
+                                      .testTag(UserProfileScreenTestTags.PROFILE_PICTURE),
+                              contentScale = ContentScale.Crop)
+                        }
                       }
                   // Setting icon to navigate to the edit profile screen.
                   IconButton(
