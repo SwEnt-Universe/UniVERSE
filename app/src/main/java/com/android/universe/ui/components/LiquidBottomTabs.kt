@@ -50,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -191,11 +190,9 @@ fun LiquidBottomTabs(
                     backdrop = backdrop,
                     shape = { RoundedCornerShape(100.dp) },
                     effects = {
-                      if (size.isSpecified) { // Added by precaution
-                        vibrancy()
-                        blur(8f.dp.toPx())
-                        lens(24f.dp.toPx(), 24f.dp.toPx())
-                      }
+                      vibrancy()
+                      blur(8f.dp.toPx())
+                      lens(24f.dp.toPx(), 24f.dp.toPx())
                     },
                     layerBlock = {
                       val progress = dampedDragAnimation.pressProgress
@@ -226,11 +223,9 @@ fun LiquidBottomTabs(
                           shape = { RoundedCornerShape(100.dp) },
                           effects = {
                             val progress = dampedDragAnimation.pressProgress
-                            if (size.isSpecified) { // Added by precaution
-                              vibrancy()
-                              blur(8f.dp.toPx())
-                              lens(24f.dp.toPx() * progress, 24f.dp.toPx() * progress)
-                            }
+                            vibrancy()
+                            blur(8f.dp.toPx())
+                            lens(24f.dp.toPx() * progress, 24f.dp.toPx() * progress)
                           },
                           highlight = {
                             val progress = dampedDragAnimation.pressProgress
@@ -259,12 +254,10 @@ fun LiquidBottomTabs(
                     shape = { RoundedCornerShape(100.dp) },
                     effects = {
                       val progress = dampedDragAnimation.pressProgress
-                      if (size.isSpecified) {
-                        lens(
-                            10f.dp.toPx() * progress,
-                            14f.dp.toPx() * progress,
-                            chromaticAberration = true)
-                      }
+                      lens(
+                          10f.dp.toPx() * progress,
+                          14f.dp.toPx() * progress,
+                          chromaticAberration = true)
                     },
                     highlight = {
                       val progress = dampedDragAnimation.pressProgress

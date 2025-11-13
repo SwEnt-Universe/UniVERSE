@@ -298,6 +298,7 @@ dependencies {
     testImplementation(libs.turbine)
     globalTestImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
     globalTestImplementation(libs.mockk.agent)
+    globalTestImplementation(libs.io.github.backdrop)
     testImplementation(libs.robolectric)
     // WARNING: logback can only be used in local tests, not instrumented tests.
     testImplementation(libs.logback)
