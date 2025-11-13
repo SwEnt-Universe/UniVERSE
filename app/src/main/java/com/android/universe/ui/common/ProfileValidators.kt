@@ -341,3 +341,33 @@ fun validateBirthDate(day: Int, month: Int, year: Int): ValidationResult {
  * @return The sanitized string.
  */
 fun sanitize(s: String): String = s.replace(Regex("\\s+"), " ").trim()
+
+/**
+ * Returns a copy of this string with the first letter of each word capitalized and all other
+ * letters converted to lowercase.
+ *
+ * Words are defined as sequences of characters separated by a single space (`" "`). Consecutive
+ * spaces are treated as delimiters and will be collapsed in the result.
+ *
+ * "hello world".toTitleCase() // → "Hello World"
+ *
+ * This function is primarily intended for normalizing user-facing names and labels.
+ */
+fun String.toTitleCase(): String {
+  return this.split(" ").joinToString(" ") { word ->
+    when {
+      word.isEmpty() -> word
+      word.length == 1 -> word.uppercase()
+      else -> word[0].uppercase() + word.substring(1).lowercase()
+    }
+  }
+}
+
+/**
+ * Sanitizes a string by replacing multiple whitespace characters with a single space and trimming
+ * leading whitespace.
+ *
+ * @param s The string to sanitize.
+ * @return The sanitized string.
+ */
+fun sanitizeLead(s: String): String = s.replace(Regex("\\s+"), " ").trimStart()

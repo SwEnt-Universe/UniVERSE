@@ -96,6 +96,18 @@ class AddProfileViewModelTest {
   }
 
   @Test
+  fun firstNameCleansMultipleSpaces() = runTest {
+    viewModel.setFirstName("   John    Michael   Doe   ")
+    assertEquals("John Michael Doe ", viewModel.uiState.value.firstName)
+  }
+
+  @Test
+  fun lastNameCleansProperly() = runTest {
+    viewModel.setLastName("   Van   der   Waals   ")
+    assertEquals("Van der Waals ", viewModel.uiState.value.lastName)
+  }
+
+  @Test
   fun setCountryUpdateTheState() = runTest {
     val initialState = viewModel.uiState.value
     assertEquals("", initialState.country)
@@ -543,12 +555,6 @@ class AddProfileViewModelTest {
   // ---------- FIRST NAME TESTS ----------
 
   @Test
-  fun firstNameCleansMultipleSpaces() = runTest {
-    viewModel.setFirstName("   John    Michael   Doe   ")
-    assertEquals("John Michael Doe", viewModel.uiState.value.firstName)
-  }
-
-  @Test
   fun firstNameTrimsToPlusOneLimit() = runTest {
     val longName = "A".repeat(InputLimits.FIRST_NAME + 5)
     viewModel.setFirstName(longName)
@@ -576,13 +582,6 @@ class AddProfileViewModelTest {
   }
 
   // ---------- LAST NAME TESTS ----------
-
-  @Test
-  fun lastNameCleansProperly() = runTest {
-    viewModel.setLastName("   Van   der   Waals   ")
-    assertEquals("Van der Waals", viewModel.uiState.value.lastName)
-  }
-
   @Test
   fun lastNameAcceptsAccentsAndSpecialLetters() = runTest {
     val valid = listOf("O'Connor", "García-López", "Brân", "L'Écuyer")
