@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleMessage
-import com.android.universe.ui.chat.composable.MessageItemViewModel
+import com.android.universe.ui.chat.composable.ChatUIViewModel
 import com.android.universe.ui.chat.composable.MessageList
 import com.android.universe.ui.chat.composable.MessageListTestTags
 import io.mockk.every
@@ -25,7 +25,7 @@ class MessageListUiTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private lateinit var mockViewModel: MessageItemViewModel
+  private lateinit var mockViewModel: ChatUIViewModel
 
   @Before
   fun setUp() {
@@ -49,8 +49,6 @@ class MessageListUiTest {
             getNewSampleMessage(),
             getNewSampleMessage())
 
-    // Mock ViewModel to provide usernames
-    val mockViewModel = mockk<MessageItemViewModel>()
     messages.forEach { message ->
       val username = if (message.senderID == userId) "Me" else "Alice"
       val userFlow = MutableStateFlow(username)
@@ -62,7 +60,7 @@ class MessageListUiTest {
           userID = userId,
           messages = messages,
           modifier = androidx.compose.ui.Modifier,
-          messageItemViewModel = mockViewModel)
+          vm = mockViewModel)
     }
 
     // LazyColumn exists

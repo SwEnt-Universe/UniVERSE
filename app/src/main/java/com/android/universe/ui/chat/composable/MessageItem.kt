@@ -29,19 +29,6 @@ object MessageItemTestTags {
   const val MESSAGE_CONTAINER = "MESSAGE_CONTAINER"
 }
 
-/**
- * A composable that displays a single message in a chat conversation. It handles the visual
- * distinction between messages sent by the current user ("me") and messages sent by others.
- *
- * @param senderID The unique identifier of the message sender. Used to fetch the user's name.
- * @param message The text content of the message.
- * @param time The timestamp of when the message was sent, formatted as a string.
- * @param modifier The modifier to be applied to the message item container.
- * @param isUserMe A boolean flag indicating if the message was sent by the current user. This
- *   controls the alignment and color scheme of the message bubble.
- * @param vm The [MessageItemViewModel] instance used to fetch sender details, typically provided by
- *   `viewModel()`.
- */
 @Composable
 fun MessageItem(
     senderID: String,
@@ -49,10 +36,10 @@ fun MessageItem(
     time: String,
     modifier: Modifier = Modifier,
     isUserMe: Boolean = false,
-    vm: MessageItemViewModel = viewModel(),
+    vm: ChatUIViewModel = viewModel(),
 ) {
-  val userName by vm.getUserName(senderID).collectAsState()
 
+  val userName by vm.getUserName(senderID).collectAsState()
   val messageCornerRadius: Dp = Dimensions.RoundedCorner * 2
   val arrangement = if (isUserMe) Arrangement.End else Arrangement.Start
 

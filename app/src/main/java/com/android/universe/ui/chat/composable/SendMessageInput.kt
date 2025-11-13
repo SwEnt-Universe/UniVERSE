@@ -3,50 +3,28 @@ package com.android.universe.ui.chat.composable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.android.universe.model.chat.Chat
-import com.android.universe.model.chat.Message
-import kotlinx.coroutines.launch
-
-const val MAX_MESSAGE_LENGTH = 256
 
 object SendMessageInputTestTags {
   const val TEXT_FIELD = "SEND_MESSAGE_TEXT_FIELD"
   const val SEND_BUTTON = "SEND_BUTTON"
 }
 
-/**
- * A composable function that provides a text input field and a send button for sending messages in
- * a chat.
- *
- * This component manages its own state for the message text, enforces a maximum message length, and
- * handles the sending of the message via the provided [Chat] object. The send button is only
- * enabled when there is text to send.
- *
- * @param chat The [Chat] object that handles the business logic of sending a message.
- * @param userID The ID of the current user sending the message.
- */
 @Composable
-fun SendMessageInput(chat: Chat, userID: String) {
-  var messageText by remember { mutableStateOf("") }
-  val coroutineScope = rememberCoroutineScope()
+fun SendMessageInput(vm: ChatUIViewModel) {
+  val messageText by vm.messageText.collectAsState()
 
   TextField(
       value = messageText,
-      onValueChange = {
-        messageText =
-            if (it.length <= MAX_MESSAGE_LENGTH) it else it.substring(0, MAX_MESSAGE_LENGTH)
-      },
+      onValueChange = { vm.onInput(it) },
       placeholder = { Text("Type a message...") },
       modifier = Modifier.fillMaxWidth().testTag(SendMessageInputTestTags.TEXT_FIELD),
       singleLine = false,
@@ -54,18 +32,9 @@ fun SendMessageInput(chat: Chat, userID: String) {
       trailingIcon = {
         IconButton(
             enabled = messageText.isNotBlank(),
-            onClick = {
-              val text = messageText.trim()
-              if (text.isNotBlank()) {
-                coroutineScope.launch {
-                  chat.sendMessage(Message(senderID = userID, message = text))
-                }
-                messageText = ""
-              }
-            },
+            onClick = { vm.sendMessage() },
             modifier = Modifier.testTag(SendMessageInputTestTags.SEND_BUTTON)) {
-              androidx.compose.material3.Icon(
-                  imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
+              Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
             }
       })
 }

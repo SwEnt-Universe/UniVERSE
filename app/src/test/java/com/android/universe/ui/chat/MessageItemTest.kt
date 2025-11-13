@@ -7,9 +7,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleMessage
+import com.android.universe.ui.chat.composable.ChatUIViewModel
 import com.android.universe.ui.chat.composable.MessageItem
 import com.android.universe.ui.chat.composable.MessageItemTestTags
-import com.android.universe.ui.chat.composable.MessageItemViewModel
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class MessageItemTest {
-  private lateinit var mockViewModel: MessageItemViewModel
+  private lateinit var mockViewModel: ChatUIViewModel
 
   @Before
   fun setUp() {
