@@ -16,11 +16,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Represent the UiSate of the EventCreationScreen.
@@ -80,7 +78,7 @@ object EventInputLimits {
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
+    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
 ) : ViewModel() {
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
@@ -380,7 +378,7 @@ class EventCreationViewModel(
     if (validateAll()) {
       viewModelScope.launch {
         try {
-          val id = withContext(NonCancellable) { eventRepository.getNewID() }
+          val id = eventRepository.getNewID()
 
           val realDay = eventCreationUiState.value.day.padStart(2, '0')
 
@@ -408,7 +406,6 @@ class EventCreationViewModel(
 
           val eventDateTime = LocalDateTime.of(localDate, localTime)
 
-          // val creator = withContext(NonCancellable) { userRepository.getUser(uid) }
           val event =
               Event(
                   id = id,
@@ -419,7 +416,7 @@ class EventCreationViewModel(
                   creator = uid,
                   participants = setOf(uid),
                   location = location)
-          withContext(NonCancellable) { eventRepository.addEvent(event) }
+          eventRepository.addEvent(event)
           // The event is saved, we can now delete the current tag Set for the event.
           tagRepository.deleteAllTags()
         } catch (e: Exception) {

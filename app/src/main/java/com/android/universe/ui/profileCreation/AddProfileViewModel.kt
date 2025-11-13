@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Represents the UI state for the Add Profile screen.
@@ -85,14 +84,11 @@ data class AddProfileUIState(
  * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
  *   Defaults to [Dispatchers.Default].
  * @param repositoryDispatcher The [CoroutineDispatcher] used for executing repository operations.
- *   Defaults to [Dispatchers.IO].
+ *   Defaults to [DDP.io].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 open class AddProfileViewModel(
     private val repository: UserRepository = UserRepositoryProvider.repository,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val repositoryDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) : ViewModel() {
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
@@ -128,7 +124,7 @@ open class AddProfileViewModel(
    *   successfully created.
    */
   fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
-    viewModelScope.launch(dispatcher) {
+    viewModelScope.launch {
       if (!validateAllInputs()) {
         return@launch
       }
@@ -153,8 +149,8 @@ open class AddProfileViewModel(
               dateOfBirth = dateOfBirth,
               tags = emptySet())
 
-      withContext(repositoryDispatcher) { repository.addUser(userProfile) }
-      withContext(mainDispatcher) { onSuccess() }
+      repository.addUser(userProfile)
+      onSuccess()
     }
   }
 
@@ -177,8 +173,7 @@ open class AddProfileViewModel(
     val yearResult = validateYear(state.year)
 
     if (usernameResult is ValidationResult.Valid) {
-      val isUnique =
-          withContext(repositoryDispatcher) { repository.isUsernameUnique(state.username) }
+      val isUnique = repository.isUsernameUnique(state.username)
       if (!isUnique) {
         usernameResult = ValidationResult.Invalid(ErrorMessages.USERNAME_TAKEN)
       }

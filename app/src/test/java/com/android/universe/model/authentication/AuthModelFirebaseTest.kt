@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.os.bundleOf
 import androidx.credentials.Credential
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.FakeJwtGenerator
 import com.google.android.gms.tasks.Tasks
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -14,7 +15,12 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -25,7 +31,6 @@ import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
 private lateinit var mockAuth: FirebaseAuth
 private lateinit var mockHelper: GoogleSignInHelper
@@ -36,7 +41,7 @@ private lateinit var authModelFirebase: AuthModelFirebase
 private lateinit var mockAuthCredential: AuthCredential
 private lateinit var mockAuthResult: AuthResult
 
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class AuthModelFirebaseTest {
 
   companion object {

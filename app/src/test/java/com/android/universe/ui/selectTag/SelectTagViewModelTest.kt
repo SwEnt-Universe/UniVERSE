@@ -1,5 +1,6 @@
 package com.android.universe.ui.selectTag
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagLocalTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepository
@@ -14,8 +15,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class SelectTagViewModelTest {
   // Define the parameters for the tests.
   @get:Rule val mainCoroutineRule = MainCoroutineRule()

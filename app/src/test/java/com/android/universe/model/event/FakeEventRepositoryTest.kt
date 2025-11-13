@@ -4,6 +4,7 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.EventTestData
+import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -15,6 +16,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class FakeEventRepositoryTest {
@@ -24,6 +26,7 @@ class FakeEventRepositoryTest {
   }
 
   private lateinit var repository: FakeEventRepository
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
   @Before
   fun setup() {

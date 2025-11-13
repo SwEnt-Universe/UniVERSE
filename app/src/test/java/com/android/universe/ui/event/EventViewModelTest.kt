@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
@@ -8,21 +9,16 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.collections.get
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class EventViewModelTest {
 
   companion object {
@@ -33,7 +29,6 @@ class EventViewModelTest {
   private lateinit var repository: FakeEventRepository
   private lateinit var userRepo: FakeUserRepository
   private lateinit var viewModel: EventViewModel
-  private val testDispatcher = StandardTestDispatcher()
 
   // Sample users for events
   private val sampleUsers =
@@ -99,8 +94,6 @@ class EventViewModelTest {
 
   @Before
   fun setup() {
-    Dispatchers.setMain(testDispatcher)
-
     repository = FakeEventRepository()
     userRepo = FakeUserRepository()
 
@@ -115,11 +108,6 @@ class EventViewModelTest {
       viewModel.loadEvents()
       advanceUntilIdle()
     }
-  }
-
-  @After
-  fun tearDown() {
-    Dispatchers.resetMain()
   }
 
   @Test
@@ -164,8 +152,7 @@ class EventViewModelTest {
   @Test
   fun eventsWithMoreThanThreeTagsAreCropped() = runTest {
     val extraEvent = thirdEvent
-
-    runBlocking { repository.addEvent(extraEvent) }
+    repository.addEvent(extraEvent)
 
     // Refresh events in the ViewModel
     viewModel.loadEvents()

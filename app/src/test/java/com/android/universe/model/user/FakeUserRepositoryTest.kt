@@ -1,5 +1,6 @@
 package com.android.universe.model.user
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
@@ -9,7 +10,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
