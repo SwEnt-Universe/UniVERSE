@@ -47,16 +47,20 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = Firebase.fires
    *   overwritten with a newly generated ID.
    */
   override suspend fun sendMessage(chatID: String, message: Message) {
-    // Get an new messageID
-    val messageRef =
-        db.collection(COLLECTION_NAME)
-            .document(chatID)
-            .collection("messages")
-            .document() // generate a new ID
-
-    // Update the message with the new ID save it to the database
+    val chatRef = db.collection(COLLECTION_NAME).document(chatID)
+    val messageRef = chatRef.collection("messages").document() // generate new message ID
     val msg = message.copy(messageID = messageRef.id)
-    messageRef.set(msg).await()
+
+    val batch = db.batch()
+
+    // Add the message write
+    batch.set(messageRef, msg)
+
+    // Add the lastMessage update
+    batch.update(chatRef, "lastMessage", msg)
+
+    // Commit the batch
+    batch.commit().await()
   }
 
   /**
