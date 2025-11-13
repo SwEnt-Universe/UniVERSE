@@ -96,6 +96,19 @@ class AddProfileViewModelTest {
   }
 
   @Test
+  fun firstNameCleansMultipleSpaces() = runTest {
+    viewModel.setFirstName("   John    Michael   Doe   ")
+    assertEquals("John Michael Doe ", viewModel.uiState.value.firstName)
+  }
+
+
+  @Test
+  fun lastNameCleansProperly() = runTest {
+    viewModel.setLastName("   Van   der   Waals   ")
+    assertEquals("Van der Waals ", viewModel.uiState.value.lastName)
+  }
+
+  @Test
   fun setCountryUpdateTheState() = runTest {
     val initialState = viewModel.uiState.value
     assertEquals("", initialState.country)

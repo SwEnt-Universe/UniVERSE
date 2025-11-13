@@ -10,6 +10,7 @@ import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.sanitizeLead
 import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
@@ -257,7 +258,8 @@ open class AddProfileViewModel(
    * @param firstName The new first name string from the UI.
    */
   fun setFirstName(firstName: String) {
-    val finalName = firstName.take(InputLimits.FIRST_NAME + 1)
+    val cleaned = sanitizeLead(firstName)
+    val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
     val validationResult = validateFirstName(finalName)
     _uiState.update {
       it.copy(firstName = finalName, firstNameError = validationResult.toStringOrNull())
@@ -271,7 +273,8 @@ open class AddProfileViewModel(
    * @param lastName The new last name string from the UI.
    */
   fun setLastName(lastName: String) {
-    val finalName = lastName.take(InputLimits.LAST_NAME + 1)
+    val cleaned = sanitizeLead(lastName)
+    val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
     val validationResult = validateLastName(finalName)
     _uiState.update {
       it.copy(lastName = finalName, lastNameError = validationResult.toStringOrNull())

@@ -362,3 +362,12 @@ fun String.toTitleCase(): String {
     }
   }
 }
+
+/**
+ * Sanitizes a string by replacing multiple whitespace characters with a single space and trimming
+ * leading whitespace.
+ *
+ * @param s The string to sanitize.
+ * @return The sanitized string.
+ */
+fun sanitizeLead(s: String): String = s.replace(Regex("\\s+"), " ").trimStart()

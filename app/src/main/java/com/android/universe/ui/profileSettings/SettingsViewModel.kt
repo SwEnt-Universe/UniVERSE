@@ -14,6 +14,7 @@ import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationResult
 import com.android.universe.ui.common.sanitize
+import com.android.universe.ui.common.sanitizeLead
 import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
 import com.android.universe.ui.common.validateCountry
@@ -181,12 +182,16 @@ class SettingsViewModel(
           validationResult = validatePassword(finalValue)
         }
         "firstName" -> {
-          finalValue = value.take(InputLimits.FIRST_NAME + 1)
-          validationResult = ValidationResult.Valid // no real-time validation
+          // Sanitize *then* truncate at LIMIT + 1
+          val cleaned = sanitizeLead(value)
+          finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
+          validationResult = validateFirstName(finalValue)
         }
         "lastName" -> {
-          finalValue = value.take(InputLimits.LAST_NAME + 1)
-          validationResult = ValidationResult.Valid // no real-time validation
+          // Sanitize *then* truncate at LIMIT + 1
+          val cleaned = sanitizeLead(value)
+          finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
+          validationResult = validateLastName(finalValue)
         }
         "description" -> {
           // No truncation, (soft limit), matches AddProfileViewModel
