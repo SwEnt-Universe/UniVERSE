@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.chat.Chat
 import com.android.universe.ui.chat.ChatScreenTestTags.ERROR
 import com.android.universe.ui.chat.ChatScreenTestTags.LOADING
 import com.android.universe.ui.chat.composable.ChatUIViewModel
