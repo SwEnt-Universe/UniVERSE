@@ -1,12 +1,11 @@
 package com.android.universe.model.event
 
 import android.util.Log
-import com.android.universe.model.Tag
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.coroutines.tasks.await
@@ -37,44 +36,6 @@ private inline fun <reified K, reified V> Any?.safeCastMap(): Map<K, V> {
  * Stores events in the database and persist data between app launches.
  */
 class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventRepository {
-  /**
-   * Converts a UserProfile object to a Map<String, Any?>.
-   *
-   * @param user the UserProfile to convert.
-   * @return a map representation of the UserProfile.
-   */
-  private fun userProfileToMap(user: UserProfile): Map<String, Any?> {
-    return mapOf(
-        "uid" to user.uid,
-        "username" to user.username,
-        "firstName" to user.firstName,
-        "lastName" to user.lastName,
-        "country" to user.country,
-        "description" to user.description,
-        "dateOfBirth" to user.dateOfBirth.toString(),
-        "tags" to user.tags.map { it.ordinal })
-  }
-
-  /**
-   * Converts a Map<String, Any?> to a UserProfile object.
-   *
-   * @param map the map to convert.
-   * @return the corresponding UserProfile object.
-   */
-  private fun mapToUserProfile(map: Map<String, Any?>): UserProfile {
-    return UserProfile(
-        uid = map["uid"] as String,
-        username = map["username"] as String,
-        firstName = map["firstName"] as String,
-        lastName = map["lastName"] as String,
-        country = map["country"] as String,
-        description = map["description"] as String?,
-        dateOfBirth = LocalDate.parse(map["dateOfBirth"] as String),
-        tags =
-            (map["tags"].safeCastList<Number>())
-                .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                .toSet())
-  }
 
   /**
    * Converts a Location object to a Map<String, Any?>.
@@ -111,8 +72,8 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         "description" to event.description,
         "date" to event.date.toString(),
         "tags" to event.tags.map { it.ordinal },
-        "participants" to event.participants.map { it -> userProfileToMap(it) },
-        "creator" to userProfileToMap(event.creator),
+        "participants" to event.participants.toList(),
+        "creator" to event.creator,
         "location" to locationToMap(event.location))
   }
 
@@ -126,12 +87,8 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return try {
       // the list of tags that have been casted safely.
       val tagsList = doc.get("tags").safeCastList<Number>()
-      // the creator map that have been casted safely.
-      val creatorMap = doc.get("creator").safeCastMap<String, Any?>()
-      // check if the creator map is empty and throw an exception if so.
-      require(creatorMap.isNotEmpty()) { "Creator data missing" }
       // the participants list that have been casted safely.
-      val participantsList = doc.get("participants").safeCastList<Map<String, Any?>>()
+      val participantsList = doc.get("participants").safeCastList<String>()
       // the location map that have been casted safely.
       val locationMap = doc.get("location").safeCastMap<String, Any?>()
       // check if the location map is empty and throw an exception if so.
@@ -142,8 +99,8 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
           description = doc.getString("description"),
           date = doc.getString("date")?.let { LocalDateTime.parse(it) } ?: LocalDateTime.now(),
           tags = tagsList.map { ordinal -> Tag.entries[ordinal.toInt()] }.toSet(),
-          creator = mapToUserProfile(creatorMap),
-          participants = participantsList.map { mapToUserProfile(it) }.toSet(),
+          creator = doc.getString("creator") ?: "",
+          participants = participantsList.toSet(),
           location = mapToLocation(locationMap))
     } catch (e: Exception) {
       Log.e("EventRepositoryFirestore", "Error converting document to Event", e)
@@ -159,7 +116,6 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   override suspend fun getAllEvents(): List<Event> {
     val events = ArrayList<Event>()
     val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get().await()
-
     for (document in querySnapshot.documents) {
       val event = documentToEvent(document)
       events.add(event)

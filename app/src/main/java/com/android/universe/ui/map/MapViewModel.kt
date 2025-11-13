@@ -57,8 +57,43 @@ class MapViewModel(
   private val _eventMarkers = MutableStateFlow<List<Event>>(emptyList())
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
+  private val _selectedEvent = MutableStateFlow<Event?>(null)
+  val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+
   init {
     loadSuggestedEventsForCurrentUser()
+  }
+
+  private var pollingJob: Job? = null
+
+  /**
+   * Starts polling for events at regular intervals.
+   *
+   * @param intervalMinutes The interval in minutes between polling events.
+   * @param maxIterations The maximum number of iterations before stopping polling. user only for
+   *   tests
+   */
+  fun startEventPolling(intervalMinutes: Long = 5, maxIterations: Int? = null) {
+    pollingJob?.cancel()
+    pollingJob =
+        viewModelScope.launch {
+          var count = 0
+          while (maxIterations == null || count < maxIterations) {
+            try {
+              loadAllEvents()
+            } catch (e: Exception) {
+              _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
+            }
+            count++
+            kotlinx.coroutines.delay(intervalMinutes * 60 * 1000)
+          }
+        }
+  }
+
+  /** Stops polling for events. */
+  fun stopEventPolling() {
+    pollingJob?.cancel()
+    pollingJob = null
   }
 
   /**
@@ -176,4 +211,13 @@ class MapViewModel(
 
   /** Updates the UI state to indicate that the map is now interactable. */
   fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
+
+  /**
+   * Selects an event to be the currently selected event by the user.
+   *
+   * @param event The event to select, or null to clear the selection.
+   */
+  fun selectEvent(event: Event?) {
+    viewModelScope.launch { _selectedEvent.emit(event) }
+  }
 }

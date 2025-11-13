@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 
 object SelectTagsScreenTestTags {
   const val INTEREST_TAGS = "InterestTags"
@@ -161,7 +161,7 @@ fun SelectTagScreen(
     navigateOnSave: () -> Unit = {}
 ) {
   LaunchedEffect(uid) { selectedTagOverview.loadTags(uid) }
-  val selectedTags by selectedTagOverview.uiStateTags.collectAsState()
+  val selectedTags by selectedTagOverview.selectedTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->

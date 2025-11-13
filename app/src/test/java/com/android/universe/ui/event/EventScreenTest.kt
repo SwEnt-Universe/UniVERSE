@@ -13,9 +13,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.android.universe.utils.UserTestData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -41,6 +43,7 @@ class EventScreenTest {
   }
 
   private lateinit var fakeEventRepository: FakeEventRepository
+  private lateinit var fakeUserRepository: FakeUserRepository
   private lateinit var viewModel: EventViewModel
 
   companion object {
@@ -49,6 +52,8 @@ class EventScreenTest {
     private val thirdEvent = EventTestData.NoTagsEvent
     private val megaTagEvent = EventTestData.SomeTagsEvent
     private val sampleEvents = listOf(firstEvent, secondEvent, thirdEvent)
+    private val sampleUsers =
+        listOf(UserTestData.NullDescription, UserTestData.ManyTagsUser, UserTestData.Alice)
 
     private const val THREE_TAG_MESSAGE = "Expected at least 3 visible tag nodes but found"
   }
@@ -57,10 +62,14 @@ class EventScreenTest {
   fun setUp() {
     // Create a fresh fake repository for every test (isolated)
     fakeEventRepository = FakeEventRepository()
+    fakeUserRepository = FakeUserRepository()
 
-    runTest { sampleEvents.forEach { fakeEventRepository.addEvent(it) } }
+    runTest {
+      sampleEvents.forEach { fakeEventRepository.addEvent(it) }
+      sampleUsers.forEach { fakeUserRepository.addUser(it) }
+    }
 
-    viewModel = EventViewModel(fakeEventRepository)
+    viewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
 
     setContentWithStubBackdrop { EventScreen(viewModel = viewModel) }
 

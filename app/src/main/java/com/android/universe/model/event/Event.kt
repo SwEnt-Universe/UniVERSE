@@ -1,8 +1,7 @@
 package com.android.universe.model.event
 
-import com.android.universe.model.Tag
 import com.android.universe.model.location.Location
-import com.android.universe.model.user.UserProfile
+import com.android.universe.model.tag.Tag
 import java.time.LocalDateTime
 
 /**
@@ -23,7 +22,7 @@ data class Event(
     val description: String? = null,
     val date: LocalDateTime,
     val tags: Set<Tag>,
-    val creator: UserProfile,
-    val participants: Set<UserProfile> = emptySet(),
+    val creator: String,
+    val participants: Set<String> = emptySet(),
     val location: Location
 )

@@ -1,6 +1,6 @@
 package com.android.universe.utils
 
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 
@@ -57,8 +57,9 @@ object UserTestData {
           dateOfBirth = LocalDate.of(2012, 9, 12),
           tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
 
-  val Arthur = BaseUser.copy(country = "CH")
-
+  val Arthur =
+      BaseUser.copy(
+          country = "CH", profilePicture = ByteArray(126 * 126) { index -> (index % 256).toByte() })
   val FullDescription = BaseUser.copy(uid = "20")
 
   val EmptyDescription = BaseUser.copy(uid = "20", description = "")

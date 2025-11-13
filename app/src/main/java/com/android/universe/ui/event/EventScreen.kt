@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,11 +23,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -89,7 +92,26 @@ object EventScreenTestTags {
  *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
  */
 @Composable
-fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = viewModel()) {
+fun EventScreen(
+    onTabSelected: (Tab) -> Unit = {},
+    uid: String = "",
+    viewModel: EventViewModel = viewModel()
+) {
+  val context = LocalContext.current
+  LaunchedEffect(uid) {
+    if (viewModel.storedUid != uid) {
+      viewModel.storedUid = uid
+      viewModel.loadEvents()
+    }
+  }
+  val error by viewModel.uiState.collectAsState()
+
+  LaunchedEffect(error.errormsg) {
+    if (error.errormsg != null) {
+      viewModel.setErrorMsg(null)
+      Toast.makeText(context, error.errormsg, Toast.LENGTH_SHORT).show()
+    }
+  }
   val events by viewModel.eventsState.collectAsState()
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
@@ -107,7 +129,10 @@ fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = v
                 date = event.date,
                 tags = event.tags,
                 creator = event.creator,
-                participants = event.participants)
+                participants = event.participants,
+                onJoin = viewModel::joinOrLeaveEvent,
+                index = event.index,
+                joined = event.joined)
           }
         }
   }
@@ -129,6 +154,9 @@ fun EventScreen(onTabSelected: (Tab) -> Unit = {}, viewModel: EventViewModel = v
  * @param tags A list of up to three tag strings associated with the event.
  * @param creator The full name of the user who created the event.
  * @param participants The number of participants who joined the event.
+ * @param onJoin A callback function invoked when the "Join In" button is clicked.
+ * @param joined Whether the current user has joined the event.
+ * @param index The index of the event in the list of events of the viewmodel
  */
 @Composable
 fun EventCard(
@@ -137,7 +165,10 @@ fun EventCard(
     date: String,
     tags: List<String>,
     creator: String,
-    participants: Int
+    participants: Int,
+    onJoin: (Int) -> Unit = {},
+    joined: Boolean = false,
+    index: Int = 0
 ) {
   Card(
       modifier =
@@ -215,13 +246,20 @@ fun EventCard(
                     color = MaterialTheme.colorScheme.onSurface)
 
                 Button(
-                    onClick = {},
+                    onClick = { onJoin(index) },
                     shape = RoundedCornerShape(Dimensions.RoundedCorner),
                     colors =
                         ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary),
+                            containerColor =
+                                if (joined) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.primary),
                     modifier = Modifier.testTag(EventScreenTestTags.EVENT_JOIN_BUTTON)) {
-                      Text(text = "Join In", color = MaterialTheme.colorScheme.onPrimary)
+                      Text(
+                          text =
+                              if (joined) {
+                                "Leave"
+                              } else "Join In",
+                          color = MaterialTheme.colorScheme.onPrimary)
                     }
               }
         }
@@ -270,7 +308,7 @@ fun EventCardPreview() {
         description = event.description ?: "",
         date = event.date.toLocalDate().toString(),
         tags = event.tags.map { it.name },
-        creator = event.creator.username,
+        creator = event.creator,
         participants = event.participants.size)
   }
 }

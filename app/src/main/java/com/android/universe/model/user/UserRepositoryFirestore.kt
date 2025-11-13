@@ -1,10 +1,12 @@
 package com.android.universe.model.user
 
 import android.util.Log
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import kotlinx.coroutines.tasks.await
 
 // Firestore collection path for user profiles.
@@ -15,6 +17,43 @@ private inline fun <reified T> Any?.safeCastList(): List<T> {
   return if (this is List<*>) {
     this.filterIsInstance<T>()
   } else emptyList()
+}
+
+/**
+ * Converts a Firestore DocumentSnapshot to a UserProfile object.
+ *
+ * @param doc the DocumentSnapshot to convert.
+ * @return the corresponding UserProfile object.
+ * @throws Exception if any required field is missing or has an invalid format.
+ */
+fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
+  return try {
+    UserProfile(
+        uid = doc.getString("uid") ?: "",
+        username = doc.getString("username") ?: "",
+        firstName = doc.getString("firstName") ?: "",
+        lastName = doc.getString("lastName") ?: "",
+        country = doc.getString("country") ?: "",
+        description = doc.getString("description"),
+        dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
+        tags =
+            (doc.get("tags").safeCastList<Number>())
+                .map { ordinal -> Tag.entries[ordinal.toInt()] }
+                .toSet(),
+        profilePicture = doc.getBlob("profilePicture")?.toBytes())
+  } catch (e: DateTimeParseException) {
+    Log.e(
+        "UserRepositoryFirestore.documentToUserProfile",
+        "Error converting document to UserProfile, invalid date format",
+        e)
+    throw e
+  } catch (e: NullPointerException) {
+    Log.e(
+        "UserRepositoryFirestore.documentToUserProfile",
+        "Error converting document to UserProfile, assigning null to non-nullable field",
+        e)
+    throw e
+  }
 }
 
 /**
@@ -40,37 +79,13 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         "country" to user.country,
         "description" to user.description,
         "dateOfBirth" to user.dateOfBirth.toString(),
-        "tags" to user.tags.map { it.ordinal })
-  }
-
-  /**
-   * Converts a Firestore DocumentSnapshot to a UserProfile object.
-   *
-   * @param doc the DocumentSnapshot to convert.
-   * @return the corresponding UserProfile object.
-   * @throws Exception if any required field is missing or has an invalid format.
-   */
-  private fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
-    return try {
-      UserProfile(
-          uid = doc.getString("uid") ?: "",
-          username = doc.getString("username") ?: "",
-          firstName = doc.getString("firstName") ?: "",
-          lastName = doc.getString("lastName") ?: "",
-          country = doc.getString("country") ?: "",
-          description = doc.getString("description"),
-          dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
-          tags =
-              (doc.get("tags").safeCastList<Number>())
-                  .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                  .toSet())
-    } catch (e: Exception) {
-      Log.e(
-          "UserRepositoryFirestore.documentToUserProfile",
-          "Error converting document to UserProfile",
-          e)
-      throw e
-    }
+        "tags" to user.tags.map { it.ordinal },
+        "profilePicture" to
+            (if (user.profilePicture != null) {
+              Blob.fromBytes(user.profilePicture)
+            } else {
+              null
+            }))
   }
 
   /**
