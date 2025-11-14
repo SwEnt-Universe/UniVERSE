@@ -18,9 +18,9 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.every
 import io.mockk.mockkObject
-import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
