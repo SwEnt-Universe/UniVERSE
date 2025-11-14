@@ -18,6 +18,7 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -64,7 +65,8 @@ class MapScreenTest {
 
   @Test
   fun mapIsDisplayed() {
-    composeTestRule.setContent {
+
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 
@@ -74,13 +76,15 @@ class MapScreenTest {
   @Test
   fun eventCreationButtonAppearsAndClickable() {
     var accessed = false
-    composeTestRule.setContent {
+
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(
           uid = uid,
           viewModel = viewModel,
           onTabSelected = {},
           createEvent = { _, _ -> accessed = true })
     }
+
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
     viewModel.selectLocation(commonLat, commonLng)
@@ -97,7 +101,7 @@ class MapScreenTest {
 
     runTest { fakeEventRepository.addEvent(testEvent) }
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 
@@ -123,7 +127,7 @@ class MapScreenTest {
       fakeEventRepository.addEvent(event2)
     }
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
     }
 

@@ -32,8 +32,8 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: adopt
+          java-version: 21
 
       - name: Setup NodeJS
         uses: actions/setup-node@v4
@@ -66,7 +66,7 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Setup Gradle cache
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v5
 
       # ------------------ Build Output Cache ------------------
       - name: Cache Gradle build outputs
@@ -79,29 +79,7 @@ jobs:
           restore-keys: |
             build-
 
-      # ------------------ 🧰 AVD Setup ------------------
-      - name: AVD cache
-        uses: actions/cache@v4
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-34
-          restore-keys: |
-            avd-
-
-      - name: Create AVD snapshot (if cache miss)
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Generated AVD snapshot for caching."
+     
 
       # ------------------  Secrets ------------------
       - name: Grant execute permission for gradlew
@@ -193,6 +171,30 @@ jobs:
           echo "PR title: $TITLE"
           echo "mode=connectedCheck" >> $GITHUB_ENV
           echo "Default → full connectedCheck"
+
+      # ------------------ 🧰 AVD Setup ------------------
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34
+          restore-keys: |
+            avd-
+
+      - name: Create AVD snapshot (if cache miss)
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
 
       # ------------------ Run instrumentation tests ------------------
       - name: Run instrumentation tests (${{ env.mode }})

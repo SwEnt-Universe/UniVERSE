@@ -15,6 +15,7 @@ import com.android.universe.ui.chat.ChatScreenTestTags.LOADING
 import com.android.universe.ui.chat.composable.ChatUIViewModel
 import com.android.universe.ui.chat.composable.MessageItemTestTags
 import com.android.universe.ui.chat.composable.SendMessageInputTestTags
+import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
@@ -63,7 +64,7 @@ class ChatScreenTest {
 
   @Test
   fun chatScreen_displaysMessageListAndInput() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       // Direct injection of the mock ViewModel, bypassing the factory
       ChatScreen(
           chatID = TEST_CHAT_ID, userID = TEST_USER_ID, onTabSelected = {}, vm = mockViewModel)
@@ -99,7 +100,7 @@ class ChatScreenTest {
   fun chatScreen_typingAndSendMessage() {
     val newMessage = "Hi there!"
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       ChatScreen(
           chatID = TEST_CHAT_ID, userID = TEST_USER_ID, onTabSelected = {}, vm = mockViewModel)
     }
