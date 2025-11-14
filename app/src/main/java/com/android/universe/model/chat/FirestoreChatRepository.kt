@@ -1,12 +1,12 @@
 package com.android.universe.model.chat
 
-import com.google.firebase.Firebase
+import com.android.universe.di.DefaultDP
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.firestore
-import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 const val COLLECTION_NAME = "chats"
 
@@ -18,7 +18,7 @@ const val COLLECTION_NAME = "chats"
  * @property db An instance of [FirebaseFirestore] used to interact with the database. Defaults to
  *   the default `Firebase.firestore` instance.
  */
-class FirestoreChatRepository(private val db: FirebaseFirestore = Firebase.firestore) :
+class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirestore.getInstance()) :
     ChatRepository {
   private val listeners = ConcurrentHashMap<String, ListenerRegistration>()
 
@@ -30,7 +30,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = Firebase.fires
    * @throws NoSuchElementException if the chat with the specified ID is not found.
    */
   override suspend fun loadChat(chatID: String): Chat {
-    val doc = db.collection(COLLECTION_NAME).document(chatID).get().await()
+    val doc = withContext(DefaultDP.io) {db.collection(COLLECTION_NAME).document(chatID).get().await()}
     return doc.toObject(ChatDTO::class.java)?.toChat()
         ?: throw NoSuchElementException("Chat not found")
   }
@@ -60,7 +60,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = Firebase.fires
     batch.update(chatRef, "lastMessage", msg)
 
     // Commit the batch
-    batch.commit().await()
+    withContext(DefaultDP.io) {batch.commit().await()}
   }
 
   /**
@@ -128,7 +128,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = Firebase.fires
    */
   override suspend fun createChat(chatID: String, admin: String): Chat {
     val chat = ChatDTO(chatID = chatID, admin = admin, lastMessage = null)
-    db.collection(COLLECTION_NAME).document(chatID).set(chat).await()
+    withContext(DefaultDP.io) {db.collection(COLLECTION_NAME).document(chatID).set(chat).await()}
     return Chat(chatID, admin)
   }
 
