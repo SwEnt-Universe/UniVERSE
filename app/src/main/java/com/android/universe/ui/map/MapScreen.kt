@@ -35,9 +35,11 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
@@ -161,6 +163,7 @@ fun TomTomMapView(
     modifier: Modifier = Modifier,
     createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
 ) {
+  val backdrop = LocalLayerBackdrop.current
   val context = LocalContext.current
   val state = viewModel.uiState.collectAsState()
   LaunchedEffect(state.value.eventCount) { viewModel.loadAllEvents() }
@@ -259,11 +262,12 @@ fun TomTomMapView(
 
   if (state.value.selectedLat != null && state.value.selectedLng != null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-      Button(
+      LiquidButton(
           onClick = {
             createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
             viewModel.selectLocation(null, null)
           },
+          backdrop = backdrop,
           modifier =
               Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
             Text("Create your Event !")
