@@ -12,14 +12,18 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
+import io.mockk.every
+import io.mockk.mockkObject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -51,6 +55,10 @@ class UserProfileScreenTest : FirestoreUserTest() {
   @Before
   override fun setUp() {
     super.setUp()
+    mockkObject(DefaultDP)
+    every { DefaultDP.io } returns UnconfinedTestDispatcher()
+    every { DefaultDP.default } returns UnconfinedTestDispatcher()
+    every { DefaultDP.main } returns mainCoroutineRule.dispatcher
     repository = createInitializedRepository()
     viewModel = UserProfileViewModel(repository)
   }
@@ -136,7 +144,10 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun descriptionDisplaysNothingWhenNull() {
-    runTest { repository.addUser(dummyUser3) }
+    runTest {
+      repository.addUser(dummyUser3)
+      advanceUntilIdle()
+    }
 
     composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
