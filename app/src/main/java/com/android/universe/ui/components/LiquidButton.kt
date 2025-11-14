@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
@@ -84,6 +85,7 @@ fun LiquidButton(
 
   Row(
       modifier
+          .testTag(LiquidButtonTestTags.LIQUID_BUTTON)
           .drawBackdrop(
               backdrop = backdrop,
               shape = { RoundedCornerShape(percent = 50) },
@@ -149,4 +151,8 @@ fun LiquidButton(
       horizontalArrangement = Arrangement.spacedBy(8f.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
       content = content)
+}
+
+object LiquidButtonTestTags {
+  const val LIQUID_BUTTON = "liquid_button"
 }
