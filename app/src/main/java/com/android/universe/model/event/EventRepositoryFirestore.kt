@@ -5,6 +5,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDateTime
@@ -80,7 +81,12 @@ class EventRepositoryFirestore(
         "tags" to event.tags.map { it.ordinal },
         "participants" to event.participants.toList(),
         "creator" to event.creator,
-        "location" to locationToMap(event.location))
+        "location" to locationToMap(event.location),
+        "eventPicture" to (if (event.eventPicture != null) {
+            Blob.fromBytes(event.eventPicture)
+        } else {
+            null
+        }))
   }
 
   /**
@@ -107,7 +113,8 @@ class EventRepositoryFirestore(
           tags = tagsList.map { ordinal -> Tag.entries[ordinal.toInt()] }.toSet(),
           creator = doc.getString("creator") ?: "",
           participants = participantsList.toSet(),
-          location = mapToLocation(locationMap))
+          location = mapToLocation(locationMap),
+          eventPicture = doc.getBlob("eventPicture")?.toBytes())
     } catch (e: Exception) {
       Log.e("EventRepositoryFirestore", "Error converting document to Event", e)
       throw e
