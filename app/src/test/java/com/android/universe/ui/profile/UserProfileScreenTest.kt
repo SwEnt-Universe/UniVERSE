@@ -20,6 +20,7 @@ import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import io.mockk.every
 import io.mockk.mockkObject
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -37,7 +38,9 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule val mainCoroutineRule = MainCoroutineRule(UnconfinedTestDispatcher())
+
   private lateinit var repository: UserRepository
+  private lateinit var viewModel: UserProfileViewModel
 
   companion object {
     private val allTags = Tag.Category.entries.flatMap { Tag.Companion.getTagsForCategory(it) }
@@ -57,14 +60,14 @@ class UserProfileScreenTest : FirestoreUserTest() {
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns mainCoroutineRule.dispatcher
     repository = createInitializedRepository()
+    viewModel = UserProfileViewModel(repository)
   }
 
   @Test
   fun profileDisplaysBasicInformationCorrectly() {
     runTest { repository.addUser(dummyUser) }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser.uid, userProfileViewModel = viewModel)
     }
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -106,8 +109,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun tooManyTagsImpliesScrollable() {
     runTest { repository.addUser(dummyUser2) }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
 
@@ -118,8 +120,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun tagsAreUniqueAndInAllowedList() {
     runTest { repository.addUser(dummyUser2) }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
 
@@ -148,8 +149,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
       advanceUntilIdle()
     }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser3.uid, userProfileViewModel = viewModel)
     }
 
@@ -161,8 +161,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
     val profile = dummyUser4.copy(description = "Hello World")
     runTest { repository.addUser(profile) }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = profile.uid, userProfileViewModel = viewModel)
     }
 
@@ -176,8 +175,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun descriptionDisplaysNoDescriptionMessageWhenEmpty() {
     runTest { repository.addUser(dummyUser5) }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser5.uid, userProfileViewModel = viewModel)
     }
 
@@ -188,8 +186,7 @@ class UserProfileScreenTest : FirestoreUserTest() {
   fun profilePictureNotDisplayedIfNull() {
     runTest { repository.addUser(dummyUser2) }
 
-    composeTestRule.setContent {
-      val viewModel = UserProfileViewModel(repository)
+    composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(uid = dummyUser2.uid, userProfileViewModel = viewModel)
     }
 

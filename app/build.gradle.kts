@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Imports
 // ─────────────────────────────────────────────────────────────────────────────
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -15,6 +16,14 @@ plugins {
     alias(libs.plugins.sonarqube)
     alias(libs.plugins.google.services)
     jacoco
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// Kotlin configuration
+// ─────────────────────────────────────────────────────────────────────────────
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget("17")
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,7 +55,7 @@ val tomtomApiKey: String = System.getenv("TOMTOM_API_KEY")
 // ─────────────────────────────────────────────────────────────────────────────
 android {
     namespace = "com.android.universe"
-    compileSdk = 34
+    compileSdk = 36
 
     // BuildConfig is required for injecting TOMTOM_API_KEY
     buildFeatures {
@@ -119,14 +128,11 @@ android {
         jacocoVersion = jacocoVer
     }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.4.2" }
-
     // Bytecode level for the app; host JDK for tests can be newer
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
 
     packaging {
         resources {
@@ -206,8 +212,8 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 dependencies {
     // Import the Bill of Materials (BOMs) to manage library versions.
     // This removes the need to specify versions for individual Compose and Firebase libraries.
-    val composeBom = platform(libs.androidx.compose.bom)
-    val firebaseBom = platform(libs.firebase.bom)
+    val composeBom = enforcedPlatform(libs.androidx.compose.bom)
+    val firebaseBom = enforcedPlatform(libs.firebase.bom)
     implementation(composeBom)
     globalTestImplementation(composeBom)
     implementation(firebaseBom)
@@ -237,11 +243,12 @@ dependencies {
     // Android Studio Preview support
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
-
+    implementation(libs.io.github.backdrop)
     // ------------------- Navigation -------------------
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.ui)
     implementation(libs.androidx.navigation.fragment)
+
     // ----------------- TomTom SDK -----------------
     implementation(libs.tomtom.maps) {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
@@ -276,6 +283,7 @@ dependencies {
     testFixturesImplementation(libs.mockk.agent)
     testFixturesImplementation(libs.androidx.compose.ui)
     testFixturesImplementation(libs.androidx.compose.ui.test.junit4)
+    testFixturesImplementation(libs.io.github.backdrop)
 
 
     // ----------------- Unit Testing (test/) -----------------
@@ -285,6 +293,7 @@ dependencies {
     testImplementation(libs.turbine)
     globalTestImplementation(libs.mockk.android) // Use mockk-android for Android-specific APIs
     globalTestImplementation(libs.mockk.agent)
+    globalTestImplementation(libs.io.github.backdrop)
     testImplementation(libs.robolectric)
     // WARNING: logback can only be used in local tests, not instrumented tests.
     testImplementation(libs.logback)

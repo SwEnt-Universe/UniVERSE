@@ -1,8 +1,12 @@
 package com.android.universe.ui.navigation
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.utils.setContentWithStubBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -17,7 +21,7 @@ class NavigationPlaceholderScreenTest {
   fun displaysTitle() {
     val title = "Test Screen"
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = title, selectedTab = Tab.Map, onTabSelected = {}, testTag = null)
     }
@@ -29,7 +33,7 @@ class NavigationPlaceholderScreenTest {
   fun hasTestTag_whenProvided() {
     val testTag = "example_test_tag"
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "Title", selectedTab = Tab.Map, onTabSelected = {}, testTag = testTag)
     }
@@ -39,7 +43,8 @@ class NavigationPlaceholderScreenTest {
 
   @Test
   fun bottomBar_isVisible_whenEnabled() {
-    composeTestRule.setContent {
+
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "With Bottom Bar",
           selectedTab = Tab.Map,
@@ -52,7 +57,8 @@ class NavigationPlaceholderScreenTest {
 
   @Test
   fun bottomBar_isHidden_whenDisabled() {
-    composeTestRule.setContent {
+
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "No Bottom Bar",
           selectedTab = Tab.Map,
@@ -67,7 +73,7 @@ class NavigationPlaceholderScreenTest {
   fun clickingTab_invokesCallback() {
     var selectedTab: Tab? = null
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       NavigationPlaceholderScreen(
           title = "Tabs",
           selectedTab = Tab.Map,

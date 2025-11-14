@@ -29,6 +29,7 @@ import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import io.mockk.every
@@ -67,7 +68,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns Dispatchers.Main
     runTest {
-      composeTestRule.setContent { UniverseTheme { UniverseApp() } }
+      composeTestRule.setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
       composeTestRule.waitForIdle()
     }
   }

@@ -13,6 +13,7 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -58,7 +59,8 @@ class EventScreenTest {
 
     viewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
 
-    composeTestRule.setContent { EventScreen(viewModel = viewModel) }
+    composeTestRule.setContentWithStubBackdrop { EventScreen(viewModel = viewModel) }
+
     viewModel.loadEvents()
 
     runTest { advanceUntilIdle() }

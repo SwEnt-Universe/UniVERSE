@@ -11,6 +11,7 @@ import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -37,7 +38,7 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
       repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
       this.testScheduler.advanceUntilIdle()
     }
-    composeTestRule.setContent { UniverseTheme { UniverseApp() } }
+    composeTestRule.setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
     composeTestRule.waitForIdle()
   }
 

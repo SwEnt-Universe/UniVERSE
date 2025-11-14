@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.utils.setContentWithStubBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -17,7 +18,7 @@ class NavigationBottomMenuTest {
 
   @Test
   fun bottomMenu_displaysAllTabs() {
-    composeTestRule.setContent { NavigationBottomMenuPreview() }
+    composeTestRule.setContentWithStubBackdrop { NavigationBottomMenuPreview() }
     // Assert: bottom bar is displayed
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
     // Assert: all tabs is displayed
@@ -28,8 +29,9 @@ class NavigationBottomMenuTest {
 
   @Test
   fun bottomMenu_selectsTab_whenClicked() {
-    val selectedTab = mutableStateOf<Tab>(Tab.Map)
-    composeTestRule.setContent {
+    val selectedTab = mutableStateOf<Tab>(Tab.Chat)
+
+    composeTestRule.setContentWithStubBackdrop {
       NavigationBottomMenu(selectedTab = selectedTab.value) { clickedTab ->
         selectedTab.value = clickedTab
       }

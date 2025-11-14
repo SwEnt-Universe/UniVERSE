@@ -11,6 +11,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -51,7 +53,9 @@ import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.auth.FirebaseAuth
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -62,12 +66,20 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     setContent {
       UniverseTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-            color = MaterialTheme.colorScheme.background) {
-              UniverseApp()
-            }
+        val backgroundColor = Color.White
+        val backdrop = rememberLayerBackdrop {
+          drawRect(backgroundColor)
+          drawContent()
+        }
+
+        CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
+          // A surface container using the 'background' color from the theme
+          Surface(
+              modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+              color = MaterialTheme.colorScheme.background) {
+                UniverseApp()
+              }
+        }
       }
     }
   }
@@ -177,7 +189,8 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
-              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") },
+          )
         }
       }
 

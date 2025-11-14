@@ -27,6 +27,7 @@ import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import io.mockk.every
@@ -68,7 +69,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       fakeUser = fakeUser.copy(uid = uid)
       Firebase.auth.signOut()
     }
-    composeTestRule.setContent { UniverseTheme { UniverseApp() } }
+    composeTestRule.setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
     composeTestRule.waitForIdle()
   }
 
