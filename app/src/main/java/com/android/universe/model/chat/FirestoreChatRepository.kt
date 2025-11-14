@@ -4,9 +4,9 @@ import com.android.universe.di.DefaultDP
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
 
 const val COLLECTION_NAME = "chats"
 
@@ -30,7 +30,8 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
    * @throws NoSuchElementException if the chat with the specified ID is not found.
    */
   override suspend fun loadChat(chatID: String): Chat {
-    val doc = withContext(DefaultDP.io) {db.collection(COLLECTION_NAME).document(chatID).get().await()}
+    val doc =
+        withContext(DefaultDP.io) { db.collection(COLLECTION_NAME).document(chatID).get().await() }
     return doc.toObject(ChatDTO::class.java)?.toChat()
         ?: throw NoSuchElementException("Chat not found")
   }
@@ -60,7 +61,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
     batch.update(chatRef, "lastMessage", msg)
 
     // Commit the batch
-    withContext(DefaultDP.io) {batch.commit().await()}
+    withContext(DefaultDP.io) { batch.commit().await() }
   }
 
   /**
@@ -128,7 +129,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
    */
   override suspend fun createChat(chatID: String, admin: String): Chat {
     val chat = ChatDTO(chatID = chatID, admin = admin, lastMessage = null)
-    withContext(DefaultDP.io) {db.collection(COLLECTION_NAME).document(chatID).set(chat).await()}
+    withContext(DefaultDP.io) { db.collection(COLLECTION_NAME).document(chatID).set(chat).await() }
     return Chat(chatID, admin)
   }
 

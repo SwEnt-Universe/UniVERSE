@@ -52,10 +52,10 @@ class UserProfileScreenTest : FirestoreUserTest() {
   @Before
   override fun setUp() {
     super.setUp()
-      mockkObject(DefaultDP)
-      every { DefaultDP.io } returns UnconfinedTestDispatcher()
-      every { DefaultDP.default } returns UnconfinedTestDispatcher()
-      every { DefaultDP.main } returns mainCoroutineRule.dispatcher
+    mockkObject(DefaultDP)
+    every { DefaultDP.io } returns UnconfinedTestDispatcher()
+    every { DefaultDP.default } returns UnconfinedTestDispatcher()
+    every { DefaultDP.main } returns mainCoroutineRule.dispatcher
     repository = createInitializedRepository()
   }
 
@@ -143,8 +143,9 @@ class UserProfileScreenTest : FirestoreUserTest() {
 
   @Test
   fun descriptionDisplaysNothingWhenNull() {
-    runTest { repository.addUser(dummyUser3)
-        advanceUntilIdle()
+    runTest {
+      repository.addUser(dummyUser3)
+      advanceUntilIdle()
     }
 
     composeTestRule.setContent {
