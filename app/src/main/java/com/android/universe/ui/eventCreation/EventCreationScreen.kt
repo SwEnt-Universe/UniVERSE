@@ -1,6 +1,5 @@
 package com.android.universe.ui.eventCreation
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -132,68 +131,6 @@ private fun TextFieldEventCreation(
       singleLine = singleLine)
 }
 
-@Composable
-fun EventImage(
-    imageBytes: ByteArray?,
-    onClick: (Context, Uri) -> Unit,
-    modifier: Modifier = Modifier
-) {
-  val context = LocalContext.current
-  val bitmap =
-      produceState<Bitmap?>(initialValue = null, imageBytes) {
-            value =
-                if (imageBytes != null) {
-                  withContext(Dispatchers.IO) {
-                    BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                  }
-                } else {
-                  null
-                }
-          }
-          .value
-
-  Box(
-      modifier =
-          modifier
-              .clip(RoundedCornerShape(16.dp))
-              .height(140.dp)
-              .width(220.dp)
-              .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
-              .border(2.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(16.dp))) {
-        if (bitmap == null) {
-          Icon(
-              tint = MaterialTheme.colorScheme.onSurface,
-              contentDescription = "Image",
-              imageVector = Icons.Filled.Image,
-              modifier = Modifier.size(Dimensions.IconSizeLarge).align(Alignment.Center))
-        } else {
-          Image(
-              bitmap = bitmap.asImageBitmap(),
-              contentDescription = "Selected image",
-              modifier =
-                  Modifier.clip(RoundedCornerShape(16.dp))
-                      .align(Alignment.Center)
-                      .fillMaxSize()
-                      .testTag(UserProfileScreenTestTags.PROFILE_PICTURE),
-              contentScale = ContentScale.Crop)
-        }
-
-        val launcher =
-            rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {
-                uri: Uri? ->
-              uri?.let { selectedUri -> onClick(context, selectedUri) }
-            }
-        IconButton(
-            onClick = { launcher.launch("image/*") },
-            modifier = Modifier.align(Alignment.BottomEnd).size(Dimensions.IconSizeLarge)) {
-              Icon(
-                  contentDescription = "Image",
-                  imageVector = Icons.Filled.Create,
-              )
-            }
-      }
-}
-
 /**
  * Screen for the Event creation
  *
@@ -217,15 +154,69 @@ fun EventCreationScreen(
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
   val tags = eventCreationViewModel.eventTags.collectAsState()
+  val eventImage = uiState.value.eventPicture
   Scaffold(
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
-          EventImage(
-              imageBytes = uiState.value.eventPicture,
-              onClick = { context: Context, uri: Uri ->
-                eventCreationViewModel.setImage(context, uri)
-              },
-              modifier = Modifier.align(Alignment.CenterHorizontally))
+          val context = LocalContext.current
+          val bitmap =
+              produceState<Bitmap?>(initialValue = null, eventImage) {
+                    value =
+                        if (eventImage != null) {
+                          withContext(Dispatchers.IO) {
+                            BitmapFactory.decodeByteArray(
+                                uiState.value.eventPicture, 0, eventImage.size)
+                          }
+                        } else {
+                          null
+                        }
+                  }
+                  .value
+          // Event Image box with image selection
+          Box(
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .clip(RoundedCornerShape(16.dp))
+                      .height(140.dp)
+                      .width(220.dp)
+                      .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+                      .border(
+                          2.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(16.dp))) {
+                // If there is no image we display an Image Icon.
+                if (bitmap == null) {
+                  Icon(
+                      tint = MaterialTheme.colorScheme.onSurface,
+                      contentDescription = "Image",
+                      imageVector = Icons.Filled.Image,
+                      modifier = Modifier.size(Dimensions.IconSizeLarge).align(Alignment.Center))
+                } else {
+                  Image(
+                      bitmap = bitmap.asImageBitmap(),
+                      contentDescription = "Selected image",
+                      modifier =
+                          Modifier.clip(RoundedCornerShape(16.dp))
+                              .align(Alignment.Center)
+                              .fillMaxSize()
+                              .testTag(UserProfileScreenTestTags.PROFILE_PICTURE),
+                      contentScale = ContentScale.Crop)
+                }
+                // The launcher to launch the image selection.
+                val launcher =
+                    rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+                          uri?.let { selectedUri ->
+                            eventCreationViewModel.setImage(context, selectedUri)
+                          }
+                        }
+                IconButton(
+                    onClick = { launcher.launch("image/*") },
+                    modifier = Modifier.align(Alignment.BottomEnd).size(Dimensions.IconSizeLarge)) {
+                      Icon(
+                          contentDescription = "Image",
+                          imageVector = Icons.Filled.Create,
+                      )
+                    }
+              }
           TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
