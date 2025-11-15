@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,7 +39,6 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
@@ -204,14 +202,14 @@ fun TomTomMapView(
             }
             tomtomMap = map
 
-            /*if (!isLocationProviderSet && viewModel.locationProvider != null) {
+            if (!isLocationProviderSet && viewModel.locationProvider != null) {
               map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
               map.enableLocationMarker(locationMarkerOptions)
-            }*/
+            }
 
             map.addMapClickListener { geoPoint ->
               map.removeMarkers(tag = "coordinate")

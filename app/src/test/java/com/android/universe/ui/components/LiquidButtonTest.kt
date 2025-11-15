@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -15,7 +16,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.setContentWithStubBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -54,15 +54,21 @@ class LiquidButtonTest {
 
   @Test
   fun liquidMinParams() {
+    var clicked = false
     composeTestRule.setContentWithStubBackdrop {
       MaterialTheme {
-        LiquidButton(onClick = {}, isInteractive = false, modifier = Modifier.testTag(
-          LiquidButtonTestTags.LIQUID_BUTTON)) {
-          Text(RANDOM_STRING)
-        }
+        LiquidButton(
+            onClick = { clicked = !clicked },
+            isInteractive = false,
+            modifier = Modifier.testTag(LiquidButtonTestTags.LIQUID_BUTTON),
+            enabled = false) {
+              Text(RANDOM_STRING)
+            }
       }
     }
     composeTestRule.onNodeWithText(RANDOM_STRING).assertExists()
-    composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).assertExists()
+    composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).assertIsNotEnabled()
+    composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).performClick()
+    assertEquals(false, clicked)
   }
 }
