@@ -22,11 +22,10 @@ class LiquidBottomTabsTest {
   fun liquidBottomTabs_rendersContent() {
     composeTestRule.setContent {
       MaterialTheme {
-        LiquidBottomTabs(
-            selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 2) {
-              Text("Home")
-              Text("Settings")
-            }
+        LiquidBottomTabs(selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 2) {
+          Text("Home")
+          Text("Settings")
+        }
       }
     }
 
@@ -68,12 +67,11 @@ class LiquidBottomTabsTest {
   fun liquidBottomTabs_providesLocalScaleToContent() {
     composeTestRule.setContent {
       MaterialTheme {
-        LiquidBottomTabs(
-            selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 1) {
-              // Consume the provided local and display its value
-              val scale = LocalLiquidBottomTabScale.current()
-              Text("ScaleValue:${scale}")
-            }
+        LiquidBottomTabs(selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 1) {
+          // Consume the provided local and display its value
+          val scale = LocalLiquidBottomTabScale.current()
+          Text("ScaleValue:${scale}")
+        }
       }
     }
 
