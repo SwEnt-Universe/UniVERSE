@@ -301,8 +301,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsModeChange() {
-    val modeViewModel =
-        SelectTagViewModel(userRepository, selectTagMode = SelectTagMode.USER_PROFILE)
+    val modeViewModel = SelectTagViewModel(userRepository)
 
     composeTestRule.setContent {
       SelectTagScreen(

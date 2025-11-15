@@ -163,6 +163,7 @@ fun SelectTagScreen(
 ) {
   LaunchedEffect(uid) {
     selectedTagOverview.mode = selectTagMode
+    selectedTagOverview.eventTagRepositoryObserving()
     selectedTagOverview.loadTags(uid)
   }
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()

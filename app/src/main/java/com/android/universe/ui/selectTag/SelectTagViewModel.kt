@@ -28,25 +28,24 @@ enum class SelectTagMode {
  *
  * @param userRepository The data source handling user-related operations. Defaults to
  *   UserRepositoryProvider.repository
- *     @param selectTagMode The mode the viewModel should run on.
- *     @param tagRepository The repository for the tags. Used only if the mode is EVENT_CREATION.
+ * @param tagRepository The repository for the tags. Used only if the mode is EVENT_CREATION.
  */
 class SelectTagViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val selectTagMode: SelectTagMode = SelectTagMode.USER_PROFILE,
     private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
 ) : ViewModel() {
   /** Backing field for [uiStateTags]. Mutable within the ViewModel only. */
   private val _selectedTags = MutableStateFlow<List<Tag>>(emptyList())
-  var mode = selectTagMode
+  var mode = SelectTagMode.USER_PROFILE
   /** Publicly exposed state of the selected tags. */
   val selectedTags = _selectedTags.asStateFlow()
 
   /**
    * We launch a coroutine that will update the set of tag each time the tag repository change. This
-   * allow the user to see the tag he already selected if he returns to the screen.
+   * allow the user to see the tag he already selected if he returns to the screen. This function
+   * should be launched only in a launched Effect of the invoking screen
    */
-  init {
+  fun eventTagRepositoryObserving() {
     if (mode == SelectTagMode.EVENT_CREATION) {
       viewModelScope.launch {
         tagRepository.tagsFlow.collect { newTags -> _selectedTags.value = newTags.toList() }
