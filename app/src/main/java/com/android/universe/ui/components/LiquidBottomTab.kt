@@ -39,7 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.android.universe.ui.theme.COMMON_CAPSULE
+import com.android.universe.ui.theme.CommonCapsule
 
 /**
  * A CompositionLocal that provides the current scale factor as a function reference [() -> Float]
@@ -81,7 +81,7 @@ fun RowScope.LiquidBottomTab(
   val scale = LocalLiquidBottomTabScale.current
   Column(
       modifier
-          .clip(COMMON_CAPSULE)
+          .clip(CommonCapsule)
           .clickable(
               interactionSource = null, // To disable the standard ripple effect
               indication = null, // To disable the standard ripple effect

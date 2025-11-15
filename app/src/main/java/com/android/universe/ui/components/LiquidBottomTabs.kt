@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
-import com.android.universe.ui.theme.COMMON_CAPSULE
+import com.android.universe.ui.theme.CommonCapsule
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.DampedDragAnimation
@@ -188,7 +188,7 @@ fun LiquidBottomTabs(
             Modifier.graphicsLayer { translationX = panelOffset }
                 .drawBackdrop(
                     backdrop = backdrop,
-                    shape = { COMMON_CAPSULE },
+                    shape = { CommonCapsule },
                     effects = {
                       vibrancy()
                       blur(8f.dp.toPx())
@@ -220,7 +220,7 @@ fun LiquidBottomTabs(
                       .graphicsLayer { translationX = panelOffset }
                       .drawBackdrop(
                           backdrop = backdrop,
-                          shape = { COMMON_CAPSULE },
+                          shape = { CommonCapsule },
                           effects = {
                             val progress = dampedDragAnimation.pressProgress
                             vibrancy()
@@ -251,7 +251,7 @@ fun LiquidBottomTabs(
                 .then(dampedDragAnimation.modifier)
                 .drawBackdrop(
                     backdrop = rememberCombinedBackdrop(backdrop, tabsBackdrop),
-                    shape = { COMMON_CAPSULE },
+                    shape = { CommonCapsule },
                     effects = {
                       val progress = dampedDragAnimation.pressProgress
                       lens(
