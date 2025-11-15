@@ -82,11 +82,12 @@ class EventRepositoryFirestore(
         "participants" to event.participants.toList(),
         "creator" to event.creator,
         "location" to locationToMap(event.location),
-        "eventPicture" to (if (event.eventPicture != null) {
-            Blob.fromBytes(event.eventPicture)
-        } else {
-            null
-        }))
+        "eventPicture" to
+            (if (event.eventPicture != null) {
+              Blob.fromBytes(event.eventPicture)
+            } else {
+              null
+            }))
   }
 
   /**
