@@ -369,6 +369,19 @@ class EventCreationViewModel(
   }
 
   /**
+   * TODO
+   */
+  fun setDate(date: LocalDate) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(
+      day = date.dayOfMonth.toString(),
+      month = date.monthValue.toString(),
+      year = date.year.toString(),
+      dayError = null,
+      monthError = null,
+      yearError = null
+    )
+  }
+  /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
    * @param location the location of the event.

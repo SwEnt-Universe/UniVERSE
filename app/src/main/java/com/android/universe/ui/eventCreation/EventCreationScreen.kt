@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
+import com.android.universe.ui.common.DatePickerField
 import com.google.firebase.auth.FirebaseAuth
 
 /** All the tags that are used to test the EventCreation screen. */
@@ -156,38 +157,13 @@ fun EventCreationScreen(
               errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DESCRIPTION),
               singleLine = false)
           Spacer(modifier = Modifier.height(12.dp))
-          Row(modifier = Modifier.padding(paddingValues)) {
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-                        .weight(1f)
-                        .padding(16.dp),
-                value = uiState.value.day,
-                onValueChange = { day -> eventCreationViewModel.setEventDay(day) },
-                label = "Day",
-                errorMessage = uiState.value.dayError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DAY))
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-                        .weight(1f)
-                        .padding(16.dp),
-                value = uiState.value.month,
-                onValueChange = { month -> eventCreationViewModel.setEventMonth(month) },
-                label = "Month",
-                errorMessage = uiState.value.monthError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MONTH))
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-                        .weight(1f)
-                        .padding(16.dp),
-                value = uiState.value.year,
-                onValueChange = { year -> eventCreationViewModel.setEventYear(year) },
-                label = "Year",
-                errorMessage = uiState.value.yearError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_YEAR))
-          }
+            DatePickerField(
+                //TODO
+                label = "Event date",
+                onDateSelected = { date ->
+                    eventCreationViewModel.setDate(date)
+                }
+            )
           Row(
               modifier = Modifier.fillMaxWidth().padding(paddingValues),
               horizontalArrangement = Arrangement.Center) {
