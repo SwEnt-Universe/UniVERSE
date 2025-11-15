@@ -1,0 +1,153 @@
+/*
+ * Copyright 2024 The AndroidLiquidGlass Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Original source:
+ * https://github.com/Kyant0/AndroidLiquidGlass/blob/master/catalog/src/main/java/com/kyant/backdrop/catalog/components/LiquidButton.kt
+ * Date taken: 2025-11-14
+ *
+ * Description: This file was originally created by Kyant0 Minor modifications were made for
+ * integration into UniVERSE
+ */
+package com.android.universe.ui.components
+
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceAtMost
+import androidx.compose.ui.util.lerp
+import com.android.universe.ui.theme.CapsuleLarge
+import com.android.universe.ui.utils.InteractiveHighlight
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.tanh
+
+/**
+ * @param onClick The lambda function to be executed when the button is clicked.
+ * @param modifier The [Modifier] to be applied to the component's container. Note this includes
+ *   test tags
+ * @param enabled Whether the component is enabled or not. I.e if one can press it or not
+ * @param isInteractive Whether the component is interactive or not. I.e if there are visual effects
+ *   on long presses.
+ * @param height The height of the component. 48f by default
+ * @param width The width of the component. 192f by default
+ * @param color The color of the component. MaterialTheme.colorScheme.background by default
+ * @param content The composable content for the button, typically a series of `Icon` or `Text`
+ *   composables. This lambda is executed within a [RowScope].
+ */
+@Composable
+fun LiquidButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isInteractive: Boolean = true,
+    height: Float = 48f,
+    width: Float = 192f,
+    color: Color = MaterialTheme.colorScheme.background,
+    content: @Composable RowScope.() -> Unit
+) {
+  val animationScope = rememberCoroutineScope()
+  val backdrop = LocalLayerBackdrop.current
+  val interactiveHighlight =
+      remember(animationScope) { InteractiveHighlight(animationScope = animationScope) }
+  val containerColor = color.copy(alpha = 0.4f)
+  Row(
+      modifier
+          .drawBackdrop(
+              backdrop = backdrop,
+              shape = { CapsuleLarge },
+              effects = {
+                vibrancy()
+                blur(8f.dp.toPx())
+                lens(24f.dp.toPx(), 24f.dp.toPx())
+              },
+              layerBlock =
+                  if (enabled && isInteractive) {
+                    {
+                      val width = size.width
+                      val height = size.height
+
+                      val progress = interactiveHighlight.pressProgress
+                      val scale = lerp(1f, 1f + 4f.dp.toPx() / size.height, progress)
+
+                      val maxOffset = size.minDimension
+                      val initialDerivative = 0.05f
+                      val offset = interactiveHighlight.offset
+                      translationX = maxOffset * tanh(initialDerivative * offset.x / maxOffset)
+                      translationY = maxOffset * tanh(initialDerivative * offset.y / maxOffset)
+
+                      val maxDragScale = 4f.dp.toPx() / size.height
+                      val offsetAngle = atan2(offset.y, offset.x)
+                      scaleX =
+                          scale +
+                              maxDragScale *
+                                  abs(cos(offsetAngle) * offset.x / size.maxDimension) *
+                                  (width / height).fastCoerceAtMost(1f)
+                      scaleY =
+                          scale +
+                              maxDragScale *
+                                  abs(sin(offsetAngle) * offset.y / size.maxDimension) *
+                                  (height / width).fastCoerceAtMost(1f)
+                    }
+                  } else {
+                    null
+                  },
+              onDrawSurface = { drawRect(containerColor) })
+          .clickable(
+              interactionSource = null,
+              enabled = enabled,
+              indication = if (isInteractive) null else LocalIndication.current,
+              role = Role.Button,
+              onClick = onClick)
+          .then(
+              if (enabled && isInteractive) {
+                Modifier.then(interactiveHighlight.modifier)
+                    .then(interactiveHighlight.gestureModifier)
+              } else {
+                Modifier
+              })
+          .height(height.dp)
+          .width(width.dp)
+          .padding(horizontal = 16f.dp),
+      horizontalArrangement = Arrangement.spacedBy(8f.dp, Alignment.CenterHorizontally),
+      verticalAlignment = Alignment.CenterVertically,
+      content = content)
+}
+
+object LiquidButtonTestTags {
+  const val LIQUID_BUTTON = "liquid_button"
+}

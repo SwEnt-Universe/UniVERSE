@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -61,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
+import com.android.universe.ui.theme.CapsuleLarge
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.DampedDragAnimation
@@ -193,7 +193,7 @@ fun LiquidBottomTabs(
             Modifier.graphicsLayer { translationX = panelOffset }
                 .drawBackdrop(
                     backdrop = backdrop,
-                    shape = { RoundedCornerShape(100.dp) },
+                    shape = { CapsuleLarge },
                     effects = {
                       vibrancy()
                       blur(8f.dp.toPx())
@@ -226,7 +226,7 @@ fun LiquidBottomTabs(
                       .graphicsLayer { translationX = panelOffset }
                       .drawBackdrop(
                           backdrop = backdrop,
-                          shape = { RoundedCornerShape(100.dp) },
+                          shape = { CapsuleLarge },
                           effects = {
                             val progress = dampedDragAnimation.pressProgress
                             vibrancy()
@@ -257,7 +257,7 @@ fun LiquidBottomTabs(
                 .then(dampedDragAnimation.modifier)
                 .drawBackdrop(
                     backdrop = rememberCombinedBackdrop(backdrop, tabsBackdrop),
-                    shape = { RoundedCornerShape(100.dp) },
+                    shape = { CapsuleLarge },
                     effects = {
                       val progress = dampedDragAnimation.pressProgress
                       lens(

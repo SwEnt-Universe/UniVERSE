@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -35,6 +36,7 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -121,6 +123,20 @@ fun MapScreen(
                   modifier = Modifier.fillMaxSize(),
                   createEvent = createEvent)
 
+              if (uiState.selectedLat != null && uiState.selectedLng != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                  LiquidButton(
+                      onClick = {
+                        createEvent(uiState.selectedLat!!, uiState.selectedLng!!)
+                        viewModel.selectLocation(null, null)
+                      },
+                      modifier =
+                          Modifier.padding(bottom = 96.dp)
+                              .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                        Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
+                      }
+                }
+              }
               if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier =
@@ -257,19 +273,6 @@ fun TomTomMapView(
     }
   }
 
-  if (state.value.selectedLat != null && state.value.selectedLng != null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-      Button(
-          onClick = {
-            createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
-            viewModel.selectLocation(null, null)
-          },
-          modifier =
-              Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-            Text("Create your Event !")
-          }
-    }
-  }
   Button(
       onClick = { viewModel.loadAllEvents() },
       modifier = Modifier.padding(top = 32.dp).padding(horizontal = 16.dp)) {
