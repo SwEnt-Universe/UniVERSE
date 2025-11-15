@@ -74,6 +74,8 @@ object EventScreenTestTags {
 
   // Image
   const val EVENT_IMAGE = "event_image"
+  // Icon of an Image
+  const val ICON_IMAGE = "icon_image"
 
   // Tags container
   const val EVENT_TAGS_COLUMN = "event_tags_column"
@@ -210,7 +212,10 @@ fun EventCard(
                     Icon(
                         contentDescription = "Image",
                         imageVector = Icons.Filled.Image,
-                        modifier = Modifier.size(Dimensions.IconSizeLarge).align(Alignment.Center))
+                        modifier =
+                            Modifier.size(Dimensions.IconSizeLarge)
+                                .align(Alignment.Center)
+                                .testTag(EventScreenTestTags.ICON_IMAGE))
                   }
             } else {
               Image(
