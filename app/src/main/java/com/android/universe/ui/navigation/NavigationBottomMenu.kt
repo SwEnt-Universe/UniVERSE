@@ -23,7 +23,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.android.universe.ui.components.LiquidBottomTab
 import com.android.universe.ui.components.LiquidBottomTabs
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.utils.LocalLayerBackdrop
 
 /**
  * Represents a tab in the bottom navigation bar. Each tab has a destination screen, an icon for its
@@ -76,12 +75,10 @@ fun NavigationBottomMenu(
     onTabSelected: (Tab) -> Unit,
 ) {
   val selectedTabIndex = tabs.indexOf(selectedTab)
-  val backdrop = LocalLayerBackdrop.current
 
   LiquidBottomTabs(
       selectedTabIndex = { selectedTabIndex },
       onTabSelected = { index -> onTabSelected(tabs[index]) },
-      backdrop = backdrop,
       tabsCount = tabs.size,
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)) {
         tabs.forEach { tab ->

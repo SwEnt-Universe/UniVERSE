@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.android.universe.utils.setContentWithStubBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -21,15 +21,12 @@ class LiquidBottomTabsTest {
 
   @Test
   fun liquidBottomTabs_rendersContent() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MaterialTheme {
-        // The backdrop is required for the component to compose
-        val backdrop = rememberLayerBackdrop()
-        LiquidBottomTabs(
-            selectedTabIndex = { 0 }, onTabSelected = {}, backdrop = backdrop, tabsCount = 2) {
-              Text("Home")
-              Text("Settings")
-            }
+        LiquidBottomTabs(selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 2) {
+          Text("Home")
+          Text("Settings")
+        }
       }
     }
 
@@ -43,13 +40,11 @@ class LiquidBottomTabsTest {
     var selectedIndex by mutableStateOf(0)
     var onTabSelectedCalledWith: Int? = null
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MaterialTheme {
-        val backdrop = rememberLayerBackdrop()
         LiquidBottomTabs(
             selectedTabIndex = { selectedIndex },
             onTabSelected = { onTabSelectedCalledWith = it },
-            backdrop = backdrop,
             tabsCount = 2) {
               Text("Home")
               Text("Settings")
@@ -71,15 +66,13 @@ class LiquidBottomTabsTest {
 
   @Test
   fun liquidBottomTabs_providesLocalScaleToContent() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MaterialTheme {
-        val backdrop = rememberLayerBackdrop()
-        LiquidBottomTabs(
-            selectedTabIndex = { 0 }, onTabSelected = {}, backdrop = backdrop, tabsCount = 1) {
-              // Consume the provided local and display its value
-              val scale = LocalLiquidBottomTabScale.current()
-              Text("ScaleValue:${scale}")
-            }
+        LiquidBottomTabs(selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 1) {
+          // Consume the provided local and display its value
+          val scale = LocalLiquidBottomTabScale.current()
+          Text("ScaleValue:${scale}")
+        }
       }
     }
 
