@@ -110,7 +110,7 @@ fun MapScreen(
 
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) {
+      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { paddingValues ->
         Box(
             modifier =
                 Modifier.fillMaxSize()
@@ -145,7 +145,7 @@ fun MapScreen(
               }
 
               uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage) }
+                Snackbar(modifier = Modifier.padding(paddingValues)) { Text(errorMessage) }
               }
 
               if (uiState.isPermissionRequired) {

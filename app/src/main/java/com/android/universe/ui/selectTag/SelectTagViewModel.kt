@@ -38,7 +38,7 @@ class SelectTagViewModel(
 ) : ViewModel() {
   /** Backing field for [uiStateTags]. Mutable within the ViewModel only. */
   private val _selectedTags = MutableStateFlow<List<Tag>>(emptyList())
-
+  var mode = selectTagMode
   /** Publicly exposed state of the selected tags. */
   val selectedTags = _selectedTags.asStateFlow()
 
@@ -47,7 +47,7 @@ class SelectTagViewModel(
    * allow the user to see the tag he already selected if he returns to the screen.
    */
   init {
-    if (selectTagMode == SelectTagMode.EVENT_CREATION) {
+    if (mode == SelectTagMode.EVENT_CREATION) {
       viewModelScope.launch {
         tagRepository.tagsFlow.collect { newTags -> _selectedTags.value = newTags.toList() }
       }
@@ -96,7 +96,7 @@ class SelectTagViewModel(
    */
   fun loadTags(uid: String) {
     viewModelScope.launch {
-      when (selectTagMode) {
+      when (mode) {
         SelectTagMode.USER_PROFILE -> {
           val userProfile = userRepository.getUser(uid)
           _selectedTags.value = userProfile.tags.toList()
@@ -113,7 +113,7 @@ class SelectTagViewModel(
    */
   fun saveTags(uid: String) {
     viewModelScope.launch {
-      when (selectTagMode) {
+      when (mode) {
         SelectTagMode.USER_PROFILE -> {
           val userProfile = userRepository.getUser(uid)
           val newUserProfile = userProfile.copy(tags = _selectedTags.value.toSet())
