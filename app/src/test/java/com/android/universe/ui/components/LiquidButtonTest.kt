@@ -82,9 +82,8 @@ class LiquidButtonTest {
             onClick = { clicked = !clicked },
             isInteractive = false,
             modifier = Modifier.testTag(LiquidButtonTestTags.LIQUID_BUTTON),
-            enabled = true) {
-              Text(RANDOM_STRING)
-            }
+            enabled = true,
+            content = { Text(RANDOM_STRING) })
       }
     }
     composeTestRule.onNodeWithText(RANDOM_STRING).assertExists()
