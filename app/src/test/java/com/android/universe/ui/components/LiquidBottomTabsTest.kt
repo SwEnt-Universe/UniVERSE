@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -23,10 +22,8 @@ class LiquidBottomTabsTest {
   fun liquidBottomTabs_rendersContent() {
     composeTestRule.setContent {
       MaterialTheme {
-        // The backdrop is required for the component to compose
-        val backdrop = rememberLayerBackdrop()
         LiquidBottomTabs(
-            selectedTabIndex = { 0 }, onTabSelected = {}, backdrop = backdrop, tabsCount = 2) {
+            selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 2) {
               Text("Home")
               Text("Settings")
             }
@@ -45,11 +42,9 @@ class LiquidBottomTabsTest {
 
     composeTestRule.setContent {
       MaterialTheme {
-        val backdrop = rememberLayerBackdrop()
         LiquidBottomTabs(
             selectedTabIndex = { selectedIndex },
             onTabSelected = { onTabSelectedCalledWith = it },
-            backdrop = backdrop,
             tabsCount = 2) {
               Text("Home")
               Text("Settings")
@@ -73,9 +68,8 @@ class LiquidBottomTabsTest {
   fun liquidBottomTabs_providesLocalScaleToContent() {
     composeTestRule.setContent {
       MaterialTheme {
-        val backdrop = rememberLayerBackdrop()
         LiquidBottomTabs(
-            selectedTabIndex = { 0 }, onTabSelected = {}, backdrop = backdrop, tabsCount = 1) {
+            selectedTabIndex = { 0 }, onTabSelected = {}, tabsCount = 1) {
               // Consume the provided local and display its value
               val scale = LocalLiquidBottomTabScale.current()
               Text("ScaleValue:${scale}")
