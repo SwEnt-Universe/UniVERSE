@@ -43,7 +43,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.lerp
-import com.android.universe.ui.theme.CommonCapsule
+import com.android.universe.ui.theme.CapsuleLarge
 import com.android.universe.ui.utils.InteractiveHighlight
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
@@ -89,7 +89,7 @@ fun LiquidButton(
       modifier
           .drawBackdrop(
               backdrop = backdrop,
-              shape = { CommonCapsule },
+              shape = { CapsuleLarge },
               effects = {
                 vibrancy()
                 blur(8f.dp.toPx())
