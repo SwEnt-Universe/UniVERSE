@@ -379,45 +379,49 @@ class EventCreationViewModel(
     viewModelScope.launch { tagRepository.updateTags(tags) }
   }
 
-  fun setImage(context: Context, uri: Uri) {
-    viewModelScope.launch(scopeDispatcher) {
-      // We redimension the image to have a 256*256 image to reduce the space of the
-      // image.
-      val maxSize = Dimensions.ProfilePictureSize
+  fun setImage(context: Context, uri: Uri?) {
+    if (uri == null) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = null)
+    } else {
+      viewModelScope.launch(scopeDispatcher) {
+        // We redimension the image to have a 256*256 image to reduce the space of the
+        // image.
+        val maxSize = Dimensions.ProfilePictureSize
 
-      val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
 
-      context.contentResolver.openInputStream(uri)?.use { input ->
-        BitmapFactory.decodeStream(input, null, options)
-      }
-
-      val (height: Int, width: Int) = options.run { outHeight to outWidth }
-      var inSampleSize = 1
-      if (height > maxSize || width > maxSize) {
-        val halfHeight = height / 2
-        val halfWidth = width / 2
-        while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
-          inSampleSize *= 2
+        context.contentResolver.openInputStream(uri)?.use { input ->
+          BitmapFactory.decodeStream(input, null, options)
         }
-      }
 
-      options.inSampleSize = inSampleSize
-      options.inJustDecodeBounds = false
-
-      val bitmap =
-          context.contentResolver.openInputStream(uri)?.use { input ->
-            BitmapFactory.decodeStream(input, null, options)
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+        if (height > maxSize || width > maxSize) {
+          val halfHeight = height / 2
+          val halfWidth = width / 2
+          while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
+            inSampleSize *= 2
           }
+        }
 
-      if (bitmap == null) {
-        Log.e("ImageError", "Failed to decode bitmap from URI $uri")
-      } else {
-        val stream = ByteArrayOutputStream()
-        // We compress the image with a low quality to reduce the space of the image.
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-        val byteArray = stream.toByteArray()
-        withContext(DefaultDP.main) {
-          eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = byteArray)
+        options.inSampleSize = inSampleSize
+        options.inJustDecodeBounds = false
+
+        val bitmap =
+            context.contentResolver.openInputStream(uri)?.use { input ->
+              BitmapFactory.decodeStream(input, null, options)
+            }
+
+        if (bitmap == null) {
+          Log.e("ImageError", "Failed to decode bitmap from URI $uri")
+        } else {
+          val stream = ByteArrayOutputStream()
+          // We compress the image with a low quality to reduce the space of the image.
+          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+          val byteArray = stream.toByteArray()
+          withContext(DefaultDP.main) {
+            eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = byteArray)
+          }
         }
       }
     }

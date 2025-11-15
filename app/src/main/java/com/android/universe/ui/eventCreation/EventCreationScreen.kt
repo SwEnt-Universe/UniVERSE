@@ -217,6 +217,15 @@ fun EventCreationScreen(
                       )
                     }
               }
+          Button(
+              onClick = { eventCreationViewModel.setImage(context = context, uri = null) },
+              modifier =
+                  Modifier.padding(vertical = Dimensions.PaddingMedium)
+                      .width(150.dp)
+                      .height(40.dp)
+                      .align(Alignment.CenterHorizontally)) {
+                Text("Remove Image")
+              }
           TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
