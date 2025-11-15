@@ -110,11 +110,11 @@ fun LiquidBottomTabs(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
-    val backdrop = LocalLayerBackdrop.current
+  val backdrop = LocalLayerBackdrop.current
 
   val isDarkTheme = UniverseTheme.isDark
   val containerColor = MaterialTheme.colorScheme.background.copy(0.4f)
-    val accentColor = MaterialTheme.colorScheme.onBackground.copy(0.4f)
+  val accentColor = MaterialTheme.colorScheme.onBackground.copy(0.4f)
 
   val tabsBackdrop = rememberLayerBackdrop()
 
@@ -189,31 +189,30 @@ fun LiquidBottomTabs(
                   })
             }
 
-          Row(
-              Modifier.graphicsLayer { translationX = panelOffset }
-                  .drawBackdrop(
-                      backdrop = backdrop,
-                      shape = { RoundedCornerShape(100.dp) },
-                      effects = {
-                          vibrancy()
-                          blur(8f.dp.toPx())
-                          lens(24f.dp.toPx(), 24f.dp.toPx())
-                      },
-                      layerBlock = {
-                          val progress = dampedDragAnimation.pressProgress
-                          val scale = lerp(1f, 1f + 16f.dp.toPx() / size.width, progress)
-                          scaleX = scale
-                          scaleY = scale
-                      },
-                      onDrawSurface = { drawRect(containerColor) })
-                  .then(interactiveHighlight.modifier)
-                  .height(64f.dp)
-                  .fillMaxWidth()
-                  .padding(4f.dp)
-                  .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),
-              verticalAlignment = Alignment.CenterVertically,
-              content = content
-                  )
+        Row(
+            Modifier.graphicsLayer { translationX = panelOffset }
+                .drawBackdrop(
+                    backdrop = backdrop,
+                    shape = { RoundedCornerShape(100.dp) },
+                    effects = {
+                      vibrancy()
+                      blur(8f.dp.toPx())
+                      lens(24f.dp.toPx(), 24f.dp.toPx())
+                    },
+                    layerBlock = {
+                      val progress = dampedDragAnimation.pressProgress
+                      val scale = lerp(1f, 1f + 16f.dp.toPx() / size.width, progress)
+                      scaleX = scale
+                      scaleY = scale
+                    },
+                    onDrawSurface = { drawRect(containerColor) })
+                .then(interactiveHighlight.modifier)
+                .height(64f.dp)
+                .fillMaxWidth()
+                .padding(4f.dp)
+                .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content)
 
         CompositionLocalProvider(
             LocalLiquidBottomTabScale provides
