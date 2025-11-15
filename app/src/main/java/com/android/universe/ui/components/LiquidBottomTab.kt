@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -40,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.CapsuleLarge
 
 /**
  * A CompositionLocal that provides the current scale factor as a function reference [() -> Float]
@@ -81,7 +81,7 @@ fun RowScope.LiquidBottomTab(
   val scale = LocalLiquidBottomTabScale.current
   Column(
       modifier
-          .clip(RoundedCornerShape(100.dp))
+          .clip(CapsuleLarge)
           .clickable(
               interactionSource = null, // To disable the standard ripple effect
               indication = null, // To disable the standard ripple effect
