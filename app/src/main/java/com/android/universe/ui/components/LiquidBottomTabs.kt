@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -58,11 +59,13 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
+import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.DampedDragAnimation
 import com.android.universe.ui.utils.InteractiveHighlight
+import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.Backdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
@@ -103,13 +106,15 @@ import kotlinx.coroutines.launch
 fun LiquidBottomTabs(
     selectedTabIndex: () -> Int,
     onTabSelected: (index: Int) -> Unit,
-    backdrop: Backdrop,
     tabsCount: Int,
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
+    val backdrop = LocalLayerBackdrop.current
+
   val isDarkTheme = UniverseTheme.isDark
   val containerColor = MaterialTheme.colorScheme.background.copy(0.4f)
+    val accentColor = MaterialTheme.colorScheme.onBackground.copy(0.4f)
 
   val tabsBackdrop = rememberLayerBackdrop()
 
@@ -145,9 +150,9 @@ fun LiquidBottomTabs(
                   pressedScale = 78f / 56f,
                   onDragStarted = {},
                   onDragStopped = {
-                    val targetIndex = targetValue.fastCoerceIn(0f, (tabsCount - 1).toFloat())
-                    currentIndex = targetIndex.toInt()
-                    animateToValue(targetIndex)
+                    val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
+                    currentIndex = targetIndex
+                    animateToValue(targetIndex.toFloat())
                     animationScope.launch { offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f)) }
                   },
                   onDrag = { _, dragAmount ->
@@ -184,29 +189,31 @@ fun LiquidBottomTabs(
                   })
             }
 
-        Row(
-            Modifier.graphicsLayer { translationX = panelOffset }
-                .drawBackdrop(
-                    backdrop = backdrop,
-                    shape = { RoundedCornerShape(100.dp) },
-                    effects = {
-                      vibrancy()
-                      blur(8f.dp.toPx())
-                      lens(24f.dp.toPx(), 24f.dp.toPx())
-                    },
-                    layerBlock = {
-                      val progress = dampedDragAnimation.pressProgress
-                      val scale = lerp(1f, 1f + 16f.dp.toPx() / size.width, progress)
-                      scaleX = scale
-                      scaleY = scale
-                    },
-                    onDrawSurface = { drawRect(containerColor) })
-                .then(interactiveHighlight.modifier)
-                .height(64f.dp)
-                .fillMaxWidth()
-                .padding(4f.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content)
+          Row(
+              Modifier.graphicsLayer { translationX = panelOffset }
+                  .drawBackdrop(
+                      backdrop = backdrop,
+                      shape = { RoundedCornerShape(100.dp) },
+                      effects = {
+                          vibrancy()
+                          blur(8f.dp.toPx())
+                          lens(24f.dp.toPx(), 24f.dp.toPx())
+                      },
+                      layerBlock = {
+                          val progress = dampedDragAnimation.pressProgress
+                          val scale = lerp(1f, 1f + 16f.dp.toPx() / size.width, progress)
+                          scaleX = scale
+                          scaleY = scale
+                      },
+                      onDrawSurface = { drawRect(containerColor) })
+                  .then(interactiveHighlight.modifier)
+                  .height(64f.dp)
+                  .fillMaxWidth()
+                  .padding(4f.dp)
+                  .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),
+              verticalAlignment = Alignment.CenterVertically,
+              content = content
+                  )
 
         CompositionLocalProvider(
             LocalLiquidBottomTabScale provides
@@ -235,7 +242,7 @@ fun LiquidBottomTabs(
                       .then(interactiveHighlight.modifier)
                       .height(56f.dp)
                       .fillMaxWidth()
-                      .padding(horizontal = 4.dp), // Removed a .graphicsLayer
+                      .padding(horizontal = 4.dp),
                   verticalAlignment = Alignment.CenterVertically,
                   content = content)
             }
