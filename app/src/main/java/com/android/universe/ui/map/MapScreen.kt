@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -163,7 +164,6 @@ fun TomTomMapView(
     modifier: Modifier = Modifier,
     createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
 ) {
-  val backdrop = LocalLayerBackdrop.current
   val context = LocalContext.current
   val state = viewModel.uiState.collectAsState()
   LaunchedEffect(state.value.eventCount) { viewModel.loadAllEvents() }
@@ -204,14 +204,14 @@ fun TomTomMapView(
             }
             tomtomMap = map
 
-            if (!isLocationProviderSet && viewModel.locationProvider != null) {
+            /*if (!isLocationProviderSet && viewModel.locationProvider != null) {
               map.setLocationProvider(viewModel.locationProvider)
               isLocationProviderSet = true
 
               val locationMarkerOptions =
                   LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
               map.enableLocationMarker(locationMarkerOptions)
-            }
+            }*/
 
             map.addMapClickListener { geoPoint ->
               map.removeMarkers(tag = "coordinate")
@@ -267,7 +267,6 @@ fun TomTomMapView(
             createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
             viewModel.selectLocation(null, null)
           },
-          backdrop = backdrop,
           modifier =
               Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
             Text("Create your Event !")

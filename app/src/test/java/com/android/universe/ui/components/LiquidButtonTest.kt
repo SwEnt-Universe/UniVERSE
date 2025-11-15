@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.utils.setContentWithStubBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -31,14 +33,11 @@ class LiquidButtonTest {
   @Test
   fun liquidButtonFullParams() {
     var bool = false
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MaterialTheme {
-        // The backdrop is required for the component to compose
-        val backdrop = rememberLayerBackdrop()
         LiquidButton(
             onClick = { bool = true },
-            backdrop = backdrop,
-            modifier = Modifier.height(100.dp),
+            modifier = Modifier.height(100.dp).testTag(LiquidButtonTestTags.LIQUID_BUTTON),
             isInteractive = true,
             tint = MaterialTheme.colorScheme.primary,
             surfaceColor = MaterialTheme.colorScheme.secondary) {
@@ -55,11 +54,10 @@ class LiquidButtonTest {
 
   @Test
   fun liquidMinParams() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MaterialTheme {
-        // The backdrop is required for the component to compose
-        val backdrop = rememberLayerBackdrop()
-        LiquidButton(onClick = {}, backdrop = backdrop, isInteractive = false) {
+        LiquidButton(onClick = {}, isInteractive = false, modifier = Modifier.testTag(
+          LiquidButtonTestTags.LIQUID_BUTTON)) {
           Text(RANDOM_STRING)
         }
       }
