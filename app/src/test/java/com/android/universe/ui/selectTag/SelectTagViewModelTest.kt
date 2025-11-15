@@ -35,7 +35,9 @@ class SelectTagViewModelTest {
     repository = FakeUserRepository()
     tagRepository = TagLocalTemporaryRepository()
     viewModelUser = SelectTagViewModel(repository)
-    viewModelEvent = SelectTagViewModel(repository, SelectTagMode.EVENT_CREATION, tagRepository)
+    viewModelEvent = SelectTagViewModel(repository, tagRepository)
+    viewModelEvent.mode = SelectTagMode.EVENT_CREATION
+    viewModelEvent.eventTagRepositoryObserving()
   }
 
   @Test

@@ -50,7 +50,6 @@ import com.android.universe.ui.profileCreation.AddProfileScreen
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
-import com.android.universe.ui.selectTag.SelectTagViewModel
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
@@ -105,7 +104,6 @@ fun UniverseApp(
   LaunchedEffect(Unit) {
     startDestination = resolveUserDestinationScreen(userRepository = userRepository)
   }
-
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -266,12 +264,8 @@ fun UniverseApp(
         composable(
             route = NavigationScreens.SelectTagEvent.route,
         ) {
-          val selectTagViewModel =
-              SelectTagViewModel(
-                  selectTagMode = SelectTagMode.EVENT_CREATION,
-              )
           SelectTagScreen(
-              selectedTagOverview = selectTagViewModel,
+              selectTagMode = SelectTagMode.EVENT_CREATION,
               uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navController.popBackStack() })
         }
