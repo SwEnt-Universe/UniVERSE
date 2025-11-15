@@ -59,12 +59,14 @@ import kotlin.math.tanh
 
 /**
  * @param onClick The lambda function to be executed when the button is clicked.
- * @param backdrop The `Backdrop` instance from the `com.kyant.backdrop` library. This is the
- *   background layer that the component's glass effects will interact with.
- * @param modifier The [Modifier] to be applied to the component's container.
+ * @param modifier The [Modifier] to be applied to the component's container. Note this includes
+ *   test tags
+ * @param enabled Whether the component is enabled or not. I.e if one can press it or not
  * @param isInteractive Whether the component is interactive or not.
  * @param tint The color to tint the component with.
  * @param surfaceColor The color to fill the component with.
+ * @param height The height of the component. 48f by default
+ * @param width The width of the component. 192f by default
  * @param content The composable content for the button, typically a series of `Icon` or `Text`
  *   composables. This lambda is executed within a [RowScope].
  */
