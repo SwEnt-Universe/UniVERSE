@@ -3,9 +3,8 @@ package com.android.universe.ui.components
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -40,8 +39,7 @@ class LiquidButtonTest {
             modifier = Modifier.height(100.dp).testTag(LiquidButtonTestTags.LIQUID_BUTTON),
             enabled = true,
             isInteractive = true,
-            tint = MaterialTheme.colorScheme.primary,
-            surfaceColor = MaterialTheme.colorScheme.secondary,
+            color = Color.Green,
             height = 100f,
             width = 200f) {
               Text(RANDOM_STRING)

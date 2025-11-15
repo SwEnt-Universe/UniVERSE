@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -122,6 +123,20 @@ fun MapScreen(
                   modifier = Modifier.fillMaxSize(),
                   createEvent = createEvent)
 
+              if (uiState.selectedLat != null && uiState.selectedLng != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                  LiquidButton(
+                      onClick = {
+                        createEvent(uiState.selectedLat!!, uiState.selectedLng!!)
+                        viewModel.selectLocation(null, null)
+                      },
+                      modifier =
+                          Modifier.padding(bottom = 96.dp)
+                              .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                        Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
+                      }
+                }
+              }
               if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier =
@@ -258,19 +273,6 @@ fun TomTomMapView(
     }
   }
 
-  if (state.value.selectedLat != null && state.value.selectedLng != null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-      LiquidButton(
-          onClick = {
-            createEvent(state.value.selectedLat!!, state.value.selectedLng!!)
-            viewModel.selectLocation(null, null)
-          },
-          modifier =
-              Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-            Text("Create your Event !")
-          }
-    }
-  }
   Button(
       onClick = { viewModel.loadAllEvents() },
       modifier = Modifier.padding(top = 32.dp).padding(horizontal = 16.dp)) {
