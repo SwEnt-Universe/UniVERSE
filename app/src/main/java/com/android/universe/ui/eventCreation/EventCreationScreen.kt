@@ -59,7 +59,6 @@ import com.android.universe.model.location.Location
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
-import kotlin.contracts.contract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
