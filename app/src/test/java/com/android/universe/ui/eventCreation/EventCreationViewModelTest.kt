@@ -1,6 +1,7 @@
 package com.android.universe.ui.eventCreation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
@@ -150,6 +151,13 @@ class EventCreationViewModelTest {
 
     assert(event.date == expectedDate)
     assertEquals(emptySet<Tag>(), tagRepository.getTags())
+  }
+
+  @Test
+  fun setImageWithNullUriRemoveImagePicture() {
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    viewModel.setImage(context, null)
+    assertEquals(null, viewModel.uiStateEventCreation.value.eventPicture)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
