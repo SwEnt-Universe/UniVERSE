@@ -1,6 +1,5 @@
 package com.android.universe.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -218,9 +217,6 @@ fun CustomTextField(
 @Composable
 private fun CustomTextFieldPreview() {
   var email by remember { mutableStateOf("preview@epfl.ch") }
-  var password by remember { mutableStateOf("password") }
-  var isPasswordSecure by remember { mutableStateOf(true) }
-  var description by remember { mutableStateOf("") }
 
   val emailValidation =
       if (email.isEmpty()) {
@@ -231,32 +227,11 @@ private fun CustomTextFieldPreview() {
         ValidationState.Valid
       }
 
-  Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    CustomTextField(
-        label = "Email",
-        placeholder = "Enter your email...",
-        value = email,
-        onValueChange = { email = it },
-        leadingIcon = Icons.Default.Email,
-        validationState = emailValidation)
-
-    CustomTextField(
-        label = "Password",
-        placeholder = "Enter your password...",
-        value = password,
-        onValueChange = { password = it },
-        leadingIcon = Icons.Default.Lock,
-        isPassword = isPasswordSecure,
-        onToggleVisibility = { isPasswordSecure = !isPasswordSecure },
-        validationState = ValidationState.Neutral)
-
-    CustomTextField(
-        label = "Description",
-        placeholder = "Enter your description...",
-        value = description,
-        onValueChange = { description = it },
-        leadingIcon = null,
-        maxLines = 4,
-        validationState = ValidationState.Invalid("Empty description"))
-  }
+  CustomTextField(
+      label = "Email",
+      placeholder = "Enter your email...",
+      value = email,
+      onValueChange = { },
+      leadingIcon = Icons.Default.Email,
+      validationState = emailValidation)
 }
