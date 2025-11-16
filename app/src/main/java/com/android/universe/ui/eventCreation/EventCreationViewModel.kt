@@ -374,9 +374,9 @@ class EventCreationViewModel(
   }
 
   /**
-   * Takes the uri as argument and decode the content of the image, resize it to a
-   * 256*256 image, transform it to a byteArray and modify the eventPicture argument of the
-   * eventCreationUiState.
+   * Takes the uri as argument and decode the content of the image, resize it to a 256*256 image,
+   * transform it to a byteArray and modify the eventPicture argument of the eventCreationUiState.
+   *
    * @param context the context of the UI.
    * @param uri the temporary url that give access to the image that the user selected.
    */
