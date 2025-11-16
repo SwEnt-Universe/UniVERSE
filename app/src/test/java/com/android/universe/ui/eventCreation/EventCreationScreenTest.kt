@@ -106,7 +106,12 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.ADD_TAG_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.TAG).assertIsNotDisplayed()
 
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertExists()
+
+    composeTestRule.onNodeWithTag(EventCreationTestTags.IMAGE_EVENT).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.IMAGE_ICON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EDIT_IMAGE_ICON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.DELETE_IMAGE_BUTTON).assertIsDisplayed()
   }
 
   @Test

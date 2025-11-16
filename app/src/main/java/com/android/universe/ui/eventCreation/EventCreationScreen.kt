@@ -55,7 +55,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
-import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +71,10 @@ object EventCreationTestTags {
   const val EVENT_MINUTE_TEXT_FIELD = "EventMinuteTextField"
   const val ADD_TAG_BUTTON = "AddTagButton"
   const val TAG = "tags"
+  const val IMAGE_EVENT = "image_event"
+  const val EDIT_IMAGE_ICON = "edit_image_icon"
+  const val IMAGE_ICON = "image_icon"
+  const val DELETE_IMAGE_BUTTON = "delete_image_button"
   const val SAVE_EVENT_BUTTON = "SaveEventButton"
   const val ERROR_TITLE = "ErrorTitle"
   const val ERROR_DESCRIPTION = "ErrorDescription"
@@ -188,7 +191,10 @@ fun EventCreationScreen(
                       tint = MaterialTheme.colorScheme.onSurface,
                       contentDescription = "Image",
                       imageVector = Icons.Filled.Image,
-                      modifier = Modifier.size(Dimensions.IconSizeLarge).align(Alignment.Center))
+                      modifier =
+                          Modifier.size(Dimensions.IconSizeLarge)
+                              .align(Alignment.Center)
+                              .testTag(EventCreationTestTags.IMAGE_ICON))
                 } else {
                   Image(
                       bitmap = bitmap.asImageBitmap(),
@@ -197,7 +203,7 @@ fun EventCreationScreen(
                           Modifier.clip(RoundedCornerShape(16.dp))
                               .align(Alignment.Center)
                               .fillMaxSize()
-                              .testTag(UserProfileScreenTestTags.PROFILE_PICTURE),
+                              .testTag(EventCreationTestTags.IMAGE_EVENT),
                       contentScale = ContentScale.Crop)
                 }
                 // The launcher to launch the image selection.
@@ -210,7 +216,10 @@ fun EventCreationScreen(
                         }
                 IconButton(
                     onClick = { launcher.launch("image/*") },
-                    modifier = Modifier.align(Alignment.BottomEnd).size(Dimensions.IconSizeLarge)) {
+                    modifier =
+                        Modifier.align(Alignment.BottomEnd)
+                            .size(Dimensions.IconSizeLarge)
+                            .testTag(EventCreationTestTags.EDIT_IMAGE_ICON)) {
                       Icon(
                           contentDescription = "Image",
                           imageVector = Icons.Filled.Create,
@@ -223,7 +232,8 @@ fun EventCreationScreen(
                   Modifier.padding(vertical = Dimensions.PaddingMedium)
                       .width(150.dp)
                       .height(40.dp)
-                      .align(Alignment.CenterHorizontally)) {
+                      .align(Alignment.CenterHorizontally)
+                      .testTag(EventCreationTestTags.DELETE_IMAGE_BUTTON)) {
                 Text("Remove Image")
               }
           TextFieldEventCreation(
