@@ -329,8 +329,7 @@ tasks.withType<Test>().configureEach {
             "jdk.proxy*",
             "java.*",
             "javax.*",
-            "**/MainActivity*.*",
-            "**/*Preview*.*",)
+            "**/MainActivity*.*",)
     }
 }
 
@@ -375,7 +374,6 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         "**/Manifest*.*",
         "**/*Test*.*",
         "android/**/*.*",
-        "**/*Preview*.*",
     )
 
     val debugTree = fileTree("${project.layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
