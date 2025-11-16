@@ -193,7 +193,7 @@ sonar {
         // Paths to JaCoCo XML coverage report files.
         property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
         // Exclusions
-        property("sonar.coverage.exclusions", "**/MainActivity.kt,**/*Preview*.*")
+        property("sonar.coverage.exclusions", "**/MainActivity.kt")
     }
 }
 
@@ -375,6 +375,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         "**/Manifest*.*",
         "**/*Test*.*",
         "android/**/*.*",
+        "**/*Preview*.*",
     )
 
     val debugTree = fileTree("${project.layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
