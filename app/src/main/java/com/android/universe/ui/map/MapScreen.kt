@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,8 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
@@ -108,39 +112,55 @@ fun MapScreen(
 
   DisposableEffect(Unit) { onDispose { viewModel.stopLocationTracking() } }
 
+    val backgroundColor = Color.Red
+    val mapBackdrop = rememberLayerBackdrop {
+        drawRect(backgroundColor)
+    }
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { paddingValues ->
+      bottomBar = { NavigationBottomMenu(selectedTab =  Tab.Map, onTabSelected =  onTabSelected) }) { paddingValues ->
         Box(
             modifier =
-                Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize()
                     .then(
                         if (uiState.isMapInteractive)
                             Modifier.testTag(MapScreenTestTags.INTERACTABLE)
-                        else Modifier)) {
+                        else Modifier
+                    )) {
               TomTomMapView(
                   viewModel = viewModel,
                   modifier = Modifier.fillMaxSize(),
                   createEvent = createEvent)
 
               if (uiState.selectedLat != null && uiState.selectedLng != null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                  LiquidButton(
-                      onClick = {
-                        createEvent(uiState.selectedLat!!, uiState.selectedLng!!)
-                        viewModel.selectLocation(null, null)
-                      },
-                      modifier =
-                          Modifier.padding(bottom = 96.dp)
-                              .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                        Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
+                  Box(
+                      modifier = Modifier.fillMaxSize(),
+                      contentAlignment = Alignment.BottomCenter
+                  ) {
+                      LiquidButton(
+                          onClick = {
+                              createEvent(uiState.selectedLat!!, uiState.selectedLng!!)
+                              viewModel.selectLocation(null, null)
+                          },
+                          modifier =
+                              Modifier
+                                  .padding(bottom = 96.dp)
+                                  .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)
+                      ) {
+                          Text(
+                              "Create your Event !",
+                              color = MaterialTheme.colorScheme.onBackground
+                          )
                       }
-                }
+                  }
               }
+
               if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier =
-                        Modifier.align(Alignment.Center)
+                        Modifier
+                            .align(Alignment.Center)
                             .testTag(MapScreenTestTags.LOADING_INDICATOR))
               }
 

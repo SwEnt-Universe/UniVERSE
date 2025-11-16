@@ -51,7 +51,7 @@ fun ChatScreen(
 
   val uiState by vm.uiState.collectAsState()
 
-  Scaffold(bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) }) { paddingValues ->
+  Scaffold(bottomBar = { NavigationBottomMenu(selectedTab =  Tab.Chat, onTabSelected =  onTabSelected) }) { paddingValues ->
     Column(
         modifier =
             Modifier.fillMaxSize().padding(paddingValues).testTag(NavigationTestTags.CHAT_SCREEN)) {

@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.android.universe.ui.components.LiquidBottomTab
 import com.android.universe.ui.components.LiquidBottomTabs
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.Backdrop
 
 /**
  * Represents a tab in the bottom navigation bar. Each tab has a destination screen, an icon for its
@@ -71,12 +73,14 @@ val tabs =
  */
 @Composable
 fun NavigationBottomMenu(
+    backdrop: Backdrop = LocalLayerBackdrop.current,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
 ) {
   val selectedTabIndex = tabs.indexOf(selectedTab)
 
   LiquidBottomTabs(
+      backdrop = backdrop,
       selectedTabIndex = { selectedTabIndex },
       onTabSelected = { index -> onTabSelected(tabs[index]) },
       tabsCount = tabs.size,

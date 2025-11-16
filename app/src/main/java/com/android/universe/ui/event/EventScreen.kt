@@ -23,11 +23,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -42,11 +44,22 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.CapsuleLarge
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.Dimensions.PaddingSmall
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -93,10 +106,16 @@ object EventScreenTestTags {
  */
 @Composable
 fun EventScreen(
+    backdrop: Backdrop = LocalLayerBackdrop.current,
     onTabSelected: (Tab) -> Unit = {},
     uid: String = "",
     viewModel: EventViewModel = viewModel()
 ) {
+
+    val foregroundBackdrop = rememberLayerBackdrop {
+        drawContent() // event screen content
+    }
+
   val context = LocalContext.current
   LaunchedEffect(uid) {
     if (viewModel.storedUid != uid) {
@@ -112,30 +131,52 @@ fun EventScreen(
       Toast.makeText(context, error.errormsg, Toast.LENGTH_SHORT).show()
     }
   }
-  val events by viewModel.eventsState.collectAsState()
-  Scaffold(
-      modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected) },
-  ) { paddingValues ->
-    LazyColumn(
-        modifier =
-            Modifier.fillMaxSize().padding(paddingValues).testTag(EventScreenTestTags.EVENTS_LIST),
-        contentPadding = PaddingValues(PaddingMedium),
-        verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-          items(events) { event ->
-            EventCard(
-                title = event.title,
-                description = event.description,
-                date = event.date,
-                tags = event.tags,
-                creator = event.creator,
-                participants = event.participants,
-                onJoin = viewModel::joinOrLeaveEvent,
-                index = event.index,
-                joined = event.joined)
-          }
-        }
-  }
+    val glassBackdrop = rememberCombinedBackdrop(
+        backdrop,
+        foregroundBackdrop
+    )
+        val events by viewModel.eventsState.collectAsState()
+      Scaffold(
+          containerColor = Color.Transparent,
+          modifier = Modifier
+              .testTag(NavigationTestTags.EVENT_SCREEN),
+          bottomBar = {
+
+              NavigationBottomMenu(
+                  backdrop = glassBackdrop,
+                  selectedTab = Tab.Event,
+                  onTabSelected = onTabSelected
+              )
+
+          },
+      ) { paddingValues ->
+              LazyColumn(
+                  modifier =
+                      Modifier
+                          .fillMaxSize()
+                          .padding(paddingValues)
+                          .testTag(EventScreenTestTags.EVENTS_LIST),
+                  contentPadding = PaddingValues(PaddingMedium),
+                  verticalArrangement = Arrangement.spacedBy(PaddingMedium)
+              ) {
+                  items(events) { event ->
+                      EventCard(
+                          modifier = Modifier.layerBackdrop(foregroundBackdrop),
+                          title = event.title,
+                          description = event.description,
+                          date = event.date,
+                          tags = event.tags,
+                          creator = event.creator,
+                          participants = event.participants,
+                          onJoin = viewModel::joinOrLeaveEvent,
+                          index = event.index,
+                          joined = event.joined
+                      )
+                  }
+              }
+
+      }
+
 }
 
 /**
@@ -160,6 +201,7 @@ fun EventScreen(
  */
 @Composable
 fun EventCard(
+    modifier: Modifier = Modifier,
     title: String,
     description: String,
     date: String,
@@ -172,25 +214,31 @@ fun EventCard(
 ) {
   Card(
       modifier =
-          Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
+          Modifier
+              .fillMaxWidth()
+              .padding(PaddingMedium)
+              .testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(Dimensions.RoundedCorner),
       elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
-        Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+      //IMPORTANT the .then()
+        Column(modifier = Modifier.background(color = Color.Transparent).then(modifier)) {
           // Image with overlay
-          Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
+          Box(modifier = Modifier
+              .height(104.dp)
+              .fillMaxWidth()) {
             Image(
                 painter = painterResource(id = R.drawable.default_event_img),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENT_IMAGE))
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag(EventScreenTestTags.EVENT_IMAGE))
 
             Box(
                 modifier =
-                    Modifier.align(Alignment.TopEnd)
+                    Modifier
+                        .align(Alignment.TopEnd)
                         .padding(PaddingMedium)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                            shape = RoundedCornerShape(Dimensions.RoundedCorner))
                         .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
                         .testTag(EventScreenTestTags.EVENT_DATE)) {
                   Text(
@@ -202,7 +250,8 @@ fun EventCard(
 
             Column(
                 modifier =
-                    Modifier.align(Alignment.TopStart)
+                    Modifier
+                        .align(Alignment.TopStart)
                         .padding(PaddingMedium)
                         .testTag(EventScreenTestTags.EVENT_TAGS_COLUMN),
                 verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
@@ -216,7 +265,8 @@ fun EventCard(
               style = MaterialTheme.typography.titleMedium,
               color = MaterialTheme.colorScheme.onSurface,
               modifier =
-                  Modifier.padding(horizontal = PaddingLarge, vertical = PaddingMedium)
+                  Modifier
+                      .padding(horizontal = PaddingLarge, vertical = PaddingMedium)
                       .testTag(EventScreenTestTags.EVENT_TITLE),
               maxLines = 1,
               overflow = TextOverflow.Ellipsis)
@@ -227,7 +277,8 @@ fun EventCard(
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurface,
               modifier =
-                  Modifier.padding(horizontal = PaddingLarge)
+                  Modifier
+                      .padding(horizontal = PaddingLarge)
                       .testTag(EventScreenTestTags.EVENT_DESCRIPTION),
               maxLines = 3,
               overflow = TextOverflow.Ellipsis)
@@ -235,7 +286,8 @@ fun EventCard(
           // Creator & participants
           Row(
               modifier =
-                  Modifier.fillMaxWidth()
+                  Modifier
+                      .fillMaxWidth()
                       .padding(PaddingLarge, PaddingMedium)
                       .testTag(EventScreenTestTags.EVENT_CREATOR_PARTICIPANTS),
               horizontalArrangement = Arrangement.SpaceBetween,
@@ -277,9 +329,11 @@ fun EventCard(
 fun TagCard(tag: String, testTag: String) {
   Box(
       modifier =
-          Modifier.background(
+          Modifier
+              .background(
                   MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                  RoundedCornerShape(Dimensions.RoundedCorner))
+                  RoundedCornerShape(Dimensions.RoundedCorner)
+              )
               .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
               .testTag(testTag)) {
         Text(

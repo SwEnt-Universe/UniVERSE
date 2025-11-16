@@ -104,13 +104,13 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun LiquidBottomTabs(
+    backdrop: Backdrop = LocalLayerBackdrop.current,
     selectedTabIndex: () -> Int,
     onTabSelected: (index: Int) -> Unit,
     tabsCount: Int,
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
-  val backdrop = LocalLayerBackdrop.current
 
   val isDarkTheme = UniverseTheme.isDark
   val containerColor = MaterialTheme.colorScheme.background.copy(0.4f)

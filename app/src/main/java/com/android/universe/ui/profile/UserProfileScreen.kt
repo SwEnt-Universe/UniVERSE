@@ -154,7 +154,7 @@ fun UserProfileScreen(
 
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
+      bottomBar = { NavigationBottomMenu(selectedTab =  Tab.Profile, onTabSelected =   onTabSelected) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding).background(Color.White)) {
           // Box that contains the decoration background.
           Box(modifier = Modifier.fillMaxWidth()) { CurvedTopHeader() }
