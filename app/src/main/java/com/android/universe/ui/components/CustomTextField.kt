@@ -216,7 +216,7 @@ fun CustomTextField(
 /** A preview composable to visualize the [CustomTextField] in different states. */
 @Preview
 @Composable
-fun CustomTextFieldPreview() {
+private fun CustomTextFieldPreview() {
   var email by remember { mutableStateOf("preview@epfl.ch") }
   var password by remember { mutableStateOf("password") }
   var isPasswordSecure by remember { mutableStateOf(true) }
