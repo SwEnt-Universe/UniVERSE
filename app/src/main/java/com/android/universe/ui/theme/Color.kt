@@ -35,6 +35,9 @@ val ErrorDark = Color(0xFFB00020)
 val SuccessLight = Color(0xFF4CAF50)
 val SuccessDark = Color(0xFF4CAF50)
 
+val PlaceholderLight = Color(0xFF8A8A8A)
+val PlaceholderDark = Color(0xFFAAAAAA)
+
 // Tag category colors (from TagColors in SelectTagScreen.kt)
 val TagInterestLight = Color(0xFFB39DDB) // Light purple
 val TagInterestDark = Color(0xFF9575CD)
