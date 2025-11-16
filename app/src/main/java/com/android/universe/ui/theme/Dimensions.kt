@@ -47,8 +47,6 @@ object Dimensions {
 
   // Image size
   val ProfilePictureSize = 256
-  val EventPictureWidth = 256
-  val EventPictureHeight = 144
 
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
