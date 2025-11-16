@@ -220,7 +220,7 @@ class SignInViewModel(
     val errorMsg =
         when (ValidationState) {
           is ValidationState.Valid -> null
-            is ValidationState.Neutral -> null
+          is ValidationState.Neutral -> null
           is ValidationState.Invalid -> ValidationState.errorMessage
         }
 
@@ -239,7 +239,7 @@ class SignInViewModel(
     val errorMsg =
         when (ValidationState) {
           is ValidationState.Valid -> null
-            is ValidationState.Neutral -> null
+          is ValidationState.Neutral -> null
           is ValidationState.Invalid -> ValidationState.errorMessage
         }
 
