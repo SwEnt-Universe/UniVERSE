@@ -14,17 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,11 +35,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -75,7 +73,7 @@ object EventScreenTestTags {
   // Image
   const val EVENT_IMAGE = "event_image"
   // Icon of an Image
-  const val ICON_IMAGE = "icon_image"
+  const val DEFAULT_EVENT_IMAGE = "default_event_image"
 
   // Tags container
   const val EVENT_TAGS_COLUMN = "event_tags_column"
@@ -188,7 +186,6 @@ fun EventCard(
           Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(Dimensions.RoundedCorner),
       elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
-        val context = LocalContext.current
         val bitmap =
             produceState<Bitmap?>(initialValue = null, eventImage) {
                   value =
@@ -205,18 +202,12 @@ fun EventCard(
           // Image with overlay
           Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
             if (bitmap == null) {
-              Box(
+              Image(
+                  painter = painterResource(id = R.drawable.default_event_img),
+                  contentDescription = null,
+                  contentScale = ContentScale.Crop,
                   modifier =
-                      Modifier.fillMaxSize()
-                          .background(color = MaterialTheme.colorScheme.background)) {
-                    Icon(
-                        contentDescription = "Image",
-                        imageVector = Icons.Filled.Image,
-                        modifier =
-                            Modifier.size(Dimensions.IconSizeLarge)
-                                .align(Alignment.Center)
-                                .testTag(EventScreenTestTags.ICON_IMAGE))
-                  }
+                      Modifier.fillMaxSize().testTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE))
             } else {
               Image(
                   bitmap = bitmap.asImageBitmap(),

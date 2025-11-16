@@ -148,9 +148,12 @@ class EventScreenTest {
     advanceUntilIdle()
     composeTestRule
         .onNodeWithTag(EventScreenTestTags.EVENTS_LIST)
-        .performScrollToNode(hasTestTag(EventScreenTestTags.ICON_IMAGE))
-    composeTestRule.onAllNodesWithTag(EventScreenTestTags.ICON_IMAGE).onFirst().assertIsDisplayed()
-    val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.ICON_IMAGE)
+        .performScrollToNode(hasTestTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE))
+    composeTestRule
+        .onAllNodesWithTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE)
+        .onFirst()
+        .assertIsDisplayed()
+    val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE)
     val totalReachableTags = tagNodes.fetchSemanticsNodes().size
     assertTrue("$ONE_ICON_IMAGE_MESSAGE $totalReachableTags", totalReachableTags == 1)
   }
