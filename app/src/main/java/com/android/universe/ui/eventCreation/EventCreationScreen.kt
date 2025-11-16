@@ -54,10 +54,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
 import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /** All the tags that are used to test the EventCreation screen. */
@@ -166,7 +166,7 @@ fun EventCreationScreen(
               produceState<Bitmap?>(initialValue = null, eventImage) {
                     value =
                         if (eventImage != null) {
-                          withContext(Dispatchers.IO) {
+                          withContext(DefaultDP.io) {
                             BitmapFactory.decodeByteArray(
                                 uiState.value.eventPicture, 0, eventImage.size)
                           }

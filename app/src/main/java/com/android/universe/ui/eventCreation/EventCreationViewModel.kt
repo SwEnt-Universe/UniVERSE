@@ -15,15 +15,12 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepositoryProvider
-import com.android.universe.model.user.UserRepository
-import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.theme.Dimensions
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -82,14 +79,11 @@ object EventInputLimits {
  * repository.
  *
  * @param eventRepository the repository for the event.
- * @param userRepository the repository for the user.
  * @param tagRepository The repository for the tags.
  */
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
-    private val scopeDispatcher: CoroutineDispatcher = DefaultDP.io
 ) : ViewModel() {
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
@@ -379,11 +373,18 @@ class EventCreationViewModel(
     viewModelScope.launch { tagRepository.updateTags(tags) }
   }
 
+  /**
+   * Takes the uri as argument and decode the content of the image, resize it to a
+   * 256*256 image, transform it to a byteArray and modify the eventPicture argument of the
+   * eventCreationUiState.
+   * @param context the context of the UI.
+   * @param uri the temporary url that give access to the image that the user selected.
+   */
   fun setImage(context: Context, uri: Uri?) {
     if (uri == null) {
       eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = null)
     } else {
-      viewModelScope.launch(scopeDispatcher) {
+      viewModelScope.launch(DefaultDP.io) {
         // We redimension the image to have a 256*256 image to reduce the space of the
         // image.
         val maxSize = Dimensions.ProfilePictureSize

@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -51,7 +52,6 @@ import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.Dimensions.PaddingSmall
 import com.android.universe.ui.theme.UniverseTheme
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object EventScreenTestTags {
@@ -190,7 +190,7 @@ fun EventCard(
             produceState<Bitmap?>(initialValue = null, eventImage) {
                   value =
                       if (eventImage != null) {
-                        withContext(Dispatchers.IO) {
+                        withContext(DefaultDP.io) {
                           BitmapFactory.decodeByteArray(eventImage, 0, eventImage.size)
                         }
                       } else {
