@@ -16,7 +16,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
-import com.android.universe.model.user.FakeUserRepository
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,9 +42,7 @@ class EventCreationScreenTest {
 
   @Before
   fun setUp() {
-    viewModel =
-        EventCreationViewModel(
-            eventRepository = FakeEventRepository(), userRepository = FakeUserRepository())
+    viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContent {
       EventCreationScreen(
           eventCreationViewModel = viewModel,
