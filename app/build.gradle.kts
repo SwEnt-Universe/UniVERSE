@@ -329,7 +329,8 @@ tasks.withType<Test>().configureEach {
             "jdk.proxy*",
             "java.*",
             "javax.*",
-            "**/MainActivity*.*",)
+            "**/MainActivity*.*",
+            "**/*Preview*.*",)
     }
 }
 
