@@ -193,7 +193,7 @@ sonar {
         // Paths to JaCoCo XML coverage report files.
         property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
         // Exclusions
-        property("sonar.coverage.exclusions", "**/MainActivity.kt")
+        property("sonar.coverage.exclusions", "**/MainActivity.kt,**/*Preview*.*")
     }
 }
 
