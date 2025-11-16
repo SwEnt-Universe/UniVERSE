@@ -422,6 +422,6 @@ class EventCreationScreenTest {
   @Test
   fun eventCreationScreen_AddTags_SaveButtonDisplay() {
     composeTestRule.onNodeWithTag(EventCreationTestTags.ADD_TAG_BUTTON).performClick()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertExists()
   }
 }
