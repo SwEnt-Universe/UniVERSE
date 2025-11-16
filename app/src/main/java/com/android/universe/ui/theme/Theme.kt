@@ -18,6 +18,16 @@ val LocalIsDarkTheme = staticCompositionLocalOf { false }
 
 @Immutable data class ExtendedColors(val success: Color, val placeholder: Color)
 
+/**
+ * Provides access to the [ExtendedColors] for the current theme.
+ *
+ * We use `staticCompositionLocalOf` because the theme is unlikely to change (light/dark mode)
+ * during composition in a way that would require invalidating *every* composable. This is more
+ * efficient.
+ *
+ * The `Color.Unspecified` default is a "safe" default that ensures any composable accidentally
+ * reading this *without* a `UniverseTheme` provider above it will likely crash, revealing the bug.
+ */
 val LocalExtendedColors = staticCompositionLocalOf {
   ExtendedColors(success = Color.Unspecified, placeholder = Color.Unspecified)
 }

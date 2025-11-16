@@ -12,7 +12,7 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
-import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.common.sanitize
 import com.android.universe.ui.common.sanitizeLead
 import com.android.universe.ui.common.toTitleCase
@@ -95,11 +95,11 @@ class SettingsViewModel(
   private val _uiState = MutableStateFlow(SettingsUiState())
   val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-  private fun ValidationResult.toStringOrNull(): String? {
+  private fun ValidationState.toStringOrNull(): String? {
     return when (this) {
-      is ValidationResult.Valid -> null
-      // Assumes ValidationResult.Invalid now has: val errorMessage: String
-      is ValidationResult.Invalid -> this.errorMessage
+      is ValidationState.Valid -> null
+      is ValidationState.Neutral -> null
+      is ValidationState.Invalid -> this.errorMessage
     }
   }
 
@@ -149,7 +149,7 @@ class SettingsViewModel(
    */
   fun updateTemp(key: String, value: String) {
     val state = _uiState.value
-    var validationResult: ValidationResult = ValidationResult.Valid
+    var ValidationState: ValidationState = ValidationState.Valid
 
     // Handle date fields separately for complex validation
     if (key == "tempDay" || key == "tempMonth" || key == "tempYear") {
@@ -174,38 +174,38 @@ class SettingsViewModel(
         "email" -> {
           // Truncate at LIMIT + 1 to match AddProfileViewModel behavior
           finalValue = value.take(InputLimits.EMAIL_MAX_LENGTH + 1)
-          validationResult = validateEmail(finalValue)
+          ValidationState = validateEmail(finalValue)
         }
         "password" -> {
           // No hard limit for password, just validation (soft limit)
           finalValue = value
-          validationResult = validatePassword(finalValue)
+          ValidationState = validatePassword(finalValue)
         }
         "firstName" -> {
           // Sanitize *then* truncate at LIMIT + 1
           val cleaned = sanitizeLead(value)
           finalValue = cleaned.take(InputLimits.FIRST_NAME + 1)
-          validationResult = validateFirstName(finalValue)
+          ValidationState = validateFirstName(finalValue)
         }
         "lastName" -> {
           // Sanitize *then* truncate at LIMIT + 1
           val cleaned = sanitizeLead(value)
           finalValue = cleaned.take(InputLimits.LAST_NAME + 1)
-          validationResult = validateLastName(finalValue)
+          ValidationState = validateLastName(finalValue)
         }
         "description" -> {
           // No truncation, (soft limit), matches AddProfileViewModel
           finalValue = value
-          validationResult = validateDescription(finalValue)
+          ValidationState = validateDescription(finalValue)
         }
         "country" -> {
           // No truncation
           finalValue = value
-          validationResult = validateCountry(finalValue, countryToIsoCode)
+          ValidationState = validateCountry(finalValue, countryToIsoCode)
         }
       }
       _uiState.update {
-        it.copy(tempValue = finalValue, modalError = validationResult.toStringOrNull())
+        it.copy(tempValue = finalValue, modalError = ValidationState.toStringOrNull())
       }
     }
   }
@@ -233,10 +233,10 @@ class SettingsViewModel(
     val monthResult = validateMonth(month)
     val yearResult = validateYear(year)
 
-    var logicalDateResult: ValidationResult = ValidationResult.Valid
-    if (dayResult is ValidationResult.Valid &&
-        monthResult is ValidationResult.Valid &&
-        yearResult is ValidationResult.Valid) {
+    var logicalDateResult: ValidationState = ValidationState.Valid
+    if (dayResult is ValidationState.Valid &&
+        monthResult is ValidationState.Valid &&
+        yearResult is ValidationState.Valid) {
       logicalDateResult = validateBirthDate(day.toInt(), month.toInt(), year.toInt())
     }
 
@@ -256,13 +256,13 @@ class SettingsViewModel(
   }
 
   private fun deriveDateErrors(
-      dayResult: ValidationResult,
-      monthResult: ValidationResult,
-      yearResult: ValidationResult,
-      logicalDateResult: ValidationResult
-  ): Triple<ValidationResult, ValidationResult, ValidationResult> {
+      dayResult: ValidationState,
+      monthResult: ValidationState,
+      yearResult: ValidationState,
+      logicalDateResult: ValidationState
+  ): Triple<ValidationState, ValidationState, ValidationState> {
     val finalDayError =
-        if (logicalDateResult is ValidationResult.Invalid &&
+        if (logicalDateResult is ValidationState.Invalid &&
             logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
           logicalDateResult
         } else {
@@ -272,7 +272,7 @@ class SettingsViewModel(
     val finalMonthError = monthResult
 
     val finalYearError =
-        if (logicalDateResult is ValidationResult.Invalid &&
+        if (logicalDateResult is ValidationState.Invalid &&
             logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
           logicalDateResult
         } else {
@@ -387,22 +387,22 @@ class SettingsViewModel(
       val yearRes = validateYear(y)
 
       val allValid =
-          dayRes is ValidationResult.Valid &&
-              monthRes is ValidationResult.Valid &&
-              yearRes is ValidationResult.Valid
+          dayRes is ValidationState.Valid &&
+              monthRes is ValidationState.Valid &&
+              yearRes is ValidationState.Valid
 
       val logicalRes =
           if (allValid) {
             validateBirthDate(d.toInt(), m.toInt(), y.toInt())
-          } else ValidationResult.Valid
+          } else ValidationState.Valid
 
       val (finalDayError, finalMonthError, finalYearError) =
           deriveDateErrors(dayRes, monthRes, yearRes, logicalRes)
 
       // If any invalid → keep modal open
-      if (finalDayError is ValidationResult.Invalid ||
-          finalMonthError is ValidationResult.Invalid ||
-          finalYearError is ValidationResult.Invalid) {
+      if (finalDayError is ValidationState.Invalid ||
+          finalMonthError is ValidationState.Invalid ||
+          finalYearError is ValidationState.Invalid) {
         _uiState.update {
           it.copy(
               tempDayError = finalDayError.toStringOrNull(),
@@ -442,10 +442,10 @@ class SettingsViewModel(
           "password" -> validatePassword(cleanedValue)
           "description" -> validateDescription(cleanedValue)
           "country" -> validateCountry(cleanedValue, countryToIsoCode)
-          else -> ValidationResult.Valid
+          else -> ValidationState.Valid
         }
 
-    if (result is ValidationResult.Invalid) {
+    if (result is ValidationState.Invalid) {
       _uiState.update { it.copy(modalError = result.errorMessage) }
       return
     }

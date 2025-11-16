@@ -37,18 +37,38 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.theme.UniverseTheme
 
-sealed class ValidationState {
-  object Valid : ValidationState()
-
-  object Neutral : ValidationState()
-
-  data class Invalid(val errorMessage: String) : ValidationState()
-}
-
+/**
+ * A private constant to enforce a consistent size for icon touch targets. This helps align the text
+ * field correctly, whether or not icons are present.
+ */
 private val IconBoxSize = 32.dp
 
+/**
+ * A highly customized, reusable text input field.
+ *
+ * This component is "dumb" and "stateless." It relies on state hoisting, where the parent
+ * composable provides the `value` and listens for `onValueChange`. It is unstyled (transparent) and
+ * meant to be placed on any background, like a `LiquidBox`.
+ *
+ * @param label The text displayed floating above the input field.
+ * @param placeholder The hint text displayed inside the field when `value` is empty.
+ * @param value The current text value (hoisted state from the parent).
+ * @param onValueChange The lambda function called when the user types (hoisted state).
+ * @param leadingIcon An optional `ImageVector` to display on the far left.
+ * @param isPassword If true, masks the text with '•' dots.
+ * @param onToggleVisibility An optional lambda for the trailing "lock" icon to toggle password
+ *   visibility.
+ * @param maxLines The maximum number of lines the text field can have.
+ * @param validationState The current validation state (`Valid`, `Neutral`, `Invalid`) which
+ *   controls the underline color and error message.
+ * @param keyboardOptions Optional settings to configure the keyboard (e.g., `imeAction`,
+ *   `keyboardType`).
+ * @param keyboardActions Optional actions to run when a keyboard button (like 'Done' or 'Next') is
+ *   pressed.
+ */
 @Composable
 fun CustomTextField(
     label: String,
@@ -63,20 +83,24 @@ fun CustomTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
+  // Determine if the text should be visually masked (for passwords)
   val visualTransformation =
       if (isPassword) {
-        PasswordVisualTransformation()
+        PasswordVisualTransformation() // Shows '•'
       } else {
-        VisualTransformation.None
+        VisualTransformation.None // Shows raw text
       }
 
+  // Determine the underline color based on the validation state
   val dividerColor =
-      when (validationState) { // Use the theme for the colors
+      when (validationState) {
         ValidationState.Valid -> UniverseTheme.extendedColors.success
         ValidationState.Neutral -> MaterialTheme.colorScheme.onBackground
         is ValidationState.Invalid -> MaterialTheme.colorScheme.error
       }
 
+  // Automatically set the keyboard type to Password if `isPassword` is true,
+  // while preserving any other keyboard options the user passed in.
   val finalKeyboardOptions =
       if (isPassword) {
         keyboardOptions.copy(keyboardType = KeyboardType.Password)
@@ -84,8 +108,14 @@ fun CustomTextField(
         keyboardOptions
       }
 
+  // Get the component that controls keyboard focus
   val focusManager = LocalFocusManager.current
 
+  // The "invisible spacer" trick:
+  // We prepare the error message and color. If the state is not Invalid,
+  // we use a single space (" ") and a Transparent color.
+  // This ensures the Text composable for the error always occupies
+  // the same height, preventing the layout from "shifting" when an error appears.
   val (errorText, errorColor) =
       when (validationState) {
         is ValidationState.Invalid ->
@@ -93,6 +123,7 @@ fun CustomTextField(
         else -> " " to Color.Transparent
       }
 
+  // Main container for the label, input row, and underline
   Column(modifier = Modifier.fillMaxWidth()) {
     // 1. The label
     Text(
@@ -102,7 +133,12 @@ fun CustomTextField(
 
     // 2. The input row (Icon, field, Lock (optional))
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(IconBoxSize),
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(top = 4.dp)
+                // Force the Row to a consistent height, matching the icon size.
+                // This prevents the underline from moving up/down if icons are absent.
+                .height(IconBoxSize),
         verticalAlignment = Alignment.CenterVertically) {
           // 3. Leading icon
           if (leadingIcon != null) {
@@ -125,9 +161,11 @@ fun CustomTextField(
               keyboardActions = keyboardActions,
               textStyle =
                   LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground),
-              cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+              cursorBrush =
+                  SolidColor(MaterialTheme.colorScheme.primary), // Set the blinking cursor color
               modifier = Modifier.weight(1f),
-              decorationBox = { innerTextField ->
+              decorationBox = { innerTextField
+                -> // `decorationBox` lets us build the UI *around* the core text field
                 if (value.isEmpty()) {
                   Text(
                       text = placeholder,
@@ -138,11 +176,14 @@ fun CustomTextField(
                 innerTextField()
               })
 
-          // 5. Trailing Lock icon
+          // 5. Trailing Lock icon (Optional)
           if (onToggleVisibility != null) {
             Box(modifier = Modifier.size(IconBoxSize), contentAlignment = Alignment.Center) {
               IconButton(
                   onClick = {
+                    // IMPORTANT: Clear focus *first*!
+                    // This prevents the keyboard from popping up again
+                    // when the user taps the icon.
                     focusManager.clearFocus()
                     onToggleVisibility()
                   }) {
@@ -159,6 +200,10 @@ fun CustomTextField(
     // 6. The underline
     HorizontalDivider(color = dividerColor, thickness = 1.dp)
 
+    // 7. The error message area
+    // This Text is *always* rendered, even if there's no error.
+    // When there's no error, it renders as " " with a Transparent color,
+    // which invisibly reserves the space and prevents layout shifts.
     Text(
         text = errorText,
         color = errorColor,
@@ -168,6 +213,7 @@ fun CustomTextField(
   }
 }
 
+/** A preview composable to visualize the [CustomTextField] in different states. */
 @Preview
 @Composable
 fun CustomTextFieldPreview() {
