@@ -114,7 +114,11 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText(EventTestData.dummyEvent3.title).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText("Participants: ${testEvent.participants.size}")
+        .assertIsDisplayed()
     composeTestRule.onNodeWithText("Close").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_JOIN_LEAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test

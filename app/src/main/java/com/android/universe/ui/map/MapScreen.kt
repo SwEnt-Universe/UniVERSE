@@ -54,6 +54,7 @@ object MapScreenTestTags {
   const val LOADING_INDICATOR = "loading_indicator"
   const val CREATE_EVENT_BUTTON = "create_event_button"
   const val EVENT_INFO_POPUP = "event_info_popup"
+  const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
 /**
@@ -154,8 +155,12 @@ fun MapScreen(
                 }
               }
 
-              if (selectedEvent != null) {
-                EventInfoPopup(event = selectedEvent!!, onDismiss = { viewModel.selectEvent(null) })
+              selectedEvent?.let { event ->
+                EventInfoPopup(
+                    event = event,
+                    isUserParticipant = viewModel.isUserParticipant(event),
+                    onDismiss = { viewModel.selectEvent(null) },
+                    onJoinOrLeaveEvent = { viewModel.joinOrLeaveEvent(event) })
               }
             }
       }

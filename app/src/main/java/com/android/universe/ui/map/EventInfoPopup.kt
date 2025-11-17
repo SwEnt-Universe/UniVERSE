@@ -5,8 +5,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +31,12 @@ import com.android.universe.model.event.Event
 import com.android.universe.ui.theme.Dimensions
 
 @Composable
-fun EventInfoPopup(event: Event, onDismiss: () -> Unit) {
+fun EventInfoPopup(
+    event: Event,
+    isUserParticipant: Boolean,
+    onDismiss: () -> Unit,
+    onJoinOrLeaveEvent: () -> Unit
+) {
   Box(
       modifier =
           Modifier.fillMaxSize()
@@ -54,10 +62,41 @@ fun EventInfoPopup(event: Event, onDismiss: () -> Unit) {
                           contentColor = MaterialTheme.colorScheme.onSurface),
                   elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
                     Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
-                      Text(
-                          text = event.title,
-                          style = MaterialTheme.typography.titleLarge,
-                          color = MaterialTheme.colorScheme.onSurface)
+                      Row(
+                          modifier = Modifier.fillMaxWidth(),
+                          horizontalArrangement = Arrangement.SpaceBetween,
+                          verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = event.title,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f))
+
+                            Button(
+                                onClick = { onJoinOrLeaveEvent() },
+                                modifier =
+                                    Modifier.testTag(MapScreenTestTags.EVENT_JOIN_LEAVE_BUTTON),
+                                colors =
+                                    ButtonDefaults.buttonColors(
+                                        containerColor =
+                                            if (isUserParticipant) {
+                                              MaterialTheme.colorScheme.error
+                                            } else {
+                                              MaterialTheme.colorScheme.primary
+                                            },
+                                        contentColor =
+                                            if (isUserParticipant) {
+                                              MaterialTheme.colorScheme.onError
+                                            } else {
+                                              MaterialTheme.colorScheme.onPrimary
+                                            }),
+                                contentPadding =
+                                    PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+                                  Text(
+                                      text = if (isUserParticipant) "Leave" else "Join",
+                                      style = MaterialTheme.typography.labelMedium)
+                                }
+                          }
 
                       Spacer(Modifier.height(Dimensions.SpacerMedium))
 
@@ -71,6 +110,13 @@ fun EventInfoPopup(event: Event, onDismiss: () -> Unit) {
                           text =
                               "Location: ${event.location.latitude}, ${event.location.longitude}",
                           style = MaterialTheme.typography.bodySmall)
+
+                      Spacer(Modifier.height(Dimensions.SpacerMedium))
+
+                      Text(
+                          text = "Participants: ${event.participants.size}",
+                          style = MaterialTheme.typography.bodySmall,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                       Spacer(Modifier.height(Dimensions.SpacerLarge))
 
