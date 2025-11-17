@@ -46,7 +46,7 @@ fun ChatScreen(
     chatID: String,
     userID: String = "",
     onTabSelected: (Tab) -> Unit,
-    vm: ChatUIViewModel = viewModel(factory = ChatUIViewModelFactory(chatID, userID))
+    vm: ChatUIViewModel = viewModel { ChatUIViewModel(chatID, userID) }
 ) {
 
   val uiState by vm.uiState.collectAsState()
