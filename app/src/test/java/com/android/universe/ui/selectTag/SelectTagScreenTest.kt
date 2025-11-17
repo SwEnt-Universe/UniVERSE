@@ -58,20 +58,23 @@ class SelectTagScreenTest {
     private const val LAZY_COLUMN_TAGS = "LazyColumnTags"
   }
 
+  private fun launchDefaultScreen() {
+    composeTestRule.setContent {
+      SelectTagScreen(selectedTagOverview = viewModel, uid = dummyUser.uid)
+    }
+  }
+
   @Before
   fun setUp() {
     // Set up a fake repository for testing
     userRepository = FakeUserRepository()
     runTest { userRepository.addUser(dummyUser) }
     viewModel = SelectTagViewModel(userRepository)
-    // Set the content for the compose test rule
-    composeTestRule.setContent {
-      SelectTagScreen(selectedTagOverview = viewModel, uid = dummyUser.uid)
-    }
   }
 
   @Test
   fun allTagGroupsAreDisplayed() {
+    launchDefaultScreen()
     // Check that all types of tags are displayed.
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.INTEREST_TAGS).assertIsDisplayed()
     composeTestRule
@@ -94,12 +97,14 @@ class SelectTagScreenTest {
 
   @Test
   fun saveButtonIsDisplayed() {
+    launchDefaultScreen()
     // Check that the save button is displayed.
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
   fun selectedTagsSectionIsHiddenInitially() {
+    launchDefaultScreen()
     // Check that the selectedTags and their trash icons are not displayed because the user didn't
     // select anything.
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsNotDisplayed()
@@ -108,6 +113,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsShownWhenInterestTagClicked() {
+    launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
     composeTestRule.onNodeWithTag(BUTTON_READING).performClick()
@@ -117,6 +123,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsShownWhenSportTagClicked() {
+    launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
     scrollAndClick(BUTTON_HANDBALL)
@@ -126,6 +133,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsShownWhenMusicTagClicked() {
+    launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
     scrollAndClick(BUTTON_METAL)
@@ -135,6 +143,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsShownWhenTransportTagClicked() {
+    launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
     scrollAndClick(BUTTON_CAR)
@@ -144,6 +153,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsShownWhenCantonTagClicked() {
+    launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
     scrollAndClick(BUTTON_BERN)
@@ -153,6 +163,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsShownWhenMultipleTagsClicked() {
+    launchDefaultScreen()
     // Check that when the user selects multiple tags, they appear in the selected section with
     // their trash icons.
     scrollAndClick(BUTTON_BERN)
@@ -164,6 +175,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsHiddenAfterDeleteClicked() {
+    launchDefaultScreen()
     // Check that if we click on the trash icon, the tag is deselected and does not appear in the
     // selected tag section.
     scrollAndClick(BUTTON_BERN)
@@ -174,6 +186,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsHiddenWhenTagDeselected() {
+    launchDefaultScreen()
     // Check that if we click again on the tag, it is deselected and does not appear in the selected
     // tag section.
     scrollAndClick(BUTTON_BERN)
@@ -190,6 +203,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsDisplayedInCorrectOrder() {
+    launchDefaultScreen()
     // Check that the selected tags are displayed in the correct order, matching the sequence they
     // were clicked.
     scrollAndClick(BUTTON_BERN)
@@ -211,6 +225,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsMaintainOrderAfterDeselection() {
+    launchDefaultScreen()
     // Check that the selected tags are displayed in the correct order when we deselect one tag.
     scrollAndClick(BUTTON_BERN)
     scrollAndClick(BUTTON_HANDBALL)
@@ -232,6 +247,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsRemainStableAfterRapidClicks() {
+    launchDefaultScreen()
     // Check that rapid repeated clicks on a tag do not break selection behavior.
     scrollAndClick(BUTTON_BERN)
     scrollAndClick(BUTTON_BERN)
@@ -261,6 +277,7 @@ class SelectTagScreenTest {
 
   @Test
   fun tagStillVisibleWhenAllSelected() {
+    launchDefaultScreen()
     // Check that selecting all tags of one type still displays them on the screen.
     selectLotsOfTags()
 
@@ -272,6 +289,7 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsSectionIsScrollable() {
+    launchDefaultScreen()
     // Check that the selected tags section is scrollable.
     selectLotsOfTags()
 
@@ -279,5 +297,20 @@ class SelectTagScreenTest {
         .onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS)
         .performScrollToNode(hasTestTag(SelectTagsScreenTestTags.selectedTag(Tag.PLANE)))
         .assertIsDisplayed()
+  }
+
+  @Test
+  fun selectedTagsModeChange() {
+    val modeViewModel = SelectTagViewModel(userRepository)
+
+    composeTestRule.setContent {
+      SelectTagScreen(
+          selectTagMode = SelectTagMode.EVENT_CREATION,
+          selectedTagOverview = modeViewModel,
+          uid = dummyUser.uid)
+    }
+    composeTestRule.waitForIdle()
+
+    assertEquals(modeViewModel.mode, SelectTagMode.EVENT_CREATION)
   }
 }
