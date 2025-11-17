@@ -35,7 +35,7 @@ fun EventInfoPopup(
     event: Event,
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
-    onJoinOrLeaveEvent: () -> Unit
+    onToggleEventParticipation: () -> Unit
 ) {
   Box(
       modifier =
@@ -73,7 +73,7 @@ fun EventInfoPopup(
                                 modifier = Modifier.weight(1f))
 
                             Button(
-                                onClick = { onJoinOrLeaveEvent() },
+                                onClick = { onToggleEventParticipation() },
                                 modifier =
                                     Modifier.testTag(MapScreenTestTags.EVENT_JOIN_LEAVE_BUTTON),
                                 colors =
@@ -91,7 +91,9 @@ fun EventInfoPopup(
                                               MaterialTheme.colorScheme.onPrimary
                                             }),
                                 contentPadding =
-                                    PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+                                    PaddingValues(
+                                        horizontal = Dimensions.PaddingMedium,
+                                        vertical = Dimensions.PaddingSmall)) {
                                   Text(
                                       text = if (isUserParticipant) "Leave" else "Join",
                                       style = MaterialTheme.typography.labelMedium)

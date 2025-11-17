@@ -302,7 +302,7 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `joinOrLeaveEvent adds user when not a participant`() = runTest {
+  fun `toggleEventParticipation adds user when not a participant`() = runTest {
     val event = EventTestData.dummyEvent1
     val newParticipants = event.participants + userId
     val updatedEvent = event.copy(participants = newParticipants)
@@ -310,7 +310,7 @@ class MapViewModelTest {
     coEvery { eventRepository.updateEvent(event.id, updatedEvent) } returns Unit
     coEvery { eventRepository.getAllEvents() } returns listOf(updatedEvent)
 
-    viewModel.joinOrLeaveEvent(event)
+    viewModel.toggleEventParticipation(event)
     testDispatcher.scheduler.advanceUntilIdle()
 
     coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
@@ -320,13 +320,13 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `joinOrLeaveEvent sets error on failure`() = runTest {
+  fun `toggleEventParticipation sets error on failure`() = runTest {
     val event = EventTestData.NoParticipantEvent
 
     coEvery { eventRepository.updateEvent(any(), any()) } throws
         NoSuchElementException("Update failed")
 
-    viewModel.joinOrLeaveEvent(event)
+    viewModel.toggleEventParticipation(event)
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value

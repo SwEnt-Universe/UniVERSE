@@ -160,7 +160,7 @@ fun MapScreen(
                     event = event,
                     isUserParticipant = viewModel.isUserParticipant(event),
                     onDismiss = { viewModel.selectEvent(null) },
-                    onJoinOrLeaveEvent = { viewModel.joinOrLeaveEvent(event) })
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
               }
             }
       }

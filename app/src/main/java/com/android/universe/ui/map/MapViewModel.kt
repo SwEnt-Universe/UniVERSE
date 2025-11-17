@@ -232,7 +232,7 @@ class MapViewModel(
    *
    * @param event The event to join or leave
    */
-  fun joinOrLeaveEvent(event: Event) {
+  fun toggleEventParticipation(event: Event) {
     viewModelScope.launch {
       try {
         val isParticipant = event.participants.contains(currentUserId)
