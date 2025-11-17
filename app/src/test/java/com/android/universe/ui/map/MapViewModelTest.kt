@@ -12,9 +12,11 @@ import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDateTime
+import kotlin.NoSuchElementException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -297,5 +299,56 @@ class MapViewModelTest {
     testDispatcher.scheduler.advanceUntilIdle()
 
     assertNull(viewModel.selectedEvent.value)
+  }
+
+  @Test
+  fun `toggleEventParticipation adds user when not a participant`() = runTest {
+    val event = EventTestData.dummyEvent1
+    val newParticipants = event.participants + userId
+    val updatedEvent = event.copy(participants = newParticipants)
+
+    coEvery { eventRepository.updateEvent(event.id, updatedEvent) } returns Unit
+    coEvery { eventRepository.getAllEvents() } returns listOf(updatedEvent)
+
+    viewModel.toggleEventParticipation(event)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
+    val selectedEvent = viewModel.selectedEvent.value
+    assertEquals(updatedEvent, selectedEvent)
+    assertTrue(selectedEvent?.participants?.contains(userId) ?: false)
+  }
+
+  @Test
+  fun `toggleEventParticipation sets error on failure`() = runTest {
+    val event = EventTestData.NoParticipantEvent
+
+    coEvery { eventRepository.updateEvent(any(), any()) } throws
+        NoSuchElementException("Update failed")
+
+    viewModel.toggleEventParticipation(event)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("No event ${event.title} found", state.error)
+  }
+
+  @Test
+  fun `isUserParticipant returns true when user is in participants list`() {
+    val event =
+        EventTestData.dummyEvent1.copy(participants = setOf("otherUser", userId, "anotherUser"))
+
+    val result = viewModel.isUserParticipant(event)
+
+    assertTrue(result)
+  }
+
+  @Test
+  fun `isUserParticipant returns false when user is not in participants list`() {
+    val event = EventTestData.dummyEvent1.copy(participants = setOf("otherUser", "anotherUser"))
+
+    val result = viewModel.isUserParticipant(event)
+
+    assertFalse(result)
   }
 }
