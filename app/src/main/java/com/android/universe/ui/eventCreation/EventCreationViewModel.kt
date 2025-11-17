@@ -1,8 +1,13 @@
 package com.android.universe.ui.eventCreation
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
@@ -10,8 +15,8 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepositoryProvider
-import com.android.universe.model.user.UserRepository
-import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.theme.Dimensions
+import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -19,6 +24,7 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Represent the UiSate of the EventCreationScreen.
@@ -50,7 +56,8 @@ data class EventCreationUIState(
     val monthError: String? = "Month cannot be empty",
     val yearError: String? = "Year cannot be empty",
     val hourError: String? = "Hour cannot be empty",
-    val minuteError: String? = "Minute cannot be empty"
+    val minuteError: String? = "Minute cannot be empty",
+    val eventPicture: ByteArray? = null
 )
 
 /**
@@ -72,12 +79,10 @@ object EventInputLimits {
  * repository.
  *
  * @param eventRepository the repository for the event.
- * @param userRepository the repository for the user.
  * @param tagRepository The repository for the tags.
  */
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
 ) : ViewModel() {
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
@@ -369,6 +374,61 @@ class EventCreationViewModel(
   }
 
   /**
+   * Takes the uri as argument and decode the content of the image, resize it to a 256*256 image,
+   * transform it to a byteArray and modify the eventPicture argument of the eventCreationUiState.
+   *
+   * @param context the context of the UI.
+   * @param uri the temporary url that give access to the image that the user selected.
+   */
+  fun setImage(context: Context, uri: Uri?) {
+    if (uri == null) {
+      eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = null)
+    } else {
+      viewModelScope.launch(DefaultDP.io) {
+        // We redimension the image to have a 256*256 image to reduce the space of the
+        // image.
+        val maxSize = Dimensions.ProfilePictureSize
+
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
+        context.contentResolver.openInputStream(uri)?.use { input ->
+          BitmapFactory.decodeStream(input, null, options)
+        }
+
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+        if (height > maxSize || width > maxSize) {
+          val halfHeight = height / 2
+          val halfWidth = width / 2
+          while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
+            inSampleSize *= 2
+          }
+        }
+
+        options.inSampleSize = inSampleSize
+        options.inJustDecodeBounds = false
+
+        val bitmap =
+            context.contentResolver.openInputStream(uri)?.use { input ->
+              BitmapFactory.decodeStream(input, null, options)
+            }
+
+        if (bitmap == null) {
+          Log.e("ImageError", "Failed to decode bitmap from URI $uri")
+        } else {
+          val stream = ByteArrayOutputStream()
+          // We compress the image with a low quality to reduce the space of the image.
+          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+          val byteArray = stream.toByteArray()
+          withContext(DefaultDP.main) {
+            eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = byteArray)
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
    * @param location the location of the event.
@@ -415,7 +475,8 @@ class EventCreationViewModel(
                   tags = _eventTags.value,
                   creator = uid,
                   participants = setOf(uid),
-                  location = location)
+                  location = location,
+                  eventPicture = eventCreationUiState.value.eventPicture)
           eventRepository.addEvent(event)
           // The event is saved, we can now delete the current tag Set for the event.
           tagRepository.deleteAllTags()

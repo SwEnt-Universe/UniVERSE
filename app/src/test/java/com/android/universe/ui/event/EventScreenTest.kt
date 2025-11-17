@@ -2,11 +2,13 @@ package com.android.universe.ui.event
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
@@ -38,12 +40,14 @@ class EventScreenTest {
     private val firstEvent = EventTestData.FullDescriptionEvent
     private val secondEvent = EventTestData.NullDescriptionEvent
     private val thirdEvent = EventTestData.NoTagsEvent
+    private val fourthEvent = EventTestData.NoImage
     private val megaTagEvent = EventTestData.SomeTagsEvent
     private val sampleEvents = listOf(firstEvent, secondEvent, thirdEvent)
     private val sampleUsers =
         listOf(UserTestData.NullDescription, UserTestData.ManyTagsUser, UserTestData.Alice)
 
     private const val THREE_TAG_MESSAGE = "Expected at least 3 visible tag nodes but found"
+    private const val ONE_ICON_IMAGE_MESSAGE = "Expected one Image Icon but found"
   }
 
   @Before
@@ -135,5 +139,22 @@ class EventScreenTest {
     joinButton.assertIsDisplayed()
     // assertHasClickAction verifies it is clickable (or at least has a click semantics)
     joinButton.assertHasClickAction()
+  }
+
+  @Test
+  fun iconImageIsVisibleIfNoImage() = runTest {
+    fakeEventRepository.addEvent(fourthEvent)
+    viewModel.loadEvents()
+    advanceUntilIdle()
+    composeTestRule
+        .onNodeWithTag(EventScreenTestTags.EVENTS_LIST)
+        .performScrollToNode(hasTestTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE))
+    composeTestRule
+        .onAllNodesWithTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE)
+        .onFirst()
+        .assertIsDisplayed()
+    val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE)
+    val totalReachableTags = tagNodes.fetchSemanticsNodes().size
+    assertTrue("$ONE_ICON_IMAGE_MESSAGE $totalReachableTags", totalReachableTags == 1)
   }
 }

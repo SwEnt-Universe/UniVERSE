@@ -1,20 +1,36 @@
 package com.android.universe.ui.eventCreation
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -24,16 +40,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
+import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.withContext
 
 /** All the tags that are used to test the EventCreation screen. */
 object EventCreationTestTags {
@@ -46,6 +71,10 @@ object EventCreationTestTags {
   const val EVENT_MINUTE_TEXT_FIELD = "EventMinuteTextField"
   const val ADD_TAG_BUTTON = "AddTagButton"
   const val TAG = "tags"
+  const val IMAGE_EVENT = "image_event"
+  const val EDIT_IMAGE_ICON = "edit_image_icon"
+  const val IMAGE_ICON = "image_icon"
+  const val DELETE_IMAGE_BUTTON = "delete_image_button"
   const val SAVE_EVENT_BUTTON = "SaveEventButton"
   const val ERROR_TITLE = "ErrorTitle"
   const val ERROR_DESCRIPTION = "ErrorDescription"
@@ -128,14 +157,90 @@ fun EventCreationScreen(
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
   val tags = eventCreationViewModel.eventTags.collectAsState()
+  val eventImage = uiState.value.eventPicture
   Scaffold(
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
+          val context = LocalContext.current
+          val bitmap =
+              produceState<Bitmap?>(initialValue = null, eventImage) {
+                    value =
+                        if (eventImage != null) {
+                          withContext(DefaultDP.io) {
+                            BitmapFactory.decodeByteArray(
+                                uiState.value.eventPicture, 0, eventImage.size)
+                          }
+                        } else {
+                          null
+                        }
+                  }
+                  .value
+          // Event Image box with image selection
+          Box(
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .clip(RoundedCornerShape(16.dp))
+                      .height(140.dp)
+                      .width(220.dp)
+                      .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+                      .border(
+                          2.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(16.dp))) {
+                // If there is no image we display an Image Icon.
+                if (bitmap == null) {
+                  Icon(
+                      tint = MaterialTheme.colorScheme.onSurface,
+                      contentDescription = "Image",
+                      imageVector = Icons.Filled.Image,
+                      modifier =
+                          Modifier.size(Dimensions.IconSizeLarge)
+                              .align(Alignment.Center)
+                              .testTag(EventCreationTestTags.IMAGE_ICON))
+                } else {
+                  Image(
+                      bitmap = bitmap.asImageBitmap(),
+                      contentDescription = "Selected image",
+                      modifier =
+                          Modifier.clip(RoundedCornerShape(16.dp))
+                              .align(Alignment.Center)
+                              .fillMaxSize()
+                              .testTag(EventCreationTestTags.IMAGE_EVENT),
+                      contentScale = ContentScale.Crop)
+                }
+                // The launcher to launch the image selection.
+                val launcher =
+                    rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+                          uri?.let { selectedUri ->
+                            eventCreationViewModel.setImage(context, selectedUri)
+                          }
+                        }
+                IconButton(
+                    onClick = { launcher.launch("image/*") },
+                    modifier =
+                        Modifier.align(Alignment.BottomEnd)
+                            .size(Dimensions.IconSizeLarge)
+                            .testTag(EventCreationTestTags.EDIT_IMAGE_ICON)) {
+                      Icon(
+                          contentDescription = "Image",
+                          imageVector = Icons.Filled.Create,
+                      )
+                    }
+              }
+          Button(
+              onClick = { eventCreationViewModel.setImage(context = context, uri = null) },
+              modifier =
+                  Modifier.padding(vertical = Dimensions.PaddingMedium)
+                      .width(150.dp)
+                      .height(40.dp)
+                      .align(Alignment.CenterHorizontally)
+                      .testTag(EventCreationTestTags.DELETE_IMAGE_BUTTON)) {
+                Text("Remove Image")
+              }
           TextFieldEventCreation(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
                       .fillMaxWidth()
-                      .padding(16.dp),
+                      .padding(Dimensions.PaddingLarge),
               value = uiState.value.name,
               onValueChange = { name -> eventCreationViewModel.setEventName(name) },
               label = "Event Title",
@@ -145,7 +250,7 @@ fun EventCreationScreen(
               modifier =
                   Modifier.testTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
                       .fillMaxWidth()
-                      .padding(16.dp)
+                      .padding(Dimensions.PaddingMedium)
                       .height(120.dp),
               value = uiState.value.description ?: "",
               onValueChange = { description ->
@@ -155,13 +260,12 @@ fun EventCreationScreen(
               errorMessage = null,
               errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DESCRIPTION),
               singleLine = false)
-          Spacer(modifier = Modifier.height(12.dp))
-          Row(modifier = Modifier.padding(paddingValues)) {
+          Row(modifier = Modifier.padding(Dimensions.PaddingSmall)) {
             TextFieldEventCreation(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
                         .weight(1f)
-                        .padding(16.dp),
+                        .padding(Dimensions.PaddingLarge),
                 value = uiState.value.day,
                 onValueChange = { day -> eventCreationViewModel.setEventDay(day) },
                 label = "Day",
@@ -171,7 +275,7 @@ fun EventCreationScreen(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
                         .weight(1f)
-                        .padding(16.dp),
+                        .padding(Dimensions.PaddingLarge),
                 value = uiState.value.month,
                 onValueChange = { month -> eventCreationViewModel.setEventMonth(month) },
                 label = "Month",
@@ -181,39 +285,40 @@ fun EventCreationScreen(
                 modifier =
                     Modifier.testTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
                         .weight(1f)
-                        .padding(16.dp),
+                        .padding(Dimensions.PaddingLarge),
                 value = uiState.value.year,
                 onValueChange = { year -> eventCreationViewModel.setEventYear(year) },
                 label = "Year",
                 errorMessage = uiState.value.yearError,
                 errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_YEAR))
           }
-          Row(
-              modifier = Modifier.fillMaxWidth().padding(paddingValues),
-              horizontalArrangement = Arrangement.Center) {
-                TextFieldEventCreation(
-                    modifier =
-                        Modifier.testTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).width(120.dp),
-                    value = uiState.value.hour,
-                    onValueChange = { hour -> eventCreationViewModel.setEventHour(hour) },
-                    label = "Hour",
-                    errorMessage = uiState.value.hourError,
-                    errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_HOUR))
+          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            TextFieldEventCreation(
+                modifier =
+                    Modifier.testTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).width(120.dp),
+                value = uiState.value.hour,
+                onValueChange = { hour -> eventCreationViewModel.setEventHour(hour) },
+                label = "Hour",
+                errorMessage = uiState.value.hourError,
+                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_HOUR))
 
-                Spacer(modifier = Modifier.width(16.dp))
-                TextFieldEventCreation(
-                    modifier =
-                        Modifier.testTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-                            .width(120.dp),
-                    value = uiState.value.minute,
-                    onValueChange = { minute -> eventCreationViewModel.setEventMinute(minute) },
-                    label = "Minute",
-                    errorMessage = uiState.value.minuteError,
-                    errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MINUTE))
-              }
-          Row(modifier = Modifier.padding(paddingValues)) {
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+            TextFieldEventCreation(
+                modifier =
+                    Modifier.testTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD).width(120.dp),
+                value = uiState.value.minute,
+                onValueChange = { minute -> eventCreationViewModel.setEventMinute(minute) },
+                label = "Minute",
+                errorMessage = uiState.value.minuteError,
+                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MINUTE))
+          }
+          Row(modifier = Modifier.padding(Dimensions.PaddingMedium)) {
             Text(
-                "Selected Tags:", modifier = Modifier.padding(horizontal = 16.dp, vertical = 28.dp))
+                "Selected Tags:",
+                modifier =
+                    Modifier.padding(
+                        horizontal = Dimensions.PaddingLarge,
+                        vertical = Dimensions.PaddingExtraLarge))
 
             Button(
                 onClick = { onAddTag() },
@@ -222,7 +327,7 @@ fun EventCreationScreen(
                         containerColor = Color.Gray, contentColor = Color.White),
                 modifier =
                     Modifier.testTag(EventCreationTestTags.ADD_TAG_BUTTON)
-                        .padding(vertical = 16.dp, horizontal = 0.dp)) {
+                        .padding(vertical = Dimensions.PaddingLarge, horizontal = 0.dp)) {
                   Text("Add Tags")
                 }
           }
@@ -230,8 +335,8 @@ fun EventCreationScreen(
               modifier =
                   Modifier.fillMaxWidth()
                       .weight(1f)
-                      .padding(horizontal = 16.dp)
-                      .verticalScroll(rememberScrollState()),
+                      .verticalScroll(rememberScrollState())
+                      .padding(horizontal = Dimensions.PaddingMedium),
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 tags.value.toList().forEach { tag ->
@@ -241,7 +346,10 @@ fun EventCreationScreen(
                       shape = RoundedCornerShape(50)) {
                         Text(
                             text = tag.displayName,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = Dimensions.PaddingMedium,
+                                    vertical = Dimensions.PaddingMedium))
                       }
                 }
               }

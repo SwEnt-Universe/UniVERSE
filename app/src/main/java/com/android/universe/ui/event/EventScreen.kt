@@ -1,5 +1,7 @@
 package com.android.universe.ui.event
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,8 +28,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -38,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -47,6 +52,7 @@ import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
 import com.android.universe.ui.theme.Dimensions.PaddingSmall
 import com.android.universe.ui.theme.UniverseTheme
+import kotlinx.coroutines.withContext
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -66,6 +72,8 @@ object EventScreenTestTags {
 
   // Image
   const val EVENT_IMAGE = "event_image"
+  // Icon of an Image
+  const val DEFAULT_EVENT_IMAGE = "default_event_image"
 
   // Tags container
   const val EVENT_TAGS_COLUMN = "event_tags_column"
@@ -132,7 +140,8 @@ fun EventScreen(
                 participants = event.participants,
                 onJoin = viewModel::joinOrLeaveEvent,
                 index = event.index,
-                joined = event.joined)
+                joined = event.joined,
+                eventImage = event.eventPicture)
           }
         }
   }
@@ -157,6 +166,7 @@ fun EventScreen(
  * @param onJoin A callback function invoked when the "Join In" button is clicked.
  * @param joined Whether the current user has joined the event.
  * @param index The index of the event in the list of events of the viewmodel
+ * @param eventImage the image of the event.
  */
 @Composable
 fun EventCard(
@@ -168,22 +178,43 @@ fun EventCard(
     participants: Int,
     onJoin: (Int) -> Unit = {},
     joined: Boolean = false,
-    index: Int = 0
+    index: Int = 0,
+    eventImage: ByteArray? = null
 ) {
   Card(
       modifier =
           Modifier.fillMaxWidth().padding(PaddingMedium).testTag(EventScreenTestTags.EVENT_CARD),
       shape = RoundedCornerShape(Dimensions.RoundedCorner),
       elevation = CardDefaults.cardElevation(Dimensions.ElevationCard)) {
+        val bitmap =
+            produceState<Bitmap?>(initialValue = null, eventImage) {
+                  value =
+                      if (eventImage != null) {
+                        withContext(DefaultDP.io) {
+                          BitmapFactory.decodeByteArray(eventImage, 0, eventImage.size)
+                        }
+                      } else {
+                        null
+                      }
+                }
+                .value
         Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
           // Image with overlay
           Box(modifier = Modifier.height(104.dp).fillMaxWidth()) {
-            Image(
-                painter = painterResource(id = R.drawable.default_event_img),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENT_IMAGE))
-
+            if (bitmap == null) {
+              Image(
+                  painter = painterResource(id = R.drawable.default_event_img),
+                  contentDescription = null,
+                  contentScale = ContentScale.Crop,
+                  modifier =
+                      Modifier.fillMaxSize().testTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE))
+            } else {
+              Image(
+                  bitmap = bitmap.asImageBitmap(),
+                  contentDescription = null,
+                  contentScale = ContentScale.Crop,
+                  modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENT_IMAGE))
+            }
             Box(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
