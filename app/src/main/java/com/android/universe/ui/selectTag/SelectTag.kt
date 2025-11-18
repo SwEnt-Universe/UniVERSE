@@ -1,6 +1,5 @@
 package com.android.universe.ui.selectTag
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,13 +37,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.theme.tagColor
 
 object SelectTagsScreenTestTags {
-  const val INTEREST_TAGS = "InterestTags"
-  const val SPORT_TAGS = "SportTags"
   const val MUSIC_TAGS = "MusicTags"
-  const val TRANSPORT_TAGS = "TransportTags"
-  const val CANTON_TAGS = "CantonTags"
+  const val SPORT_TAGS = "SportTags"
+  const val FOOD_TAGS = "FoodTags"
+  const val ART_TAGS = "ArtTags"
+  const val TRAVEL_TAGS = "TravelTags"
+  const val GAMES_TAGS = "GamesTags"
+  const val TECHNOLOGY_TAGS = "TechnologyTags"
+  const val TOPIC_TAGS = "TopicTags"
   const val SELECTED_TAGS = "SelectedTags"
   const val SAVE_BUTTON = "SaveButton"
   const val DIVIDER = "Divider"
@@ -78,19 +81,17 @@ object SelectTagsScreenTestTags {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagGroup(
+    modifier: Modifier = Modifier,
     name: String,
     tagList: List<Tag>,
     selectedTags: List<Tag>,
-    color: Color = Color(0xFF6650a4),
     onTagSelect: (Tag) -> Unit = {},
-    onTagReSelect: (Tag) -> Unit = {},
-    modifier: Modifier = Modifier
+    onTagReSelect: (Tag) -> Unit = {}
 ) {
   Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
-      val buttonColor by animateColorAsState(targetValue = if (isSelected) Color.Gray else color)
       Button(
           onClick = {
             if (isSelected) {
@@ -101,7 +102,9 @@ private fun TagGroup(
           },
           modifier = Modifier.testTag(SelectTagsScreenTestTags.unselectedTag(tag)).padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
-          colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
+          colors =
+              ButtonDefaults.buttonColors(
+                  containerColor = tagColor(category = name, isSelected = isSelected))) {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(tag.displayName)
               if (isSelected) {
@@ -125,20 +128,6 @@ fun SectionDivider() {
       modifier = Modifier.testTag(SelectTagsScreenTestTags.DIVIDER).padding(vertical = 8.dp),
       thickness = 1.dp,
       color = Color.Black)
-}
-
-/**
- * Object holding predefined colors for different tag categories.
- *
- * Each property corresponds to a specific tag group and defines the color used to display tags of
- * that group.
- */
-object TagColors {
-  val Interest = Color(0xFFB39DDB)
-  val Sport = Color(0xFFA5D6A7)
-  val Music = Color(0xFF90A4AE)
-  val Transport = Color(0xFF80CBC4)
-  val Canton = Color(0xFF546E7A)
 }
 
 /**
@@ -174,24 +163,19 @@ fun SelectTagScreen(
             name = category.displayName,
             tagList = Tag.getTagsForCategory(category),
             selectedTags = selectedTags,
-            color =
-                when (category) {
-                  Tag.Category.INTEREST -> TagColors.Interest
-                  Tag.Category.SPORT -> TagColors.Sport
-                  Tag.Category.MUSIC -> TagColors.Music
-                  Tag.Category.TRANSPORT -> TagColors.Transport
-                  Tag.Category.CANTON -> TagColors.Canton
-                },
             onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
             onTagReSelect = { tag -> selectedTagOverview.deleteTag(tag) },
             modifier =
                 Modifier.testTag(
                     when (category) {
-                      Tag.Category.INTEREST -> SelectTagsScreenTestTags.INTEREST_TAGS
-                      Tag.Category.SPORT -> SelectTagsScreenTestTags.SPORT_TAGS
                       Tag.Category.MUSIC -> SelectTagsScreenTestTags.MUSIC_TAGS
-                      Tag.Category.TRANSPORT -> SelectTagsScreenTestTags.TRANSPORT_TAGS
-                      Tag.Category.CANTON -> SelectTagsScreenTestTags.CANTON_TAGS
+                      Tag.Category.SPORT -> SelectTagsScreenTestTags.SPORT_TAGS
+                      Tag.Category.FOOD -> SelectTagsScreenTestTags.FOOD_TAGS
+                      Tag.Category.ART -> SelectTagsScreenTestTags.ART_TAGS
+                      Tag.Category.TRAVEL -> SelectTagsScreenTestTags.TRAVEL_TAGS
+                      Tag.Category.GAMES -> SelectTagsScreenTestTags.GAMES_TAGS
+                      Tag.Category.TECHNOLOGY -> SelectTagsScreenTestTags.TECHNOLOGY_TAGS
+                      Tag.Category.TOPIC -> SelectTagsScreenTestTags.TOPIC_TAGS
                     }))
         SectionDivider()
       }
