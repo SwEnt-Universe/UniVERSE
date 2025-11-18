@@ -32,29 +32,25 @@ fun LiquidBox(
     propagateMinConstraints: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val parentBackdrop = LocalLayerBackdrop.current
-    val liquidBackdrop = rememberLayerBackdrop()
+  val parentBackdrop = LocalLayerBackdrop.current
+  val liquidBackdrop = rememberLayerBackdrop()
 
-    Box(
-        modifier = modifier
-            .drawBackdrop(
-                backdrop = parentBackdrop,
-                exportedBackdrop = liquidBackdrop,
-                shape = { shape },
-                effects = {
-                    vibrancy()
-                    blur(blurRadius.toPx())
-                    if (enableLens) {
-                        lens(refractionHeight.toPx(), refractionAmount.toPx())
-                    }
-                },
-                onDrawSurface = { drawRect(color) }
-            ),
-        contentAlignment = contentAlignment,
-        propagateMinConstraints = propagateMinConstraints
-    ) {
-        CompositionLocalProvider(LocalLayerBackdrop provides liquidBackdrop) {
-            content()
-        }
-    }
+  Box(
+      modifier =
+          modifier.drawBackdrop(
+              backdrop = parentBackdrop,
+              exportedBackdrop = liquidBackdrop,
+              shape = { shape },
+              effects = {
+                vibrancy()
+                blur(blurRadius.toPx())
+                if (enableLens) {
+                  lens(refractionHeight.toPx(), refractionAmount.toPx())
+                }
+              },
+              onDrawSurface = { drawRect(color) }),
+      contentAlignment = contentAlignment,
+      propagateMinConstraints = propagateMinConstraints) {
+        CompositionLocalProvider(LocalLayerBackdrop provides liquidBackdrop) { content() }
+      }
 }
