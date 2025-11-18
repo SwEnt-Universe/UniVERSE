@@ -1,5 +1,6 @@
 package com.android.universe.ui.selectTag
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -92,6 +93,7 @@ private fun TagGroup(
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
+      val buttonColor by animateColorAsState(targetValue = tagColor(category = name, isSelected = isSelected))
       Button(
           onClick = {
             if (isSelected) {
@@ -103,8 +105,7 @@ private fun TagGroup(
           modifier = Modifier.testTag(SelectTagsScreenTestTags.unselectedTag(tag)).padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors =
-              ButtonDefaults.buttonColors(
-                  containerColor = tagColor(category = name, isSelected = isSelected))) {
+              ButtonDefaults.buttonColors(buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(tag.displayName)
               if (isSelected) {
