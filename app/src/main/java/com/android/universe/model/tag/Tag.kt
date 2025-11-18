@@ -161,6 +161,7 @@ enum class Tag(val displayName: String, val category: Category) {
 
   // Topics
   PHYSICS(displayName = "Physics", category = Category.TOPIC),
+  MATHEMATICS(displayName = "Mathematics", category = Category.TOPIC),
   CHEMISTRY(displayName = "Chemistry", category = Category.TOPIC),
   ASTRONOMY(displayName = "Astronomy", category = Category.TOPIC),
   BIOLOGY(displayName = "Biology", category = Category.TOPIC),
