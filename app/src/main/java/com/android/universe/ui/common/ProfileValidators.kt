@@ -113,19 +113,6 @@ object ErrorMessages {
   const val DATE_INVALID_LOGICAL = "This date does not exist"
 }
 
-/** Represents the result of a validation check. */
-sealed class ValidationResult {
-  /** Indicates that the input is valid. */
-  data object Valid : ValidationResult()
-
-  /**
-   * Indicates that the input is invalid.
-   *
-   * @property errorMessage A descriptive message explaining the validation failure.
-   */
-  data class Invalid(val errorMessage: String) : ValidationResult()
-}
-
 /** Regex for validating EPFL email addresses. */
 private val emailRegex = "^[a-zA-Z0-9._%+-]+@epfl\\.ch$".toRegex()
 /** Regex for validating usernames (letters, numbers, '.', '_', '-'). */
@@ -138,15 +125,15 @@ private val nameRegex = "^[\\p{L}\\p{M}' -]*$".toRegex()
  * a valid @epfl.ch address.
  *
  * @param email The email address to validate.
- * @return [ValidationResult.Valid] if the email is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the email is valid, otherwise [ValidationState.Invalid].
  */
-fun validateEmail(email: String): ValidationResult {
+fun validateEmail(email: String): ValidationState {
   return when {
-    email.isBlank() -> ValidationResult.Invalid(ErrorMessages.EMAIL_EMPTY)
+    email.isBlank() -> ValidationState.Invalid(ErrorMessages.EMAIL_EMPTY)
     email.length > InputLimits.EMAIL_MAX_LENGTH ->
-        ValidationResult.Invalid(ErrorMessages.EMAIL_TOO_LONG.format(InputLimits.EMAIL_MAX_LENGTH))
-    !emailRegex.matches(email) -> ValidationResult.Invalid(ErrorMessages.EMAIL_NOT_EPFL)
-    else -> ValidationResult.Valid
+        ValidationState.Invalid(ErrorMessages.EMAIL_TOO_LONG.format(InputLimits.EMAIL_MAX_LENGTH))
+    !emailRegex.matches(email) -> ValidationState.Invalid(ErrorMessages.EMAIL_NOT_EPFL)
+    else -> ValidationState.Valid
   }
 }
 
@@ -154,14 +141,14 @@ fun validateEmail(email: String): ValidationResult {
  * Validates a password. It must meet the minimum length requirement.
  *
  * @param password The password to validate.
- * @return [ValidationResult.Valid] if the password is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the password is valid, otherwise [ValidationState.Invalid].
  */
-fun validatePassword(password: String): ValidationResult {
+fun validatePassword(password: String): ValidationState {
   return when {
     password.length < InputLimits.PASSWORD_MIN_LENGTH ->
-        ValidationResult.Invalid(
+        ValidationState.Invalid(
             ErrorMessages.PASSWORD_TOO_SHORT.format(InputLimits.PASSWORD_MIN_LENGTH))
-    else -> ValidationResult.Valid
+    else -> ValidationState.Valid
   }
 }
 
@@ -170,16 +157,16 @@ fun validatePassword(password: String): ValidationResult {
  * contain allowed characters.
  *
  * @param username The username to validate.
- * @return [ValidationResult.Valid] if the username is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the username is valid, otherwise [ValidationState.Invalid].
  */
-fun validateUsername(username: String): ValidationResult {
+fun validateUsername(username: String): ValidationState {
   return when {
-    username.isBlank() -> ValidationResult.Invalid(ErrorMessages.USERNAME_EMPTY)
+    username.isBlank() -> ValidationState.Invalid(ErrorMessages.USERNAME_EMPTY)
     username.length > InputLimits.USERNAME ->
-        ValidationResult.Invalid(ErrorMessages.USERNAME_TOO_LONG.format(InputLimits.USERNAME))
+        ValidationState.Invalid(ErrorMessages.USERNAME_TOO_LONG.format(InputLimits.USERNAME))
     !usernameRegex.matches(username) ->
-        ValidationResult.Invalid(ErrorMessages.USERNAME_INVALID_FORMAT)
-    else -> ValidationResult.Valid
+        ValidationState.Invalid(ErrorMessages.USERNAME_INVALID_FORMAT)
+    else -> ValidationState.Valid
   }
 }
 
@@ -188,17 +175,15 @@ fun validateUsername(username: String): ValidationResult {
  * contain valid characters.
  *
  * @param firstName The first name to validate.
- * @return [ValidationResult.Valid] if the first name is valid, otherwise
- *   [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the first name is valid, otherwise [ValidationState.Invalid].
  */
-fun validateFirstName(firstName: String): ValidationResult {
+fun validateFirstName(firstName: String): ValidationState {
   return when {
-    firstName.isBlank() -> ValidationResult.Invalid(ErrorMessages.FIRSTNAME_EMPTY)
+    firstName.isBlank() -> ValidationState.Invalid(ErrorMessages.FIRSTNAME_EMPTY)
     firstName.length > InputLimits.FIRST_NAME ->
-        ValidationResult.Invalid(ErrorMessages.FIRSTNAME_TOO_LONG.format(InputLimits.FIRST_NAME))
-    !nameRegex.matches(firstName) ->
-        ValidationResult.Invalid(ErrorMessages.FIRSTNAME_INVALID_FORMAT)
-    else -> ValidationResult.Valid
+        ValidationState.Invalid(ErrorMessages.FIRSTNAME_TOO_LONG.format(InputLimits.FIRST_NAME))
+    !nameRegex.matches(firstName) -> ValidationState.Invalid(ErrorMessages.FIRSTNAME_INVALID_FORMAT)
+    else -> ValidationState.Valid
   }
 }
 
@@ -207,15 +192,15 @@ fun validateFirstName(firstName: String): ValidationResult {
  * contain valid characters.
  *
  * @param lastName The last name to validate.
- * @return [ValidationResult.Valid] if the last name is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the last name is valid, otherwise [ValidationState.Invalid].
  */
-fun validateLastName(lastName: String): ValidationResult {
+fun validateLastName(lastName: String): ValidationState {
   return when {
-    lastName.isBlank() -> ValidationResult.Invalid(ErrorMessages.LASTNAME_EMPTY)
+    lastName.isBlank() -> ValidationState.Invalid(ErrorMessages.LASTNAME_EMPTY)
     lastName.length > InputLimits.LAST_NAME ->
-        ValidationResult.Invalid(ErrorMessages.LASTNAME_TOO_LONG.format(InputLimits.LAST_NAME))
-    !nameRegex.matches(lastName) -> ValidationResult.Invalid(ErrorMessages.LASTNAME_INVALID_FORMAT)
-    else -> ValidationResult.Valid
+        ValidationState.Invalid(ErrorMessages.LASTNAME_TOO_LONG.format(InputLimits.LAST_NAME))
+    !nameRegex.matches(lastName) -> ValidationState.Invalid(ErrorMessages.LASTNAME_INVALID_FORMAT)
+    else -> ValidationState.Valid
   }
 }
 
@@ -223,14 +208,13 @@ fun validateLastName(lastName: String): ValidationResult {
  * Validates a user description. It must not exceed the maximum length.
  *
  * @param description The description to validate.
- * @return [ValidationResult.Valid] if the description is valid, otherwise
- *   [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the description is valid, otherwise [ValidationState.Invalid].
  */
-fun validateDescription(description: String): ValidationResult {
+fun validateDescription(description: String): ValidationState {
   return if (description.length > InputLimits.DESCRIPTION) {
-    ValidationResult.Invalid(ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION))
+    ValidationState.Invalid(ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION))
   } else {
-    ValidationResult.Valid
+    ValidationState.Valid
   }
 }
 
@@ -240,13 +224,13 @@ fun validateDescription(description: String): ValidationResult {
  *
  * @param country The selected country name.
  * @param countryMap A map of valid country names to their codes.
- * @return [ValidationResult.Valid] if the country is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the country is valid, otherwise [ValidationState.Invalid].
  */
-fun validateCountry(country: String, countryMap: Map<String, String>): ValidationResult {
+fun validateCountry(country: String, countryMap: Map<String, String>): ValidationState {
   return when {
-    country.isBlank() -> ValidationResult.Invalid(ErrorMessages.COUNTRY_EMPTY)
-    !countryMap.containsKey(country) -> ValidationResult.Invalid(ErrorMessages.COUNTRY_INVALID)
-    else -> ValidationResult.Valid
+    country.isBlank() -> ValidationState.Invalid(ErrorMessages.COUNTRY_EMPTY)
+    !countryMap.containsKey(country) -> ValidationState.Invalid(ErrorMessages.COUNTRY_INVALID)
+    else -> ValidationState.Valid
   }
 }
 
@@ -255,15 +239,15 @@ fun validateCountry(country: String, countryMap: Map<String, String>): Validatio
  * and 31.
  *
  * @param day The day as a string.
- * @return [ValidationResult.Valid] if the day is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the day is valid, otherwise [ValidationState.Invalid].
  */
-fun validateDay(day: String): ValidationResult {
+fun validateDay(day: String): ValidationState {
   val dayInt = day.toIntOrNull()
   return when {
-    day.isBlank() -> ValidationResult.Invalid(ErrorMessages.DAY_EMPTY)
-    dayInt == null -> ValidationResult.Invalid(ErrorMessages.DAY_INVALID_NUMBER)
-    dayInt !in 1..31 -> ValidationResult.Invalid(ErrorMessages.DAY_OUT_OF_RANGE)
-    else -> ValidationResult.Valid
+    day.isBlank() -> ValidationState.Invalid(ErrorMessages.DAY_EMPTY)
+    dayInt == null -> ValidationState.Invalid(ErrorMessages.DAY_INVALID_NUMBER)
+    dayInt !in 1..31 -> ValidationState.Invalid(ErrorMessages.DAY_OUT_OF_RANGE)
+    else -> ValidationState.Valid
   }
 }
 
@@ -272,15 +256,15 @@ fun validateDay(day: String): ValidationResult {
  * and 12.
  *
  * @param month The month as a string.
- * @return [ValidationResult.Valid] if the month is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the month is valid, otherwise [ValidationState.Invalid].
  */
-fun validateMonth(month: String): ValidationResult {
+fun validateMonth(month: String): ValidationState {
   val monthInt = month.toIntOrNull()
   return when {
-    month.isBlank() -> ValidationResult.Invalid(ErrorMessages.MONTH_EMPTY)
-    monthInt == null -> ValidationResult.Invalid(ErrorMessages.MONTH_INVALID_NUMBER)
-    monthInt !in 1..12 -> ValidationResult.Invalid(ErrorMessages.MONTH_OUT_OF_RANGE)
-    else -> ValidationResult.Valid
+    month.isBlank() -> ValidationState.Invalid(ErrorMessages.MONTH_EMPTY)
+    monthInt == null -> ValidationState.Invalid(ErrorMessages.MONTH_INVALID_NUMBER)
+    monthInt !in 1..12 -> ValidationState.Invalid(ErrorMessages.MONTH_OUT_OF_RANGE)
+    else -> ValidationState.Valid
   }
 }
 
@@ -289,18 +273,18 @@ fun validateMonth(month: String): ValidationResult {
  * valid range from [InputLimits.MIN_BIRTH_YEAR] to the current year.
  *
  * @param year The year as a string.
- * @return [ValidationResult.Valid] if the year is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the year is valid, otherwise [ValidationState.Invalid].
  */
-fun validateYear(year: String): ValidationResult {
+fun validateYear(year: String): ValidationState {
   val yearInt = year.toIntOrNull()
   val currentYear = LocalDate.now().year
   return when {
-    year.isBlank() -> ValidationResult.Invalid(ErrorMessages.YEAR_EMPTY)
-    yearInt == null -> ValidationResult.Invalid(ErrorMessages.YEAR_INVALID_NUMBER)
+    year.isBlank() -> ValidationState.Invalid(ErrorMessages.YEAR_EMPTY)
+    yearInt == null -> ValidationState.Invalid(ErrorMessages.YEAR_INVALID_NUMBER)
     yearInt !in InputLimits.MIN_BIRTH_YEAR..currentYear ->
-        ValidationResult.Invalid(
+        ValidationState.Invalid(
             ErrorMessages.YEAR_OUT_OF_RANGE.format(InputLimits.MIN_BIRTH_YEAR, currentYear))
-    else -> ValidationResult.Valid
+    else -> ValidationState.Valid
   }
 }
 
@@ -311,25 +295,25 @@ fun validateYear(year: String): ValidationResult {
  * @param day The day of the month.
  * @param month The month of the year.
  * @param year The year.
- * @return [ValidationResult.Valid] if the date is valid, otherwise [ValidationResult.Invalid].
+ * @return [ValidationState.Valid] if the date is valid, otherwise [ValidationState.Invalid].
  */
-fun validateBirthDate(day: Int, month: Int, year: Int): ValidationResult {
+fun validateBirthDate(day: Int, month: Int, year: Int): ValidationState {
   try {
     val dob = LocalDate.of(year, month, day)
     val today = LocalDate.now()
 
     if (dob.isAfter(today)) {
-      return ValidationResult.Invalid(ErrorMessages.DATE_IN_FUTURE)
+      return ValidationState.Invalid(ErrorMessages.DATE_IN_FUTURE)
     }
 
     val age = Period.between(dob, today).years
     if (age < InputLimits.MIN_AGE) {
-      return ValidationResult.Invalid(ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE))
+      return ValidationState.Invalid(ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE))
     }
 
-    return ValidationResult.Valid
+    return ValidationState.Valid
   } catch (_: DateTimeException) {
-    return ValidationResult.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
+    return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
   }
 }
 

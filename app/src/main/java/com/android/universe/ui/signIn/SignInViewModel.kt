@@ -19,7 +19,7 @@ import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.authentication.InvalidEmailException
 import com.android.universe.model.authentication.SIGN_IN_FAILED_EXCEPTION_MESSAGE
-import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.common.validateEmail
 import com.android.universe.ui.common.validatePassword
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -56,8 +56,8 @@ data class SignInUIState(
   val signInEnabled: Boolean
     get() =
         !isLoading &&
-            validateEmail(email) is ValidationResult.Valid &&
-            validatePassword(password) is ValidationResult.Valid
+            validateEmail(email) is ValidationState.Valid &&
+            validatePassword(password) is ValidationState.Valid
 }
 
 /**
@@ -215,12 +215,13 @@ class SignInViewModel(
    */
   fun setEmail(email: String) {
     if (_uiState.value.isLoading) return
-    val validationResult = validateEmail(email)
+    val ValidationState = validateEmail(email)
 
     val errorMsg =
-        when (validationResult) {
-          is ValidationResult.Valid -> null
-          is ValidationResult.Invalid -> validationResult.errorMessage
+        when (ValidationState) {
+          is ValidationState.Valid -> null
+          is ValidationState.Neutral -> null
+          is ValidationState.Invalid -> ValidationState.errorMessage
         }
 
     _uiState.update { it.copy(email = email, emailErrorMsg = errorMsg) }
@@ -233,12 +234,13 @@ class SignInViewModel(
    */
   fun setPassword(password: String) {
     if (_uiState.value.isLoading) return
-    val validationResult = validatePassword(password)
+    val ValidationState = validatePassword(password)
 
     val errorMsg =
-        when (validationResult) {
-          is ValidationResult.Valid -> null
-          is ValidationResult.Invalid -> validationResult.errorMessage
+        when (ValidationState) {
+          is ValidationState.Valid -> null
+          is ValidationState.Neutral -> null
+          is ValidationState.Invalid -> ValidationState.errorMessage
         }
 
     _uiState.update { it.copy(password = password, passwordErrorMsg = errorMsg) }

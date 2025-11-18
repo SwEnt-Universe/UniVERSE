@@ -8,12 +8,29 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 // Expose current darkTheme state from UniverseTheme
 val LocalIsDarkTheme = staticCompositionLocalOf { false }
+
+@Immutable data class ExtendedColors(val success: Color, val placeholder: Color)
+
+/**
+ * Provides access to the [ExtendedColors] for the current theme.
+ *
+ * We use `staticCompositionLocalOf` because the theme is unlikely to change (light/dark mode)
+ * during composition in a way that would require invalidating *every* composable. This is more
+ * efficient.
+ *
+ * The `Color.Unspecified` default is a "safe" default that ensures any composable accidentally
+ * reading this *without* a `UniverseTheme` provider above it will likely crash, revealing the bug.
+ */
+val LocalExtendedColors = staticCompositionLocalOf {
+  ExtendedColors(success = Color.Unspecified, placeholder = Color.Unspecified)
+}
 
 /**
  * This composable wraps the given [content] in a [MaterialTheme] configuration, providing colors,
@@ -83,9 +100,16 @@ fun UniverseTheme(
                 error = ErrorLight,
                 onError = OnErrorLight)
       }
+  val extendedColors =
+      if (darkTheme) {
+        ExtendedColors(success = SuccessDark, placeholder = PlaceholderDark)
+      } else {
+        ExtendedColors(success = SuccessLight, placeholder = PlaceholderLight)
+      }
   CompositionLocalProvider(
       LocalIsDarkTheme provides darkTheme,
-      LocalUniverseIcons provides if (darkTheme) DarkIcons else LightIcons) {
+      LocalUniverseIcons provides if (darkTheme) DarkIcons else LightIcons,
+      LocalExtendedColors provides extendedColors) {
         MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
       }
 }
@@ -145,4 +169,7 @@ object UniverseTheme {
 
   val isDark: Boolean
     @Composable get() = LocalIsDarkTheme.current
+
+  val extendedColors: ExtendedColors
+    @Composable get() = LocalExtendedColors.current
 }
