@@ -60,7 +60,7 @@ fun TagGroup(
     selectedTags: List<String>,
     onTagSelect: (String) -> Unit = {},
     onTagReSelect: (String) -> Unit = {},
-    displayText : Boolean = true
+    displayText: Boolean = true
 ) {
   if (displayText) {
     Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
@@ -68,7 +68,8 @@ fun TagGroup(
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
-      val buttonColor by animateColorAsState(targetValue = tagColor(category = name, isSelected = isSelected))
+      val buttonColor by
+          animateColorAsState(targetValue = tagColor(category = name, isSelected = isSelected))
       Button(
           onClick = {
             if (isSelected) {
@@ -79,8 +80,7 @@ fun TagGroup(
           },
           modifier = Modifier.padding(4.dp),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
-          colors = ButtonDefaults.buttonColors(
-              containerColor = buttonColor)) {
+          colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(tag)
               if (isSelected) {

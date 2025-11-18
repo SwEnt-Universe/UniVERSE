@@ -76,11 +76,11 @@ internal fun modalTitle(field: String): String =
       Tag.Category.MUSIC.fieldName -> Tag.Category.MUSIC.displayName
       Tag.Category.SPORT.fieldName -> Tag.Category.SPORT.displayName
       Tag.Category.FOOD.fieldName -> Tag.Category.FOOD.displayName
-        Tag.Category.ART.fieldName -> Tag.Category.ART.displayName
-        Tag.Category.TRAVEL.fieldName -> Tag.Category.TRAVEL.displayName
-        Tag.Category.GAMES.fieldName -> Tag.Category.GAMES.displayName
-        Tag.Category.TECHNOLOGY.fieldName -> Tag.Category.TECHNOLOGY.displayName
-        Tag.Category.TOPIC.fieldName -> Tag.Category.TOPIC.displayName
+      Tag.Category.ART.fieldName -> Tag.Category.ART.displayName
+      Tag.Category.TRAVEL.fieldName -> Tag.Category.TRAVEL.displayName
+      Tag.Category.GAMES.fieldName -> Tag.Category.GAMES.displayName
+      Tag.Category.TECHNOLOGY.fieldName -> Tag.Category.TECHNOLOGY.displayName
+      Tag.Category.TOPIC.fieldName -> Tag.Category.TOPIC.displayName
 
       else -> field.ifBlank { "Edit" }
     }
