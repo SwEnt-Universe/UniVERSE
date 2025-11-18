@@ -38,17 +38,30 @@ val SuccessDark = Color(0xFF4CAF50)
 val PlaceholderLight = Color(0xFF8A8A8A)
 val PlaceholderDark = Color(0xFFAAAAAA)
 
-// Tag category colors (from TagColors in SelectTagScreen.kt)
-val TagInterestLight = Color(0xFFB39DDB) // Light purple
-val TagInterestDark = Color(0xFF9575CD)
-val TagSportLight = Color(0xFFA5D6A7) // Light green
-val TagSportDark = Color(0xFF81C784)
-val TagMusicLight = Color(0xFF90A4AE) // Blue-grey
+// Tag category colors (Light and Dark variants for all categories)
+val TagMusicLight = Color(0xFF90A4AE)
 val TagMusicDark = Color(0xFF78909C)
-val TagTransportLight = Color(0xFF80CBC4) // Teal
-val TagTransportDark = Color(0xFF4DB6AC)
-val TagCantonLight = Color(0xFF546E7A) // Darker blue-grey
-val TagCantonDark = Color(0xFF455A64)
+
+val TagSportLight = Color(0xFFA5D6A7)
+val TagSportDark = Color(0xFF81C784)
+
+val TagFoodLight = Color(0xFFB39DDB)
+val TagFoodDark = Color(0xFF9575CD)
+
+val TagArtLight = Color(0xFF80CBC4)
+val TagArtDark = Color(0xFF4DB6AC)
+
+val TagTravelLight = Color(0xFF546E7A)
+val TagTravelDark = Color(0xFF455A64)
+
+val TagGamesLight = Color(0xFFFF8A65)
+val TagGamesDark = Color(0xFFFB8C00)
+
+val TagTechnologyLight = Color(0xFF4FC3F7)
+val TagTechnologyDark = Color(0xFF039BE5)
+
+val TagTopicLight = Color(0xFFFFD54F)
+val TagTopicDark = Color(0xFFFFB300)
 
 // Selected tag highlight (used in TagGroup, SelectTagScreen)
 val TagSelectedLight = Color(0xFF9E9E9E) // Gray for selected tags

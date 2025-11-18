@@ -139,25 +139,30 @@ fun tagColor(category: String, isSelected: Boolean = false): Color {
   val isDark = LocalIsDarkTheme.current
 
   return when (category) {
-    "INTEREST" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagInterestDark else TagInterestLight
-
-    "SPORT" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagSportDark else TagSportLight
-
-    "MUSIC" ->
+    "Music" ->
         if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
         else if (isDark) TagMusicDark else TagMusicLight
-
-    "TRANSPORT" ->
+    "Sport" ->
         if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTransportDark else TagTransportLight
-
-    "CANTON" ->
+        else if (isDark) TagSportDark else TagSportLight
+    "Food" ->
         if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagCantonDark else TagCantonLight
+        else if (isDark) TagFoodDark else TagFoodLight
+    "Art" ->
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagArtDark else TagArtLight
+    "Travel" ->
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagTravelDark else TagTravelLight
+    "Games" ->
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagGamesDark else TagGamesLight
+    "Technology" ->
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagTechnologyDark else TagTechnologyLight
+    "Topic" ->
+        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
+        else if (isDark) TagTopicDark else TagTopicLight
 
     else -> MaterialTheme.colorScheme.primary
   }
