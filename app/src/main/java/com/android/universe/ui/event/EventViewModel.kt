@@ -41,7 +41,8 @@ data class EventUIState(
     val creator: String = "",
     val participants: Int = 0,
     val index: Int = 0,
-    val joined: Boolean = false
+    val joined: Boolean = false,
+    val eventPicture: ByteArray? = null
 )
 
 data class UiState(val errormsg: String? = null)
@@ -208,7 +209,8 @@ class EventViewModel(
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
         participants = participants.size,
         index = index,
-        joined = joined)
+        joined = joined,
+        eventPicture = eventPicture)
   }
 
   /**

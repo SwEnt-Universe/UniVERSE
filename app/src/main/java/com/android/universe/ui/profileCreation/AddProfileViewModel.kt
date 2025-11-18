@@ -8,7 +8,7 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
-import com.android.universe.ui.common.ValidationResult
+import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.common.sanitize
 import com.android.universe.ui.common.sanitizeLead
 import com.android.universe.ui.common.toTitleCase
@@ -98,14 +98,15 @@ open class AddProfileViewModel(
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
   /**
-   * Converts a [ValidationResult] to a nullable String.
+   * Converts a [ValidationState] to a nullable String.
    *
-   * @return The error message if the result is [ValidationResult.Invalid], otherwise null.
+   * @return The error message if the result is [ValidationState.Invalid], otherwise null.
    */
-  private fun ValidationResult.toStringOrNull(): String? {
+  private fun ValidationState.toStringOrNull(): String? {
     return when (this) {
-      is ValidationResult.Valid -> null
-      is ValidationResult.Invalid -> this.errorMessage
+      is ValidationState.Valid -> null
+      is ValidationState.Neutral -> null
+      is ValidationState.Invalid -> this.errorMessage
     }
   }
 
@@ -172,27 +173,27 @@ open class AddProfileViewModel(
     val monthResult = validateMonth(state.month)
     val yearResult = validateYear(state.year)
 
-    if (usernameResult is ValidationResult.Valid) {
+    if (usernameResult is ValidationState.Valid) {
       val isUnique = repository.isUsernameUnique(state.username)
       if (!isUnique) {
-        usernameResult = ValidationResult.Invalid(ErrorMessages.USERNAME_TAKEN)
+        usernameResult = ValidationState.Invalid(ErrorMessages.USERNAME_TAKEN)
       }
     }
 
     val allDateFieldsValid =
-        dayResult is ValidationResult.Valid &&
-            monthResult is ValidationResult.Valid &&
-            yearResult is ValidationResult.Valid
+        dayResult is ValidationState.Valid &&
+            monthResult is ValidationState.Valid &&
+            yearResult is ValidationState.Valid
 
     val logicalDateResult =
         if (allDateFieldsValid) {
           validateBirthDate(state.day.toInt(), state.month.toInt(), state.year.toInt())
         } else {
-          ValidationResult.Valid
+          ValidationState.Valid
         }
 
     val finalDayError =
-        if (logicalDateResult is ValidationResult.Invalid &&
+        if (logicalDateResult is ValidationState.Invalid &&
             logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
           logicalDateResult
         } else {
@@ -202,7 +203,7 @@ open class AddProfileViewModel(
     val finalMonthError = monthResult
 
     val finalYearError =
-        if (logicalDateResult is ValidationResult.Invalid &&
+        if (logicalDateResult is ValidationState.Invalid &&
             logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
           logicalDateResult
         } else {
@@ -222,14 +223,14 @@ open class AddProfileViewModel(
     }
 
     // Return true if all results are valid
-    return usernameResult is ValidationResult.Valid &&
-        firstNameResult is ValidationResult.Valid &&
-        lastNameResult is ValidationResult.Valid &&
-        descriptionResult is ValidationResult.Valid &&
-        countryResult is ValidationResult.Valid &&
-        finalDayError is ValidationResult.Valid &&
-        finalMonthError is ValidationResult.Valid &&
-        finalYearError is ValidationResult.Valid
+    return usernameResult is ValidationState.Valid &&
+        firstNameResult is ValidationState.Valid &&
+        lastNameResult is ValidationState.Valid &&
+        descriptionResult is ValidationState.Valid &&
+        countryResult is ValidationState.Valid &&
+        finalDayError is ValidationState.Valid &&
+        finalMonthError is ValidationState.Valid &&
+        finalYearError is ValidationState.Valid
   }
 
   /**
@@ -240,9 +241,9 @@ open class AddProfileViewModel(
    */
   fun setUsername(username: String) {
     val finalUsername = username.take(InputLimits.USERNAME + 1)
-    val validationResult = validateUsername(finalUsername)
+    val ValidationState = validateUsername(finalUsername)
     _uiState.update {
-      it.copy(username = finalUsername, usernameError = validationResult.toStringOrNull())
+      it.copy(username = finalUsername, usernameError = ValidationState.toStringOrNull())
     }
   }
 
@@ -255,9 +256,9 @@ open class AddProfileViewModel(
   fun setFirstName(firstName: String) {
     val cleaned = sanitizeLead(firstName)
     val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
-    val validationResult = validateFirstName(finalName)
+    val ValidationState = validateFirstName(finalName)
     _uiState.update {
-      it.copy(firstName = finalName, firstNameError = validationResult.toStringOrNull())
+      it.copy(firstName = finalName, firstNameError = ValidationState.toStringOrNull())
     }
   }
 
@@ -270,9 +271,9 @@ open class AddProfileViewModel(
   fun setLastName(lastName: String) {
     val cleaned = sanitizeLead(lastName)
     val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
-    val validationResult = validateLastName(finalName)
+    val ValidationState = validateLastName(finalName)
     _uiState.update {
-      it.copy(lastName = finalName, lastNameError = validationResult.toStringOrNull())
+      it.copy(lastName = finalName, lastNameError = ValidationState.toStringOrNull())
     }
   }
 
@@ -282,9 +283,9 @@ open class AddProfileViewModel(
    * @param description The new description string from the UI.
    */
   fun setDescription(description: String) {
-    val validationResult = validateDescription(description)
+    val ValidationState = validateDescription(description)
     _uiState.update {
-      it.copy(description = description, descriptionError = validationResult.toStringOrNull())
+      it.copy(description = description, descriptionError = ValidationState.toStringOrNull())
     }
   }
 
@@ -294,8 +295,8 @@ open class AddProfileViewModel(
    * @param country The new country string from the UI.
    */
   fun setCountry(country: String) {
-    val validationResult = validateCountry(country, countryToIsoCode)
-    _uiState.update { it.copy(country = country, countryError = validationResult.toStringOrNull()) }
+    val ValidationState = validateCountry(country, countryToIsoCode)
+    _uiState.update { it.copy(country = country, countryError = ValidationState.toStringOrNull()) }
   }
 
   /**

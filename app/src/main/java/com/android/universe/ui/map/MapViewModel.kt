@@ -225,4 +225,42 @@ class MapViewModel(
   fun selectEvent(event: Event?) {
     viewModelScope.launch { _selectedEvent.emit(event) }
   }
+
+  /**
+   * Toggles the current user's participation in an event. If the user is already a participant,
+   * they will be removed. If they are not a participant, they will be added.
+   *
+   * @param event The event to join or leave
+   */
+  fun toggleEventParticipation(event: Event) {
+    viewModelScope.launch {
+      try {
+        val isParticipant = event.participants.contains(currentUserId)
+        val updatedParticipants =
+            if (isParticipant) {
+              event.participants - currentUserId
+            } else {
+              event.participants + currentUserId
+            }
+
+        val updatedEvent = event.copy(participants = updatedParticipants)
+        eventRepository.updateEvent(event.id, updatedEvent)
+
+        // Update the selected event to reflect the change
+        _selectedEvent.value = updatedEvent
+      } catch (e: NoSuchElementException) {
+        _uiState.update { it.copy(error = "No event ${event.title} found") }
+      }
+    }
+  }
+
+  /**
+   * Checks if the current user is a participant in the given event.
+   *
+   * @param event The event to check
+   * @return true if the user is a participant, false otherwise
+   */
+  fun isUserParticipant(event: Event): Boolean {
+    return event.participants.contains(currentUserId)
+  }
 }
