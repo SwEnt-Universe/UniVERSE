@@ -88,9 +88,7 @@ class EventViewModelTest {
           title = "Mega Tag Event",
           description = "Event with too many tags",
           date = LocalDateTime.of(2025, 12, 1, 10, 0),
-          tags =
-              setOf(
-                  Tag.TENNIS, Tag.AI, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
+          tags = setOf(Tag.TENNIS, Tag.AI, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
           participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
           creator = sampleUsers[0].uid,
           location = Location(latitude = 46.5196535, longitude = 6.6322734),
