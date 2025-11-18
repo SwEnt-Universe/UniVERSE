@@ -73,11 +73,15 @@ internal fun modalTitle(field: String): String =
       "description" -> "Edit Description"
       "country" -> "Edit Country"
       "date" -> "Edit Date of Birth"
-      Tag.Category.INTEREST.fieldName -> Tag.Category.INTEREST.displayName
-      Tag.Category.SPORT.fieldName -> Tag.Category.SPORT.displayName
       Tag.Category.MUSIC.fieldName -> Tag.Category.MUSIC.displayName
-      Tag.Category.TRANSPORT.fieldName -> Tag.Category.TRANSPORT.displayName
-      Tag.Category.CANTON.fieldName -> Tag.Category.CANTON.displayName
+      Tag.Category.SPORT.fieldName -> Tag.Category.SPORT.displayName
+      Tag.Category.FOOD.fieldName -> Tag.Category.FOOD.displayName
+        Tag.Category.ART.fieldName -> Tag.Category.ART.displayName
+        Tag.Category.TRAVEL.fieldName -> Tag.Category.TRAVEL.displayName
+        Tag.Category.GAMES.fieldName -> Tag.Category.GAMES.displayName
+        Tag.Category.TECHNOLOGY.fieldName -> Tag.Category.TECHNOLOGY.displayName
+        Tag.Category.TOPIC.fieldName -> Tag.Category.TOPIC.displayName
+
       else -> field.ifBlank { "Edit" }
     }
 
@@ -445,7 +449,7 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
         month = "01",
         year = "2000",
         // Use Tag enums directly
-        selectedTags = listOf(Tag.HIKING, Tag.CYCLING, Tag.CLASSICAL, Tag.TRAIN, Tag.VAUD),
+        selectedTags = listOf(Tag.HIKING, Tag.CYCLING, Tag.CLASSICAL, Tag.KARATE, Tag.METAL),
         showModal = showModal,
         currentField = field)
 
