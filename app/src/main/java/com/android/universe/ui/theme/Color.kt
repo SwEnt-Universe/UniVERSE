@@ -54,14 +54,14 @@ val TagArtDark = Color(0xFF4DB6AC)
 val TagTravelLight = Color(0xFF546E7A)
 val TagTravelDark = Color(0xFF455A64)
 
-val TagGamesLight = Color(0xFFFF8A65)
-val TagGamesDark = Color(0xFFFB8C00)
+val TagGamesLight = Color(0xFFFFCC80)
+val TagGamesDark = Color(0xFF6D4C41)
 
-val TagTechnologyLight = Color(0xFF4FC3F7)
-val TagTechnologyDark = Color(0xFF039BE5)
+val TagTechnologyLight = Color(0xFF90A4AE)
+val TagTechnologyDark = Color(0xFF546E7A)
 
-val TagTopicLight = Color(0xFFFFD54F)
-val TagTopicDark = Color(0xFFFFB300)
+val TagTopicLight = Color(0xFFE57373)
+val TagTopicDark = Color(0xFFC62828)
 
 // Selected tag highlight (used in TagGroup, SelectTagScreen)
 val TagSelectedLight = Color(0xFF9E9E9E) // Gray for selected tags
