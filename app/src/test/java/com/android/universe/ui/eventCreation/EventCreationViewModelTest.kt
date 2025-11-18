@@ -37,7 +37,7 @@ class EventCreationViewModelTest {
     const val SAMPLE_YEAR = "2025"
     const val SAMPLE_HOUR = "12"
     const val SAMPLE_MINUTE = "12"
-    val sample_tags = setOf(Tag.METAL, Tag.ROLE_PLAYING_GAMES, Tag.HANDBALL)
+    val sample_tags = setOf(Tag.METAL, Tag.DND, Tag.HANDBALL)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -102,7 +102,7 @@ class EventCreationViewModelTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSetEventTags() = runTest {
-    val eventTags = setOf(Tag.METAL, Tag.CAR)
+    val eventTags = setOf(Tag.METAL, Tag.KARATE)
     viewModel.setEventTags(eventTags)
     advanceUntilIdle()
     assert(viewModel.eventTags.value == eventTags)

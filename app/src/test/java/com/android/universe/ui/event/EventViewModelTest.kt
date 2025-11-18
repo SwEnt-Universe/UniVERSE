@@ -76,7 +76,7 @@ class EventViewModelTest {
               id = "event-002",
               title = "Tech Hackathon 2025",
               date = LocalDateTime.of(2025, 11, 3, 9, 0),
-              tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
+              tags = setOf(Tag.TENNIS, Tag.AI, Tag.PROGRAMMING),
               participants = emptySet(),
               creator = sampleUsers[1].uid,
               location = Location(latitude = 46.5196535, longitude = 6.6322734),
@@ -90,7 +90,7 @@ class EventViewModelTest {
           date = LocalDateTime.of(2025, 12, 1, 10, 0),
           tags =
               setOf(
-                  Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
+                  Tag.TENNIS, Tag.AI, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
           participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
           creator = sampleUsers[0].uid,
           location = Location(latitude = 46.5196535, longitude = 6.6322734),

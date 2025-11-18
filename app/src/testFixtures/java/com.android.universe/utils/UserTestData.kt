@@ -10,7 +10,7 @@ object UserTestData {
   val twoTags = setOf(Tag.ROCK, Tag.POP)
   val someTags = setOf(Tag.ROCK, Tag.POP, Tag.METAL, Tag.JAZZ, Tag.BLUES, Tag.COUNTRY)
   val manyTags =
-      (Tag.getTagsForCategory(Tag.Category.INTEREST) + Tag.getTagsForCategory(Tag.Category.CANTON))
+      (Tag.getTagsForCategory(Tag.Category.TOPIC) + Tag.getTagsForCategory(Tag.Category.FOOD))
           .toSet()
 
   private val DummyDate = LocalDate.of(2000, 8, 11)
@@ -55,7 +55,7 @@ object UserTestData {
           country = "PT",
           description = "a third user",
           dateOfBirth = LocalDate.of(2012, 9, 12),
-          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
+          tags = setOf(Tag.DND, Tag.AI))
 
   val Arthur =
       BaseUser.copy(

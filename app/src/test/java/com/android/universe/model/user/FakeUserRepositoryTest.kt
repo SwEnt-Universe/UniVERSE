@@ -50,7 +50,7 @@ class FakeUserRepositoryTest {
           country = "Portugal",
           description = "a third user",
           dateOfBirth = java.time.LocalDate.of(2012, 9, 12),
-          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
+          tags = setOf(Tag.DND, Tag.AI))
 
   @Before
   fun setup() {
