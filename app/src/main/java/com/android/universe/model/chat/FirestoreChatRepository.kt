@@ -20,7 +20,8 @@ const val COLLECTION_NAME = "chats"
  */
 class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirestore.getInstance()) :
     ChatRepository {
-  private val listeners = ConcurrentHashMap<String, ListenerRegistration>()
+  private val messageListeners = ConcurrentHashMap<String, ListenerRegistration>()
+  private val lastMessageListeners = ConcurrentHashMap<String, ListenerRegistration>()
 
   /**
    * Asynchronously loads a chat from the Firestore database.
@@ -88,8 +89,8 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
   ) {
 
     // Remove previous listener if exists
-    listeners[chatID]?.remove()
-    listeners[chatID] =
+    messageListeners[chatID]?.remove()
+    messageListeners[chatID] =
         db.collection(COLLECTION_NAME)
             .document(chatID)
             .collection("messages")
@@ -113,7 +114,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
    * @param chatID The unique identifier of the chat whose listener should be removed.
    */
   override fun removeMessageListener(chatID: String) {
-    listeners.remove(chatID)?.remove()
+    messageListeners.remove(chatID)?.remove()
   }
 
   /**
@@ -133,6 +134,20 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
     return Chat(chatID, admin)
   }
 
+  override fun setLastMessageListener(chatID: String, onLastMessageUpdated: (Message) -> Unit) {
+    lastMessageListeners[chatID]?.remove()
+    lastMessageListeners[chatID] =
+        db.collection(COLLECTION_NAME).document(chatID).addSnapshotListener { snapshot, e ->
+          if (e != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
+          val lastMessage = snapshot.get("lastMessage", Message::class.java)
+          if (lastMessage != null) onLastMessageUpdated(lastMessage)
+        }
+  }
+
+  override fun removeLastMessageListener(chatID: String) {
+    lastMessageListeners.remove(chatID)?.remove()
+  }
+
   /**
    * A Data Transfer Object (DTO) for representing a chat as stored in Firestore. This class is used
    * for serialization and deserialization of chat data from Firestore documents. It includes all
@@ -144,8 +159,6 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
    *
    * @property chatID The unique identifier for the chat.
    * @property admin The ID of the user who is the administrator of the chat.
-   * @property messages A list of messages within the chat. This is typically handled as a
-   *   sub-collection in Firestore and might be null in the main chat document DTO.
    * @property lastMessage The most recent message sent in the chat, used for display in chat lists.
    */
   data class ChatDTO(

@@ -69,4 +69,8 @@ interface ChatRepository {
    * @throws Exception if the chat creation fails (e.g., if a chat with the same ID already exists).
    */
   suspend fun createChat(chatID: String, admin: String): Chat
+
+  fun setLastMessageListener(chatID: String, onLastMessageUpdated: (Message) -> Unit)
+
+  fun removeLastMessageListener(chatID: String)
 }

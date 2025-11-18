@@ -32,6 +32,8 @@ class Chat(
         onMessageAdded = { onMessageAdded(it) },
         onMessageUpdated = { onMessageUpdated(it) },
         onMessageDeleted = { onMessageDeleted(it) })
+    chatRepository.setLastMessageListener(
+        chatID, onLastMessageUpdated = { onLastMessageUpdated(it) })
   }
 
   /**
@@ -98,6 +100,10 @@ class Chat(
     if (index != -1) _messages.removeAt(index)
   }
 
+  private fun onLastMessageUpdated(message: Message) {
+    if (_lastMessage.value != message) _lastMessage.value = message
+  }
+
   /**
    * Asynchronously sends a new message to this chat.
    *
@@ -117,5 +123,6 @@ class Chat(
    */
   fun clearListeners() {
     chatRepository.removeMessageListener(chatID)
+    chatRepository.removeLastMessageListener(chatID)
   }
 }
