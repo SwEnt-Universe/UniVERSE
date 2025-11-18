@@ -25,10 +25,10 @@ class TagGroupTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   companion object {
-    private val READING = Tag.READING.displayName
+    private val READING = Tag.LITERATURE.displayName
     private val RUNNING = Tag.RUNNING.displayName
     private val MUSIC = Tag.MUSIC.displayName
-    private val INTERESTS = Category.INTEREST.displayName
+    private val TOPICS = Category.TOPIC.displayName
     private val sampleTags = listOf(READING, RUNNING, MUSIC)
 
     private const val SELECTED = "Selected"
@@ -37,10 +37,10 @@ class TagGroupTest {
   @Test
   fun displaysTitle_whenNameIsProvided() {
     composeTestRule.setContent {
-      TagGroup(name = INTERESTS, tagList = sampleTags, selectedTags = emptyList())
+      TagGroup(name = TOPICS, tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onNodeWithText(INTERESTS).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TOPICS).assertIsDisplayed()
   }
 
   @Test
@@ -49,7 +49,7 @@ class TagGroupTest {
       TagGroup(name = "", tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onAllNodesWithText(INTERESTS).assertCountEquals(0)
+    composeTestRule.onAllNodesWithText(TOPICS).assertCountEquals(0)
   }
 
   @Test
