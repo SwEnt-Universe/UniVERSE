@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -69,7 +70,8 @@ class EventViewModelTest {
               tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
               participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
               creator = sampleUsers[0].uid,
-              location = Location(latitude = 46.5196535, longitude = 6.6322734)),
+              location = Location(latitude = 46.5196535, longitude = 6.6322734),
+              eventPicture = ByteArray(126 * 126) { index -> (index % 256).toByte() }),
           Event(
               id = "event-002",
               title = "Tech Hackathon 2025",
@@ -77,7 +79,8 @@ class EventViewModelTest {
               tags = setOf(Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING),
               participants = emptySet(),
               creator = sampleUsers[1].uid,
-              location = Location(latitude = 46.5196535, longitude = 6.6322734)))
+              location = Location(latitude = 46.5196535, longitude = 6.6322734),
+              eventPicture = ByteArray(126 * 126) { index -> (index % 256).toByte() }))
 
   val thirdEvent =
       Event(
@@ -90,7 +93,8 @@ class EventViewModelTest {
                   Tag.TENNIS, Tag.ARTIFICIAL_INTELLIGENCE, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
           participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
           creator = sampleUsers[0].uid,
-          location = Location(latitude = 46.5196535, longitude = 6.6322734))
+          location = Location(latitude = 46.5196535, longitude = 6.6322734),
+          eventPicture = ByteArray(126 * 126) { index -> (index % 256).toByte() })
 
   @Before
   fun setup() {
@@ -126,6 +130,8 @@ class EventViewModelTest {
     assertEquals(listOf("Sculpture", "Country"), firstEvent.tags)
     assertEquals("Alice Smith", firstEvent.creator)
     assertEquals(2, firstEvent.participants)
+    assertArrayEquals(
+        ByteArray(126 * 126) { index -> (index % 256).toByte() }, firstEvent.eventPicture)
   }
 
   @Test

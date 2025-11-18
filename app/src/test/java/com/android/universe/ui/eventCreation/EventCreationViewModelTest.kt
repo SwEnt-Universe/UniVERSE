@@ -1,14 +1,12 @@
 package com.android.universe.ui.eventCreation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagLocalTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepository
-import com.android.universe.model.user.FakeUserRepository
-import com.android.universe.model.user.UserProfile
-import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +24,6 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class EventCreationViewModelTest {
   private lateinit var eventRepository: FakeEventRepository
-  private lateinit var userRepository: FakeUserRepository
   private lateinit var viewModel: EventCreationViewModel
   private lateinit var tagRepository: TagTemporaryRepository
   private val testDispatcher = StandardTestDispatcher()
@@ -48,13 +45,9 @@ class EventCreationViewModelTest {
   fun setup() {
     Dispatchers.setMain(testDispatcher)
     eventRepository = FakeEventRepository()
-    userRepository = FakeUserRepository()
     tagRepository = TagLocalTemporaryRepository()
     viewModel =
-        EventCreationViewModel(
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            tagRepository = tagRepository)
+        EventCreationViewModel(eventRepository = eventRepository, tagRepository = tagRepository)
   }
 
   @Test
@@ -125,16 +118,6 @@ class EventCreationViewModelTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSaveEvent() = runTest {
-    val userProfile =
-        UserProfile(
-            uid = "user123",
-            username = "testUser",
-            firstName = "Test",
-            lastName = "User",
-            country = "US",
-            dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = emptySet())
-    userRepository.addUser(userProfile)
     viewModel.setEventName(SAMPLE_TITLE)
 
     viewModel.setEventDescription(SAMPLE_DESCRIPTION)
@@ -159,8 +142,8 @@ class EventCreationViewModelTest {
     val event = savedEvent[0]
     assert(event.title == SAMPLE_TITLE)
     assert(event.description == SAMPLE_DESCRIPTION)
-    assert(event.creator == userProfile.uid)
-    assert(event.participants == setOf(userProfile.uid))
+    assert(event.creator == "user123")
+    assert(event.participants == setOf("user123"))
     assert(event.location == Location(0.0, 0.0))
     assert(event.tags == sample_tags)
 
@@ -168,6 +151,13 @@ class EventCreationViewModelTest {
 
     assert(event.date == expectedDate)
     assertEquals(emptySet<Tag>(), tagRepository.getTags())
+  }
+
+  @Test
+  fun setImageWithNullUriRemoveImagePicture() {
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    viewModel.setImage(context, null)
+    assertEquals(null, viewModel.uiStateEventCreation.value.eventPicture)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)

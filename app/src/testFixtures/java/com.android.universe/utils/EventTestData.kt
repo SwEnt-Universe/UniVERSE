@@ -29,7 +29,8 @@ object EventTestData {
           tags = UserTestData.someTags,
           participants = emptySet(),
           creator = Alice.uid,
-          location = DummyLocation)
+          location = DummyLocation,
+          eventPicture = ByteArray(126 * 126) { index -> (index % 256).toByte() })
 
   val dummyEvent1 =
       BaseEvent.copy(id = "1", participants = setOf(BobUid, AliceUid), creator = BobUid)
@@ -78,4 +79,6 @@ object EventTestData {
           id = "event-006",
           tags = UserTestData.someTags,
       )
+
+  val NoImage = BaseEvent.copy(eventPicture = null)
 }

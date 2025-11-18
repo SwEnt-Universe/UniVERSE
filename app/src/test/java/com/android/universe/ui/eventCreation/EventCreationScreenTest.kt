@@ -16,7 +16,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
-import com.android.universe.model.user.FakeUserRepository
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,9 +42,7 @@ class EventCreationScreenTest {
 
   @Before
   fun setUp() {
-    viewModel =
-        EventCreationViewModel(
-            eventRepository = FakeEventRepository(), userRepository = FakeUserRepository())
+    viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContent {
       EventCreationScreen(
           eventCreationViewModel = viewModel,
@@ -106,7 +103,12 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.ADD_TAG_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.TAG).assertIsNotDisplayed()
 
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertExists()
+
+    composeTestRule.onNodeWithTag(EventCreationTestTags.IMAGE_EVENT).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.IMAGE_ICON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EDIT_IMAGE_ICON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.DELETE_IMAGE_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -417,6 +419,6 @@ class EventCreationScreenTest {
   @Test
   fun eventCreationScreen_AddTags_SaveButtonDisplay() {
     composeTestRule.onNodeWithTag(EventCreationTestTags.ADD_TAG_BUTTON).performClick()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertExists()
   }
 }
