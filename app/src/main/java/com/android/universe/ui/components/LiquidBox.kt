@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -27,6 +28,8 @@ fun LiquidBox(
     enableLens: Boolean = true,
     refractionHeight: Dp = 24.dp,
     refractionAmount: Dp = 24.dp,
+    contentAlignment: Alignment = Alignment.TopStart,
+    propagateMinConstraints: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
     val parentBackdrop = LocalLayerBackdrop.current
@@ -36,6 +39,7 @@ fun LiquidBox(
         modifier = modifier
             .drawBackdrop(
                 backdrop = parentBackdrop,
+                exportedBackdrop = liquidBackdrop,
                 shape = { shape },
                 effects = {
                     vibrancy()
@@ -45,7 +49,9 @@ fun LiquidBox(
                     }
                 },
                 onDrawSurface = { drawRect(color) }
-            )
+            ),
+        contentAlignment = contentAlignment,
+        propagateMinConstraints = propagateMinConstraints
     ) {
         CompositionLocalProvider(LocalLayerBackdrop provides liquidBackdrop) {
             content()
