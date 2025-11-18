@@ -20,6 +20,8 @@ sealed class NavigationScreens(
 
   object Chat : NavigationScreens(route = "chat", name = "Chat", isTopLevelDestination = true)
 
+  object ChatInstance : NavigationScreens(route = "chat/{chatID}", name = "ChatInstance")
+
   object Profile :
       NavigationScreens(route = "profile", name = "Profile", isTopLevelDestination = true)
 

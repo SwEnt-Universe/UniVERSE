@@ -36,6 +36,7 @@ import androidx.navigation.navArgument
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
+import com.android.universe.ui.chat.ChatListScreen
 import com.android.universe.ui.chat.ChatScreen
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
@@ -212,11 +213,23 @@ fun UniverseApp(
           route = NavigationScreens.Chat.name,
       ) {
         composable(NavigationScreens.Chat.route) {
-          ChatScreen(
-              chatID = "test",
+          ChatListScreen(
               userID = authInstance.currentUser!!.uid,
-              onTabSelected = onTabSelected)
+              onTabSelected = onTabSelected,
+              onChatSelected = { chatID ->
+                navController.navigate(
+                    route = NavigationScreens.ChatInstance.route.replace("{chatID}", chatID))
+              })
         }
+
+        composable(
+            route = NavigationScreens.ChatInstance.route,
+            arguments = listOf(navArgument("chatID") { type = NavType.StringType })) {
+              ChatScreen(
+                  chatID = it.arguments?.getString("chatID")!!,
+                  userID = authInstance.currentUser!!.uid,
+                  onTabSelected = onTabSelected)
+            }
       }
 
       navigation(

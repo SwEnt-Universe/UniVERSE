@@ -12,10 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-
-data class ChatPreview(val chatName: String,
-                       val chatID: String,
-                       val lastMessage: State<Message?>)
+data class ChatPreview(val chatName: String, val chatID: String, val lastMessage: State<Message?>)
 
 class ChatListViewModel(
     private val userID: String,
@@ -36,16 +33,19 @@ class ChatListViewModel(
       // TODO: Update this once users have a list of events.
       val events = eventRepository.getAllEvents().filter { it.participants.contains(userID) }
       events.forEach { event ->
-        val chat = try {
-          ChatManager.loadChat(chatID = event.id)
-        } catch (_: NoSuchElementException) {
-          // Since we have created events before chats existed we create them here,
-          // if an event doesn't have an associated chat.
-          // TODO: This should be moved to event creation.
-          ChatManager.createChat(chatID = event.id, admin = event.creator)
-        }
+        val chat =
+            try {
+              ChatManager.loadChat(chatID = event.id)
+            } catch (_: NoSuchElementException) {
+              // Since we have created events before chats existed we create them here,
+              // if an event doesn't have an associated chat.
+              // TODO: This should be moved to event creation.
+              ChatManager.createChat(chatID = event.id, admin = event.creator)
+            }
 
-        chatPreviewList.add(ChatPreview(chatName = event.title, chatID = chat.chatID, lastMessage = chat.lastMessage))
+        chatPreviewList.add(
+            ChatPreview(
+                chatName = event.title, chatID = chat.chatID, lastMessage = chat.lastMessage))
       }
     }
   }
