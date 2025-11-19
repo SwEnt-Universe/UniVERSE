@@ -53,7 +53,9 @@ import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
@@ -63,6 +65,10 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     // Enable edge-to-edge with auto-contrast (icons adapt to content/theme)
     enableEdgeToEdge()
+
+    // Enable automatic index creation for Firestore (makes offline queries faster)
+    Firebase.firestore.persistentCacheIndexManager?.apply { enableIndexAutoCreation() }
+
     setContent {
       UniverseTheme {
         val backgroundColor = Color.White

@@ -68,7 +68,7 @@ class EventCreationViewModelTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSetEventTags() = runTest {
-    val eventTags = setOf(Tag.METAL, Tag.CAR)
+    val eventTags = setOf(Tag.METAL, Tag.KARATE)
     viewModel.setEventTags(eventTags)
     advanceUntilIdle()
     assert(viewModel.eventTags.value == eventTags)

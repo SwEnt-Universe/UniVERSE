@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.InputTransformation.Companion.keyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
@@ -15,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.model.CountryData
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
-import com.android.universe.ui.selectTag.TagColors
 
 /**
  * A composable dropdown component used for selecting a country.
@@ -218,25 +216,12 @@ internal fun ModalContent(
                 .find { it.fieldName == uiState.currentField }
                 ?.let { category ->
                   TagGroup(
-                      name = "",
-                      tagList = Tag.getDisplayNamesForCategory(category),
-                      selectedTags = uiState.tempSelectedTags.map { it.displayName },
-                      color =
-                          when (category) {
-                            Tag.Category.INTEREST -> TagColors.Interest
-                            Tag.Category.SPORT -> TagColors.Sport
-                            Tag.Category.MUSIC -> TagColors.Music
-                            Tag.Category.TRANSPORT -> TagColors.Transport
-                            Tag.Category.CANTON -> TagColors.Canton
-                          },
-                      onTagSelect = { displayName ->
-                        val tag = Tag.fromDisplayName(displayName)
-                        if (tag != null) onAddTag(tag)
-                      },
-                      onTagReSelect = { displayName ->
-                        val tag = Tag.fromDisplayName(displayName)
-                        if (tag != null) onRemoveTag(tag)
-                      },
+                      name = category.displayName,
+                      tagList = Tag.getTagsForCategory(category),
+                      selectedTags = uiState.tempSelectedTags,
+                      displayText = false,
+                      onTagSelect = { tag -> onAddTag(tag) },
+                      onTagReSelect = { tag -> onRemoveTag(tag) },
                       modifier = Modifier.fillMaxWidth())
                 }
           }

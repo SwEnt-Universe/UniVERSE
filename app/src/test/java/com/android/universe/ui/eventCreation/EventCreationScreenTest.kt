@@ -135,17 +135,17 @@ class EventCreationScreenTest {
           onAddTag = {
             viewModel.setEventTags(
                 setOf(
-                    Tag.ROLE_PLAYING_GAMES,
+                    Tag.DND,
                     Tag.TABLE_TENNIS,
-                    Tag.ARTIFICIAL_INTELLIGENCE,
+                    Tag.AI,
                     Tag.METAL,
                     Tag.COUNTRY,
                     Tag.PROGRAMMING,
                     Tag.HANDBALL,
                     Tag.RUNNING,
-                    Tag.BICYCLE,
-                    Tag.AARGAU,
-                    Tag.GENEVA,
+                    Tag.CYCLING,
+                    Tag.CHESS,
+                    Tag.VIDEO_GAMES,
                     Tag.FITNESS,
                     Tag.YOGA,
                     Tag.MEDITATION,
@@ -153,13 +153,13 @@ class EventCreationScreenTest {
                     Tag.BOARD_GAMES,
                     Tag.BASKETBALL,
                     Tag.RNB,
-                    Tag.BASEL_LANDSCHAFT,
-                    Tag.APPENZELL_INNERRHODEN,
-                    Tag.JURA,
+                    Tag.BEACH,
+                    Tag.GRAFFITI,
+                    Tag.GROUP_TRAVEL,
                     Tag.HIKING,
                     Tag.REGGAE,
                     Tag.KARATE,
-                    Tag.TRAIN))
+                    Tag.MACHINE_LEARNING))
           })
     }
   }

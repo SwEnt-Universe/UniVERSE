@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class TagLocalTemporaryRepositoryTest {
   private lateinit var repository: TagTemporaryRepository
-  private val tags1 = setOf(Tag.ROLE_PLAYING_GAMES, Tag.METAL, Tag.HANDBALL)
+  private val tags1 = setOf(Tag.DND, Tag.METAL, Tag.HANDBALL)
   private val tags2 = setOf(Tag.KARATE, Tag.REGGAE)
 
   @Before
@@ -49,7 +49,7 @@ class TagLocalTemporaryRepositoryTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun tagsFlowEmitsUpdates() = runTest {
-    val expected = listOf(emptySet<Tag>(), tags1, tags2, emptySet<Tag>())
+    val expected = listOf(emptySet(), tags1, tags2, emptySet())
     val emissions = mutableListOf<Set<Tag>>()
 
     val job = launch { repository.tagsFlow.take(expected.size).toList(emissions) }
