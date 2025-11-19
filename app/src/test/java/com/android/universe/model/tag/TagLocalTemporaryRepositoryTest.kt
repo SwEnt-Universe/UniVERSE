@@ -49,7 +49,7 @@ class TagLocalTemporaryRepositoryTest {
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun tagsFlowEmitsUpdates() = runTest {
-    val expected = listOf(emptySet<Tag>(), tags1, tags2, emptySet<Tag>())
+    val expected = listOf(emptySet(), tags1, tags2, emptySet())
     val emissions = mutableListOf<Set<Tag>>()
 
     val job = launch { repository.tagsFlow.take(expected.size).toList(emissions) }
