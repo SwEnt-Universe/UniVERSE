@@ -78,7 +78,7 @@ class ChatUIViewModel(
       try {
         val chat = ChatManager.loadChat(chatID)
         _uiState.value = ChatUiState.Success(chat)
-      } catch (e: Exception) {
+      } catch (_: NoSuchElementException) {
         _uiState.value = ChatUiState.Error()
       }
     }
