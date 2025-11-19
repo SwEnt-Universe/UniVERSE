@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class TagLocalTemporaryRepositoryTest {
   private lateinit var repository: TagTemporaryRepository
-  private val tags1 = setOf(Tag.ROLE_PLAYING_GAMES, Tag.METAL, Tag.HANDBALL)
+  private val tags1 = setOf(Tag.DND, Tag.METAL, Tag.HANDBALL)
   private val tags2 = setOf(Tag.KARATE, Tag.REGGAE)
 
   @Before

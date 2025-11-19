@@ -165,7 +165,7 @@ class EventViewModelTest {
     val megaTagEvent = viewModel.eventsState.value.first { it.title == "Mega Tag Event" }
 
     assertEquals(3, megaTagEvent.tags.size)
-    assertEquals(listOf("Tennis", "Artificial intelligence", "Programming"), megaTagEvent.tags)
+    assertEquals(listOf("Tennis", "AI", "Programming"), megaTagEvent.tags)
   }
 
   @Test

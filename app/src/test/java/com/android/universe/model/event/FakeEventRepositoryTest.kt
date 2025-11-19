@@ -2,11 +2,9 @@ package com.android.universe.model.event
 
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
-import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
-import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -124,7 +122,7 @@ class FakeEventRepositoryTest {
             description =
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
-            tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE),
+            tags = setOf(Tag.PROGRAMMING, Tag.AI),
             creator = userA.uid,
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
@@ -137,7 +135,7 @@ class FakeEventRepositoryTest {
         "An insightful talk on the latest advancements in artificial intelligence.",
         result.description)
     assertEquals(LocalDateTime.of(2025, 12, 1, 14, 0), result.date)
-    assertEquals(setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE), result.tags)
+    assertEquals(setOf(Tag.PROGRAMMING, Tag.AI), result.tags)
     assertEquals(0, result.participants.size)
     assertEquals(result.creator, userA.uid)
   }
@@ -189,25 +187,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun addEvent_storesEvent_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
-    val user1 =
-        UserProfile(
-            uid = "0",
-            username = "alice",
-            firstName = "Alice",
-            lastName = "Smith",
-            country = "CH",
-            description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = setOf(Tag.MUSIC, Tag.RUNNING))
-    val user2 =
-        UserProfile(
-            uid = "1",
-            username = "bob",
-            firstName = "Bob",
-            lastName = "Jones",
-            country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event =
         Event(
             id = "event-001",
@@ -251,15 +230,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun addEvent_storesEventWithNoDescription_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-002",
@@ -300,15 +270,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun addEvent_storesEventWithNoParticipants_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-003",
@@ -316,7 +277,7 @@ class FakeEventRepositoryTest {
             description =
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
-            tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE),
+            tags = setOf(Tag.PROGRAMMING, Tag.AI),
             creator = userA.uid,
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
@@ -328,7 +289,7 @@ class FakeEventRepositoryTest {
             description =
                 "A deep dive into the latest advancements and future trends in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 15, 0),
-            tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.RUNNING),
+            tags = setOf(Tag.PROGRAMMING, Tag.AI, Tag.RUNNING),
             participants = setOf(userA.uid),
             creator = userA.uid,
             location = Location(latitude = 37.423021, longitude = -122.086808))
@@ -344,7 +305,7 @@ class FakeEventRepositoryTest {
         "A deep dive into the latest advancements and future trends in artificial intelligence.",
         result2.description)
     assertEquals(LocalDateTime.of(2025, 12, 1, 15, 0), result2.date)
-    assertEquals(setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.RUNNING), result2.tags)
+    assertEquals(setOf(Tag.PROGRAMMING, Tag.AI, Tag.RUNNING), result2.tags)
     assertEquals(1, result2.participants.size)
     assert(result2.participants.contains(userA.uid))
     assertEquals(result2.creator, userA.uid)
@@ -352,15 +313,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun updateEvent_throwsException_forNonExistentEvent() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val newEvent =
         Event(
             id = "event-001",
@@ -380,15 +332,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun deleteEvent_existingEvent_shouldBeRemoved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event1 =
         Event(
             id = "event-001",
@@ -425,15 +368,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun deleteEvent_nonExistingEvent_shouldThrowException() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-001",
