@@ -245,14 +245,7 @@ class SelectTagViewModelTest {
     viewModelUser.deleteTag(Tag.KARATE)
 
     val expectedTags =
-        listOf(
-            Tag.SAFARI,
-            Tag.METAL,
-            Tag.ROCK,
-            Tag.JUDO,
-            Tag.HANDBALL,
-            Tag.MUSIC,
-            Tag.DND)
+        listOf(Tag.SAFARI, Tag.METAL, Tag.ROCK, Tag.JUDO, Tag.HANDBALL, Tag.MUSIC, Tag.DND)
     val state = viewModelUser.selectedTags.value
     assertEquals(expectedTags, state)
   }

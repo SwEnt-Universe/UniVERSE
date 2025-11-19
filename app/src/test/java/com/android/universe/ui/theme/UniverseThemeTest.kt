@@ -115,7 +115,8 @@ class UniverseThemeTest {
 
   @Test
   fun tagColor_returnsColorsForAllCategoriesAndStates() {
-    val categories = listOf("Topic", "Sport", "Music", "Art", "Food","Technology", "Games", "Travel" ,"Unknown")
+    val categories =
+        listOf("Topic", "Sport", "Music", "Art", "Food", "Technology", "Games", "Travel", "Unknown")
     composeTestRule.setContent {
       categories.forEach { category ->
         val lightNormal = tagColorForTest(category, false, false)
