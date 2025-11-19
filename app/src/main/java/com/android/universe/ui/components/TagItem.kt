@@ -37,53 +37,64 @@ import com.android.universe.ui.theme.tagColor
  * selected or deselected.
  *
  * @param tag The [Tag] model containing name and category information.
- * @param isSelectable Whether the tag can be interacted with. If `false`, click interaction is disabled.
+ * @param isSelectable Whether the tag can be interacted with. If `false`, click interaction is
+ *   disabled.
  * @param onSelect Callback invoked when the tag transitions from unselected → selected.
  * @param onDeSelect Callback invoked when the tag transitions from selected → unselected.
  * @param modifier Optional [Modifier] applied to the TagItem layout.
  */
 @Composable
-fun TagItem(tag: Tag, isSelectable: Boolean, onSelect: () -> Unit, onDeSelect: () -> Unit, modifier: Modifier = Modifier){
-    val isSelected = remember { mutableStateOf(false) }
-    val buttonColor by animateColorAsState(targetValue = tagColor(category = tag.category.displayName, isSelected = isSelected.value))
-    val isDark = LocalIsDarkTheme.current
-    LiquidButton(
-        onClick = {
-            isSelected.value = !isSelected.value
-            if (isSelected.value) {
-            onDeSelect()
-        }else{
-            onSelect()
+fun TagItem(
+    tag: Tag,
+    isSelectable: Boolean,
+    onSelect: () -> Unit,
+    onDeSelect: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+  val isSelected = remember { mutableStateOf(false) }
+  val buttonColor by
+      animateColorAsState(
+          targetValue =
+              tagColor(category = tag.category.displayName, isSelected = isSelected.value))
+  val isDark = LocalIsDarkTheme.current
+  LiquidButton(
+      onClick = {
+        isSelected.value = !isSelected.value
+        if (isSelected.value) {
+          onDeSelect()
+        } else {
+          onSelect()
         }
-                  },
-        enabled = isSelectable,
-        isInteractive = isSelectable,
-        height = 10f,
-        width = 10f,
-        color = buttonColor,
-        content = {
-            Row {
-                Text(tag.displayName)
-                if (isSelected.value) {
-                    Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Selected",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        },
-        modifier = modifier.then(
-            if (isSelected.value) Modifier.border(width = 2.dp, color =
-                if (isDark){
-                    TagSelectedBorderDark
-                }else{
-                    TagSelectedBorderLight
-                }
-                , shape = CapsuleLarge)
-            else Modifier
-        )
-    )
+      },
+      enabled = isSelectable,
+      isInteractive = isSelectable,
+      height = 10f,
+      width = 10f,
+      color = buttonColor,
+      content = {
+        Row {
+          Text(tag.displayName)
+          if (isSelected.value) {
+            Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Selected",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp))
+          }
+        }
+      },
+      modifier =
+          modifier.then(
+              if (isSelected.value)
+                  Modifier.border(
+                      width = 2.dp,
+                      color =
+                          if (isDark) {
+                            TagSelectedBorderDark
+                          } else {
+                            TagSelectedBorderLight
+                          },
+                      shape = CapsuleLarge)
+              else Modifier))
 }
