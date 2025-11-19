@@ -5,6 +5,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleMessage
+import com.android.universe.ui.chat.ChatListScreenTestTags.NO_CHAT_PREVIEW
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.*
@@ -50,8 +51,17 @@ class ChatListScreenUiTest {
   }
 
   @Test
-  fun chatListScreen_displaysAllComponents() {
+  fun chatListScreen_displaysChatPreviews_whenChatPreviews() {
+    val chat = getNewSampleChatPreview()
+    mockChatPreviews.value = listOf(chat)
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).assertIsDisplayed()
+  }
+
+  @Test
+  fun chatListScreen_displaysNoChatPreview_whenNoChatPreviews() = runTest {
+    mockChatPreviews.value = emptyList()
+    composeTestRule.onNodeWithTag(NO_CHAT_PREVIEW).assertIsDisplayed()
   }
 
   @Test

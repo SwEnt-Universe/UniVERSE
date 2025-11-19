@@ -29,6 +29,7 @@ import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_LIST_COLUMN
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_NAME
 import com.android.universe.ui.chat.ChatListScreenTestTags.DISPLAY_TIME_TEXT
 import com.android.universe.ui.chat.ChatListScreenTestTags.LAST_MESSAGE_TEXT
+import com.android.universe.ui.chat.ChatListScreenTestTags.NO_CHAT_PREVIEW
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -40,6 +41,7 @@ object ChatListScreenTestTags {
   const val CHAT_NAME = "chatName"
   const val LAST_MESSAGE_TEXT = "lastMessageText"
   const val DISPLAY_TIME_TEXT = "displayTimeText"
+  const val NO_CHAT_PREVIEW = "noChatPreview"
 }
 
 /**
@@ -68,13 +70,24 @@ fun ChatListScreen(
   Scaffold(
       bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) },
       modifier = Modifier.testTag(NavigationTestTags.CHAT_SCREEN)) { paddingValues ->
-        LazyColumn(
-            horizontalAlignment = CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(paddingValues).testTag(CHAT_LIST_COLUMN),
-        ) {
-          items(items = chatPreviews, key = { it.chatID }) { chatPreview ->
-            ChatPreviewItem(chatPreview, onChatSelected)
+        if (chatPreviews.isNotEmpty()) {
+          LazyColumn(
+              horizontalAlignment = CenterHorizontally,
+              modifier = Modifier.fillMaxSize().padding(paddingValues).testTag(CHAT_LIST_COLUMN),
+          ) {
+            items(items = chatPreviews, key = { it.chatID }) { chatPreview ->
+              ChatPreviewItem(chatPreview, onChatSelected)
+            }
           }
+        } else {
+          Column(
+              horizontalAlignment = CenterHorizontally,
+              verticalArrangement = Arrangement.Center,
+              modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                Text(
+                    text = "Join some events to start chatting with others",
+                    modifier = Modifier.testTag(NO_CHAT_PREVIEW))
+              }
         }
       }
 }
@@ -117,9 +130,9 @@ fun ChatPreviewItem(chatPreview: ChatPreview, onChatSelected: (String) -> Unit) 
               overflow = TextOverflow.Ellipsis,
               modifier = Modifier.testTag(nodeTestTag + LAST_MESSAGE_TEXT))
         }
-        chatPreview.lastMessage.value?.displayTime?.let {
+        chatPreview.lastMessage.value?.let {
           Text(
-              text = it,
+              text = it.getDisplayTime(),
               style = MaterialTheme.typography.labelMedium,
               modifier =
                   Modifier.padding(top = Dimensions.PaddingSmall, start = Dimensions.PaddingLarge)
