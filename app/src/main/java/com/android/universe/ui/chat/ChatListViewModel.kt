@@ -1,7 +1,6 @@
 package com.android.universe.ui.chat
 
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.chat.ChatManager
@@ -9,6 +8,7 @@ import com.android.universe.model.chat.Message
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -19,9 +19,8 @@ class ChatListViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
 ) : ViewModel() {
 
-  private val chatPreviewList = mutableStateListOf<ChatPreview>()
-  private val _chatPreviews = MutableStateFlow(chatPreviewList)
-  val chatPreviews = _chatPreviews.asStateFlow()
+  private val _chatPreviews = MutableStateFlow(emptyList<ChatPreview>())
+  val chatPreviews: StateFlow<List<ChatPreview>> = _chatPreviews.asStateFlow()
 
   init {
     loadEvents()
@@ -43,9 +42,10 @@ class ChatListViewModel(
               ChatManager.createChat(chatID = event.id, admin = event.creator)
             }
 
-        chatPreviewList.add(
-            ChatPreview(
-                chatName = event.title, chatID = chat.chatID, lastMessage = chat.lastMessage))
+        _chatPreviews.value =
+            _chatPreviews.value +
+                ChatPreview(
+                    chatName = event.title, chatID = chat.chatID, lastMessage = chat.lastMessage)
       }
     }
   }

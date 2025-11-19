@@ -18,7 +18,6 @@ import com.android.universe.ui.chat.composable.ChatUIViewModelFactory
 import com.android.universe.ui.chat.composable.MessageList
 import com.android.universe.ui.chat.composable.SendMessageInput
 import com.android.universe.ui.navigation.NavigationBottomMenu
-import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 
 object ChatScreenTestTags {
@@ -52,24 +51,22 @@ fun ChatScreen(
   val uiState by vm.uiState.collectAsState()
 
   Scaffold(bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) }) { paddingValues ->
-    Column(
-        modifier =
-            Modifier.fillMaxSize().padding(paddingValues).testTag(NavigationTestTags.CHAT_SCREEN)) {
-          when (val state = uiState) {
-            is ChatUIViewModel.ChatUiState.Loading ->
-                Text("Loading chat...", modifier = Modifier.testTag(LOADING))
-            is ChatUIViewModel.ChatUiState.Error ->
-                Text("Failed to load chat.", modifier = Modifier.testTag(ERROR))
-            is ChatUIViewModel.ChatUiState.Success -> {
-              MessageList(
-                  userID = userID,
-                  messages = state.chat.messages,
-                  modifier = Modifier.weight(weight = 1f),
-                  vm = vm)
+    Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+      when (val state = uiState) {
+        is ChatUIViewModel.ChatUiState.Loading ->
+            Text("Loading chat...", modifier = Modifier.testTag(LOADING))
+        is ChatUIViewModel.ChatUiState.Error ->
+            Text("Failed to load chat.", modifier = Modifier.testTag(ERROR))
+        is ChatUIViewModel.ChatUiState.Success -> {
+          MessageList(
+              userID = userID,
+              messages = state.chat.messages,
+              modifier = Modifier.weight(weight = 1f),
+              vm = vm)
 
-              SendMessageInput(vm = vm)
-            }
-          }
+          SendMessageInput(vm = vm)
         }
+      }
+    }
   }
 }
