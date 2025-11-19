@@ -11,7 +11,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.universe.model.tag.Tag
+import com.android.universe.ui.theme.tagColor
 
 /**
  * Displays a labeled group of selectable tags, rendered as clickable buttons in a responsive
@@ -53,21 +56,23 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagGroup(
+    modifier: Modifier = Modifier,
     name: String,
-    tagList: List<String>,
-    selectedTags: List<String>,
-    color: Color = Color(0xFF6650a4),
-    onTagSelect: (String) -> Unit = {},
-    onTagReSelect: (String) -> Unit = {},
-    modifier: Modifier = Modifier
+    tagList: List<Tag>,
+    selectedTags: List<Tag>,
+    onTagSelect: (Tag) -> Unit = {},
+    onTagReSelect: (Tag) -> Unit = {},
+    displayText: Boolean = true,
+    tagElement: ((Tag) -> String)? = null
 ) {
-  if (name.isNotEmpty()) {
+  if (displayText) {
     Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
   }
   FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     tagList.forEach { tag ->
       val isSelected = selectedTags.contains(tag)
-      val buttonColor by animateColorAsState(targetValue = if (isSelected) Color.Gray else color)
+      val buttonColor by
+          animateColorAsState(targetValue = tagColor(category = name, isSelected = isSelected))
       Button(
           onClick = {
             if (isSelected) {
@@ -76,11 +81,13 @@ fun TagGroup(
               onTagSelect(tag)
             }
           },
-          modifier = Modifier.padding(4.dp),
+          modifier =
+              Modifier.padding(4.dp)
+                  .then(tagElement?.let { Modifier.testTag(it(tag)) } ?: Modifier),
           border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
           colors = ButtonDefaults.buttonColors(containerColor = buttonColor)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(tag)
+              Text(tag.displayName)
               if (isSelected) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(

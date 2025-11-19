@@ -126,11 +126,14 @@ class SettingsScreenTest {
 
     // The interests section creates test tags literally like "SettingsTestTags.INTEREST_BUTTON"
     listOf(
-            "SettingsTestTags.INTEREST_BUTTON",
-            "SettingsTestTags.SPORT_BUTTON",
             "SettingsTestTags.MUSIC_BUTTON",
-            "SettingsTestTags.TRANSPORT_BUTTON",
-            "SettingsTestTags.CANTON_BUTTON")
+            "SettingsTestTags.SPORT_BUTTON",
+            "SettingsTestTags.FOOD_BUTTON",
+            "SettingsTestTags.ART_BUTTON",
+            "SettingsTestTags.TRAVEL_BUTTON",
+            "SettingsTestTags.GAMES_BUTTON",
+            "SettingsTestTags.TECHNOLOGY_BUTTON",
+            "SettingsTestTags.TOPIC_BUTTON")
         .forEach { tag -> composeTestRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed() }
   }
 

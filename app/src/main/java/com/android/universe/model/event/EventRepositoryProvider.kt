@@ -36,7 +36,7 @@ object EventRepositoryProvider {
               id = "event-002",
               title = "Tech Hackathon 2025",
               date = LocalDateTime.of(2025, 11, 3, 9, 0),
-              tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
+              tags = setOf(Tag.PROGRAMMING, Tag.AI, Tag.REGGAE),
               participants = setOf(sampleUsers[2].uid, sampleUsers[6].uid, sampleUsers[10].uid),
               creator = sampleUsers[2].uid,
               location = Location(latitude = 37.423021, longitude = -122.086808)),

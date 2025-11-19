@@ -257,7 +257,7 @@ class SettingsViewModelTest {
 
   @Test
   fun `openModal sets tempSelectedTags for tag category`() = runTest {
-    val interestTags = Tag.getTagsForCategory(Tag.Category.INTEREST).take(2)
+    val topicTags = Tag.getTagsForCategory(Tag.Category.TOPIC).take(2)
     fakeRepo.updateUser(
         "0",
         UserProfile(
@@ -268,12 +268,12 @@ class SettingsViewModelTest {
             country = "Switzerland",
             description = "hello",
             dateOfBirth = LocalDate.of(2000, 1, 5),
-            tags = interestTags.toSet()))
+            tags = topicTags.toSet()))
     viewModel.loadUser("0")
     advanceUntilIdle()
 
-    viewModel.openModal(Tag.Category.INTEREST.fieldName)
-    assertEquals(interestTags, viewModel.uiState.value.tempSelectedTags)
+    viewModel.openModal(Tag.Category.TOPIC.fieldName)
+    assertEquals(topicTags, viewModel.uiState.value.tempSelectedTags)
   }
 
   // closeModal Tests
@@ -306,8 +306,8 @@ class SettingsViewModelTest {
   // addTag and removeTag Tests
   @Test
   fun `addTag adds new tag and logs error for duplicate`() = runTest {
-    viewModel.openModal(Tag.Category.INTEREST.fieldName)
-    val tag = Tag.getTagsForCategory(Tag.Category.INTEREST).first()
+    viewModel.openModal(Tag.Category.TOPIC.fieldName)
+    val tag = Tag.getTagsForCategory(Tag.Category.TOPIC).first()
 
     viewModel.addTag(tag)
     assertEquals(listOf(tag), viewModel.uiState.value.tempSelectedTags)
@@ -318,8 +318,8 @@ class SettingsViewModelTest {
 
   @Test
   fun `removeTag removes tag and logs error for non-existent`() = runTest {
-    viewModel.openModal(Tag.Category.INTEREST.fieldName)
-    val tag = Tag.getTagsForCategory(Tag.Category.INTEREST).first()
+    viewModel.openModal(Tag.Category.TOPIC.fieldName)
+    val tag = Tag.getTagsForCategory(Tag.Category.TOPIC).first()
     viewModel.addTag(tag)
 
     viewModel.removeTag(tag)
@@ -532,11 +532,11 @@ class SettingsViewModelTest {
   }
 
   @Test
-  fun `saveModal commits selected interest tags replacing category`() = runTest {
+  fun `saveModal commits selected topic tags replacing category`() = runTest {
     viewModel.loadUser("0")
     advanceUntilIdle()
-    viewModel.openModal(Tag.Category.INTEREST.fieldName)
-    val picks = Tag.getTagsForCategory(Tag.Category.INTEREST).take(2)
+    viewModel.openModal(Tag.Category.TOPIC.fieldName)
+    val picks = Tag.getTagsForCategory(Tag.Category.TOPIC).take(2)
     picks.forEach { viewModel.addTag(it) }
     viewModel.saveModal("0")
     advanceUntilIdle()

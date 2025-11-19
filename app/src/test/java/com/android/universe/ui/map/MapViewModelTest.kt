@@ -66,7 +66,7 @@ class MapViewModelTest {
               id = "event-002",
               title = "Tech Hackathon 2025",
               date = LocalDateTime.of(2025, 11, 3, 9, 0),
-              tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
+              tags = setOf(Tag.PROGRAMMING, Tag.AI, Tag.KARATE),
               creator = UserTestData.Alice.uid,
               location = Location(latitude = 37.423021, longitude = -122.086808)),
           Event(
