@@ -1,36 +1,25 @@
 package com.android.universe.ui.selectTag
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -38,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
-import com.android.universe.ui.theme.tagColor
+import com.android.universe.ui.common.TagGroup
 
 object SelectTagsScreenTestTags {
   const val MUSIC_TAGS = "MusicTags"
@@ -61,65 +50,6 @@ object SelectTagsScreenTestTags {
 
   fun selectedTag(tag: Tag): String =
       "$SELECTED_TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
-}
-
-/**
- * Composable that displays a group of selectable tags.
- *
- * Each tag can be selected or deselected by the user. Selected tags are displayed differently (with
- * a check icon and a border) and unselected tags use the group's color. Tags are displayed in a row
- * and automatically wrap to the next line when needed.
- *
- * @param name The name of the tag group.
- * @param tagList The list of tags to display.
- * @param selectedTags A mutable state holding the list of currently selected tags. Clicking a tag
- *   will update this state.
- * @param color The color of unselected tags (default is purple).
- * @param onTagSelect Callback invoked when a tag is selected.
- * @param onTagReSelect Callback invoked when a tag is deselected.
- * @param modifier The modifier to apply to the composable
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun TagGroup(
-    modifier: Modifier = Modifier,
-    name: String,
-    tagList: List<Tag>,
-    selectedTags: List<Tag>,
-    onTagSelect: (Tag) -> Unit = {},
-    onTagReSelect: (Tag) -> Unit = {}
-) {
-  Text(name, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
-  FlowRow(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-    tagList.forEach { tag ->
-      val isSelected = selectedTags.contains(tag)
-      val buttonColor by
-          animateColorAsState(targetValue = tagColor(category = name, isSelected = isSelected))
-      Button(
-          onClick = {
-            if (isSelected) {
-              onTagReSelect(tag)
-            } else {
-              onTagSelect(tag)
-            }
-          },
-          modifier = Modifier.testTag(SelectTagsScreenTestTags.unselectedTag(tag)).padding(4.dp),
-          border = if (isSelected) BorderStroke(2.dp, Color(0xFF546E7A)) else null,
-          colors = ButtonDefaults.buttonColors(buttonColor)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(tag.displayName)
-              if (isSelected) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp))
-              }
-            }
-          }
-    }
-  }
 }
 
 /** Composable that displays a horizontal line to visually divide sections on the tag screen. */
@@ -177,7 +107,8 @@ fun SelectTagScreen(
                       Tag.Category.GAMES -> SelectTagsScreenTestTags.GAMES_TAGS
                       Tag.Category.TECHNOLOGY -> SelectTagsScreenTestTags.TECHNOLOGY_TAGS
                       Tag.Category.TOPIC -> SelectTagsScreenTestTags.TOPIC_TAGS
-                    }))
+                    }),
+            tagElement = { tag -> SelectTagsScreenTestTags.unselectedTag(tag) })
         SectionDivider()
       }
     }

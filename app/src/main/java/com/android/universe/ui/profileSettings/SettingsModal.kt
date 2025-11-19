@@ -217,17 +217,11 @@ internal fun ModalContent(
                 ?.let { category ->
                   TagGroup(
                       name = category.displayName,
-                      tagList = Tag.getDisplayNamesForCategory(category),
-                      selectedTags = uiState.tempSelectedTags.map { it.displayName },
+                      tagList = Tag.getTagsForCategory(category),
+                      selectedTags = uiState.tempSelectedTags,
                       displayText = false,
-                      onTagSelect = { displayName ->
-                        val tag = Tag.fromDisplayName(displayName)
-                        if (tag != null) onAddTag(tag)
-                      },
-                      onTagReSelect = { displayName ->
-                        val tag = Tag.fromDisplayName(displayName)
-                        if (tag != null) onRemoveTag(tag)
-                      },
+                      onTagSelect = { tag -> onAddTag(tag) },
+                      onTagReSelect = { tag -> onRemoveTag(tag) },
                       modifier = Modifier.fillMaxWidth())
                 }
           }
