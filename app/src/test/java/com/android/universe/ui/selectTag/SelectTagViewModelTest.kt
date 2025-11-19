@@ -48,7 +48,7 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun addTag_addsInterestTagSuccessfully() = runTest {
+  fun addTag_addsMusicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.MUSIC
     viewModelUser.addTag(tag)
@@ -66,30 +66,57 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun addTag_addsMusicTagSuccessfully() = runTest {
+  fun addTag_addsFoodTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = Tag.METAL
+    val tag = Tag.BAKING
     viewModelUser.addTag(tag)
     val state = viewModelUser.selectedTags.value
-    assertEquals(listOf(Tag.METAL), state)
+    assertEquals(listOf(Tag.BAKING), state)
   }
 
   @Test
-  fun addTag_addsTransportTagSuccessfully() = runTest {
+  fun addTag_addsArtTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = Tag.HANDBALL
+    val tag = Tag.LITERATURE
     viewModelUser.addTag(tag)
     val state = viewModelUser.selectedTags.value
-    assertEquals(listOf(Tag.HANDBALL), state)
+    assertEquals(listOf(Tag.LITERATURE), state)
   }
 
   @Test
-  fun addTag_addsCantonTagSuccessfully() = runTest {
+  fun addTag_addsTravelTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
-    val tag = Tag.SAFARI
+    val tag = Tag.GROUP_TRAVEL
     viewModelUser.addTag(tag)
     val state = viewModelUser.selectedTags.value
-    assertEquals(listOf(Tag.SAFARI), state)
+    assertEquals(listOf(Tag.GROUP_TRAVEL), state)
+  }
+
+  @Test
+  fun addTag_addsGamesTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
+    val tag = Tag.DND
+    viewModelUser.addTag(tag)
+    val state = viewModelUser.selectedTags.value
+    assertEquals(listOf(Tag.DND), state)
+  }
+
+  @Test
+  fun addTag_addsTechnologyTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
+    val tag = Tag.MACHINE_LEARNING
+    viewModelUser.addTag(tag)
+    val state = viewModelUser.selectedTags.value
+    assertEquals(listOf(Tag.MACHINE_LEARNING), state)
+  }
+
+  @Test
+  fun addTag_addsTopicTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we add a tag.
+    val tag = Tag.PHYSICS
+    viewModelUser.addTag(tag)
+    val state = viewModelUser.selectedTags.value
+    assertEquals(listOf(Tag.PHYSICS), state)
   }
 
   @Test
@@ -131,9 +158,9 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun deleteTag_removesInterestTagSuccessfully() = runTest {
+  fun deleteTag_removesMusicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = Tag.MUSIC
+    val tag = Tag.METAL
     viewModelUser.addTag(tag)
     viewModelUser.deleteTag(tag)
     val state = viewModelUser.selectedTags.value
@@ -151,9 +178,9 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun deleteTag_removesMusicTagSuccessfully() = runTest {
+  fun deleteTag_removesFoodTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = Tag.METAL
+    val tag = Tag.BAKING
     viewModelUser.addTag(tag)
     viewModelUser.deleteTag(tag)
     val state = viewModelUser.selectedTags.value
@@ -161,9 +188,9 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun deleteTag_removesTransportTagSuccessfully() = runTest {
+  fun deleteTag_removesArtTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
-    val tag = Tag.CHESS
+    val tag = Tag.LITERATURE
     viewModelUser.addTag(tag)
     viewModelUser.deleteTag(tag)
     val state = viewModelUser.selectedTags.value
@@ -171,9 +198,39 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun deleteTag_removesCantonTagSuccessfully() = runTest {
+  fun deleteTag_removesTravelTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.SAFARI
+    viewModelUser.addTag(tag)
+    viewModelUser.deleteTag(tag)
+    val state = viewModelUser.selectedTags.value
+    assertEquals(emptyList<Tag>(), state)
+  }
+
+  @Test
+  fun deleteTag_removesGamesTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
+    val tag = Tag.DND
+    viewModelUser.addTag(tag)
+    viewModelUser.deleteTag(tag)
+    val state = viewModelUser.selectedTags.value
+    assertEquals(emptyList<Tag>(), state)
+  }
+
+  @Test
+  fun deleteTag_removesTechnologyTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
+    val tag = Tag.MACHINE_LEARNING
+    viewModelUser.addTag(tag)
+    viewModelUser.deleteTag(tag)
+    val state = viewModelUser.selectedTags.value
+    assertEquals(emptyList<Tag>(), state)
+  }
+
+  @Test
+  fun deleteTag_removesTopicTagSuccessfully() = runTest {
+    // Check that the uiStateTag changes when we remove a tag.
+    val tag = Tag.PHYSICS
     viewModelUser.addTag(tag)
     viewModelUser.deleteTag(tag)
     val state = viewModelUser.selectedTags.value
