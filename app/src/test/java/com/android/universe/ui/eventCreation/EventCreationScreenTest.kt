@@ -4,11 +4,12 @@ import androidx.compose.ui.test.assertAny
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
@@ -16,6 +17,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -29,15 +33,95 @@ class EventCreationScreenTest {
   companion object {
     const val SAMPLE_ERASED_TEXT = ""
     const val SAMPLE_TEXT_INPUT = "Text"
-    const val SAMPLE_INVALID_DATE_INPUT = "AB"
-    const val SAMPLE_VALID_DATE_INPUT = "12"
-    const val SAMPLE_DATE_INPUT_STEP1 = "1"
-    const val SAMPLE_DATE_INPUT_STEP2 = "2"
-    const val SAMPLE_DATE_INPUT_STEP3 = "3"
-    const val SAMPLE_DATE_INPUT_STEP4 = "4"
-    const val SAMPLE_DATE_INPUT_STEP5 = "5"
-    const val SAMPLE_INVALID_YEAR_INPUT = "1234"
-    const val SAMPLE_VALID_YEAR_INPUT = "2025"
+    const val SAMPLE_MINUTE = 25
+    const val SAMPLE_HOUR = 17
+    const val FORMATTED_TIME = "$SAMPLE_HOUR:$SAMPLE_MINUTE"
+    const val SAMPLE_YEAR = 2027
+
+    val diffYear = SAMPLE_YEAR - LocalDate.now().plusMonths(1).year
+    const val SAMPLE_DAY = 17
+    val plusMonthDate = LocalDate.now().plusMonths(1).plusYears(diffYear.toLong())
+
+    val formatMonthPlus = plusMonthDate.format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH))
+  }
+
+  /**
+   * Selecting an already selected hour will give an error as 2 nodes in the node tree will have the
+   * same content description.
+   *
+   * @param hour the hour to select.
+   */
+  fun selectHour(hour: Int) {
+    require(hour in 0..23)
+    composeTestRule
+        .onNode(hasContentDescription("Select hour", ignoreCase = true))
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNode(hasContentDescription("$hour hours"), useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  /**
+   * Selecting an already selected minute will give an error as 2 nodes in the node tree will have
+   * the same content description.
+   *
+   * @param minute5 the minute to select, a multiple of 5.
+   */
+  fun selectMinute(minute5: Int) {
+    require(minute5 in 0..59)
+    require(minute5 % 5 == 0)
+    composeTestRule
+        .onNode(hasContentDescription("Select minutes", ignoreCase = true))
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule
+        .onNode(hasContentDescription("$minute5 minutes"), useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  fun nextMonth() {
+    composeTestRule
+        .onNode(hasContentDescription("Change to next month"), useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  fun previousMonth() {
+    composeTestRule
+        .onNode(hasContentDescription("Change to previous month"), useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  fun selectYear(year: Int) {
+    composeTestRule
+        .onNode(hasContentDescription("Switch to selecting a year"), useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule
+        .onNodeWithText("Navigate to year $year", useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  fun selectSampleDay() {
+    composeTestRule
+        .onNodeWithText(SAMPLE_DAY.toString(), substring = true, useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.waitForIdle()
   }
 
   @Before
@@ -86,19 +170,9 @@ class EventCreationScreenTest {
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD).assertIsDisplayed()
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_TITLE).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_DESCRIPTION).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_DAY).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_MONTH).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_YEAR).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_HOUR).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.ERROR_MINUTE).assertIsNotDisplayed()
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.ADD_TAG_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.TAG).assertIsNotDisplayed()
@@ -132,53 +206,54 @@ class EventCreationScreenTest {
   }
 
   @Test
-  fun eventCreationScreen_canEnterDay() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextInput(SAMPLE_VALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .assertTextContains(SAMPLE_VALID_DATE_INPUT)
+  fun eventCreationScreen_canEnterTime() {
+
+    composeTestRule.onNodeWithTag(EventCreationTestTags.TIME_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.TIME_DIALOG).assertIsDisplayed()
+    composeTestRule.waitForIdle()
+
+    selectHour(SAMPLE_HOUR)
+
+    selectMinute(SAMPLE_MINUTE)
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText(FORMATTED_TIME).assertIsDisplayed()
   }
 
   @Test
-  fun eventCreationScreen_canEnterMonth() {
+  fun eventCreationScreen_canEnterDate() {
+    composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_DIALOG).assertIsDisplayed()
+    selectYear(SAMPLE_YEAR)
+    nextMonth()
+    composeTestRule.waitForIdle()
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextInput(SAMPLE_VALID_DATE_INPUT)
+        .onNodeWithText("$formatMonthPlus $SAMPLE_DAY", substring = true, useUnmergedTree = true)
+        .assertIsDisplayed()
+        .performClick()
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.waitForIdle()
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .assertTextContains(SAMPLE_VALID_DATE_INPUT)
+        .onNodeWithText("$SAMPLE_DAY/${plusMonthDate.month.value}/${plusMonthDate.year}")
+        .assertIsDisplayed()
   }
 
   @Test
-  fun eventCreationScreen_canEnterYear() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_VALID_YEAR_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .assertTextContains(SAMPLE_VALID_YEAR_INPUT)
-  }
+  fun pastDatePutsError() {
+    composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_DIALOG).assertIsDisplayed()
+    previousMonth()
+    composeTestRule.waitForIdle()
+    selectSampleDay()
 
-  @Test
-  fun eventCreationScreen_canEnterHour() {
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.waitForIdle()
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextInput(SAMPLE_VALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .assertTextContains(SAMPLE_VALID_DATE_INPUT)
-  }
-
-  @Test
-  fun eventCreationScreen_canEnterMinute() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextInput(SAMPLE_VALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .assertTextContains(SAMPLE_VALID_DATE_INPUT)
+        .onNodeWithTag(EventCreationTestTags.ERROR_DATE, useUnmergedTree = true)
+        .assertIsDisplayed()
   }
 
   @Test
@@ -205,207 +280,6 @@ class EventCreationScreenTest {
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.ERROR_DESCRIPTION, useUnmergedTree = true)
         .assertIsNotDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_DayEmpty_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextReplacement(SAMPLE_ERASED_TEXT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_DAY, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_MonthEmpty_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextReplacement(SAMPLE_ERASED_TEXT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_MONTH, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_YearEmpty_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextReplacement(SAMPLE_ERASED_TEXT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_YEAR, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_HourEmpty_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextReplacement(SAMPLE_ERASED_TEXT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_HOUR, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_MinuteEmpty_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextReplacement(SAMPLE_ERASED_TEXT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_MINUTE, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_DayNonInt_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_DAY, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_MonthNonInt_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_MONTH, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_YearNonInt_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_YEAR, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_HourNonInt_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_HOUR, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_MinuteNonInt_Display_Error() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextInput(SAMPLE_INVALID_DATE_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.ERROR_MINUTE, useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
-
-  @Test
-  fun eventCreationScreen_3LengthDay_Display_Length2() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP1)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP2)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP3)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD, useUnmergedTree = true)
-        .assertTextEquals(SAMPLE_VALID_DATE_INPUT)
-  }
-
-  @Test
-  fun eventCreationScreen_3LengthMonth_Display_Length2() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP1)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP2)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP3)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD, useUnmergedTree = true)
-        .assertTextEquals(SAMPLE_VALID_DATE_INPUT)
-  }
-
-  @Test
-  fun eventCreationScreen_5LengthYear_Display_Length4() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP1)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP2)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP3)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP4)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP5)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD, useUnmergedTree = true)
-        .assertTextEquals(SAMPLE_INVALID_YEAR_INPUT)
-  }
-
-  @Test
-  fun eventCreationScreen_3LengthHour_Display_Length2() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP1)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP2)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP3)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD, useUnmergedTree = true)
-        .assertTextEquals(SAMPLE_VALID_DATE_INPUT)
-  }
-
-  @Test
-  fun eventCreationScreen_3LengthMinute_Display_Length2() {
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP1)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP2)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD)
-        .performTextInput(SAMPLE_DATE_INPUT_STEP3)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD, useUnmergedTree = true)
-        .assertTextEquals(SAMPLE_VALID_DATE_INPUT)
   }
 
   @Test
