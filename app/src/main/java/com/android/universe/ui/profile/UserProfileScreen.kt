@@ -29,7 +29,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -155,7 +154,7 @@ fun UserProfileScreen(
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding).background(Color.White)) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
           // Box that contains the decoration background.
           Box(modifier = Modifier.fillMaxWidth()) { CurvedTopHeader() }
           Column(
