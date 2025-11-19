@@ -38,7 +38,7 @@ class EventCreationViewModelTest {
     const val SAMPLE_TIME_FORMAT = "12:12"
     val SAMPLE_DATE = LocalDate.of(2030, 12, 12)
     val SAMPLE_TIME = LocalTime.of(12, 12)
-    val sample_tags = setOf(Tag.METAL, Tag.ROLE_PLAYING_GAMES, Tag.HANDBALL)
+    val sample_tags = setOf(Tag.METAL, Tag.HANDBALL)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
