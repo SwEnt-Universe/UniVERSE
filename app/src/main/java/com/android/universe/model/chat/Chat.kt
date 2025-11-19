@@ -100,6 +100,16 @@ class Chat(
     if (index != -1) _messages.removeAt(index)
   }
 
+  /**
+   * Updates the state of the last message in the chat.
+   *
+   * This function is invoked by a listener (`setLastMessageListener`) that specifically monitors
+   * changes to the chat's last message in the repository. It updates the local `_lastMessage` state
+   * with the new message, but only if the incoming message is different from the current one. This
+   * helps optimize UI recompositions by avoiding unnecessary state changes.
+   *
+   * @param message The latest [Message] object from the data source.
+   */
   private fun onLastMessageUpdated(message: Message) {
     if (_lastMessage.value != message) _lastMessage.value = message
   }

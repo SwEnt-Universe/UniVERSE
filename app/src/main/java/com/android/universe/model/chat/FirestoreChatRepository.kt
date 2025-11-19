@@ -134,6 +134,21 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
     return Chat(chatID, admin)
   }
 
+  /**
+   * Sets up a real-time listener for the last message of a specific chat.
+   *
+   * This function attaches a snapshot listener to a specific chat document in Firestore. The
+   * listener will be triggered whenever the document changes, specifically when the `lastMessage`
+   * field is updated. It automatically handles removing any previous listener for the same `chatID`
+   * to prevent duplicate listeners and potential memory leaks.
+   *
+   * This is particularly useful for displaying the latest message in a chat list view without
+   * needing to listen to the entire `messages` sub-collection.
+   *
+   * @param chatID The unique identifier of the chat to listen to.
+   * @param onLastMessageUpdated A callback function that is invoked when the `lastMessage` field of
+   *   the chat document is updated. It receives the new [Message] object.
+   */
   override fun setLastMessageListener(chatID: String, onLastMessageUpdated: (Message) -> Unit) {
     lastMessageListeners[chatID]?.remove()
     lastMessageListeners[chatID] =
@@ -144,6 +159,17 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
         }
   }
 
+  /**
+   * Removes the real-time listener for the last message of a specific chat.
+   *
+   * This function finds and detaches the [ListenerRegistration] associated with the given `chatID`
+   * that was previously set up by [setLastMessageListener]. This is essential for preventing memory
+   * leaks and unnecessary background processing when the UI component listening for the last
+   * message (e.g., a chat list item) is no longer visible or has been destroyed.
+   *
+   * @param chatID The unique identifier of the chat for which the last message listener should be
+   *   removed.
+   */
   override fun removeLastMessageListener(chatID: String) {
     lastMessageListeners.remove(chatID)?.remove()
   }
