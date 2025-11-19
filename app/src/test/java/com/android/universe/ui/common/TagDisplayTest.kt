@@ -25,10 +25,10 @@ class TagGroupTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   companion object {
-    private val READING = Tag.READING.displayName
-    private val RUNNING = Tag.RUNNING.displayName
-    private val MUSIC = Tag.MUSIC.displayName
-    private val INTERESTS = Category.INTEREST.displayName
+    private val READING = Tag.LITERATURE
+    private val RUNNING = Tag.RUNNING
+    private val MUSIC = Tag.MUSIC
+    private val TOPICS = Category.TOPIC
     private val sampleTags = listOf(READING, RUNNING, MUSIC)
 
     private const val SELECTED = "Selected"
@@ -37,10 +37,10 @@ class TagGroupTest {
   @Test
   fun displaysTitle_whenNameIsProvided() {
     composeTestRule.setContent {
-      TagGroup(name = INTERESTS, tagList = sampleTags, selectedTags = emptyList())
+      TagGroup(name = TOPICS.displayName, tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onNodeWithText(INTERESTS).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TOPICS.displayName).assertIsDisplayed()
   }
 
   @Test
@@ -49,7 +49,7 @@ class TagGroupTest {
       TagGroup(name = "", tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onAllNodesWithText(INTERESTS).assertCountEquals(0)
+    composeTestRule.onAllNodesWithText(TOPICS.displayName).assertCountEquals(0)
   }
 
   @Test
@@ -61,11 +61,11 @@ class TagGroupTest {
           name = "Test",
           tagList = sampleTags,
           selectedTags = emptyList(),
-          onTagSelect = { selectedTag = it })
+          onTagSelect = { tag -> selectedTag = tag.displayName })
     }
 
-    composeTestRule.onNodeWithText(RUNNING).performClick()
-    assertEquals(RUNNING, selectedTag)
+    composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
+    assertEquals(RUNNING.displayName, selectedTag)
   }
 
   @Test
@@ -77,11 +77,11 @@ class TagGroupTest {
           name = "Test",
           tagList = sampleTags,
           selectedTags = listOf(RUNNING),
-          onTagReSelect = { reselectedTag = it })
+          onTagReSelect = { tag -> reselectedTag = tag.displayName })
     }
 
-    composeTestRule.onNodeWithText(RUNNING).performClick()
-    assertEquals(RUNNING, reselectedTag)
+    composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
+    assertEquals(RUNNING.displayName, reselectedTag)
   }
 
   @Test
@@ -96,9 +96,9 @@ class TagGroupTest {
 
   @Test
   fun selectingAndDeselectingTag_triggersCorrectCallbacks() {
-    val selectedTags = mutableStateListOf<String>()
-    var lastSelected: String? = null
-    var lastReselected: String? = null
+    val selectedTags = mutableStateListOf<Tag>()
+    var lastSelected: Tag? = null
+    var lastReselected: Tag? = null
 
     composeTestRule.setContent {
       TagGroup(
@@ -116,12 +116,12 @@ class TagGroupTest {
     }
 
     // Select "Reading"
-    composeTestRule.onNodeWithText(READING).performClick()
+    composeTestRule.onNodeWithText(READING.displayName).performClick()
     assertEquals(READING, lastSelected)
     assertTrue(READING in selectedTags)
 
     // Deselect "Reading"
-    composeTestRule.onNodeWithText(READING).performClick()
+    composeTestRule.onNodeWithText(READING.displayName).performClick()
     assertEquals(READING, lastReselected)
     assertTrue(READING !in selectedTags)
   }

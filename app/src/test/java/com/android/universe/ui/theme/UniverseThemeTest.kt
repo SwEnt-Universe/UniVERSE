@@ -104,8 +104,8 @@ class UniverseThemeTest {
     var dark: Color? = null
 
     composeTestRule.setContent {
-      light = tagColorForTest(category = "INTEREST", isSelected = false, darkTheme = false)
-      dark = tagColorForTest(category = "INTEREST", isSelected = false, darkTheme = true)
+      light = tagColorForTest(category = "Topic", isSelected = false, darkTheme = false)
+      dark = tagColorForTest(category = "Topic", isSelected = false, darkTheme = true)
     }
 
     assertNotNull(light)
@@ -115,7 +115,8 @@ class UniverseThemeTest {
 
   @Test
   fun tagColor_returnsColorsForAllCategoriesAndStates() {
-    val categories = listOf("INTEREST", "SPORT", "MUSIC", "TRANSPORT", "CANTON", "UNKNOWN")
+    val categories =
+        listOf("Topic", "Sport", "Music", "Art", "Food", "Technology", "Games", "Travel", "Unknown")
     composeTestRule.setContent {
       categories.forEach { category ->
         val lightNormal = tagColorForTest(category, false, false)
@@ -141,8 +142,8 @@ class UniverseThemeTest {
     var selected: Color? = null
 
     composeTestRule.setContent {
-      normal = tagColorForTest(category = "SPORT", isSelected = false, darkTheme = false)
-      selected = tagColorForTest(category = "SPORT", isSelected = true, darkTheme = false)
+      normal = tagColorForTest(category = "Sport", isSelected = false, darkTheme = false)
+      selected = tagColorForTest(category = "Sport", isSelected = true, darkTheme = false)
     }
 
     assertNotNull(normal)
