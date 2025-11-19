@@ -107,7 +107,7 @@ class ChatUIViewModelTest {
   fun `loadChat failure sets uiState to Error`() =
       testScope.runTest {
         // Arrange: Stub loadChat to throw an exception
-        coEvery { ChatManager.loadChat(testChatId) } throws Exception("Network Error")
+        coEvery { ChatManager.loadChat(testChatId) } throws NoSuchElementException()
         viewModel = ChatUIViewModel(testChatId, testUserId, mockUserRepository)
 
         // Act: Run the coroutine launched in init block
