@@ -30,6 +30,9 @@ import com.android.universe.ui.theme.TagSelectedBorderDark
 import com.android.universe.ui.theme.TagSelectedBorderLight
 import com.android.universe.ui.theme.tagColor
 
+/**
+ * Contain the tag for the tests.
+ */
 object TagItemTestTag {
   const val BUTTON = "Button"
   const val TEXT = "Text"

@@ -22,6 +22,9 @@ import com.android.universe.ui.theme.LocalIsDarkTheme
 import com.android.universe.ui.theme.TagBackgroundDark
 import com.android.universe.ui.theme.TagBackgroundLight
 
+/**
+ * Contain the tag for the tests.
+ */
 object TagGroupTestTag {
   const val TOP_FADE = "top fade"
   const val BOTTOM_FADE = "Bottom fade"
