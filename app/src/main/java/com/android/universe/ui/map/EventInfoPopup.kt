@@ -32,6 +32,7 @@ import com.android.universe.ui.theme.Dimensions
 
 @Composable
 fun EventInfoPopup(
+    modifier: Modifier = Modifier,
     event: Event,
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
@@ -39,7 +40,7 @@ fun EventInfoPopup(
 ) {
   Box(
       modifier =
-          Modifier.fillMaxSize()
+          modifier.fillMaxSize()
               .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f))
               .clickable(onClick = onDismiss)
               .testTag(MapScreenTestTags.EVENT_INFO_POPUP),
