@@ -274,16 +274,16 @@ fun EventCreationScreen(
               errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DESCRIPTION),
               singleLine = false)
           Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
             Text(text = dateText)
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
             Button(
                 onClick = { showDate.value = true },
                 modifier = Modifier.testTag(EventCreationTestTags.DATE_BUTTON)) {
                   Text("Pick Date")
                 }
             if (uiState.value.dateError != null) {
-              Spacer(modifier = Modifier.width(20.dp))
+              Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
               Text(
                   text = uiState.value.dateError!!,
                   color = MaterialTheme.colorScheme.error,
@@ -301,16 +301,16 @@ fun EventCreationScreen(
                 showDate.value = false
               })
           Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
             Text(text = timeText)
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
             Button(
                 onClick = { showTime.value = true },
                 modifier = Modifier.testTag(EventCreationTestTags.TIME_BUTTON)) {
                   Text("Pick Time")
                 }
             if (uiState.value.timeError != null) {
-              Spacer(modifier = Modifier.width(20.dp))
+              Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
               Text(text = uiState.value.timeError!!, color = MaterialTheme.colorScheme.error)
             }
           }

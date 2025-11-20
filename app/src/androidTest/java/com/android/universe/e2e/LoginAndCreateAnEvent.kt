@@ -5,23 +5,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.click
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.printToLog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.FormTestTags
-import com.android.universe.ui.common.GeneralDatePopUpTestTags
 import com.android.universe.ui.event.EventScreenTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapScreenTestTags
@@ -31,13 +27,17 @@ import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.nextMonth
+import com.android.universe.utils.pressOKDate
+import com.android.universe.utils.pressOKTime
+import com.android.universe.utils.selectDay
+import com.android.universe.utils.selectHour
+import com.android.universe.utils.selectMinute
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import io.mockk.every
 import io.mockk.mockkObject
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -150,21 +150,18 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(EventCreationTestTags.DATE_BUTTON)
         .assertIsDisplayed()
         .performClick()
-    nextMonth()
-    composeTestRule
-        .onNodeWithTag(GeneralDatePopUpTestTags.DATE_PICKER, useUnmergedTree = true)
-        .printToLog("DATE_PICKER_TREE")
+    nextMonth(composeTestRule)
     composeTestRule.waitForIdle()
-    selectSampleDay()
+    selectDay(composeTestRule, FAKE_EVENT.date.toLocalDate())
     composeTestRule.waitForIdle()
-    pressOK()
+    pressOKDate(composeTestRule)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.TIME_BUTTON)
         .assertIsDisplayed()
         .performClick()
-    selectHour(FAKE_EVENT.date.hour)
-    selectMinute(FAKE_EVENT.date.minute)
-    pressOK()
+    selectHour(composeTestRule, FAKE_EVENT.date.hour)
+    selectMinute(composeTestRule, FAKE_EVENT.date.minute)
+    pressOKTime(composeTestRule)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.title)
@@ -197,92 +194,5 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onAllNodesWithTag(EventScreenTestTags.EVENT_DESCRIPTION)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.description!!)
-  }
-
-  /**
-   * Selecting an already selected hour will give an error as 2 nodes in the node tree will have the
-   * same content description.
-   *
-   * @param hour the hour to select.
-   */
-  fun selectHour(hour: Int) {
-    require(hour in 0..23)
-    composeTestRule
-        .onNode(hasContentDescription("Select hour", ignoreCase = true))
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-    composeTestRule
-        .onNode(hasContentDescription("$hour hours"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  /**
-   * Selecting an already selected minute will give an error as 2 nodes in the node tree will have
-   * the same content description.
-   *
-   * @param minute5 the minute to select, a multiple of 5.
-   */
-  fun selectMinute(minute5: Int) {
-    require(minute5 in 0..59)
-    require(minute5 % 5 == 0)
-    composeTestRule
-        .onNode(hasContentDescription("Select minutes", ignoreCase = true))
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasContentDescription("$minute5 minutes"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun nextMonth() {
-    composeTestRule
-        .onNode(hasContentDescription("Change to next month"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun previousMonth() {
-    composeTestRule
-        .onNode(hasContentDescription("Change to previous month"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun selectYear(year: Int) {
-    composeTestRule
-        .onNode(hasContentDescription("Switch to selecting a year"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-
-    composeTestRule
-        .onNodeWithText("Navigate to year $year", useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun selectSampleDay() {
-    composeTestRule
-        .onNodeWithText(
-            FAKE_EVENT.date.format(DateTimeFormatter.ofPattern("MMMM dd", Locale.ENGLISH)),
-            substring = true,
-            useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun pressOK() {
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.waitForIdle()
   }
 }

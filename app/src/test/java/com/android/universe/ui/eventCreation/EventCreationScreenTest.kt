@@ -4,7 +4,6 @@ import androidx.compose.ui.test.assertAny
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -17,9 +16,16 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
+import com.android.universe.utils.nextMonth
+import com.android.universe.utils.pressOKDate
+import com.android.universe.utils.pressOKTime
+import com.android.universe.utils.previousMonth
+import com.android.universe.utils.selectDay
+import com.android.universe.utils.selectHour
+import com.android.universe.utils.selectMinute
+import com.android.universe.utils.selectYear
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,91 +43,8 @@ class EventCreationScreenTest {
     const val SAMPLE_HOUR = 17
     const val FORMATTED_TIME = "$SAMPLE_HOUR:$SAMPLE_MINUTE"
     const val SAMPLE_YEAR = 2027
-
-    val diffYear = SAMPLE_YEAR - LocalDate.now().plusMonths(1).year
     const val SAMPLE_DAY = 17
-    val plusMonthDate = LocalDate.now().plusMonths(1).plusYears(diffYear.toLong())
-
-    val formatMonthPlus = plusMonthDate.format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH))
-  }
-
-  /**
-   * Selecting an already selected hour will give an error as 2 nodes in the node tree will have the
-   * same content description.
-   *
-   * @param hour the hour to select.
-   */
-  fun selectHour(hour: Int) {
-    require(hour in 0..23)
-    composeTestRule
-        .onNode(hasContentDescription("Select hour", ignoreCase = true))
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-    composeTestRule
-        .onNode(hasContentDescription("$hour hours"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  /**
-   * Selecting an already selected minute will give an error as 2 nodes in the node tree will have
-   * the same content description.
-   *
-   * @param minute5 the minute to select, a multiple of 5.
-   */
-  fun selectMinute(minute5: Int) {
-    require(minute5 in 0..59)
-    require(minute5 % 5 == 0)
-    composeTestRule
-        .onNode(hasContentDescription("Select minutes", ignoreCase = true))
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasContentDescription("$minute5 minutes"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun nextMonth() {
-    composeTestRule
-        .onNode(hasContentDescription("Change to next month"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun previousMonth() {
-    composeTestRule
-        .onNode(hasContentDescription("Change to previous month"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun selectYear(year: Int) {
-    composeTestRule
-        .onNode(hasContentDescription("Switch to selecting a year"), useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-
-    composeTestRule
-        .onNodeWithText("Navigate to year $year", useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  fun selectSampleDay() {
-    composeTestRule
-        .onNodeWithText(SAMPLE_DAY.toString(), substring = true, useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitForIdle()
+    val SAMPLE_DATE = LocalDate.of(SAMPLE_YEAR, LocalDate.now().month, SAMPLE_DAY)
   }
 
   @Before
@@ -213,31 +136,25 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.TIME_DIALOG).assertIsDisplayed()
     composeTestRule.waitForIdle()
 
-    selectHour(SAMPLE_HOUR)
+    selectHour(composeTestRule, SAMPLE_HOUR)
 
-    selectMinute(SAMPLE_MINUTE)
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.waitForIdle()
+    selectMinute(composeTestRule, SAMPLE_MINUTE)
+    pressOKTime(composeTestRule)
     composeTestRule.onNodeWithText(FORMATTED_TIME).assertIsDisplayed()
   }
 
   @Test
   fun eventCreationScreen_canEnterDate() {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).performClick()
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_DIALOG).assertIsDisplayed()
-    selectYear(SAMPLE_YEAR)
-    nextMonth()
+    selectYear(composeTestRule, SAMPLE_YEAR)
+    nextMonth(composeTestRule)
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("$formatMonthPlus $SAMPLE_DAY", substring = true, useUnmergedTree = true)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("$SAMPLE_DAY/${plusMonthDate.month.value}/${plusMonthDate.year}")
-        .assertIsDisplayed()
+    selectDay(composeTestRule, SAMPLE_DATE.plusMonths(1))
+    pressOKDate(composeTestRule)
+    composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE.plusMonths(1))).assertIsDisplayed()
   }
 
   @Test
@@ -245,12 +162,11 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).performClick()
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_DIALOG).assertIsDisplayed()
-    previousMonth()
+    previousMonth(composeTestRule)
     composeTestRule.waitForIdle()
-    selectSampleDay()
+    selectDay(composeTestRule, SAMPLE_DATE.minusMonths(1))
 
-    composeTestRule.onNodeWithText("OK").performClick()
-    composeTestRule.waitForIdle()
+    pressOKDate(composeTestRule)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.ERROR_DATE, useUnmergedTree = true)
         .assertIsDisplayed()
