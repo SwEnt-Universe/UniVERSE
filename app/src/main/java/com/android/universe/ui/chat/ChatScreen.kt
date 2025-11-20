@@ -51,6 +51,7 @@ object ChatScreenTestTags {
 @Composable
 fun ChatScreen(
     chatID: String,
+    chatName: String = "",
     userID: String = "",
     onTabSelected: (Tab) -> Unit,
     onBack: () -> Unit = {},
@@ -61,8 +62,7 @@ fun ChatScreen(
   ScreenLayout(
       topBar = {
         LiquidTopBar(
-            title = { TopBarTitle(text = "ChatNameABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") },
-            navigationIcon = { TopBarBackButton(onBack) })
+            title = { TopBarTitle(text = chatName) }, navigationIcon = { TopBarBackButton(onBack) })
       },
       bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) }) { paddingValues ->
         Column(
