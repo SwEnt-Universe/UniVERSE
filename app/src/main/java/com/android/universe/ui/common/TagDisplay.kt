@@ -25,18 +25,18 @@ import com.android.universe.ui.theme.TagBackgroundLight
 
 /** Contain the tag for the tests. */
 object TagGroupTestTag {
-  const val TOP_FADE = "top fade"
-  const val BOTTOM_FADE = "Bottom fade"
+    const val TOP_FADE = "top fade"
+    const val BOTTOM_FADE = "Bottom fade"
 }
 
 /** Contain the dimensions used specially in this composable. */
 object TagGroupDefaults {
-  val DefaultHeight = 250.dp
-  val DefaultOuterPaddingH = 8.dp
-  val DefaultOuterPaddingV = 12.dp
-  val DefaultInterPaddingH = 8.dp
-  val DefaultInterPaddingV = 4.dp
-  val CornerShapeDp = 16.dp
+    val DefaultHeight = 250.dp
+    val DefaultOuterPaddingH = 8.dp
+    val DefaultOuterPaddingV = 12.dp
+    val DefaultInterPaddingH = 8.dp
+    val DefaultInterPaddingV = 4.dp
+    val CornerShapeDp = 16.dp
 }
 
 /**
@@ -95,69 +95,71 @@ fun TagGroup(
     displayText: Boolean = true,
     tagElement: ((Tag) -> String)? = null
 ) {
-  val isDark = LocalIsDarkTheme.current
-  val backGround =
-      (if (isDark) {
-        TagBackgroundDark
-      } else {
-        TagBackgroundLight
-      })
-  Column(
-      modifier =
-          modifierColumn
-              .padding(horizontal = outerPaddingH, vertical = outerPaddingV)
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(TagGroupDefaults.CornerShapeDp))
-              .background(backGround)) {
+    val isDark = LocalIsDarkTheme.current
+    val backGround =
+        (if (isDark) {
+            TagBackgroundDark
+        } else {
+            TagBackgroundLight
+        })
+    Column(
+        modifier =
+            modifierColumn
+                .padding(horizontal = outerPaddingH, vertical = outerPaddingV)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(TagGroupDefaults.CornerShapeDp))
+                .background(backGround)) {
         if (displayText) {
-          Text(
-              name,
-              style = MaterialTheme.typography.titleMedium,
-              modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
+            Text(
+                name,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
         }
         Box(modifier = Modifier.fillMaxWidth().height(height)) {
-          FlowRow(
-              modifier =
-                  modifierFlowRow
-                      .padding(horizontal = interPaddingH, vertical = interPaddingV)
-                      .fillMaxWidth()
-                      .verticalScroll(rememberScrollState()),
-              horizontalArrangement = Arrangement.Center) {
+            FlowRow(
+                modifier =
+                    modifierFlowRow
+                        .padding(horizontal = interPaddingH, vertical = interPaddingV)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.Center) {
                 tagList.forEach { tag ->
-                  TagItem(
-                      tag = tag,
-                      heightTag = heightTag,
-                      isSelectable = isSelectable,
-                      isAlreadySelected = selectedTags.contains(tag),
-                      onSelect = { tag -> onTagSelect(tag) },
-                      onDeSelect = { tag -> onTagReSelect(tag) },
-                      modifier =
-                          Modifier.padding(Dimensions.PaddingMedium)
-                              .then(
-                                  if (tagElement != null) Modifier.testTag(tagElement(tag))
-                                  else Modifier))
+                    TagItem(
+                        tag = tag,
+                        heightTag = heightTag,
+                        isSelectable = isSelectable,
+                        isSelected = selectedTags.contains(tag),
+                        onSelect = { tag -> onTagSelect(tag) },
+                        onDeSelect = { tag -> onTagReSelect(tag) },
+                        modifier =
+                            Modifier.padding(Dimensions.PaddingMedium)
+                                .then(
+                                    if (tagElement != null) Modifier.testTag(tagElement(tag))
+                                    else Modifier))
                 }
-              }
-          // Top fade
-          Box(
-              modifier =
-                  Modifier.testTag(TagGroupTestTag.TOP_FADE)
-                      .fillMaxWidth()
-                      .height(height * 0.1f)
-                      .background(
-                          Brush.verticalGradient(
-                              colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent))))
+            }
+            // Top fade
+            Box(
+                modifier =
+                    Modifier.testTag(TagGroupTestTag.TOP_FADE)
+                        .fillMaxWidth()
+                        .height(height * 0.1f)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent))))
 
-          // Bottom fade
-          Box(
-              modifier =
-                  Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
-                      .fillMaxWidth()
-                      .height(height * 0.1f)
-                      .align(Alignment.BottomCenter)
-                      .background(
-                          Brush.verticalGradient(
-                              colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f)))))
+            // Bottom fade
+            Box(
+                modifier =
+                    Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
+                        .fillMaxWidth()
+                        .height(height * 0.1f)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f)))))
         }
-      }
+    }
 }
+
+
