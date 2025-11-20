@@ -3,6 +3,7 @@ package com.android.universe.model.chat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleChat
 import com.android.universe.model.chat.Utils.getNewSampleChatID
+import com.android.universe.model.chat.Utils.getNewSampleMessage
 import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
@@ -25,6 +26,7 @@ class ChatTest {
   fun setup() {
     mockRepository = mockk<ChatRepository>(relaxed = true)
     every { mockRepository.setMessageListener(any(), any(), any(), any()) } returns Unit
+    every { mockRepository.setLastMessageListener(any(), any()) } returns Unit
     every { mockRepository.removeMessageListener(any()) } returns Unit
   }
 
@@ -110,5 +112,27 @@ class ChatTest {
     chat.clearListeners()
 
     verify { mockRepository.removeMessageListener(chat.chatID) }
+  }
+
+  @Test
+  fun `onLastMessageUpdated updates lastMessage state and avoids unnecessary updates`() {
+    val lastMessageSlot = slot<(Message) -> Unit>()
+    val chatID = getNewSampleChatID()
+    val initialMessage = getNewSampleMessage()
+    val newMessage = getNewSampleMessage()
+
+    every { mockRepository.setLastMessageListener(chatID, capture(lastMessageSlot)) } returns Unit
+
+    val chat = getNewSampleChat(chatID, mockRepository)
+
+    // 3. Manually set the initial state (the repository listener fires the callback)
+    lastMessageSlot.captured.invoke(initialMessage)
+    assertEquals(initialMessage, chat.lastMessage.value)
+
+    lastMessageSlot.captured.invoke(newMessage)
+    assertEquals(newMessage, chat.lastMessage.value)
+
+    lastMessageSlot.captured.invoke(newMessage)
+    assertEquals(newMessage, chat.lastMessage.value)
   }
 }
