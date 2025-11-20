@@ -49,7 +49,10 @@ fun SearchBar(
 		),
 		modifier = modifier
 			.fillMaxWidth()
-			.padding(top = 12.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+			.padding(
+				top = 48.dp,
+				bottom = 0.dp,
+			)
 			.testTag(SearchTestTags.SEARCH_BAR)
 	)
 }
