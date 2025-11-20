@@ -3,6 +3,7 @@ package com.android.universe.model.chat
 import android.os.Looper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.chat.Utils.getNewSampleChatID
+import com.android.universe.model.chat.Utils.getNewSampleMessage
 import com.android.universe.utils.FirestoreChatTest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -137,5 +138,86 @@ class FirestoreChatRepositoryTest : FirestoreChatTest() {
     } catch (e: NoSuchElementException) {
       assertEquals("Chat not found", e.message)
     }
+  }
+
+  @Test
+  fun `setLastMessageListener receives updates when lastMessage field changes`() = runBlocking {
+    val chatID = getNewSampleChatID()
+    val admin = "adminUser"
+    val message = getNewSampleMessage()
+
+    chatRepository.createChat(chatID, admin)
+
+    var lastMessage: Message? = null
+
+    chatRepository.setLastMessageListener(chatID, onLastMessageUpdated = { lastMessage = it })
+
+    shadowOf(Looper.getMainLooper()).idle()
+    chatRepository.sendMessage(chatID, message)
+    shadowOf(Looper.getMainLooper()).idle()
+
+    assertNotNull(lastMessage)
+    assertEquals(message.message, lastMessage?.message)
+    assertEquals(message.senderID, lastMessage?.senderID)
+
+    chatRepository.removeLastMessageListener(chatID)
+  }
+
+  @Test
+  fun `removeLastMessageListener stops receiving lastMessage updates`() = runBlocking {
+    val chatID = getNewSampleChatID()
+    val admin = "adminUserForRemoval"
+    val initialMessage = Message(senderID = "system", message = "Chat created")
+    val firstUpdate = Message(senderID = "user5", message = "Update 1")
+    val secondUpdate = Message(senderID = "user5", message = "Update 2 - Should be ignored")
+
+    // 1. Manually create the chat with an initial lastMessage field
+    emulator.firestore
+        .collection(COLLECTION_NAME)
+        .document(chatID)
+        .set(mapOf("admin" to admin, "lastMessage" to initialMessage))
+        .await()
+
+    val receivedUpdates = mutableListOf<Message>()
+
+    // 2. Set the listener
+    chatRepository.setLastMessageListener(
+        chatID, onLastMessageUpdated = { receivedUpdates.add(it) })
+
+    // 3. First update: should be received
+    emulator.firestore
+        .collection(COLLECTION_NAME)
+        .document(chatID)
+        .update("lastMessage", firstUpdate)
+        .await()
+    shadowOf(Looper.getMainLooper()).idle()
+
+    // Give it a short moment to ensure the first update is processed
+    withTimeout(1000) {
+      while (receivedUpdates.size <
+          2) { // Should receive initial (once the listener is set) + first update
+        kotlinx.coroutines.delay(100)
+      }
+    }
+
+    // 4. Remove the listener
+    chatRepository.removeLastMessageListener(chatID)
+
+    // 5. Second update: should NOT be received
+    emulator.firestore
+        .collection(COLLECTION_NAME)
+        .document(chatID)
+        .update("lastMessage", secondUpdate)
+        .await()
+    shadowOf(Looper.getMainLooper()).idle() // Process looper again
+
+    // Wait a short duration to be sure no unexpected update came through
+    kotlinx.coroutines.delay(500)
+
+    // Initial state + First update = 2 calls
+    assertEquals(2, receivedUpdates.size)
+
+    // Verify the *last* received message is the first update
+    assertEquals(firstUpdate.message, receivedUpdates.last().message)
   }
 }

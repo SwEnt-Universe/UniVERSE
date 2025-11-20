@@ -32,6 +32,8 @@ class Chat(
         onMessageAdded = { onMessageAdded(it) },
         onMessageUpdated = { onMessageUpdated(it) },
         onMessageDeleted = { onMessageDeleted(it) })
+    chatRepository.setLastMessageListener(
+        chatID, onLastMessageUpdated = { onLastMessageUpdated(it) })
   }
 
   /**
@@ -99,6 +101,20 @@ class Chat(
   }
 
   /**
+   * Updates the state of the last message in the chat.
+   *
+   * This function is invoked by a listener (`setLastMessageListener`) that specifically monitors
+   * changes to the chat's last message in the repository. It updates the local `_lastMessage` state
+   * with the new message, but only if the incoming message is different from the current one. This
+   * helps optimize UI recompositions by avoiding unnecessary state changes.
+   *
+   * @param message The latest [Message] object from the data source.
+   */
+  private fun onLastMessageUpdated(message: Message) {
+    if (_lastMessage.value != message) _lastMessage.value = message
+  }
+
+  /**
    * Asynchronously sends a new message to this chat.
    *
    * This function delegates the sending operation to the `ChatRepository`, which handles the
@@ -117,5 +133,6 @@ class Chat(
    */
   fun clearListeners() {
     chatRepository.removeMessageListener(chatID)
+    chatRepository.removeLastMessageListener(chatID)
   }
 }

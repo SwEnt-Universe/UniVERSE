@@ -1,6 +1,8 @@
 package com.android.universe.model.chat
 
 import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * Represents a single chat message within the application.
@@ -19,4 +21,19 @@ data class Message(
     val senderID: String = "",
     val message: String = "",
     val timestamp: Timestamp = Timestamp.now()
-)
+) {
+
+  /**
+   * Formats the message's timestamp into a human-readable time string.
+   *
+   * This function takes the `timestamp` property of the message, which is a Firebase [Timestamp],
+   * and converts it into a string representing the time in "HH:mm" (24-hour) format, respecting the
+   * user's default locale for formatting conventions.
+   *
+   * @return A string representation of the time the message was sent, e.g., "14:32".
+   */
+  fun getDisplayTime(): String {
+    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return formatter.format(timestamp.toDate())
+  }
+}
