@@ -10,6 +10,8 @@ import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
@@ -213,4 +215,20 @@ class EventViewModelTest {
     val filtered = viewModel.filteredEvents.value
     assertEquals(0, filtered.size)
   }
+
+  @Test
+  fun filteredEvents_returnsAllEvents_whenQueryBlank() = runTest {
+    val collected = mutableListOf<List<EventUIState>>()
+    val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+      viewModel.filteredEvents.collect { collected.add(it) }
+    }
+
+    advanceUntilIdle()
+    viewModel.updateSearchQuery("")
+    advanceUntilIdle()
+
+    assertEquals(2, collected.last().size)
+    job.cancel()
+  }
+
 }
