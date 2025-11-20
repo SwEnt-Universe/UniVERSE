@@ -219,9 +219,10 @@ class EventViewModelTest {
   @Test
   fun filteredEvents_returnsAllEvents_whenQueryBlank() = runTest {
     val collected = mutableListOf<List<EventUIState>>()
-    val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-      viewModel.filteredEvents.collect { collected.add(it) }
-    }
+    val job =
+        launch(UnconfinedTestDispatcher(testScheduler)) {
+          viewModel.filteredEvents.collect { collected.add(it) }
+        }
 
     advanceUntilIdle()
     viewModel.updateSearchQuery("")
@@ -230,5 +231,4 @@ class EventViewModelTest {
     assertEquals(2, collected.last().size)
     job.cancel()
   }
-
 }

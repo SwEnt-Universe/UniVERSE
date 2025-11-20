@@ -275,7 +275,11 @@ class EventViewModel(
     return "${user.firstName} ${user.lastName}"
   }
 
-  val searchQuery = MutableStateFlow("")
+  // private mutable flow
+  private val _searchQuery = MutableStateFlow("")
+
+  // public immutable flow
+  val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
   /**
    * Updates the current search query used by the event filtering algorithm.
@@ -287,11 +291,11 @@ class EventViewModel(
    * @param query The latest text input from the search bar.
    */
   fun updateSearchQuery(query: String) {
-    searchQuery.value = query
+    _searchQuery.value = query
   }
 
   val filteredEvents: StateFlow<List<EventUIState>> =
-      combine(eventsState, searchQuery) { events, query ->
+      combine(eventsState, _searchQuery) { events, query ->
             if (query.isBlank()) events
             else
                 events.filter { event ->
