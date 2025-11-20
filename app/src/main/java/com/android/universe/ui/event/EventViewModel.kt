@@ -280,9 +280,9 @@ class EventViewModel(
   /**
    * Updates the current search query used by the event filtering algorithm.
    *
-   * This function is called whenever the user types into the `SearchBar` component.
-   * It updates the `searchQuery` `MutableStateFlow`, which triggers recomposition and
-   * automatically refreshes the filtered event list inside the ViewModel.
+   * This function is called whenever the user types into the `SearchBar` component. It updates the
+   * `searchQuery` `MutableStateFlow`, which triggers recomposition and automatically refreshes the
+   * filtered event list inside the ViewModel.
    *
    * @param query The latest text input from the search bar.
    */
