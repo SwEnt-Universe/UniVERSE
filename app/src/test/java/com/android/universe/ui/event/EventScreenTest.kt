@@ -75,27 +75,36 @@ class EventScreenTest {
   @Test
   fun displayAllCoreComponents() = runTest {
     // LazyColumn list is displayed
-    composeTestRule.onNodeWithTag(EventScreenTestTags.EVENTS_LIST, useUnmergedTree = true)
-      .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EventScreenTestTags.EVENTS_LIST, useUnmergedTree = true)
+        .assertIsDisplayed()
 
     // There should be at least one event card: fetch semantics nodes and assert non-empty
-    val cards = composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_CARD, useUnmergedTree = true)
+    val cards =
+        composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_CARD, useUnmergedTree = true)
     assertTrue(cards.fetchSemanticsNodes().isNotEmpty())
 
     // Check that the first card's main parts are present (query by the first occurrence)
-    composeTestRule.onNodeWithTag(EventScreenTestTags.EVENTS_LIST, useUnmergedTree = true)
+    composeTestRule
+        .onNodeWithTag(EventScreenTestTags.EVENTS_LIST, useUnmergedTree = true)
+        .performScrollToNode(hasTestTag(EventScreenTestTags.EVENT_TITLE))
 
-      .performScrollToNode(hasTestTag(EventScreenTestTags.EVENT_TITLE))
-
-    composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TITLE, useUnmergedTree = true)
-      .onFirst()
-      .assertIsDisplayed()
+    composeTestRule
+        .onAllNodesWithTag(EventScreenTestTags.EVENT_TITLE, useUnmergedTree = true)
+        .onFirst()
+        .assertIsDisplayed()
     composeTestRule
         .onAllNodesWithTag(EventScreenTestTags.EVENT_DESCRIPTION, useUnmergedTree = true)
         .onFirst()
         .assertIsDisplayed()
-    composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_DATE, useUnmergedTree = true).onFirst().assertIsDisplayed()
-    composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_IMAGE, useUnmergedTree = true).onFirst().assertIsDisplayed()
+    composeTestRule
+        .onAllNodesWithTag(EventScreenTestTags.EVENT_DATE, useUnmergedTree = true)
+        .onFirst()
+        .assertIsDisplayed()
+    composeTestRule
+        .onAllNodesWithTag(EventScreenTestTags.EVENT_IMAGE, useUnmergedTree = true)
+        .onFirst()
+        .assertIsDisplayed()
     composeTestRule
         .onAllNodesWithTag(EventScreenTestTags.EVENT_CREATOR_PARTICIPANTS, useUnmergedTree = true)
         .onFirst()
@@ -109,7 +118,8 @@ class EventScreenTest {
   @Test
   fun tagsAreDisplayedInEachEventCard() = runTest {
     // Get all tag nodes and assert there is at least one tag shown anywhere
-    val tags = composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG, useUnmergedTree = true)
+    val tags =
+        composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG, useUnmergedTree = true)
     assertTrue(tags.fetchSemanticsNodes().isNotEmpty())
   }
 
@@ -129,7 +139,8 @@ class EventScreenTest {
           .isNotEmpty()
     }
     // Now fetch all tag nodes that belong to the UI.
-    val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG, useUnmergedTree = true)
+    val tagNodes =
+        composeTestRule.onAllNodesWithTag(EventScreenTestTags.EVENT_TAG, useUnmergedTree = true)
     val totalReachableTags = tagNodes.fetchSemanticsNodes().size
     var totalVisibleTags = 0
     for (i in 0 until totalReachableTags) {
@@ -155,12 +166,14 @@ class EventScreenTest {
     advanceUntilIdle()
     composeTestRule
         .onNodeWithTag(EventScreenTestTags.EVENTS_LIST, useUnmergedTree = true)
-      .performScrollToNode(hasTestTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE))
+        .performScrollToNode(hasTestTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE))
     composeTestRule
         .onAllNodesWithTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE, useUnmergedTree = true)
         .onFirst()
         .assertIsDisplayed()
-    val tagNodes = composeTestRule.onAllNodesWithTag(EventScreenTestTags.DEFAULT_EVENT_IMAGE, useUnmergedTree = true)
+    val tagNodes =
+        composeTestRule.onAllNodesWithTag(
+            EventScreenTestTags.DEFAULT_EVENT_IMAGE, useUnmergedTree = true)
     val totalReachableTags = tagNodes.fetchSemanticsNodes().size
     assertTrue("$ONE_ICON_IMAGE_MESSAGE $totalReachableTags", totalReachableTags == 1)
   }

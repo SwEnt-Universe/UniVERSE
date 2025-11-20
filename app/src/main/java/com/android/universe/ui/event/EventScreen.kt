@@ -128,40 +128,37 @@ fun EventScreen(
   val focusManager = LocalFocusManager.current
 
   Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(horizontal = PaddingMedium)
-      .testTag(NavigationTestTags.EVENT_SCREEN)
-      .clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }
-      ) {
-        focusManager.clearFocus()
-      }
-  ) {
-    SearchBar(
-        query = viewModel.searchQuery.collectAsState().value,
-        onQueryChange = viewModel::updateSearchQuery,
-        modifier = Modifier.padding(PaddingMedium).testTag(SearchTestTags.SEARCH_BAR))
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(horizontal = PaddingMedium)
+              .testTag(NavigationTestTags.EVENT_SCREEN)
+              .clickable(
+                  indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                    focusManager.clearFocus()
+                  }) {
+        SearchBar(
+            query = viewModel.searchQuery.collectAsState().value,
+            onQueryChange = viewModel::updateSearchQuery,
+            modifier = Modifier.padding(PaddingMedium).testTag(SearchTestTags.SEARCH_BAR))
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
-        verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-          items(events) { event ->
-            EventCard(
-                title = event.title,
-                description = event.description,
-                date = event.date,
-                tags = event.tags,
-                creator = event.creator,
-                participants = event.participants,
-                onJoin = viewModel::joinOrLeaveEvent,
-                index = event.index,
-                joined = event.joined,
-                eventImage = event.eventPicture)
-          }
-        }
-  }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
+            verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
+              items(events) { event ->
+                EventCard(
+                    title = event.title,
+                    description = event.description,
+                    date = event.date,
+                    tags = event.tags,
+                    creator = event.creator,
+                    participants = event.participants,
+                    onJoin = viewModel::joinOrLeaveEvent,
+                    index = event.index,
+                    joined = event.joined,
+                    eventImage = event.eventPicture)
+              }
+            }
+      }
 }
 
 /**
