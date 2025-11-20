@@ -8,6 +8,7 @@ import com.android.universe.model.chat.Utils.getNewSampleMessage
 import com.android.universe.ui.chat.composable.ChatUIViewModel
 import com.android.universe.ui.chat.composable.MessageList
 import com.android.universe.ui.chat.composable.MessageListTestTags
+import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -55,7 +56,7 @@ class MessageListUiTest {
       every { mockViewModel.getUserName(message.senderID) } returns userFlow
     }
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       MessageList(
           userID = userId,
           messages = messages,

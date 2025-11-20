@@ -63,7 +63,7 @@ object ChatListScreenTestTags {
 fun ChatListScreen(
     userID: String,
     onTabSelected: (Tab) -> Unit,
-    onChatSelected: (String) -> Unit,
+    onChatSelected: (chatID: String, chatName: String) -> Unit,
     vm: ChatListViewModel = viewModel { ChatListViewModel(userID = userID) }
 ) {
   val chatPreviews by vm.chatPreviews.collectAsState()
@@ -102,7 +102,10 @@ fun ChatListScreen(
  *   clicked.
  */
 @Composable
-fun ChatPreviewItem(chatPreview: ChatPreview, onChatSelected: (String) -> Unit) {
+fun ChatPreviewItem(
+    chatPreview: ChatPreview,
+    onChatSelected: (chatID: String, chatName: String) -> Unit
+) {
   val nodeTestTag = CHAT_ITEM_PREFIX + chatPreview.chatID
   Row(
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -112,7 +115,7 @@ fun ChatPreviewItem(chatPreview: ChatPreview, onChatSelected: (String) -> Unit) 
               .background(
                   MaterialTheme.colorScheme.surface, RoundedCornerShape(Dimensions.RoundedCorner))
               .padding(horizontal = Dimensions.PaddingSmall, vertical = Dimensions.PaddingSmall)
-              .clickable { onChatSelected(chatPreview.chatID) }
+              .clickable { onChatSelected(chatPreview.chatID, chatPreview.chatName) }
               // Add the test tag to the clickable Row, using chatID for uniqueness
               .testTag(nodeTestTag)) {
         Column(modifier = Modifier.weight(1f)) {
