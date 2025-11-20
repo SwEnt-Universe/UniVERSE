@@ -19,6 +19,21 @@ object SearchTestTags {
   const val SEARCH_BAR = "search_bar"
 }
 
+/**
+ * A reusable search bar component
+ *
+ * ## Features
+ * - Displays an `OutlinedTextField` with a search icon and placeholder text.
+ * - Accepts user input and reports changes via [onQueryChange].
+ * - Single-line field to keep search compact.
+ * - Automatically expands to full width and adds top padding to avoid overlap with status bar.
+ * - Exposes a test tag ([SearchTestTags.SEARCH_BAR]) for UI testing.
+ *
+ * @param query The current text value displayed inside the search bar.
+ * @param onQueryChange Callback invoked whenever the user types or clears text.
+ * @param modifier Optional modifier for external layout and positioning.
+ * @param placeholder Placeholder text shown when the field is empty.
+ */
 @Composable
 fun SearchBar(
     query: String,
