@@ -1,6 +1,8 @@
 package com.android.universe.ui.components
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -64,5 +66,30 @@ class LiquidTopBarTest {
         .onNodeWithTag(TopBarTestTags.TOP_BAR_TITLE)
         .assertIsDisplayed()
         .assertTextEquals(titleText)
+  }
+
+  @Test
+  fun liquidTopBar_andChildren_respectInjectedModifiers() {
+    var clicked = false
+
+    val backButtonTag = "BackButtonTag"
+    val titleTag = "TitleTag"
+
+    composeTestRule.setContentWithStubBackdrop {
+      MaterialTheme {
+        LiquidTopBar(
+            navigationIcon = {
+              TopBarBackButton(
+                  onClick = { clicked = true }, modifier = Modifier.testTag(backButtonTag))
+            },
+            title = { TopBarTitle(text = "Hello Liquid", modifier = Modifier.testTag(titleTag)) })
+      }
+    }
+
+    // Verify children inside LiquidBox
+    composeTestRule.onNodeWithTag(backButtonTag).assertIsDisplayed().performClick()
+    assertTrue(clicked)
+
+    composeTestRule.onNodeWithTag(titleTag).assertIsDisplayed()
   }
 }
