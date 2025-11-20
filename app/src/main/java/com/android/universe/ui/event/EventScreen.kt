@@ -1,5 +1,7 @@
 package com.android.universe.ui.event
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,15 +15,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.ui.common.EventCard
+import com.android.universe.di.DefaultDP
+import com.android.universe.ui.common.EventContentLayout
+import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.CardShape
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
+import kotlinx.coroutines.withContext
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -72,19 +79,33 @@ fun EventScreen(
         contentPadding = PaddingValues(PaddingMedium),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
           items(events) { event ->
-            EventCard(
-                title = event.title,
-                description = event.description,
-                date = event.date,
-                tags = emptyList(),
-                participants = event.participants,
-                eventImage = event.eventPicture,
-                isUserParticipant = event.joined,
-                onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
-                onChatClick = { /* TODO: Implement chat navigation */ },
-                onLocationClick = { /* TODO: Implement map navigation */ },
-                isMapScreen = false,
-                modifier = Modifier.fillMaxWidth())
+            val bitmap =
+                produceState<Bitmap?>(initialValue = null, event.eventPicture) {
+                      value =
+                          if (event.eventPicture != null) {
+                            withContext(DefaultDP.io) {
+                              BitmapFactory.decodeByteArray(
+                                  event.eventPicture, 0, event.eventPicture.size)
+                            }
+                          } else {
+                            null
+                          }
+                    }
+                    .value
+            LiquidBox(shape = CardShape) {
+              EventContentLayout(
+                  title = event.title,
+                  description = event.description,
+                  date = event.date,
+                  tags = emptyList(),
+                  participants = event.participants,
+                  eventBitmap = bitmap,
+                  isUserParticipant = event.joined,
+                  onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
+                  onChatClick = { /* TODO: Implement chat navigation */ },
+                  onLocationClick = { /* TODO: Implement map navigation */ },
+                  modifier = Modifier.fillMaxWidth())
+            }
           }
         }
   }
