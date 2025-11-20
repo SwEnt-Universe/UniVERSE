@@ -18,6 +18,10 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.ui.theme.Dimensions
 import androidx.compose.ui.platform.testTag
 
+object SearchTestTags {
+	const val SEARCH_BAR = "search_bar"
+}
+
 @Composable
 fun SearchBar(
 	query: String,
