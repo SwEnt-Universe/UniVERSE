@@ -124,7 +124,7 @@ class EventViewModelTest {
     assertEquals("Morning Run at the Lake", firstEvent.title)
     assertEquals(
         "Join us for a casual 5km run around the lake followed by coffee.", firstEvent.description)
-    assertEquals("15 Oct 07:30 AM", firstEvent.date)
+    assertEquals(LocalDateTime.of(2025, 10, 15, 7, 30), firstEvent.date)
     assertEquals(listOf("Sculpture", "Country"), firstEvent.tags)
     assertEquals("Alice Smith", firstEvent.creator)
     assertEquals(2, firstEvent.participants)

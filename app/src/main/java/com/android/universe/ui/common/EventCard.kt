@@ -1,4 +1,4 @@
-package com.android.universe.ui.components
+package com.android.universe.ui.common
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -42,14 +42,31 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.CardShape
 import com.android.universe.ui.theme.Dimensions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.withContext
 
+object EventCardTestTags {
+  const val EVENT_CARD = "event_card"
+  const val EVENT_IMAGE_CONTAINER = "event_image_container"
+  const val DEFAULT_EVENT_IMAGE = "default_event_image"
+  const val EVENT_IMAGE = "event_image"
+  const val EVENT_LOCATION_BUTTON = "event_location_button"
+  const val EVENT_TITLE = "event_title"
+  const val EVENT_DATE = "event_date"
+  const val EVENT_TIME = "event_time"
+  const val EVENT_DESCRIPTION = "event_description"
+  const val EVENT_PARTICIPANTS = "event_participants"
+  const val PARTICIPATION_BUTTON = "event_participation_button"
+  const val CHAT_BUTTON = "event_chat_button"
+}
+
 @Composable
-fun LiquidEventCard(
+fun EventCard(
     modifier: Modifier = Modifier,
     title: String,
     description: String? = null,
@@ -63,7 +80,7 @@ fun LiquidEventCard(
     onLocationClick: () -> Unit,
     isMapScreen: Boolean = false
 ) {
-  LiquidBox(modifier = modifier.testTag("LiquidEventCard"), shape = CardShape) {
+  LiquidBox(modifier = modifier.testTag(EventCardTestTags.EVENT_CARD), shape = CardShape) {
     Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
       Box(modifier = Modifier.fillMaxWidth()) {
         val bitmap =
@@ -84,19 +101,21 @@ fun LiquidEventCard(
                 Modifier.fillMaxWidth(2f / 3f)
                     .height(Dimensions.EventCardImageHeight)
                     .align(Alignment.TopStart)
-                    .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))) {
+                    .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
+                    .testTag(EventCardTestTags.EVENT_IMAGE_CONTAINER)) {
               if (bitmap == null) {
                 Image(
                     painter = painterResource(id = R.drawable.default_event_img),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize())
+                    modifier =
+                        Modifier.matchParentSize().testTag(EventCardTestTags.DEFAULT_EVENT_IMAGE))
               } else {
                 Image(
                     bitmap = bitmap.asImageBitmap(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize())
+                    modifier = Modifier.matchParentSize().testTag(EventCardTestTags.EVENT_IMAGE))
               }
 
               if (!isMapScreen) {
@@ -107,7 +126,8 @@ fun LiquidEventCard(
                             .size(70.dp)
                             .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.4f))
-                            .clickable { onLocationClick() },
+                            .clickable { onLocationClick() }
+                            .testTag(EventCardTestTags.EVENT_LOCATION_BUTTON),
                     contentAlignment = Alignment.Center) {
                       Icon(
                           imageVector = Icons.Filled.LocationOn,
@@ -130,7 +150,8 @@ fun LiquidEventCard(
                           style = MaterialTheme.typography.titleLarge,
                           color = Color.White,
                           maxLines = 1,
-                          overflow = TextOverflow.Ellipsis)
+                          overflow = TextOverflow.Ellipsis,
+                          modifier = Modifier.testTag(EventCardTestTags.EVENT_TITLE))
                       Spacer(Modifier.height(Dimensions.SpacerSmall))
                       Row(
                           verticalAlignment = Alignment.CenterVertically,
@@ -138,18 +159,21 @@ fun LiquidEventCard(
                             Text(
                                 text = date.format(DateTimeFormatter.ofPattern("dd/MMM/yyyy")),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White)
+                                color = Color.White,
+                                modifier = Modifier.testTag(EventCardTestTags.EVENT_DATE))
                             Spacer(Modifier.width(Dimensions.SpacerSmall))
                             Icon(
                                 imageVector = Icons.Outlined.StarBorder,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(Dimensions.IconSizeSmall))
+                                modifier = Modifier.size(Dimensions.IconSizeSmall),
+                            )
                             Spacer(Modifier.width(Dimensions.SpacerSmall))
                             Text(
                                 text = date.format(DateTimeFormatter.ofPattern("hh:mm")),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White)
+                                color = Color.White,
+                                modifier = Modifier.testTag(EventCardTestTags.EVENT_TIME))
                           })
                     }
                   }
@@ -162,7 +186,8 @@ fun LiquidEventCard(
           text = description ?: "No description available",
           style = MaterialTheme.typography.bodyMedium,
           maxLines = 3,
-          overflow = TextOverflow.Ellipsis)
+          overflow = TextOverflow.Ellipsis,
+          modifier = Modifier.testTag(EventCardTestTags.EVENT_DESCRIPTION))
 
       Spacer(Modifier.height(Dimensions.SpacerMedium))
 
@@ -175,7 +200,8 @@ fun LiquidEventCard(
             LiquidButton(
                 onClick = onChatClick,
                 height = Dimensions.EventCardButtonHeight,
-                width = Dimensions.EventCardButtonWidth) {
+                width = Dimensions.EventCardButtonWidth,
+                modifier = Modifier.testTag(EventCardTestTags.CHAT_BUTTON)) {
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Chat,
@@ -186,19 +212,24 @@ fun LiquidEventCard(
                   }
                 }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(
-                  imageVector = Icons.Outlined.Person,
-                  contentDescription = "Participants",
-                  modifier = Modifier.size(Dimensions.IconSizeMedium))
-              Spacer(Modifier.width(Dimensions.SpacerSmall))
-              Text(text = "$participants people going", style = MaterialTheme.typography.bodyMedium)
-            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.testTag(EventCardTestTags.EVENT_PARTICIPANTS)) {
+                  Icon(
+                      imageVector = Icons.Outlined.Person,
+                      contentDescription = "Participants",
+                      modifier = Modifier.size(Dimensions.IconSizeMedium))
+                  Spacer(Modifier.width(Dimensions.SpacerSmall))
+                  Text(
+                      text = "$participants people going",
+                      style = MaterialTheme.typography.bodyMedium)
+                }
 
             LiquidButton(
                 onClick = onToggleEventParticipation,
                 height = Dimensions.EventCardButtonHeight,
-                width = Dimensions.EventCardButtonWidth) {
+                width = Dimensions.EventCardButtonWidth,
+                modifier = Modifier.testTag(EventCardTestTags.PARTICIPATION_BUTTON)) {
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector =

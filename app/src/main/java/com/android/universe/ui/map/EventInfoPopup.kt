@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.universe.model.event.Event
-import com.android.universe.ui.components.LiquidEventCard
+import com.android.universe.ui.common.EventCard
 
 @Composable
 fun EventInfoPopup(
@@ -34,7 +34,7 @@ fun EventInfoPopup(
             visible = true,
             enter = slideInVertically(initialOffsetY = { it }),
             exit = slideOutVertically(targetOffsetY = { it })) {
-              LiquidEventCard(
+              EventCard(
                   modifier = Modifier.fillMaxWidth(),
                   title = event.title,
                   description = event.description,

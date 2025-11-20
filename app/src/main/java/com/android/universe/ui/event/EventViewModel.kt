@@ -232,7 +232,7 @@ class EventViewModel(
       val updatedEvent = currentEvent.copy(participants = updatedParticipants)
       try {
         eventRepository.updateEvent(currentEvent.id, updatedEvent)
-      } catch (e: NoSuchElementException) {
+      } catch (_: NoSuchElementException) {
         setErrorMsg("No event ${currentEvent.title} found")
         return@launch
       }
@@ -251,6 +251,8 @@ class EventViewModel(
 
   /**
    * Formats a [UserProfile] into a full name string.
+   *
+   * comment: leaving this in case we want to show the creator on the event card in the future.
    *
    * @param user The [UserProfile] of the event creator.
    * @return A string combining the first and last name.
