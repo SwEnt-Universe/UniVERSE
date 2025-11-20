@@ -2,37 +2,53 @@ package com.android.universe.ui.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
-import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
-import com.tomtom.sdk.map.display.camera.CameraOptions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class MapUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val error: String? = null,
-    val isPermissionRequired: Boolean = false,
-    val location: Location? = null,
-    val selectedLat: Double? = null,
-    val selectedLng: Double? = null,
-    val eventCount: Int? = null,
+    val markers: List<MapMarkerUiModel> = emptyList(),
+    val userLocation: GeoPoint? = null,
+    val selectedLocation: GeoPoint? = null,
+    val isLocationPermissionGranted: Boolean = false,
     val isMapInteractive: Boolean = false,
+
+    // PERSISTENCE: Store the last known camera state here.
+    // Defaults to Amsterdam (or your preferred default).
+    val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
+    val zoomLevel: Double = 14.0
+)
+
+sealed interface MapAction {
+  data class MoveCamera(val target: GeoPoint, val currentZoom: Double) : MapAction
+
+  data object ZoomIn : MapAction
+}
+
+// Domain model for markers
+data class MapMarkerUiModel(
+    val event: Event,
+    val position: GeoPoint, // TomTom uses GeoPoint(lat, lon)
+    val iconResId: Int,
 )
 
 /**
@@ -52,8 +68,8 @@ class MapViewModel(
   private val _uiState = MutableStateFlow(MapUiState())
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
-  private val _cameraCommands = MutableSharedFlow<CameraOptions>(extraBufferCapacity = 1)
-  val cameraCommands = _cameraCommands.asSharedFlow()
+  private val _mapActions = Channel<MapAction>(Channel.BUFFERED)
+  val mapActions = _mapActions.receiveAsFlow()
 
   val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
 
@@ -65,8 +81,15 @@ class MapViewModel(
   private val _selectedEvent = MutableStateFlow<Event?>(null)
   val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
 
-  init {
-    loadSuggestedEventsForCurrentUser()
+  fun initData() {
+    // Temporary until the filtering of event works well.
+    loadAllEvents()
+    startEventPolling()
+  }
+
+  fun onPermissionGranted() {
+    loadLastKnownLocation()
+    startLocationTracking()
   }
 
   private var pollingJob: Job? = null
@@ -101,6 +124,14 @@ class MapViewModel(
     pollingJob = null
   }
 
+  fun onCameraStateChange(position: GeoPoint, zoomLevel: Double) {
+    _uiState.update { it.copy(cameraPosition = position, zoomLevel = zoomLevel) }
+  }
+
+  fun onCameraMoveRequest(target: GeoPoint, currentZoom: Double) {
+    viewModelScope.launch { _mapActions.send(MapAction.MoveCamera(target, currentZoom)) }
+  }
+
   /**
    * Loads the last known location from the repository.
    *
@@ -111,12 +142,10 @@ class MapViewModel(
 
     locationRepository.getLastKnownLocation(
         onSuccess = { location ->
-          _uiState.update { it.copy(isLoading = false, location = location) }
-          centerOn(location.toGeoPoint(), zoom = 15.0)
+          _uiState.update { it.copy(isLoading = false, userLocation = location.toGeoPoint()) }
         },
         onFailure = {
           _uiState.update { it.copy(isLoading = false, error = "No last known location available") }
-          centerOnLausanne()
         })
   }
 
@@ -137,8 +166,7 @@ class MapViewModel(
                 }
               }
               .collect { location ->
-                _uiState.update { it.copy(location = location, error = null) }
-                centerOn(location.toGeoPoint(), zoom = 15.0)
+                _uiState.update { it.copy(userLocation = location.toGeoPoint(), error = null) }
               }
         }
   }
@@ -147,22 +175,6 @@ class MapViewModel(
   fun stopLocationTracking() {
     locationTrackingJob?.cancel()
     locationTrackingJob = null
-  }
-
-  /**
-   * Centers the map camera on a specific location.
-   *
-   * @param position The geographic point to center on.
-   * @param zoom The zoom level for the camera.
-   */
-  fun centerOn(position: GeoPoint, zoom: Double) {
-    _cameraCommands.tryEmit(CameraOptions(position = position, zoom = zoom))
-  }
-
-  /** Centers the map on Lausanne as a fallback location. */
-  fun centerOnLausanne() {
-    val lausanne = GeoPoint(latitude = 46.5196535, longitude = 6.6322734)
-    centerOn(lausanne, zoom = 14.0)
   }
 
   override fun onCleared() {
@@ -180,8 +192,11 @@ class MapViewModel(
       try {
         val events = eventRepository.getAllEvents()
         _eventMarkers.value = events
-        // This is added so that the ui updates correctly when a new event is added
-        _uiState.update { it.copy(eventCount = events.size) }
+        val markers =
+            events.map { event ->
+              MapMarkerUiModel(event, event.location.toGeoPoint(), R.drawable.ic_marker_icon)
+            }
+        _uiState.update { it.copy(markers = markers) }
       } catch (e: Exception) {
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
@@ -210,8 +225,12 @@ class MapViewModel(
    *
    * Updates the UI state with the selected latitude and longitude.
    */
-  fun selectLocation(latitude: Double?, longitude: Double?) {
-    _uiState.value = _uiState.value.copy(selectedLat = latitude, selectedLng = longitude)
+  fun onMapLongClick(latitude: Double, longitude: Double) {
+    _uiState.value = _uiState.value.copy(selectedLocation = GeoPoint(latitude, longitude))
+  }
+
+  fun onMarkerClick(event: Event) {
+    selectEvent(event)
   }
 
   /** Updates the UI state to indicate that the map is now interactable. */
