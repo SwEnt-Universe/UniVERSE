@@ -34,6 +34,8 @@ object TagGroupTestTag {
   const val BOTTOM_FADE = "Bottom fade"
   const val RIGHT_FADE = "Right fade"
   const val LEFT_FADE = "Left fade"
+  const val COLUMN = "Column"
+  const val ROW = "Row"
 }
 
 /** Contain the dimensions used specially in this composable. */
@@ -108,20 +110,23 @@ fun TagColumn(
                   if (background)
                       Modifier.clip(RoundedCornerShape(cornerShapeDp)).background(backGround)
                   else Modifier)) {
-        LazyColumn(state = state, modifier = Modifier.align(Alignment.TopCenter)) {
-          items(tags) { tag ->
-            TagItem(
-                tag = tag,
-                heightTag = heightTag,
-                isSelectable = isSelectable,
-                isSelected = isSelected(tag),
-                onSelect = { tag -> onTagSelect(tag) },
-                onDeSelect = { tag -> onTagReSelect(tag) },
-                modifier =
-                    modifierTags.then(
-                        if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
-          }
-        }
+        LazyColumn(
+            state = state,
+            modifier = Modifier.testTag(TagGroupTestTag.COLUMN).align(Alignment.TopCenter)) {
+              items(tags) { tag ->
+                TagItem(
+                    tag = tag,
+                    heightTag = heightTag,
+                    isSelectable = isSelectable,
+                    isSelected = isSelected(tag),
+                    onSelect = { tag -> onTagSelect(tag) },
+                    onDeSelect = { tag -> onTagReSelect(tag) },
+                    modifier =
+                        modifierTags.then(
+                            if (tagElement != null) Modifier.testTag(tagElement(tag))
+                            else Modifier))
+              }
+            }
         if (fade) {
           // Top fade
           Box(
@@ -210,20 +215,23 @@ fun TagRow(
                   if (background)
                       Modifier.clip(RoundedCornerShape(cornerShapeDp)).background(backGround)
                   else Modifier)) {
-        LazyRow(state = state, modifier = Modifier.align(Alignment.CenterStart)) {
-          items(tags) { tag ->
-            TagItem(
-                tag = tag,
-                heightTag = heightTag,
-                isSelectable = isSelectable,
-                isSelected = isSelected(tag),
-                onSelect = { tag -> onTagSelect(tag) },
-                onDeSelect = { tag -> onTagReSelect(tag) },
-                modifier =
-                    modifierTags.then(
-                        if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
-          }
-        }
+        LazyRow(
+            state = state,
+            modifier = Modifier.testTag(TagGroupTestTag.ROW).align(Alignment.CenterStart)) {
+              items(tags) { tag ->
+                TagItem(
+                    tag = tag,
+                    heightTag = heightTag,
+                    isSelectable = isSelectable,
+                    isSelected = isSelected(tag),
+                    onSelect = { tag -> onTagSelect(tag) },
+                    onDeSelect = { tag -> onTagReSelect(tag) },
+                    modifier =
+                        modifierTags.then(
+                            if (tagElement != null) Modifier.testTag(tagElement(tag))
+                            else Modifier))
+              }
+            }
         if (fade) {
           // Left fade
           Box(

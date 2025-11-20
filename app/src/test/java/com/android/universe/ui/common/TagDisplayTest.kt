@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -12,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
@@ -34,6 +36,8 @@ class TagGroupTest {
     private val MUSIC = Tag.MUSIC
     private val TOPICS = Category.TOPIC
     private val sampleTags = listOf(READING, RUNNING, MUSIC)
+    private val manyTags =
+        listOf(RUNNING, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, READING)
     private const val SELECTED = "Selected"
     private val multipleTags =
         listOf(
@@ -250,6 +254,72 @@ class TagGroupTest {
   }
 
   @Test
+  fun tagColumn_displaysAllTags() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false })
+    }
+
+    sampleTags.forEach { tag ->
+      composeTestRule.onNodeWithText(tag.displayName).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun tagColumn_displaysFade() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
+    }
+
+    composeTestRule.onNodeWithTag(TagGroupTestTag.BOTTOM_FADE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.TOP_FADE).assertIsDisplayed()
+  }
+
+  @Test
+  fun tagColumn_displaysNoFadeWhenFalse() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = false)
+    }
+
+    composeTestRule.onNodeWithText(TagGroupTestTag.BOTTOM_FADE).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText(TagGroupTestTag.TOP_FADE).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun tagColumn_isScrollable() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(
+          tags = manyTags,
+          onTagSelect = {},
+          isSelected = { false },
+          tagElement = { tag -> tag.displayName })
+    }
+
+    val lastTag = READING
+    composeTestRule
+        .onNodeWithTag(TagGroupTestTag.COLUMN)
+        .performScrollToNode(hasTestTag(lastTag.displayName))
+    composeTestRule.onNodeWithText(lastTag.displayName).assertIsDisplayed()
+  }
+
+  @Test
+  fun tagColumn_multipleSelection() {
+    val selectedTags = mutableStateListOf<Tag>()
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(
+          tags = sampleTags,
+          isSelected = { it in selectedTags },
+          onTagSelect = { selectedTags.add(it) },
+          onTagReSelect = { selectedTags.remove(it) })
+    }
+
+    composeTestRule.onNodeWithText(sampleTags[0].displayName).performClick()
+    composeTestRule.onNodeWithText(sampleTags[1].displayName).performClick()
+
+    assertTrue(sampleTags[0] in selectedTags)
+    assertTrue(sampleTags[1] in selectedTags)
+  }
+
+  @Test
   fun clickingUnselectedTag_callsOnTagSelectForRow() {
     var selectedTag: String? = null
 
@@ -296,5 +366,71 @@ class TagGroupTest {
     composeTestRule.onNodeWithText(READING.displayName).performClick()
 
     assertEquals(false, called)
+  }
+
+  @Test
+  fun tagRow_displaysAllTags() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false })
+    }
+
+    sampleTags.forEach { tag ->
+      composeTestRule.onNodeWithText(tag.displayName).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun tagRow_displaysFade() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
+    }
+
+    composeTestRule.onNodeWithTag(TagGroupTestTag.RIGHT_FADE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.LEFT_FADE).assertIsDisplayed()
+  }
+
+  @Test
+  fun tagRow_displaysNoFadeWhenFalse() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = false)
+    }
+
+    composeTestRule.onNodeWithText(TagGroupTestTag.RIGHT_FADE).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText(TagGroupTestTag.LEFT_FADE).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun tagRow_isScrollable() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(
+          tags = manyTags,
+          onTagSelect = {},
+          isSelected = { false },
+          tagElement = { tag -> tag.displayName })
+    }
+
+    val lastTag = READING
+    composeTestRule
+        .onNodeWithTag(TagGroupTestTag.ROW)
+        .performScrollToNode(hasTestTag(lastTag.displayName))
+    composeTestRule.onNodeWithText(lastTag.displayName).assertIsDisplayed()
+  }
+
+  @Test
+  fun tagRow_multipleSelection() {
+    val selectedTags = mutableStateListOf<Tag>()
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(
+          tags = sampleTags,
+          isSelected = { it in selectedTags },
+          onTagSelect = { selectedTags.add(it) },
+          onTagReSelect = { selectedTags.remove(it) })
+    }
+
+    composeTestRule.onNodeWithText(sampleTags[0].displayName).performClick()
+    composeTestRule.onNodeWithText(sampleTags[1].displayName).performClick()
+
+    assertTrue(sampleTags[0] in selectedTags)
+    assertTrue(sampleTags[1] in selectedTags)
   }
 }
