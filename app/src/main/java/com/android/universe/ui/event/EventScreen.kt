@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -142,6 +143,7 @@ fun EventScreen(
   Column(
     modifier = Modifier
       .fillMaxSize()
+      .padding(horizontal = PaddingMedium)
   ) {
 
     SearchBar(
@@ -155,7 +157,6 @@ fun EventScreen(
     LazyColumn(
         modifier =
             Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
-        contentPadding = PaddingValues(PaddingMedium),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
           items(events) { event ->
             EventCard(
