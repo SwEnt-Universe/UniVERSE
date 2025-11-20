@@ -36,10 +36,15 @@ fun EventInfoPopup(
             exit = slideOutVertically(targetOffsetY = { it })) {
               LiquidEventCard(
                   modifier = Modifier.fillMaxWidth(),
-                  event = event,
+                  title = event.title,
+                  description = event.description,
+                  date = event.date,
+                  tags = event.tags.toList(),
+                  participants = event.participants.size,
                   isUserParticipant = isUserParticipant,
                   onToggleEventParticipation = onToggleEventParticipation,
                   onChatClick = {},
+                  onLocationClick = {},
                   isMapScreen = true)
             }
       }

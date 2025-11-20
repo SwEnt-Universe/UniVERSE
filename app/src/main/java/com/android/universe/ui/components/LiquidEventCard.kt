@@ -3,6 +3,8 @@ package com.android.universe.ui.components
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +15,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
@@ -33,34 +37,41 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.event.Event
+import com.android.universe.model.tag.Tag
 import com.android.universe.ui.theme.CardShape
 import com.android.universe.ui.theme.Dimensions
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.withContext
 
 @Composable
 fun LiquidEventCard(
-    event: Event,
+    modifier: Modifier = Modifier,
+    title: String,
+    description: String? = null,
+    date: LocalDateTime,
+    tags: List<Tag>,
+    participants: Int,
+    eventImage: ByteArray? = null,
     isUserParticipant: Boolean,
     onToggleEventParticipation: () -> Unit,
     onChatClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    onLocationClick: () -> Unit,
     isMapScreen: Boolean = false
 ) {
   LiquidBox(modifier = modifier.testTag("LiquidEventCard"), shape = CardShape) {
     Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
       Box(modifier = Modifier.fillMaxWidth()) {
         val bitmap =
-            produceState<Bitmap?>(initialValue = null, event.eventPicture) {
+            produceState<Bitmap?>(initialValue = null, eventImage) {
                   value =
-                      if (event.eventPicture != null) {
+                      if (eventImage != null) {
                         withContext(DefaultDP.io) {
-                          BitmapFactory.decodeByteArray(
-                              event.eventPicture, 0, event.eventPicture.size)
+                          BitmapFactory.decodeByteArray(eventImage, 0, eventImage.size)
                         }
                       } else {
                         null
@@ -68,66 +79,90 @@ fun LiquidEventCard(
                 }
                 .value
 
-        val imageModifier =
-            Modifier.fillMaxWidth(2f / 3f)
-                .height(Dimensions.EventCardImageHeight)
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
-
-        if (bitmap == null) {
-          Image(
-              painter = painterResource(id = R.drawable.default_event_img),
-              contentDescription = null,
-              contentScale = ContentScale.Crop,
-              modifier = imageModifier)
-        } else {
-          Image(
-              bitmap = bitmap.asImageBitmap(),
-              contentDescription = null,
-              contentScale = ContentScale.Crop,
-              modifier = imageModifier)
-        }
         Box(
             modifier =
-                Modifier.align(Alignment.BottomStart)
-                    .padding(Dimensions.PaddingMedium)
-                    .padding(
-                        horizontal = Dimensions.PaddingMedium,
-                        vertical = Dimensions.PaddingMedium)) {
-              Column {
-                Text(
-                    text = event.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White)
-                Spacer(Modifier.height(Dimensions.SpacerSmall))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    content = {
-                      Text(
-                          text = event.date.format(DateTimeFormatter.ofPattern("dd/MMM/yyyy")),
-                          style = MaterialTheme.typography.bodyLarge,
-                          color = Color.White)
-                      Spacer(Modifier.width(Dimensions.SpacerSmall))
-                      Icon(
-                          imageVector = Icons.Outlined.StarBorder,
-                          contentDescription = null,
-                          tint = Color.White,
-                          modifier = Modifier.size(Dimensions.IconSizeSmall))
-                      Spacer(Modifier.width(Dimensions.SpacerSmall))
-                      Text(
-                          text = event.date.format(DateTimeFormatter.ofPattern("hh:mm")),
-                          style = MaterialTheme.typography.bodyLarge,
-                          color = Color.White)
-                    })
+                Modifier.fillMaxWidth(2f / 3f)
+                    .height(Dimensions.EventCardImageHeight)
+                    .align(Alignment.TopStart)
+                    .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))) {
+              if (bitmap == null) {
+                Image(
+                    painter = painterResource(id = R.drawable.default_event_img),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize())
+              } else {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize())
               }
+
+              if (!isMapScreen) {
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.TopEnd)
+                            .padding(Dimensions.PaddingLarge)
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.4f))
+                            .clickable { onLocationClick() },
+                    contentAlignment = Alignment.Center) {
+                      Icon(
+                          imageVector = Icons.Filled.LocationOn,
+                          contentDescription = "Location",
+                          modifier = Modifier.size(50.dp),
+                          tint = Color.White)
+                    }
+              }
+
+              Box(
+                  modifier =
+                      Modifier.align(Alignment.BottomStart)
+                          .padding(Dimensions.PaddingMedium)
+                          .padding(
+                              horizontal = Dimensions.PaddingMedium,
+                              vertical = Dimensions.PaddingMedium)) {
+                    Column {
+                      Text(
+                          text = title,
+                          style = MaterialTheme.typography.titleLarge,
+                          color = Color.White,
+                          maxLines = 1,
+                          overflow = TextOverflow.Ellipsis)
+                      Spacer(Modifier.height(Dimensions.SpacerSmall))
+                      Row(
+                          verticalAlignment = Alignment.CenterVertically,
+                          content = {
+                            Text(
+                                text = date.format(DateTimeFormatter.ofPattern("dd/MMM/yyyy")),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White)
+                            Spacer(Modifier.width(Dimensions.SpacerSmall))
+                            Icon(
+                                imageVector = Icons.Outlined.StarBorder,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(Dimensions.IconSizeSmall))
+                            Spacer(Modifier.width(Dimensions.SpacerSmall))
+                            Text(
+                                text = date.format(DateTimeFormatter.ofPattern("hh:mm")),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White)
+                          })
+                    }
+                  }
             }
       }
 
       Spacer(Modifier.height(Dimensions.SpacerMedium))
 
       Text(
-          text = event.description ?: "No description available",
-          style = MaterialTheme.typography.bodyMedium)
+          text = description ?: "No description available",
+          style = MaterialTheme.typography.bodyMedium,
+          maxLines = 3,
+          overflow = TextOverflow.Ellipsis)
 
       Spacer(Modifier.height(Dimensions.SpacerMedium))
 
@@ -157,9 +192,7 @@ fun LiquidEventCard(
                   contentDescription = "Participants",
                   modifier = Modifier.size(Dimensions.IconSizeMedium))
               Spacer(Modifier.width(Dimensions.SpacerSmall))
-              Text(
-                  text = "${event.participants.size} people going",
-                  style = MaterialTheme.typography.bodyMedium)
+              Text(text = "$participants people going", style = MaterialTheme.typography.bodyMedium)
             }
 
             LiquidButton(

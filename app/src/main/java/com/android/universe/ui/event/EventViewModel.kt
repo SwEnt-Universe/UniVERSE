@@ -11,8 +11,6 @@ import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +34,7 @@ import kotlinx.coroutines.launch
 data class EventUIState(
     val title: String = "",
     val description: String = "",
-    val date: String = "",
+    val date: LocalDateTime = LocalDateTime.now(),
     val tags: List<String> = emptyList(),
     val creator: String = "",
     val participants: Int = 0,
@@ -204,7 +202,7 @@ class EventViewModel(
     return EventUIState(
         title = title,
         description = description ?: "",
-        date = formatEventDate(date),
+        date = date,
         tags = tags.map { it.displayName }.take(3),
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
         participants = participants.size,
@@ -249,17 +247,6 @@ class EventViewModel(
 
   fun setErrorMsg(err: String?) {
     _uiState.value = _uiState.value.copy(errormsg = err)
-  }
-
-  /**
-   * Formats a [LocalDateTime] into a user-friendly string.
-   *
-   * @param date The [LocalDateTime] to format.
-   * @return A formatted string representing the date and time.
-   */
-  private fun formatEventDate(date: LocalDateTime): String {
-    val formatter = DateTimeFormatter.ofPattern("d MMM hh:mm a", Locale.ENGLISH)
-    return date.format(formatter)
   }
 
   /**

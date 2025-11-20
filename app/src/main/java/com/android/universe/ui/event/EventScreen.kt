@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.ui.components.LiquidEventCard
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -131,17 +132,19 @@ fun EventScreen(
         contentPadding = PaddingValues(PaddingMedium),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
           items(events) { event ->
-            EventCard(
+            LiquidEventCard(
                 title = event.title,
                 description = event.description,
                 date = event.date,
-                tags = event.tags,
-                creator = event.creator,
+                tags = emptyList(),
                 participants = event.participants,
-                onJoin = viewModel::joinOrLeaveEvent,
-                index = event.index,
-                joined = event.joined,
-                eventImage = event.eventPicture)
+                eventImage = event.eventPicture,
+                isUserParticipant = event.joined,
+                onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
+                onChatClick = { /* TODO: Implement chat navigation */ },
+                onLocationClick = { /* TODO: Implement map navigation */ },
+                isMapScreen = false,
+                modifier = Modifier.fillMaxWidth())
           }
         }
   }
