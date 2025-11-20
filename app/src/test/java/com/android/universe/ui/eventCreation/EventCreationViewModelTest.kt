@@ -7,7 +7,9 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagLocalTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepository
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -32,12 +34,11 @@ class EventCreationViewModelTest {
   companion object {
     const val SAMPLE_TITLE = "Sample Title"
     const val SAMPLE_DESCRIPTION = "Sample Description"
-    const val SAMPLE_DAY = "12"
-    const val SAMPLE_MONTH = "12"
-    const val SAMPLE_YEAR = "2025"
-    const val SAMPLE_HOUR = "12"
-    const val SAMPLE_MINUTE = "12"
-    val sample_tags = setOf(Tag.METAL, Tag.DND, Tag.HANDBALL)
+    const val SAMPLE_DATE_FORMAT = "12/12/2030"
+    const val SAMPLE_TIME_FORMAT = "12:12"
+    val SAMPLE_DATE = LocalDate.of(2030, 12, 12)
+    val SAMPLE_TIME = LocalTime.of(12, 12)
+    val sample_tags = setOf(Tag.METAL, Tag.HANDBALL)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,41 +65,6 @@ class EventCreationViewModelTest {
     assert(state.description == SAMPLE_DESCRIPTION)
   }
 
-  @Test
-  fun testSetEventDay() {
-    viewModel.setEventDay(SAMPLE_DAY)
-    val state = viewModel.uiStateEventCreation.value
-    assert(state.day == SAMPLE_DAY)
-  }
-
-  @Test
-  fun testSetEventMonth() {
-    viewModel.setEventMonth(SAMPLE_MONTH)
-    val state = viewModel.uiStateEventCreation.value
-    assert(state.month == SAMPLE_MONTH)
-  }
-
-  @Test
-  fun testSetEventYear() {
-    viewModel.setEventYear(SAMPLE_YEAR)
-    val state = viewModel.uiStateEventCreation.value
-    assert(state.year == SAMPLE_YEAR)
-  }
-
-  @Test
-  fun testSetEventHour() {
-    viewModel.setEventHour(SAMPLE_HOUR)
-    val state = viewModel.uiStateEventCreation.value
-    assert(state.hour == SAMPLE_HOUR)
-  }
-
-  @Test
-  fun testSetEventMinute() {
-    viewModel.setEventMinute(SAMPLE_MINUTE)
-    val state = viewModel.uiStateEventCreation.value
-    assert(state.minute == SAMPLE_MINUTE)
-  }
-
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSetEventTags() = runTest {
@@ -122,15 +88,13 @@ class EventCreationViewModelTest {
 
     viewModel.setEventDescription(SAMPLE_DESCRIPTION)
 
-    viewModel.setEventDay(SAMPLE_DAY)
+    viewModel.setDate(SAMPLE_DATE)
+    viewModel.setTime(SAMPLE_TIME)
 
-    viewModel.setEventMonth(SAMPLE_MONTH)
-
-    viewModel.setEventYear(SAMPLE_YEAR)
-
-    viewModel.setEventHour(SAMPLE_HOUR)
-
-    viewModel.setEventMinute(SAMPLE_MINUTE)
+    assertEquals(
+        viewModel.formatTime(viewModel.uiStateEventCreation.value.time), SAMPLE_TIME_FORMAT)
+    assertEquals(
+        viewModel.formatDate(viewModel.uiStateEventCreation.value.date), SAMPLE_DATE_FORMAT)
 
     tagRepository.updateTags(sample_tags)
     testDispatcher.scheduler.advanceUntilIdle()
@@ -147,7 +111,7 @@ class EventCreationViewModelTest {
     assert(event.location == Location(0.0, 0.0))
     assert(event.tags == sample_tags)
 
-    val expectedDate = LocalDateTime.of(2025, 12, 12, 12, 12)
+    val expectedDate = LocalDateTime.of(2030, 12, 12, 12, 12)
 
     assert(event.date == expectedDate)
     assertEquals(emptySet<Tag>(), tagRepository.getTags())
