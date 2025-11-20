@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,16 +21,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,8 +43,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EventRepositoryProvider
-import com.android.universe.ui.navigation.NavigationBottomMenu
-import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.search.SearchBar
 import com.android.universe.ui.search.SearchTestTags
@@ -128,23 +121,14 @@ fun EventScreen(
   }
   val events by viewModel.filteredEvents.collectAsState()
 
-  Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(horizontal = PaddingMedium)
-  ) {
-
+  Column(modifier = Modifier.fillMaxSize().padding(horizontal = PaddingMedium)) {
     SearchBar(
-      query = viewModel.searchQuery.collectAsState().value,
-      onQueryChange = viewModel::updateSearchQuery,
-      modifier = Modifier
-        .padding(PaddingMedium)
-        .testTag(SearchTestTags.SEARCH_BAR)
-    )
+        query = viewModel.searchQuery.collectAsState().value,
+        onQueryChange = viewModel::updateSearchQuery,
+        modifier = Modifier.padding(PaddingMedium).testTag(SearchTestTags.SEARCH_BAR))
 
     LazyColumn(
-        modifier =
-            Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
+        modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
           items(events) { event ->
             EventCard(

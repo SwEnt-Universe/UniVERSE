@@ -276,29 +276,23 @@ class EventViewModel(
   }
 
   val searchQuery = MutableStateFlow("")
+
   fun updateSearchQuery(query: String) {
     searchQuery.value = query
   }
 
   val filteredEvents: StateFlow<List<EventUIState>> =
-    combine(eventsState, searchQuery) { events, query ->
-      if (query.isBlank()) events
-      else events.filter { event ->
-        val fields = listOf(
-          event.title,
-          event.description,
-          event.creator
-        ) + event.tags
+      combine(eventsState, searchQuery) { events, query ->
+            if (query.isBlank()) events
+            else
+                events.filter { event ->
+                  val fields = listOf(event.title, event.description, event.creator) + event.tags
 
-        fields.any { field ->
-          field.contains(query, ignoreCase = true) ||
-              SearchEngine.fuzzyMatch(field, query)
-        }
-      }
-    }.stateIn(
-      viewModelScope,
-      SharingStarted.WhileSubscribed(5000),
-      emptyList()
-    )
-
+                  fields.any { field ->
+                    field.contains(query, ignoreCase = true) ||
+                        SearchEngine.fuzzyMatch(field, query)
+                  }
+                }
+          }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }
