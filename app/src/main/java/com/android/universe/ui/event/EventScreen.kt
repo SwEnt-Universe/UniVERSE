@@ -47,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.search.SearchBar
 import com.android.universe.ui.search.SearchTestTags
@@ -130,6 +131,7 @@ fun EventScreen(
     modifier = Modifier
       .fillMaxSize()
       .padding(horizontal = PaddingMedium)
+      .testTag(NavigationTestTags.EVENT_SCREEN)
       .clickable(
         indication = null,
         interactionSource = remember { MutableInteractionSource() }
