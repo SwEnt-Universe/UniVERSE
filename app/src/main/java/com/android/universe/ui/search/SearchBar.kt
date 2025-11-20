@@ -1,6 +1,7 @@
 package com.android.universe.ui.search
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -48,5 +49,9 @@ fun SearchBar(
               focusedBorderColor = MaterialTheme.colorScheme.primary,
               unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
           ),
-      modifier = modifier.fillMaxWidth().testTag(SearchTestTags.SEARCH_BAR))
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(top = Dimensions.PaddingPutBelowStatusbar)
+              .testTag(SearchTestTags.SEARCH_BAR))
 }

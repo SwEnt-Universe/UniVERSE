@@ -130,17 +130,15 @@ fun EventScreen(
 
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { paddingValues ->
+      contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+      bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { _ ->
         Column(
             modifier =
-                Modifier.fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = PaddingMedium)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                          focusManager.clearFocus()
-                        }) {
+                Modifier.fillMaxSize().padding(horizontal = PaddingMedium).clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                      focusManager.clearFocus()
+                    }) {
               SearchBar(
                   query = viewModel.searchQuery.collectAsState().value,
                   onQueryChange = viewModel::updateSearchQuery,
