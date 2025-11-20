@@ -27,17 +27,13 @@ import androidx.compose.ui.semantics.testTag
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
-import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.chat.ChatListScreen
@@ -46,7 +42,6 @@ import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
-import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.Tab
@@ -88,7 +83,7 @@ class MainActivity : ComponentActivity() {
           Surface(
               modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
               color = MaterialTheme.colorScheme.background) {
-                UniverseApp(viewModelStoreOwner = this)
+                UniverseApp()
               }
         }
       }
@@ -105,7 +100,6 @@ class MainActivity : ComponentActivity() {
 fun UniverseApp(
     context: Context = LocalContext.current,
     credentialManager: CredentialManager = CredentialManager.create(context),
-    viewModelStoreOwner: ViewModelStoreOwner
 ) {
   val authInstance = remember { FirebaseAuth.getInstance() }
   val navController = rememberNavController()
@@ -197,18 +191,8 @@ fun UniverseApp(
           route = NavigationScreens.Map.name,
       ) {
         composable(NavigationScreens.Map.route) {
-          val uid = authInstance.currentUser!!.uid
 
-          val mapViewModel: MapViewModel =
-              viewModel(viewModelStoreOwner = viewModelStoreOwner, key = uid) {
-                MapViewModel(
-                    uid,
-                    TomTomLocationRepository(context),
-                    EventRepositoryProvider.repository,
-                    UserRepositoryProvider.repository)
-              }
           MapScreen(
-              viewModel = mapViewModel,
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") },

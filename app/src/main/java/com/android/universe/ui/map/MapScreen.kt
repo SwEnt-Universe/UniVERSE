@@ -155,7 +155,11 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
           padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().then(
+            if (uiState.isMapInteractive)
+                Modifier.testTag(MapScreenTestTags.INTERACTABLE)
+            else Modifier
+        )) {
           TomTomMapComposable(
               modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
               onMapReady = { map ->
@@ -179,6 +183,7 @@ fun MapScreen(
                     onCameraChange = { pos, zoom -> viewModel.onCameraStateChange(pos, zoom) })
 
                 map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
+                viewModel.nowInteractable()
               })
 
           if (uiState.selectedLocation != null) {
@@ -260,7 +265,6 @@ fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
         Lifecycle.Event.ON_RESUME -> mapView.onResume()
         Lifecycle.Event.ON_PAUSE -> mapView.onPause()
         Lifecycle.Event.ON_STOP -> mapView.onStop()
-        Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
         else -> {}
       }
     }
