@@ -1,14 +1,63 @@
 package com.android.universe.model.user
 
 import android.util.Log
-import com.android.universe.model.Tag
+import com.android.universe.di.DefaultDP
+import com.android.universe.model.tag.Tag
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 // Firestore collection path for user profiles.
 const val USERS_COLLECTION_PATH = "users"
+
+/** Check if a List is of type T and safely casts it, returning an empty list if not. */
+private inline fun <reified T> Any?.safeCastList(): List<T> {
+  return if (this is List<*>) {
+    this.filterIsInstance<T>()
+  } else emptyList()
+}
+
+/**
+ * Converts a Firestore DocumentSnapshot to a UserProfile object.
+ *
+ * @param doc the DocumentSnapshot to convert.
+ * @return the corresponding UserProfile object.
+ * @throws Exception if any required field is missing or has an invalid format.
+ */
+fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
+  return try {
+    UserProfile(
+        uid = doc.getString("uid") ?: "",
+        username = doc.getString("username") ?: "",
+        firstName = doc.getString("firstName") ?: "",
+        lastName = doc.getString("lastName") ?: "",
+        country = doc.getString("country") ?: "",
+        description = doc.getString("description"),
+        dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
+        tags =
+            (doc.get("tags").safeCastList<Number>())
+                .map { ordinal -> Tag.entries[ordinal.toInt()] }
+                .toSet(),
+        profilePicture = doc.getBlob("profilePicture")?.toBytes())
+  } catch (e: DateTimeParseException) {
+    Log.e(
+        "UserRepositoryFirestore.documentToUserProfile",
+        "Error converting document to UserProfile, invalid date format",
+        e)
+    throw e
+  } catch (e: NullPointerException) {
+    Log.e(
+        "UserRepositoryFirestore.documentToUserProfile",
+        "Error converting document to UserProfile, assigning null to non-nullable field",
+        e)
+    throw e
+  }
+}
 
 /**
  * Firestore implementation of [UserRepository] to store user profiles in the Firestore database.
@@ -17,7 +66,10 @@ const val USERS_COLLECTION_PATH = "users"
  *
  * @param db the Firestore database instance.
  */
-class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepository {
+class UserRepositoryFirestore(
+    private val db: FirebaseFirestore,
+    private val iODispatcher: CoroutineDispatcher = DefaultDP.io
+) : UserRepository {
   /**
    * Converts a UserProfile object to a Map<String, Any?>.
    *
@@ -33,37 +85,13 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         "country" to user.country,
         "description" to user.description,
         "dateOfBirth" to user.dateOfBirth.toString(),
-        "tags" to user.tags.map { it.ordinal })
-  }
-
-  /**
-   * Converts a Firestore DocumentSnapshot to a UserProfile object.
-   *
-   * @param doc the DocumentSnapshot to convert.
-   * @return the corresponding UserProfile object.
-   * @throws Exception if any required field is missing or has an invalid format.
-   */
-  private fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
-    return try {
-      UserProfile(
-          uid = doc.getString("uid") ?: "",
-          username = doc.getString("username") ?: "",
-          firstName = doc.getString("firstName") ?: "",
-          lastName = doc.getString("lastName") ?: "",
-          country = doc.getString("country") ?: "",
-          description = doc.getString("description"),
-          dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
-          tags =
-              (doc.get("tags") as? List<Number>)
-                  ?.map { ordinal -> Tag.entries[ordinal.toInt()] }
-                  ?.toSet() ?: emptySet())
-    } catch (e: Exception) {
-      Log.e(
-          "UserRepositoryFirestore.documentToUserProfile",
-          "Error converting document to UserProfile",
-          e)
-      throw e
-    }
+        "tags" to user.tags.map { it.ordinal },
+        "profilePicture" to
+            (if (user.profilePicture != null) {
+              Blob.fromBytes(user.profilePicture)
+            } else {
+              null
+            }))
   }
 
   /**
@@ -73,7 +101,8 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
    */
   override suspend fun getAllUsers(): List<UserProfile> {
     val users = ArrayList<UserProfile>()
-    val querySnapshot = db.collection(USERS_COLLECTION_PATH).get().await()
+    val querySnapshot =
+        withContext(iODispatcher) { db.collection(USERS_COLLECTION_PATH).get().await() }
 
     for (document in querySnapshot.documents) {
       val user = documentToUserProfile(document)
@@ -90,7 +119,10 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
    * @throws NoSuchElementException if no user with the given [uid] exists.
    */
   override suspend fun getUser(uid: String): UserProfile {
-    val user = db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
+    val user =
+        withContext(iODispatcher) {
+          db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
+        }
     if (user.exists()) {
       return documentToUserProfile(user)
     } else {
@@ -104,10 +136,12 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
    * @param userProfile the [UserProfile] to add.
    */
   override suspend fun addUser(userProfile: UserProfile) {
-    db.collection(USERS_COLLECTION_PATH)
-        .document(userProfile.uid)
-        .set(userProfileToMap(userProfile))
-        .await()
+    withContext(iODispatcher) {
+      db.collection(USERS_COLLECTION_PATH)
+          .document(userProfile.uid)
+          .set(userProfileToMap(userProfile))
+          .await()
+    }
   }
 
   /**
@@ -118,12 +152,15 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
    * @throws NoSuchElementException if no user with the given [uid] exists.
    */
   override suspend fun updateUser(uid: String, newUserProfile: UserProfile) {
-    val user = db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
+    val user =
+        withContext(iODispatcher) {
+          db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
+        }
     if (user.exists()) {
-      db.collection(USERS_COLLECTION_PATH)
-          .document(uid)
-          .set(userProfileToMap(newUserProfile))
-          .await()
+      val mappedProfile = userProfileToMap(newUserProfile.copy(uid = uid))
+      withContext(iODispatcher) {
+        db.collection(USERS_COLLECTION_PATH).document(uid).set(mappedProfile).await()
+      }
     } else {
       throw NoSuchElementException("No user with username $uid found")
     }
@@ -136,9 +173,14 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
    * @throws NoSuchElementException if no user with the given [uid] exists.
    */
   override suspend fun deleteUser(uid: String) {
-    val user = db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
+    val user =
+        withContext(iODispatcher) {
+          db.collection(USERS_COLLECTION_PATH).document(uid).get().await()
+        }
     if (user.exists()) {
-      db.collection(USERS_COLLECTION_PATH).document(uid).delete().await()
+      withContext(iODispatcher) {
+        db.collection(USERS_COLLECTION_PATH).document(uid).delete().await()
+      }
     } else {
       throw NoSuchElementException("No user with username $uid found")
     }
@@ -152,7 +194,9 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
    */
   override suspend fun isUsernameUnique(username: String): Boolean {
     val querySnapshot =
-        db.collection(USERS_COLLECTION_PATH).whereEqualTo("username", username).get().await()
+        withContext(iODispatcher) {
+          db.collection(USERS_COLLECTION_PATH).whereEqualTo("username", username).get().await()
+        }
     return querySnapshot.isEmpty
   }
 }

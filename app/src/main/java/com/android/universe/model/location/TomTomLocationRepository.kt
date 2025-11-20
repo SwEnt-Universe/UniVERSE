@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
+import com.android.universe.di.DefaultDP
 import com.tomtom.quantity.Distance
 import com.tomtom.sdk.location.DefaultLocationProviderFactory
 import com.tomtom.sdk.location.GeoLocation
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.location.LocationProviderConfig
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -27,7 +27,7 @@ class TomTomLocationRepository(private val context: Context) : LocationRepositor
     val config =
         LocationProviderConfig(
             minTimeInterval = 250L.milliseconds, minDistance = Distance.meters(20.0))
-    DefaultLocationProviderFactory.create(context, Dispatchers.Default, config)
+    DefaultLocationProviderFactory.create(context, DefaultDP.default, config)
   }
 
   /**

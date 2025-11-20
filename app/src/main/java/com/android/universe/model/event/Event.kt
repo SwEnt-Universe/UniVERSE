@@ -1,8 +1,7 @@
 package com.android.universe.model.event
 
-import com.android.universe.model.Tag
 import com.android.universe.model.location.Location
-import com.android.universe.model.user.UserProfile
+import com.android.universe.model.tag.Tag
 import java.time.LocalDateTime
 
 /**
@@ -23,7 +22,41 @@ data class Event(
     val description: String? = null,
     val date: LocalDateTime,
     val tags: Set<Tag>,
-    val creator: UserProfile,
-    val participants: Set<UserProfile> = emptySet(),
-    val location: Location
-)
+    val creator: String,
+    val participants: Set<String> = emptySet(),
+    val location: Location,
+    val eventPicture: ByteArray? = null
+) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as Event
+
+    if (id != other.id) return false
+    if (title != other.title) return false
+    if (description != other.description) return false
+    if (date != other.date) return false
+    if (tags != other.tags) return false
+    if (creator != other.creator) return false
+    if (participants != other.participants) return false
+    if (location != other.location) return false
+    if ((eventPicture != null || other.eventPicture != null) &&
+        (!eventPicture.contentEquals(other.eventPicture)))
+        return false
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = id.hashCode()
+    result = 31 * result + title.hashCode()
+    result = 31 * result + (description?.hashCode() ?: 0)
+    result = 31 * result + date.hashCode()
+    result = 31 * result + tags.hashCode()
+    result = 31 * result + creator.hashCode()
+    result = 31 * result + participants.hashCode()
+    result = 31 * result + location.hashCode()
+    result = 31 * result + (eventPicture?.contentHashCode() ?: 0)
+    return result
+  }
+}

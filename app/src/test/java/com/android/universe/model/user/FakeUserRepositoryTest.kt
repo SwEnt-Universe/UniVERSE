@@ -1,15 +1,18 @@
 package com.android.universe.model.user
 
-import com.android.universe.model.Tag
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.tag.Tag
 import java.time.LocalDate
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.fail
-import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class FakeUserRepositoryTest {
 
   private lateinit var repository: FakeUserRepository
@@ -47,7 +50,7 @@ class FakeUserRepositoryTest {
           country = "Portugal",
           description = "a third user",
           dateOfBirth = java.time.LocalDate.of(2012, 9, 12),
-          tags = setOf(Tag.ROLE_PLAYING_GAMES, Tag.ARTIFICIAL_INTELLIGENCE))
+          tags = setOf(Tag.DND, Tag.AI))
 
   @Before
   fun setup() {

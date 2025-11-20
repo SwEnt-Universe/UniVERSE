@@ -1,22 +1,22 @@
 package com.android.universe.ui.map
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
-import com.android.universe.model.Tag
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
-import com.android.universe.model.user.UserProfile
+import com.android.universe.model.tag.Tag
+import com.android.universe.model.user.UserRepository
+import com.android.universe.utils.EventTestData
+import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.NoSuchElementException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -26,16 +26,29 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class MapViewModelTest {
+  private lateinit var userId: String
+
+  companion object {
+    const val commonLat = 46.5196535
+    const val commonLng = 6.6322734
+  }
 
   private lateinit var viewModel: MapViewModel
   private lateinit var locationRepository: LocationRepository
 
   private lateinit var eventRepository: EventRepository
+  private lateinit var userRepository: UserRepository
 
   private val testDispatcher = StandardTestDispatcher()
 
@@ -47,32 +60,14 @@ class MapViewModelTest {
               description = "Join us for a casual 5km run around the lake followed by coffee.",
               date = LocalDateTime.of(2025, 10, 15, 7, 30),
               tags = setOf(Tag.JAZZ, Tag.COUNTRY),
-              creator =
-                  UserProfile(
-                      uid = "0",
-                      username = "alice_smith",
-                      firstName = "Alice",
-                      lastName = "Smith",
-                      country = "US",
-                      description = "Loves running",
-                      dateOfBirth = LocalDate.of(1990, 1, 1),
-                      tags = setOf(Tag.SCULPTURE)),
+              creator = UserTestData.Alice.uid,
               location = Location(latitude = 46.5196535, longitude = 6.6322734)),
           Event(
               id = "event-002",
               title = "Tech Hackathon 2025",
               date = LocalDateTime.of(2025, 11, 3, 9, 0),
-              tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.BOAT),
-              creator =
-                  UserProfile(
-                      uid = "0",
-                      username = "alice_smith",
-                      firstName = "Alice",
-                      lastName = "Smith",
-                      country = "US",
-                      description = "Loves running",
-                      dateOfBirth = LocalDate.of(1990, 1, 1),
-                      tags = setOf(Tag.SCULPTURE)),
+              tags = setOf(Tag.PROGRAMMING, Tag.AI, Tag.KARATE),
+              creator = UserTestData.Alice.uid,
               location = Location(latitude = 37.423021, longitude = -122.086808)),
           Event(
               id = "event-003",
@@ -80,24 +75,17 @@ class MapViewModelTest {
               description = "Relaxed evening mixing painting, wine, and music.",
               date = LocalDateTime.of(2025, 10, 22, 19, 0),
               tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
-              creator =
-                  UserProfile(
-                      uid = "0",
-                      username = "alice_smith",
-                      firstName = "Alice",
-                      lastName = "Smith",
-                      country = "US",
-                      description = "Loves running",
-                      dateOfBirth = LocalDate.of(1990, 1, 1),
-                      tags = setOf(Tag.SCULPTURE)),
+              creator = UserTestData.Alice.uid,
               location = Location(latitude = 47.3769, longitude = 8.5417)))
 
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
-    viewModel = MapViewModel(locationRepository, eventRepository)
+    userRepository = mockk(relaxed = true)
+    viewModel = MapViewModel(userId, locationRepository, eventRepository, userRepository)
   }
 
   @After
@@ -210,5 +198,157 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals("Failed to load events: Failed to load", state.error)
+  }
+
+  @Test
+  fun `loadSuggestedEventsForCurrentUser updates eventMarkers with UserTestData`() = runTest {
+    val testUser = UserTestData.ManyTagsUser
+    val suggestedEvents = listOf(EventTestData.dummyEvent1, EventTestData.dummyEvent2)
+
+    coEvery { userRepository.getUser(userId) } returns testUser
+    coEvery { eventRepository.getSuggestedEventsForUser(testUser) } returns suggestedEvents
+
+    viewModel.loadSuggestedEventsForCurrentUser()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val markers = viewModel.eventMarkers.value
+    assertEquals(suggestedEvents.size, markers.size)
+    assertEquals(suggestedEvents, markers)
+  }
+
+  @Test
+  fun `loadSuggestedEventsForCurrentUser sets error on user retrieval failure`() = runTest {
+    coEvery { userRepository.getUser(userId) } throws RuntimeException("User not found")
+
+    viewModel.loadSuggestedEventsForCurrentUser()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("Failed to load events: User not found", state.error)
+  }
+
+  @Test
+  fun `selectLocation updates selectedLat and selectedLng`() = runTest {
+    viewModel.selectLocation(commonLat, commonLng)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(viewModel.uiState.value.selectedLat, commonLat)
+    assertEquals(viewModel.uiState.value.selectedLng, commonLng)
+
+    viewModel.selectLocation(null, null)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(viewModel.uiState.value.selectedLat, null)
+    assertEquals(viewModel.uiState.value.selectedLng, null)
+  }
+
+  @Test
+  fun `polling requests update events`() = runTest {
+    val min6: Long = 6 * 60 * 1000
+    val startEvents = viewModel.eventMarkers.value.size
+    val oneMore = startEvents + 1
+
+    // Controlled mutable list that mockk will read from
+    val currentEvents = mutableListOf<Event>()
+    coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
+
+    // start empty
+    assertEquals(startEvents, 0)
+
+    // Add one event, but no polling yet → ViewModel still empty
+    currentEvents.add(fakeEvents.first())
+    testDispatcher.scheduler.advanceTimeBy(min6)
+    assertEquals(viewModel.eventMarkers.value.size, startEvents)
+
+    // Start polling
+    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
+    testDispatcher.scheduler.advanceTimeBy(min6)
+
+    // ViewModel should have seen one event
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+
+    // Stop polling
+    viewModel.stopEventPolling()
+
+    // Add another event while polling stopped → still one event
+    currentEvents.add(fakeEvents[1])
+    testDispatcher.scheduler.advanceTimeBy(min6)
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+
+    // Remove first event and restart polling
+    currentEvents.removeAt(0)
+    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
+    testDispatcher.scheduler.advanceTimeBy(min6)
+
+    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+  }
+
+  @Test
+  fun `selectEvent updates selectedEvent with given event`() = runTest {
+    val testEvent = EventTestData.dummyEvent1
+
+    viewModel.selectEvent(testEvent)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(testEvent, viewModel.selectedEvent.value)
+  }
+
+  @Test
+  fun `selectEvent sets selectedEvent to null when null passed`() = runTest {
+    viewModel.selectEvent(null)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertNull(viewModel.selectedEvent.value)
+  }
+
+  @Test
+  fun `toggleEventParticipation adds user when not a participant`() = runTest {
+    val event = EventTestData.dummyEvent1
+    val newParticipants = event.participants + userId
+    val updatedEvent = event.copy(participants = newParticipants)
+
+    coEvery { eventRepository.updateEvent(event.id, updatedEvent) } returns Unit
+    coEvery { eventRepository.getAllEvents() } returns listOf(updatedEvent)
+
+    viewModel.toggleEventParticipation(event)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
+    val selectedEvent = viewModel.selectedEvent.value
+    assertEquals(updatedEvent, selectedEvent)
+    assertTrue(selectedEvent?.participants?.contains(userId) ?: false)
+  }
+
+  @Test
+  fun `toggleEventParticipation sets error on failure`() = runTest {
+    val event = EventTestData.NoParticipantEvent
+
+    coEvery { eventRepository.updateEvent(any(), any()) } throws
+        NoSuchElementException("Update failed")
+
+    viewModel.toggleEventParticipation(event)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("No event ${event.title} found", state.error)
+  }
+
+  @Test
+  fun `isUserParticipant returns true when user is in participants list`() {
+    val event =
+        EventTestData.dummyEvent1.copy(participants = setOf("otherUser", userId, "anotherUser"))
+
+    val result = viewModel.isUserParticipant(event)
+
+    assertTrue(result)
+  }
+
+  @Test
+  fun `isUserParticipant returns false when user is not in participants list`() {
+    val event = EventTestData.dummyEvent1.copy(participants = setOf("otherUser", "anotherUser"))
+
+    val result = viewModel.isUserParticipant(event)
+
+    assertFalse(result)
   }
 }

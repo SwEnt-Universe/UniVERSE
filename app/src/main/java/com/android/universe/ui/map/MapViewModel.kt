@@ -2,14 +2,18 @@ package com.android.universe.ui.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
+import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.camera.CameraOptions
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,12 +22,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class MapUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isPermissionRequired: Boolean = false,
-    val location: Location? = null
+    val location: Location? = null,
+    val selectedLat: Double? = null,
+    val selectedLng: Double? = null,
+    val eventCount: Int? = null,
+    val isMapInteractive: Boolean = false,
 )
 
 /**
@@ -33,8 +42,11 @@ data class MapUiState(
  * @property eventRepository Repository for accessing event data.
  */
 class MapViewModel(
+    private val currentUserId: String,
     private val locationRepository: LocationRepository,
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val userRepository: UserRepository,
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
@@ -50,8 +62,43 @@ class MapViewModel(
   private val _eventMarkers = MutableStateFlow<List<Event>>(emptyList())
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
+  private val _selectedEvent = MutableStateFlow<Event?>(null)
+  val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+
   init {
-    loadAllEvents()
+    loadSuggestedEventsForCurrentUser()
+  }
+
+  private var pollingJob: Job? = null
+
+  /**
+   * Starts polling for events at regular intervals.
+   *
+   * @param intervalMinutes The interval in minutes between polling events.
+   * @param maxIterations The maximum number of iterations before stopping polling. user only for
+   *   tests
+   */
+  fun startEventPolling(intervalMinutes: Long = 5, maxIterations: Int? = null) {
+    pollingJob?.cancel()
+    pollingJob =
+        viewModelScope.launch {
+          var count = 0
+          while (maxIterations == null || count < maxIterations) {
+            try {
+              loadAllEvents()
+            } catch (e: Exception) {
+              _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
+            }
+            count++
+            withContext(ioDispatcher) { delay(intervalMinutes * 60 * 1000) }
+          }
+        }
+  }
+
+  /** Stops polling for events. */
+  fun stopEventPolling() {
+    pollingJob?.cancel()
+    pollingJob = null
   }
 
   /**
@@ -133,9 +180,87 @@ class MapViewModel(
       try {
         val events = eventRepository.getAllEvents()
         _eventMarkers.value = events
+        // This is added so that the ui updates correctly when a new event is added
+        _uiState.update { it.copy(eventCount = events.size) }
       } catch (e: Exception) {
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
+  }
+
+  /**
+   * Loads suggested event markers for the current user from the event repository.
+   *
+   * Updates the state flow with the list of suggested events or an error message if loading fails.
+   */
+  fun loadSuggestedEventsForCurrentUser() {
+    viewModelScope.launch {
+      try {
+        val user = userRepository.getUser(currentUserId)
+        val events = eventRepository.getSuggestedEventsForUser(user)
+        _eventMarkers.value = events
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      }
+    }
+  }
+
+  /**
+   * Selects a location on the map.
+   *
+   * Updates the UI state with the selected latitude and longitude.
+   */
+  fun selectLocation(latitude: Double?, longitude: Double?) {
+    _uiState.value = _uiState.value.copy(selectedLat = latitude, selectedLng = longitude)
+  }
+
+  /** Updates the UI state to indicate that the map is now interactable. */
+  fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
+
+  /**
+   * Selects an event to be the currently selected event by the user.
+   *
+   * @param event The event to select, or null to clear the selection.
+   */
+  fun selectEvent(event: Event?) {
+    viewModelScope.launch { _selectedEvent.emit(event) }
+  }
+
+  /**
+   * Toggles the current user's participation in an event. If the user is already a participant,
+   * they will be removed. If they are not a participant, they will be added.
+   *
+   * @param event The event to join or leave
+   */
+  fun toggleEventParticipation(event: Event) {
+    viewModelScope.launch {
+      try {
+        val isParticipant = event.participants.contains(currentUserId)
+        val updatedParticipants =
+            if (isParticipant) {
+              event.participants - currentUserId
+            } else {
+              event.participants + currentUserId
+            }
+
+        val updatedEvent = event.copy(participants = updatedParticipants)
+        eventRepository.updateEvent(event.id, updatedEvent)
+
+        // Update the selected event to reflect the change
+        _selectedEvent.value = updatedEvent
+      } catch (e: NoSuchElementException) {
+        _uiState.update { it.copy(error = "No event ${event.title} found") }
+      }
+    }
+  }
+
+  /**
+   * Checks if the current user is a participant in the given event.
+   *
+   * @param event The event to check
+   * @return true if the user is a participant, false otherwise
+   */
+  fun isUserParticipant(event: Event): Boolean {
+    return event.participants.contains(currentUserId)
   }
 }

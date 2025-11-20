@@ -2,17 +2,18 @@ package com.android.universe.ui.profileSettings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.CountryData
-import com.android.universe.model.Tag
+import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
-import com.android.universe.ui.profile.SettingsUiState
-import com.android.universe.ui.selectTag.TagColors
 
 /**
  * A composable dropdown component used for selecting a country.
@@ -93,11 +94,6 @@ internal fun ModalContent(
     onClose: () -> Unit,
     onSave: () -> Unit
 ) {
-  // Local mirrors keep the modal responsive without requiring immediate upstream state updates.
-  var localText by remember(uiState.currentField) { mutableStateOf(uiState.tempValue) }
-  var localDay by remember(uiState.currentField) { mutableStateOf(uiState.tempDay) }
-  var localMonth by remember(uiState.currentField) { mutableStateOf(uiState.tempMonth) }
-  var localYear by remember(uiState.currentField) { mutableStateOf(uiState.tempYear) }
 
   Column(
       modifier = Modifier.fillMaxWidth().padding(SettingsScreenPaddings.ContentHorizontalPadding),
@@ -146,11 +142,8 @@ internal fun ModalContent(
 
             // Main editable text input
             OutlinedTextField(
-                value = localText,
-                onValueChange = { newValue ->
-                  localText = newValue
-                  onUpdateTemp("tempValue", newValue)
-                },
+                value = uiState.tempValue,
+                onValueChange = { newValue -> onUpdateTemp("tempValue", newValue) },
                 modifier = Modifier.fillMaxWidth().testTag(tag),
                 isError = uiState.modalError != null,
                 supportingText = {
@@ -158,7 +151,9 @@ internal fun ModalContent(
                   if (message != null) Text(message)
                 },
                 shape = RoundedCornerShape(12.dp),
-                maxLines = maxLines)
+                maxLines = maxLines,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onSave() }))
           }
 
           // ────── Country Dropdown ──────
@@ -180,11 +175,8 @@ internal fun ModalContent(
                 horizontalArrangement =
                     Arrangement.spacedBy(SettingsScreenPaddings.DateFieldSpacing)) {
                   OutlinedTextField(
-                      value = localDay,
-                      onValueChange = { newDay ->
-                        localDay = newDay
-                        onUpdateTemp("tempDay", newDay)
-                      },
+                      value = uiState.tempDay,
+                      onValueChange = { newDay -> onUpdateTemp("tempDay", newDay) },
                       label = { Text("Day") },
                       modifier = Modifier.weight(1f).testTag(SettingsTestTags.DAY_FIELD),
                       isError = uiState.tempDayError != null,
@@ -194,11 +186,8 @@ internal fun ModalContent(
                       },
                       shape = RoundedCornerShape(12.dp))
                   OutlinedTextField(
-                      value = localMonth,
-                      onValueChange = { newMonth ->
-                        localMonth = newMonth
-                        onUpdateTemp("tempMonth", newMonth)
-                      },
+                      value = uiState.tempMonth,
+                      onValueChange = { newMonth -> onUpdateTemp("tempMonth", newMonth) },
                       label = { Text("Month") },
                       modifier = Modifier.weight(1f).testTag(SettingsTestTags.MONTH_FIELD),
                       isError = uiState.tempMonthError != null,
@@ -208,11 +197,8 @@ internal fun ModalContent(
                       },
                       shape = RoundedCornerShape(12.dp))
                   OutlinedTextField(
-                      value = localYear,
-                      onValueChange = { newYear ->
-                        localYear = newYear
-                        onUpdateTemp("tempYear", newYear)
-                      },
+                      value = uiState.tempYear,
+                      onValueChange = { newYear -> onUpdateTemp("tempYear", newYear) },
                       label = { Text("Year") },
                       modifier = Modifier.weight(1.5f).testTag(SettingsTestTags.YEAR_FIELD),
                       isError = uiState.tempYearError != null,
@@ -230,25 +216,12 @@ internal fun ModalContent(
                 .find { it.fieldName == uiState.currentField }
                 ?.let { category ->
                   TagGroup(
-                      name = "",
-                      tagList = Tag.getDisplayNamesForCategory(category),
-                      selectedTags = uiState.tempSelectedTags.map { it.displayName },
-                      color =
-                          when (category) {
-                            Tag.Category.INTEREST -> TagColors.Interest
-                            Tag.Category.SPORT -> TagColors.Sport
-                            Tag.Category.MUSIC -> TagColors.Music
-                            Tag.Category.TRANSPORT -> TagColors.Transport
-                            Tag.Category.CANTON -> TagColors.Canton
-                          },
-                      onTagSelect = { displayName ->
-                        val tag = Tag.fromDisplayName(displayName)
-                        if (tag != null) onAddTag(tag)
-                      },
-                      onTagReSelect = { displayName ->
-                        val tag = Tag.fromDisplayName(displayName)
-                        if (tag != null) onRemoveTag(tag)
-                      },
+                      name = category.displayName,
+                      tagList = Tag.getTagsForCategory(category),
+                      selectedTags = uiState.tempSelectedTags,
+                      displayText = false,
+                      onTagSelect = { tag -> onAddTag(tag) },
+                      onTagReSelect = { tag -> onRemoveTag(tag) },
                       modifier = Modifier.fillMaxWidth())
                 }
           }

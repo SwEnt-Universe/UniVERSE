@@ -14,15 +14,26 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
+import com.android.universe.model.authentication.InvalidEmailException
+import com.android.universe.model.authentication.SIGN_IN_FAILED_EXCEPTION_MESSAGE
+import com.android.universe.ui.common.ValidationState
+import com.android.universe.ui.common.validateEmail
+import com.android.universe.ui.common.validatePassword
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Represents the UI state for the Sign In screen.
@@ -36,15 +47,28 @@ data class SignInUIState(
     val errorMsg: String? = null,
     val isLoading: Boolean = false,
     val user: FirebaseUser? = null,
-    val signedOut: Boolean = false
-)
+    val signedOut: Boolean = false,
+    val email: String = "",
+    val emailErrorMsg: String? = null,
+    val password: String = "",
+    val passwordErrorMsg: String? = null,
+) {
+  val signInEnabled: Boolean
+    get() =
+        !isLoading &&
+            validateEmail(email) is ValidationState.Valid &&
+            validatePassword(password) is ValidationState.Valid
+}
 
 /**
  * ViewModel for the Sign In screen, handling user authentication logic.
  *
  * @param authModel The authentication model responsible for handling authentication logic.
  */
-class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : ViewModel() {
+class SignInViewModel(
+    private val authModel: AuthModel = AuthModelFirebase(),
+    private val iODispatcher: CoroutineDispatcher = DefaultDP.io
+) : ViewModel() {
 
   companion object {
     private const val TAG = "SignInViewModel"
@@ -80,7 +104,7 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
   }
 
   /** Function to call before starting the signing process. */
-  private fun nowLoading() {
+  fun nowLoading() {
     _uiState.value = _uiState.value.copy(isLoading = true)
   }
 
@@ -158,7 +182,8 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
       val signInRequest = googleSignInRequest(signInOptions)
 
       try {
-        val credential = getCredential(context, signInRequest, credentialManager)
+        val credential =
+            withContext(iODispatcher) { getCredential(context, signInRequest, credentialManager) }
 
         authModel.signInWithGoogle(
             credential,
@@ -175,6 +200,107 @@ class SignInViewModel(private val authModel: AuthModel = AuthModelFirebase()) : 
       } catch (e: Exception) {
         handleCredentialFailure(e)
         onFailure(e)
+      }
+    }
+  }
+
+  /**
+   * Updates the email in the UI state and validates it.
+   *
+   * This function updates the `email` field in the `SignInUIState`. It also validates the provided
+   * email using the `validateEmail` utility function. If the email is invalid, the `emailErrorMsg`
+   * in the UI state is updated with the corresponding error message; otherwise, it is cleared.
+   *
+   * @param email The new email string to set.
+   */
+  fun setEmail(email: String) {
+    if (_uiState.value.isLoading) return
+    val ValidationState = validateEmail(email)
+
+    val errorMsg =
+        when (ValidationState) {
+          is ValidationState.Valid -> null
+          is ValidationState.Neutral -> null
+          is ValidationState.Invalid -> ValidationState.errorMessage
+        }
+
+    _uiState.update { it.copy(email = email, emailErrorMsg = errorMsg) }
+  }
+
+  /**
+   * Updates the password in the UI state and validates it.
+   *
+   * @param password The new password string.
+   */
+  fun setPassword(password: String) {
+    if (_uiState.value.isLoading) return
+    val ValidationState = validatePassword(password)
+
+    val errorMsg =
+        when (ValidationState) {
+          is ValidationState.Valid -> null
+          is ValidationState.Neutral -> null
+          is ValidationState.Invalid -> ValidationState.errorMessage
+        }
+
+    _uiState.update { it.copy(password = password, passwordErrorMsg = errorMsg) }
+  }
+
+  /**
+   * Attempts to sign in the user using the email and password provided in the UI state.
+   *
+   * It first checks if a sign-in process is already in progress or if the sign-in button should be
+   * disabled. If not, it clears any existing error messages, sets the UI state to loading, and then
+   * launches a coroutine to call the authentication model.
+   *
+   * On successful sign-in, it calls [onSignInSuccess]. On failure, it calls [onSignInFailure] to
+   * handle and display the appropriate error.
+   */
+  fun signInWithEmail() {
+    if (_uiState.value.isLoading or !_uiState.value.signInEnabled) return
+    clearErrorMsg()
+    nowLoading()
+    viewModelScope.launch {
+      val signIn =
+          authModel.signInWithEmail(email = uiState.value.email, password = uiState.value.password)
+      signIn.onSuccess { user: FirebaseUser -> onSignInSuccess(user) }
+      signIn.onFailure { tr: Throwable -> onSignInFailure(tr) }
+    }
+  }
+
+  /**
+   * Updates the UI state upon successful sign-in. It sets the user in the state and stops the
+   * loading indicator.
+   *
+   * @param user The [FirebaseUser] object representing the successfully signed-in user.
+   */
+  private fun onSignInSuccess(user: FirebaseUser) {
+    _uiState.update { it.copy(user = user, isLoading = false) }
+  }
+
+  /**
+   * Handles failures that occur during the email/password sign-in process. It updates the UI state
+   * with an appropriate error message based on the type of exception.
+   *
+   * @param tr The [Throwable] that occurred during the sign-in attempt.
+   */
+  private fun onSignInFailure(tr: Throwable) {
+    when (tr) {
+      is FirebaseAuthWeakPasswordException -> {
+        _uiState.update { it.copy(errorMsg = tr.reason, isLoading = false) }
+      }
+      is FirebaseAuthInvalidCredentialsException -> {
+        _uiState.update { it.copy(errorMsg = "Invalid password", isLoading = false) }
+      }
+      is InvalidEmailException -> {
+        _uiState.update { it.copy(emailErrorMsg = tr.message, isLoading = false) }
+      }
+      is FirebaseNetworkException -> {
+        _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
+      }
+      else -> {
+        Log.e(TAG, tr.localizedMessage, tr)
+        _uiState.update { it.copy(errorMsg = SIGN_IN_FAILED_EXCEPTION_MESSAGE, isLoading = false) }
       }
     }
   }

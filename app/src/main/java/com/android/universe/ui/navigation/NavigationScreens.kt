@@ -20,15 +20,24 @@ sealed class NavigationScreens(
 
   object Chat : NavigationScreens(route = "chat", name = "Chat", isTopLevelDestination = true)
 
+  object ChatInstance : NavigationScreens(route = "chat/{chatID}", name = "ChatInstance")
+
   object Profile :
       NavigationScreens(route = "profile", name = "Profile", isTopLevelDestination = true)
 
   object SignIn :
       NavigationScreens(route = "signIn", name = "Sign In", isTopLevelDestination = true)
 
+  object EmailValidation : NavigationScreens(route = "emailValidation", name = "Email Validation")
+
   object AddProfile : NavigationScreens(route = "addProfile", name = "Add Profile")
 
   object Settings : NavigationScreens(route = "settings/{uid}", name = "Settings")
 
-  object SelectTag : NavigationScreens(route = "selectTag", name = "Select Tag")
+  object SelectTagUser : NavigationScreens(route = "selectTagUser", name = "Select Tag user")
+
+  object SelectTagEvent : NavigationScreens(route = "selectTagEvent", name = "Select Tag event")
+
+  object EventCreation :
+      NavigationScreens(route = "eventCreation/{latitude}/{longitude}", name = "EventCreation")
 }

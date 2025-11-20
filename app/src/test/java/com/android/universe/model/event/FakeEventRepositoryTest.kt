@@ -1,21 +1,30 @@
 package com.android.universe.model.event
 
-import com.android.universe.model.Tag
 import com.android.universe.model.location.Location
-import com.android.universe.model.user.UserProfile
-import java.time.LocalDate
+import com.android.universe.model.tag.Tag
+import com.android.universe.utils.EventTestData
+import com.android.universe.utils.MainCoroutineRule
+import com.android.universe.utils.UserTestData
 import java.time.LocalDateTime
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.fail
-import kotlin.test.assertNotNull
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class FakeEventRepositoryTest {
+  companion object {
+    private val userA = UserTestData.Alice
+    private val userB = UserTestData.Bob
+  }
 
   private lateinit var repository: FakeEventRepository
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
   @Before
   fun setup() {
@@ -33,26 +42,25 @@ class FakeEventRepositoryTest {
   }
 
   @Test
+  fun getSuggestedEvents_returnsEventsMatchingUserTags() = runTest {
+    val user = UserTestData.SomeTagsUser
+    val eventA = EventTestData.dummyEvent1.copy(tags = setOf(Tag.ROCK, Tag.POP))
+    val eventB = EventTestData.dummyEvent2.copy(tags = setOf(Tag.METAL, Tag.JAZZ))
+    val eventC = EventTestData.dummyEvent3.copy(tags = setOf(Tag.TENNIS))
+
+    repository.addEvent(eventA)
+    repository.addEvent(eventB)
+    repository.addEvent(eventC)
+
+    val suggestedEvents = repository.getSuggestedEventsForUser(user)
+
+    assertTrue(suggestedEvents.contains(eventA))
+    assertTrue(suggestedEvents.contains(eventB))
+    assertFalse(suggestedEvents.contains(eventC))
+  }
+
+  @Test
   fun addEvent_storesEvent_andCanBeRetrieved() = runTest {
-    val user1 =
-        UserProfile(
-            uid = "0",
-            username = "alice",
-            firstName = "Alice",
-            lastName = "Smith",
-            country = "CH",
-            description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = setOf(Tag.MUSIC, Tag.RUNNING))
-    val user2 =
-        UserProfile(
-            uid = "1",
-            username = "bob",
-            firstName = "Bob",
-            lastName = "Jones",
-            country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event =
         Event(
             id = "event-001",
@@ -60,8 +68,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            participants = setOf(user1, user2),
-            creator = user1,
+            participants = setOf(userA.uid, userB.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
@@ -75,30 +83,21 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 10, 15, 7, 30), result.date)
     assertEquals(setOf(Tag.RUNNING, Tag.FITNESS), result.tags)
     assertEquals(2, result.participants.size)
-    assert(result.participants.contains(user1))
-    assert(result.participants.contains(user2))
-    assertEquals(result.creator, user1)
+    assert(result.participants.contains(userA.uid))
+    assert(result.participants.contains(userB.uid))
+    assertEquals(result.creator, userA.uid)
   }
 
   @Test
   fun addEvent_storesEventWithNoDescription_andCanBeRetrieved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-002",
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
-            participants = setOf(user),
-            creator = user,
+            participants = setOf(userA.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
@@ -110,21 +109,12 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 11, 5, 18, 0), result.date)
     assertEquals(setOf(Tag.CYCLING, Tag.COUNTRY), result.tags)
     assertEquals(1, result.participants.size)
-    assert(result.participants.contains(user))
-    assertEquals(result.creator, user)
+    assert(result.participants.contains(userA.uid))
+    assertEquals(result.creator, userA.uid)
   }
 
   @Test
   fun addEvent_storesEventWithNoParticipants_andCanBeRetrieved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-003",
@@ -132,8 +122,8 @@ class FakeEventRepositoryTest {
             description =
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
-            tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE),
-            creator = user,
+            tags = setOf(Tag.PROGRAMMING, Tag.AI),
+            creator = userA.uid,
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
 
@@ -145,32 +135,13 @@ class FakeEventRepositoryTest {
         "An insightful talk on the latest advancements in artificial intelligence.",
         result.description)
     assertEquals(LocalDateTime.of(2025, 12, 1, 14, 0), result.date)
-    assertEquals(setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE), result.tags)
+    assertEquals(setOf(Tag.PROGRAMMING, Tag.AI), result.tags)
     assertEquals(0, result.participants.size)
-    assertEquals(result.creator, user)
+    assertEquals(result.creator, userA.uid)
   }
 
   @Test
   fun addEvent_storesMultipleEvents_andAllCanBeRetrieved() = runTest {
-    val user1 =
-        UserProfile(
-            uid = "0",
-            username = "alice",
-            firstName = "Alice",
-            lastName = "Smith",
-            country = "CH",
-            description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = setOf(Tag.MUSIC, Tag.RUNNING))
-    val user2 =
-        UserProfile(
-            uid = "1",
-            username = "bob",
-            firstName = "Bob",
-            lastName = "Jones",
-            country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event1 =
         Event(
             id = "event-001",
@@ -178,8 +149,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            participants = setOf(user1, user2),
-            creator = user1,
+            participants = setOf(userA.uid, userB.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     val event2 =
         Event(
@@ -187,7 +158,7 @@ class FakeEventRepositoryTest {
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
-            creator = user2,
+            creator = userB.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event1)
     repository.addEvent(event2)
@@ -207,34 +178,15 @@ class FakeEventRepositoryTest {
     assertEquals(setOf(Tag.RUNNING, Tag.FITNESS), result[0].tags)
     assertEquals(setOf(Tag.CYCLING, Tag.COUNTRY), result[1].tags)
     assertEquals(2, result[0].participants.size)
-    assert(result[0].participants.contains(user1))
-    assert(result[0].participants.contains(user2))
+    assert(result[0].participants.contains(userA.uid))
+    assert(result[0].participants.contains(userB.uid))
     assertEquals(0, result[1].participants.size)
-    assertEquals(result[0].creator, user1)
-    assertEquals(result[1].creator, user2)
+    assertEquals(result[0].creator, userA.uid)
+    assertEquals(result[1].creator, userB.uid)
   }
 
   @Test
   fun addEvent_storesEvent_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
-    val user1 =
-        UserProfile(
-            uid = "0",
-            username = "alice",
-            firstName = "Alice",
-            lastName = "Smith",
-            country = "CH",
-            description = "Bio",
-            dateOfBirth = LocalDate.of(1990, 1, 1),
-            tags = setOf(Tag.MUSIC, Tag.RUNNING))
-    val user2 =
-        UserProfile(
-            uid = "1",
-            username = "bob",
-            firstName = "Bob",
-            lastName = "Jones",
-            country = "FR",
-            dateOfBirth = LocalDate.of(2000, 8, 11),
-            tags = setOf(Tag.COOKING, Tag.FITNESS))
     val event =
         Event(
             id = "event-001",
@@ -242,8 +194,8 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            participants = setOf(user1, user2),
-            creator = user1,
+            participants = setOf(userA.uid, userB.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
@@ -255,8 +207,8 @@ class FakeEventRepositoryTest {
                 "A casual 5km run around the lake followed by a relaxing yoga session and coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 8, 0),
             tags = setOf(Tag.RUNNING, Tag.FITNESS, Tag.YOGA),
-            participants = setOf(user1),
-            creator = user1,
+            participants = setOf(userA.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-001", newEvent)
 
@@ -272,29 +224,20 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 10, 15, 8, 0), result2.date)
     assertEquals(setOf(Tag.RUNNING, Tag.FITNESS, Tag.YOGA), result2.tags)
     assertEquals(1, result2.participants.size)
-    assert(result2.participants.contains(user1))
-    assertEquals(result2.creator, user1)
+    assert(result2.participants.contains(userA.uid))
+    assertEquals(result2.creator, userA.uid)
   }
 
   @Test
   fun addEvent_storesEventWithNoDescription_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-002",
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
-            participants = setOf(user),
-            creator = user,
+            participants = setOf(userA.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
@@ -305,8 +248,8 @@ class FakeEventRepositoryTest {
             description = "An evening cycling tour with stops for photography at scenic spots.",
             date = LocalDateTime.of(2025, 11, 5, 18, 30),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY, Tag.PHOTOGRAPHY),
-            participants = setOf(user),
-            creator = user,
+            participants = setOf(userA.uid),
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-002", newEvent)
 
@@ -321,21 +264,12 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 11, 5, 18, 30), result2.date)
     assertEquals(setOf(Tag.CYCLING, Tag.COUNTRY, Tag.PHOTOGRAPHY), result2.tags)
     assertEquals(1, result2.participants.size)
-    assert(result2.participants.contains(user))
-    assertEquals(result2.creator, user)
+    assert(result2.participants.contains(userA.uid))
+    assertEquals(result2.creator, userA.uid)
   }
 
   @Test
   fun addEvent_storesEventWithNoParticipants_thenUpdateEvent_editsAndCanBeRetrieved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-003",
@@ -343,8 +277,8 @@ class FakeEventRepositoryTest {
             description =
                 "An insightful talk on the latest advancements in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 14, 0),
-            tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE),
-            creator = user,
+            tags = setOf(Tag.PROGRAMMING, Tag.AI),
+            creator = userA.uid,
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.addEvent(event)
 
@@ -355,9 +289,9 @@ class FakeEventRepositoryTest {
             description =
                 "A deep dive into the latest advancements and future trends in artificial intelligence.",
             date = LocalDateTime.of(2025, 12, 1, 15, 0),
-            tags = setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.RUNNING),
-            participants = setOf(user),
-            creator = user,
+            tags = setOf(Tag.PROGRAMMING, Tag.AI, Tag.RUNNING),
+            participants = setOf(userA.uid),
+            creator = userA.uid,
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.updateEvent("event-003", newEvent)
 
@@ -371,23 +305,14 @@ class FakeEventRepositoryTest {
         "A deep dive into the latest advancements and future trends in artificial intelligence.",
         result2.description)
     assertEquals(LocalDateTime.of(2025, 12, 1, 15, 0), result2.date)
-    assertEquals(setOf(Tag.PROGRAMMING, Tag.ARTIFICIAL_INTELLIGENCE, Tag.RUNNING), result2.tags)
+    assertEquals(setOf(Tag.PROGRAMMING, Tag.AI, Tag.RUNNING), result2.tags)
     assertEquals(1, result2.participants.size)
-    assert(result2.participants.contains(user))
-    assertEquals(result2.creator, user)
+    assert(result2.participants.contains(userA.uid))
+    assertEquals(result2.creator, userA.uid)
   }
 
   @Test
   fun updateEvent_throwsException_forNonExistentEvent() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val newEvent =
         Event(
             id = "event-001",
@@ -395,7 +320,7 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            creator = user,
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     try {
       repository.updateEvent("nonexistent", newEvent)
@@ -407,15 +332,6 @@ class FakeEventRepositoryTest {
 
   @Test
   fun deleteEvent_existingEvent_shouldBeRemoved() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event1 =
         Event(
             id = "event-001",
@@ -423,7 +339,7 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            creator = user,
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event1)
     val event2 =
@@ -432,7 +348,7 @@ class FakeEventRepositoryTest {
             title = "Evening Cycling Tour",
             date = LocalDateTime.of(2025, 11, 5, 18, 0),
             tags = setOf(Tag.CYCLING, Tag.COUNTRY),
-            creator = user,
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event2)
     val result1 = repository.getAllEvents()
@@ -447,20 +363,11 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 11, 5, 18, 0), result2[0].date)
     assertEquals(setOf(Tag.CYCLING, Tag.COUNTRY), result2[0].tags)
     assertEquals(0, result2[0].participants.size)
-    assertEquals(result2[0].creator, user)
+    assertEquals(result2[0].creator, userA.uid)
   }
 
   @Test
   fun deleteEvent_nonExistingEvent_shouldThrowException() = runTest {
-    val user =
-        UserProfile(
-            uid = "3",
-            username = "charlie",
-            firstName = "Charlie",
-            lastName = "Brown",
-            country = "US",
-            dateOfBirth = LocalDate.of(1985, 5, 20),
-            tags = setOf(Tag.CYCLING, Tag.PHOTOGRAPHY))
     val event =
         Event(
             id = "event-001",
@@ -468,7 +375,7 @@ class FakeEventRepositoryTest {
             description = "A casual 5km run around the lake followed by coffee at the café nearby.",
             date = LocalDateTime.of(2025, 10, 15, 7, 30),
             tags = setOf(Tag.RUNNING, Tag.FITNESS),
-            creator = user,
+            creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event)
 
@@ -495,7 +402,7 @@ class FakeEventRepositoryTest {
     assertEquals(LocalDateTime.of(2025, 10, 15, 7, 30), result2[0].date)
     assertEquals(setOf(Tag.RUNNING, Tag.FITNESS), result2[0].tags)
     assertEquals(0, result2[0].participants.size)
-    assertEquals(result2[0].creator, user)
+    assertEquals(result2[0].creator, userA.uid)
   }
 
   @Test

@@ -4,69 +4,46 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
-import com.android.universe.model.Tag
-import com.android.universe.model.user.UserProfile
-import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.profile.UserProfileScreenTestTags
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import java.time.LocalDate
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.utils.FirestoreUserTest
+import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
-object Emulator {
-  val auth = Firebase.auth
-  val firestore = Firebase.firestore
-
-  init {
-    auth.useEmulator("10.0.2.2", 9099)
-  }
-}
-
-@OptIn(ExperimentalCoroutinesApi::class)
-@RunWith(AndroidJUnit4::class)
-class UniverseAppNavigationTest {
-
-  val emulator = Emulator
+class UniverseAppNavigationTest : FirestoreUserTest(false) {
 
   @get:Rule val composeTestRule = createComposeRule()
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
+  private lateinit var repository: UserRepository
 
   // This is a placeholder setup for the test to correctly launch while the FirebaseEmulator is in
   // development
   @Before
-  fun setup() {
+  override fun setUp() {
+    super.setUp()
+    repository = createInitializedRepository()
     runTest {
       emulator.auth.signInAnonymously().await()
-
-      UserRepositoryProvider.repository.addUser(
-          UserProfile(
-              uid = emulator.auth.currentUser!!.uid,
-              username = "tester",
-              firstName = "testa",
-              lastName = "testo",
-              country = "testastan",
-              dateOfBirth = LocalDate.of(2003, 12, 3),
-              tags = setOf(Tag.TABLE_TENNIS),
-          ))
+      repository.addUser(UserTestData.Alice.copy(uid = emulator.auth.currentUser!!.uid))
+      this.testScheduler.advanceUntilIdle()
     }
-    composeTestRule.setContent { UniverseApp() }
+    composeTestRule.setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
+    composeTestRule.waitForIdle()
   }
 
   @After
-  fun tearDown() {
+  override fun tearDown() {
     runTest {
       emulator.auth.currentUser?.delete()
       emulator.auth.signOut()

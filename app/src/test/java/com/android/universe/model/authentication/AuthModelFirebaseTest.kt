@@ -4,24 +4,33 @@ import android.content.Context
 import androidx.core.os.bundleOf
 import androidx.credentials.Credential
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.FakeJwtGenerator
+import com.google.android.gms.tasks.Tasks
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
-import io.mockk.*
-import junit.framework.TestCase.assertNull
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
 private lateinit var mockAuth: FirebaseAuth
 private lateinit var mockHelper: GoogleSignInHelper
@@ -32,7 +41,7 @@ private lateinit var authModelFirebase: AuthModelFirebase
 private lateinit var mockAuthCredential: AuthCredential
 private lateinit var mockAuthResult: AuthResult
 
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class AuthModelFirebaseTest {
 
   companion object {
@@ -40,6 +49,7 @@ class AuthModelFirebaseTest {
     private val fromEpfl = "test@epfl.ch"
     private val validToken = FakeJwtGenerator.createFakeGoogleIdToken("test", fromEpfl)
     private val invalidToken = "invalidToken"
+    private val password = "test1234$"
   }
 
   private fun setupSignInMock(type: String, email: String? = null, idToken: String? = null) {
@@ -76,8 +86,12 @@ class AuthModelFirebaseTest {
     mockFirebaseUser = mockk()
     mockAuthCredential = mockk()
     mockAuthResult = mockk()
-
     authModelFirebase = AuthModelFirebase(mockAuth, mockHelper)
+  }
+
+  @After
+  fun tearDown() {
+    unmockkAll()
   }
 
   @Test
@@ -210,6 +224,85 @@ class AuthModelFirebaseTest {
       assertNotNull(capturedException)
       assertTrue(capturedException is IllegalStateException)
     }
+  }
+
+  @Test
+  fun `signInWithEmail whenUserNonExisting createsNewUser`() = runTest {
+    // Simulate createUserWithEmailAndPassword succeeds
+    val completedTask = Tasks.forResult(mockAuthResult)
+    every { mockAuth.createUserWithEmailAndPassword(any(), any()) } returns completedTask
+    every { mockAuthResult.user } returns mockFirebaseUser
+
+    val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
+    assertTrue(signIn.isSuccess)
+    assertTrue(signIn.getOrNull() === mockFirebaseUser)
+
+    coVerify(exactly = 1) { mockAuth.createUserWithEmailAndPassword(any(), any()) }
+    coVerify(exactly = 0) { mockAuth.signInWithEmailAndPassword(any(), any()) }
+  }
+
+  @Test
+  fun `signInWithEmail whenUserExisting signInUser`() {
+    // Simulate signInWithEmailAndPassword succeeds
+    every { mockAuth.createUserWithEmailAndPassword(any(), any()) } throws
+        FirebaseAuthUserCollisionException("must not be empty", "must not be empty")
+    val completedTask = Tasks.forResult(mockAuthResult)
+    every { mockAuth.signInWithEmailAndPassword(any(), any()) } returns completedTask
+    every { mockAuthResult.user } returns mockFirebaseUser
+    runTest {
+      val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
+      assertTrue(signIn.isSuccess)
+      assertTrue(signIn.getOrNull() === mockFirebaseUser)
+    }
+    coVerify(exactly = 1) { mockAuth.createUserWithEmailAndPassword(any(), any()) }
+    coVerify(exactly = 1) { mockAuth.signInWithEmailAndPassword(any(), any()) }
+  }
+
+  @Test
+  fun `signInWithEmail whenUsingInvalidEmail throwsException`() {
+    every { mockAuthResult.user } returns mockFirebaseUser
+    runTest {
+      val signIn = authModelFirebase.signInWithEmail(notFromEpfl, password)
+      assertTrue(signIn.isFailure)
+      signIn.onFailure { print(it) }
+      signIn.exceptionOrNull()?.let { assertTrue(it is InvalidEmailException) }
+    }
+    coVerify(exactly = 0) { mockAuth.createUserWithEmailAndPassword(any(), any()) }
+    coVerify(exactly = 0) { mockAuth.signInWithEmailAndPassword(any(), any()) }
+  }
+
+  @Test
+  fun `signInWithEmail whenUserNonExistingFails throwsException`() {
+    // Simulate signInWithEmailAndPassword succeeds
+    every { mockAuth.createUserWithEmailAndPassword(any(), any()) } throws
+        FirebaseNetworkException("must be nonempty")
+    val completedTask = Tasks.forResult(mockAuthResult)
+    every { mockAuth.signInWithEmailAndPassword(any(), any()) } returns completedTask
+    every { mockAuthResult.user } returns mockFirebaseUser
+    runTest {
+      val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
+      assertTrue(signIn.isFailure)
+      signIn.exceptionOrNull()?.let { assertTrue(it is FirebaseNetworkException) }
+    }
+    coVerify(exactly = 1) { mockAuth.createUserWithEmailAndPassword(any(), any()) }
+    coVerify(exactly = 0) { mockAuth.signInWithEmailAndPassword(any(), any()) }
+  }
+
+  @Test
+  fun `signInWithEmail whenUserExistingFails throwsException`() {
+    // Simulate signInWithEmailAndPassword succeeds
+    every { mockAuth.createUserWithEmailAndPassword(any(), any()) } throws
+        FirebaseAuthUserCollisionException("must not be empty", "must not be empty")
+    val completedTask = Tasks.forResult(mockAuthResult)
+    every { mockAuth.signInWithEmailAndPassword(any(), any()) } returns completedTask
+    every { mockAuthResult.user } returns null
+    runTest {
+      val signIn = authModelFirebase.signInWithEmail(fromEpfl, password)
+      assertTrue(signIn.isFailure)
+      signIn.exceptionOrNull()?.let { assertTrue(it is SignInFailedException) }
+    }
+    coVerify(exactly = 1) { mockAuth.createUserWithEmailAndPassword(any(), any()) }
+    coVerify(exactly = 1) { mockAuth.signInWithEmailAndPassword(any(), any()) }
   }
 
   @Test

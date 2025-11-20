@@ -6,11 +6,16 @@ package com.android.universe.model.authentication
  */
 import android.util.Log
 import androidx.credentials.Credential
+import com.android.universe.di.DefaultDP
+import com.android.universe.ui.common.ValidationState
+import com.android.universe.ui.common.validateEmail
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.auth
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 /**
  * Firebase implementation of the [AuthModel] interface. Handles authentication with Firebase.
@@ -20,9 +25,10 @@ import com.google.firebase.auth.auth
  * @property emailRegex The regex to validate the email address.
  */
 class AuthModelFirebase(
-    private val auth: FirebaseAuth = Firebase.auth,
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val helper: GoogleSignInHelper = DefaultGoogleSignInHelper(),
     private val emailRegex: Regex = Regex("^[a-zA-Z0-9._%+-]+@epfl\\.ch$"),
+    private val iODispatcher: CoroutineDispatcher = DefaultDP.io
 ) : AuthModel {
 
   companion object {
@@ -65,7 +71,8 @@ class AuthModelFirebase(
       // Sign in with Firebase
       val idToken = googleCredential.idToken
       val firebaseCredential = helper.toFirebaseCredential(idToken)
-      val user = helper.signInWithFirebase(auth, firebaseCredential).user
+      val user =
+          withContext(iODispatcher) { helper.signInWithFirebase(auth, firebaseCredential).user }
       if (user == null) {
         val exception = IllegalStateException("Could not retrieve user information")
         Log.w(TAG, exception.localizedMessage, exception)
@@ -81,6 +88,38 @@ class AuthModelFirebase(
       onFailure(e)
     }
   }
+
+  /**
+   * Signs in a user with an email and password.
+   *
+   * This function first validates the email format. If the format is invalid, it throws an
+   * [InvalidEmailException]. It then attempts to create a new user with the provided credentials.
+   * If an account with that email already exists ([FirebaseAuthUserCollisionException]), it
+   * proceeds to sign in the existing user instead.
+   *
+   * @param email The user's email address.
+   * @param password The user's password.
+   * @return A [Result] object containing the [FirebaseUser] on success, or an [Exception] on
+   *   failure.
+   * @throws InvalidEmailException if the email format is not valid.
+   * @throws SignInFailedException if the user is not available after a successful authentication
+   *   attempt.
+   */
+  override suspend fun signInWithEmail(email: String, password: String): Result<FirebaseUser> =
+      withContext(iODispatcher) {
+        runCatching {
+          (validateEmail(email) as? ValidationState.Invalid)?.let {
+            throw InvalidEmailException(it.errorMessage)
+          }
+          val authResult =
+              try {
+                auth.createUserWithEmailAndPassword(email, password).await()
+              } catch (_: FirebaseAuthUserCollisionException) {
+                auth.signInWithEmailAndPassword(email, password).await()
+              }
+          authResult?.user ?: throw SignInFailedException()
+        }
+      }
 
   /**
    * Signs out the current user.
@@ -100,3 +139,9 @@ class AuthModelFirebase(
     }
   }
 }
+
+const val SIGN_IN_FAILED_EXCEPTION_MESSAGE = "Sign in Failed"
+
+class InvalidEmailException(message: String) : Exception(message)
+
+class SignInFailedException() : Exception(SIGN_IN_FAILED_EXCEPTION_MESSAGE)
