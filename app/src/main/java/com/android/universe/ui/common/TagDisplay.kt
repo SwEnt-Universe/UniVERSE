@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.TagItem
 import com.android.universe.ui.components.TagItemDefaults
 import com.android.universe.ui.theme.Dimensions
@@ -315,69 +316,62 @@ fun TagGroup(
     displayText: Boolean = true,
     tagElement: ((Tag) -> String)? = null
 ) {
-  val isDark = LocalIsDarkTheme.current
-  val backGround =
-      (if (isDark) {
-        TagBackgroundDark
-      } else {
-        TagBackgroundLight
-      })
-  Column(
-      modifier =
-          modifierColumn
-              .padding(horizontal = outerPaddingH, vertical = outerPaddingV)
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(TagGroupDefaults.CornerShapeDp))
-              .background(backGround)) {
-        if (displayText) {
-          Text(
-              name,
-              style = MaterialTheme.typography.titleMedium,
-              modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
-        }
-        Box(modifier = Modifier.fillMaxWidth().height(height)) {
-          FlowRow(
-              modifier =
-                  modifierFlowRow
-                      .padding(horizontal = interPaddingH, vertical = interPaddingV)
-                      .fillMaxWidth()
-                      .verticalScroll(rememberScrollState()),
-              horizontalArrangement = Arrangement.Center) {
-                tagList.forEach { tag ->
-                  TagItem(
-                      tag = tag,
-                      heightTag = heightTag,
-                      isSelectable = isSelectable,
-                      isSelected = selectedTags.contains(tag),
-                      onSelect = { tag -> onTagSelect(tag) },
-                      onDeSelect = { tag -> onTagReSelect(tag) },
-                      modifier =
-                          Modifier.padding(Dimensions.PaddingMedium)
-                              .then(
-                                  if (tagElement != null) Modifier.testTag(tagElement(tag))
-                                  else Modifier))
-                }
-              }
-          // Top fade
-          Box(
-              modifier =
-                  Modifier.testTag(TagGroupTestTag.TOP_FADE)
-                      .fillMaxWidth()
-                      .height(height * 0.1f)
-                      .background(
-                          Brush.verticalGradient(
-                              colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent))))
-
-          // Bottom fade
-          Box(
-              modifier =
-                  Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
-                      .fillMaxWidth()
-                      .height(height * 0.1f)
-                      .align(Alignment.BottomCenter)
-                      .background(
-                          Brush.verticalGradient(
-                              colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f)))))
-        }
+  LiquidBox(modifier = Modifier.fillMaxWidth().height(height), shape = RoundedCornerShape(24.dp)) {
+    Column(
+        modifier = modifierColumn.padding(horizontal = outerPaddingH).fillMaxWidth(),
+    ) {
+      if (displayText) {
+        Text(
+            name,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
       }
+      Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        FlowRow(
+            modifier =
+                modifierFlowRow
+                    .padding(horizontal = interPaddingH, vertical = interPaddingV)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.Center) {
+              tagList.forEach { tag ->
+                TagItem(
+                    tag = tag,
+                    heightTag = heightTag,
+                    isSelectable = isSelectable,
+                    isSelected = selectedTags.contains(tag),
+                    onSelect = { tag -> onTagSelect(tag) },
+                    onDeSelect = { tag -> onTagReSelect(tag) },
+                    modifier =
+                        Modifier.padding(Dimensions.PaddingMedium)
+                            .then(
+                                if (tagElement != null) Modifier.testTag(tagElement(tag))
+                                else Modifier))
+              }
+            }
+        // Top fade
+        Box(
+            modifier =
+                Modifier.testTag(TagGroupTestTag.TOP_FADE)
+                    .fillMaxWidth()
+                    .height(height * 0.1f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent)),
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)))
+
+        // Bottom fade
+        Box(
+            modifier =
+                Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
+                    .fillMaxWidth()
+                    .height(height * 0.1f)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f))),
+                        shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)))
+      }
+    }
+  }
 }

@@ -380,6 +380,17 @@ class TagGroupTest {
   }
 
   @Test
+  fun tagRow_displaysAllTagsWith() {
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false })
+    }
+
+    sampleTags.forEach { tag ->
+      composeTestRule.onNodeWithText(tag.displayName).assertIsDisplayed()
+    }
+  }
+
+  @Test
   fun tagRow_displaysFade() {
     composeTestRule.setContentWithStubBackdrop {
       TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
