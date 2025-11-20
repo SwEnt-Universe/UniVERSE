@@ -222,7 +222,7 @@ class MapViewModel(
 
   // for testing purposes
   fun selectLocation(location: GeoPoint) {
-      _uiState.value = _uiState.value.copy(selectedLocation = location)
+    _uiState.value = _uiState.value.copy(selectedLocation = location)
   }
 
   fun onMapClick() {
@@ -281,8 +281,6 @@ class MapViewModel(
       }
     }
   }
-
-
 
   /**
    * Checks if the current user is a participant in the given event.

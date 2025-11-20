@@ -131,8 +131,8 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun clickOnMapAndCreateEvent() {
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput{
-        longClick(center, 2_000L)
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
+      longClick(center, 2_000L)
     }
 
     composeTestRule.waitUntil(5_000L) {

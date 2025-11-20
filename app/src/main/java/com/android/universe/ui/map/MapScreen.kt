@@ -155,76 +155,81 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
           padding ->
-        Box(modifier = Modifier.fillMaxSize().then(
-            if (uiState.isMapInteractive)
-                Modifier.testTag(MapScreenTestTags.INTERACTABLE)
-            else Modifier
-        )) {
-          TomTomMapComposable(
-              modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
-              onMapReady = { map ->
-                tomTomMap = map
+        Box(
+            modifier =
+                Modifier.fillMaxSize()
+                    .then(
+                        if (uiState.isMapInteractive)
+                            Modifier.testTag(MapScreenTestTags.INTERACTABLE)
+                        else Modifier)) {
+              TomTomMapComposable(
+                  modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
+                  onMapReady = { map ->
+                    tomTomMap = map
 
-                // --- 4. Map Initialization Sequence ---
+                    // --- 4. Map Initialization Sequence ---
 
-                map.initLocationProvider(viewModel.locationProvider)
+                    map.initLocationProvider(viewModel.locationProvider)
 
-                map.setUpMapListeners(
-                    onMapClick = { viewModel.onMapClick() },
-                    onMapLongClick = { pos ->
-                      viewModel.onMapLongClick(pos.latitude, pos.longitude)
-                    },
-                    onMarkerClick = { id ->
-                      markerToEvent[id]?.let { event ->
-                        viewModel.onMarkerClick(event)
-                        true
-                      } ?: false
-                    },
-                    onCameraChange = { pos, zoom -> viewModel.onCameraStateChange(pos, zoom) })
+                    map.setUpMapListeners(
+                        onMapClick = { viewModel.onMapClick() },
+                        onMapLongClick = { pos ->
+                          viewModel.onMapLongClick(pos.latitude, pos.longitude)
+                        },
+                        onMarkerClick = { id ->
+                          markerToEvent[id]?.let { event ->
+                            viewModel.onMarkerClick(event)
+                            true
+                          } ?: false
+                        },
+                        onCameraChange = { pos, zoom -> viewModel.onCameraStateChange(pos, zoom) })
 
-                map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
-                viewModel.nowInteractable()
-              })
+                    map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
+                    viewModel.nowInteractable()
+                  })
 
-          if (uiState.selectedLocation != null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.BottomCenter) {
-                  LiquidButton(
-                      onClick = {
-                        createEvent(
-                            uiState.selectedLocation!!.latitude,
-                            uiState.selectedLocation!!.longitude)
-                      },
-                      modifier =
-                          Modifier.padding(bottom = 96.dp)
-                              .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                        Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
-                      }
+              if (uiState.selectedLocation != null) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.BottomCenter) {
+                      LiquidButton(
+                          onClick = {
+                            createEvent(
+                                uiState.selectedLocation!!.latitude,
+                                uiState.selectedLocation!!.longitude)
+                          },
+                          modifier =
+                              Modifier.padding(bottom = 96.dp)
+                                  .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                            Text(
+                                "Create your Event !",
+                                color = MaterialTheme.colorScheme.onBackground)
+                          }
+                    }
+              }
+              // Overlays
+              if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier =
+                        Modifier.align(Alignment.Center)
+                            .testTag(MapScreenTestTags.LOADING_INDICATOR))
+              }
+
+              uiState.error?.let { errorMessage ->
+                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
+                  Text(errorMessage)
                 }
-          }
-          // Overlays
-          if (uiState.isLoading) {
-            CircularProgressIndicator(
-                modifier =
-                    Modifier.align(Alignment.Center).testTag(MapScreenTestTags.LOADING_INDICATOR))
-          }
+              }
 
-          uiState.error?.let { errorMessage ->
-            Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
-              Text(errorMessage)
+              selectedEvent?.let { event ->
+                EventInfoPopup(
+                    modifier = Modifier.padding(padding),
+                    event = event,
+                    isUserParticipant = viewModel.isUserParticipant(event),
+                    onDismiss = { viewModel.selectEvent(null) },
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+              }
             }
-          }
-
-          selectedEvent?.let { event ->
-            EventInfoPopup(
-                modifier = Modifier.padding(padding),
-                event = event,
-                isUserParticipant = viewModel.isUserParticipant(event),
-                onDismiss = { viewModel.selectEvent(null) },
-                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
-          }
-        }
       }
 }
 

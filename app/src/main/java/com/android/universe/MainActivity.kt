@@ -191,7 +191,6 @@ fun UniverseApp(
           route = NavigationScreens.Map.name,
       ) {
         composable(NavigationScreens.Map.route) {
-
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
