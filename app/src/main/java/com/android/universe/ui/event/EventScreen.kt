@@ -158,7 +158,7 @@ fun EventScreen(
         modifier =
             Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-          items(events) { event ->
+          items(filteredEvents) { event ->
             EventCard(
                 title = event.title,
                 description = event.description,
