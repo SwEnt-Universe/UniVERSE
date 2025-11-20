@@ -16,7 +16,13 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class TagItemTest {
   @get:Rule val composeTestRule = createComposeRule()
-  val tag = Tag.METAL
+
+  companion object TestValuesTagItem {
+    val tag = Tag.METAL
+    const val TAG_BUTTON = "ButtonMetal"
+    const val TAG_TEXT = "TextMetal"
+    const val TAG_ICON = "IconMetal"
+  }
 
   fun setUp(
       isSelectable: Boolean,
@@ -37,17 +43,15 @@ class TagItemTest {
   @Test
   fun notSelectedTagOnlyDisplayText() {
     setUp(isSelectable = true, isAlreadySelected = false, onSelect = {}, onDeSelect = {})
-    composeTestRule.onNodeWithTag(TagItemTestTag.BUTTON).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(TagItemTestTag.TEXT, useUnmergedTree = true).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(TagItemTestTag.ICON, useUnmergedTree = true)
-        .assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(TAG_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_TEXT, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_ICON, useUnmergedTree = true).assertIsNotDisplayed()
   }
 
   @Test
   fun selectedTagDisplayIcon() {
     setUp(isSelectable = true, isAlreadySelected = true, onSelect = {}, onDeSelect = {})
-    composeTestRule.onNodeWithTag(TagItemTestTag.ICON, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_ICON, useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
@@ -58,8 +62,8 @@ class TagItemTest {
         isAlreadySelected = false,
         onSelect = { tag -> tags.add(tag) },
         onDeSelect = {})
-    composeTestRule.onNodeWithTag(TagItemTestTag.BUTTON).performClick()
-    composeTestRule.onNodeWithTag(TagItemTestTag.ICON, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(TAG_ICON, useUnmergedTree = true).assertIsDisplayed()
     assertEquals(2, tags.size)
     assertEquals(Tag.DND, tags[0])
     assertEquals(Tag.METAL, tags[1])
@@ -73,10 +77,8 @@ class TagItemTest {
         isAlreadySelected = true,
         onSelect = {},
         onDeSelect = { tag -> tags.remove(tag) })
-    composeTestRule.onNodeWithTag(TagItemTestTag.BUTTON).performClick()
-    composeTestRule
-        .onNodeWithTag(TagItemTestTag.ICON, useUnmergedTree = true)
-        .assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(TAG_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(TAG_ICON, useUnmergedTree = true).assertIsNotDisplayed()
     assertEquals(1, tags.size)
     assertEquals(Tag.DND, tags[0])
   }

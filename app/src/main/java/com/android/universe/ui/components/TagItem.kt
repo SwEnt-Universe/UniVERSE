@@ -32,9 +32,20 @@ import com.android.universe.ui.theme.tagColor
 
 /** Contain the tag for the tests. */
 object TagItemTestTag {
-  const val BUTTON = "Button"
-  const val TEXT = "Text"
-  const val ICON = "Icon"
+  /** Give the tag for a button according to the tag displayName. */
+  fun tagButton(tag: Tag): String {
+    return "Button" + tag.displayName
+  }
+
+  /** Give the tag for a text according to the tag displayName. */
+  fun tagText(tag: Tag): String {
+    return "Text" + tag.displayName
+  }
+
+  /** Give the tag for a icon according to the tag displayName. */
+  fun tagIcon(tag: Tag): String {
+    return "Icon" + tag.displayName
+  }
 }
 
 /** Contain the dimensions used specially in this composable. */
@@ -100,7 +111,7 @@ fun TagItem(
           Text(
               tag.displayName,
               fontSize = TagItemDefaults.FontSizeText,
-              modifier = Modifier.testTag(TagItemTestTag.TEXT))
+              modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
           if (isSelected.value) {
             Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
             Icon(
@@ -112,13 +123,14 @@ fun TagItem(
                     } else {
                       IconLight
                     },
-                modifier = Modifier.testTag(TagItemTestTag.ICON).size(TagItemDefaults.SizeIcon))
+                modifier =
+                    Modifier.testTag(TagItemTestTag.tagIcon(tag)).size(TagItemDefaults.SizeIcon))
           }
         }
       },
       modifier =
           modifier
-              .testTag(TagItemTestTag.BUTTON)
+              .testTag(TagItemTestTag.tagButton(tag))
               .then(
                   if (isSelected.value)
                       Modifier.border(
