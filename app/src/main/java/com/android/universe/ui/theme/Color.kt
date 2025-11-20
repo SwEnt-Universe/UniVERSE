@@ -65,6 +65,12 @@ val TagTopicDark = Color(0xFFC62828)
 
 // Selected tag highlight (used in TagGroup, SelectTagScreen)
 val TagSelectedLight = Color(0xFF9E9E9E) // Gray for selected tags
-val TagSelectedDark = Color(0xFF757575)
-val TagSelectedBorderLight = Color(0xFF546E7A)
+val TagSelectedDark = Color.White
+val TagSelectedBorderLight = Color(0xFF607D8B)
 val TagSelectedBorderDark = Color(0xFF455A64)
+val TagBackgroundLight = Color(0xFFCCCCCC).copy(alpha = 0.5f)
+val TagBackgroundDark = Color(0xFF2C2C2E).copy(alpha = 0.5f)
+
+// Icon
+val IconLight = Color.Black
+val IconDark = Color.White
