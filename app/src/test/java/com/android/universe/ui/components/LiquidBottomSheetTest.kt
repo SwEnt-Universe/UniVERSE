@@ -3,11 +3,17 @@ package com.android.universe.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -25,6 +31,7 @@ class LiquidBottomSheetTest {
 
   private val TEST_SHEET_CONTENT = "Sheet Body Content"
   private val TEST_CUSTOM_HANDLE = "Custom Handle Text"
+  private val TEST_TAG = "liquid_bottom_sheet"
 
   @Test
   fun liquidBottomSheet_whenNotPresented_doesNotDisplayContent() {
@@ -94,8 +101,6 @@ class LiquidBottomSheetTest {
 
     // Content should still be there
     composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
-    // We cannot easily assert "CustomDragHandle" is missing because it has no text,
-    // but we verify the sheet still renders correctly without crashing.
   }
 
   @Test
@@ -117,5 +122,37 @@ class LiquidBottomSheetTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+  }
+
+  @Test
+  fun liquidBottomSheet_appliesCustomStylingAndParameters() {
+    composeTestRule.setContentWithStubBackdrop {
+      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+      UniverseTheme {
+        LiquidBottomSheet(
+            isPresented = true,
+            onDismissRequest = {},
+            modifier = Modifier.testTag(TEST_TAG),
+            sheetState = sheetState,
+            sheetMaxWidth = 400.dp,
+            shape = RoundedCornerShape(0.dp),
+            containerColor = Color.Blue.copy(alpha = 0.5f),
+            contentColor = Color.White,
+            scrimColor = Color.Black.copy(alpha = 0.8f),
+            tonalElevation = 8.dp,
+            contentWindowInsets = { BottomSheetDefaults.windowInsets }) {
+              Text(TEST_SHEET_CONTENT)
+            }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify the component rendered with the content
+    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+
+    // Verify the modifier tag was applied to the hierarchy
+    composeTestRule.onNodeWithTag(TEST_TAG).assertExists()
   }
 }
