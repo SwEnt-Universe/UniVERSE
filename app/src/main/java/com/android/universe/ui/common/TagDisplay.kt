@@ -17,14 +17,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.TagItem
+import com.android.universe.ui.components.TagItemDefaults
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.LocalIsDarkTheme
 import com.android.universe.ui.theme.TagBackgroundDark
 import com.android.universe.ui.theme.TagBackgroundLight
 
-/**
- * Contain the tag for the tests.
- */
+/** Contain the tag for the tests. */
 object TagGroupTestTag {
   const val TOP_FADE = "top fade"
   const val BOTTOM_FADE = "Bottom fade"
@@ -82,6 +81,7 @@ fun TagGroup(
     modifierColumn: Modifier = Modifier,
     modifierFlowRow: Modifier = Modifier,
     height: Dp = TagGroupDefaults.DefaultHeight,
+    heightTag: Float = TagItemDefaults.HEIGHT_TAG,
     interPaddingH: Dp = TagGroupDefaults.DefaultInterPaddingH,
     interPaddingV: Dp = TagGroupDefaults.DefaultInterPaddingV,
     outerPaddingH: Dp = TagGroupDefaults.DefaultOuterPaddingH,
@@ -126,6 +126,7 @@ fun TagGroup(
                 tagList.forEach { tag ->
                   TagItem(
                       tag = tag,
+                      heightTag = heightTag,
                       isSelectable = isSelectable,
                       isAlreadySelected = selectedTags.contains(tag),
                       onSelect = { tag -> onTagSelect(tag) },

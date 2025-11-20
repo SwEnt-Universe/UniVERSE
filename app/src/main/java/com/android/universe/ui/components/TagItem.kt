@@ -30,9 +30,7 @@ import com.android.universe.ui.theme.TagSelectedBorderDark
 import com.android.universe.ui.theme.TagSelectedBorderLight
 import com.android.universe.ui.theme.tagColor
 
-/**
- * Contain the tag for the tests.
- */
+/** Contain the tag for the tests. */
 object TagItemTestTag {
   const val BUTTON = "Button"
   const val TEXT = "Text"
@@ -70,6 +68,7 @@ object TagItemDefaults {
 fun TagItem(
     modifier: Modifier = Modifier,
     tag: Tag,
+    heightTag: Float = TagItemDefaults.HEIGHT_TAG,
     isSelectable: Boolean,
     isAlreadySelected: Boolean = false,
     onSelect: (Tag) -> Unit,
@@ -93,7 +92,7 @@ fun TagItem(
       },
       enabled = isSelectable,
       isInteractive = isSelectable,
-      height = TagItemDefaults.HEIGHT_TAG,
+      height = heightTag,
       width = TagItemDefaults.WIDTH_TAG,
       color = buttonColor,
       content = {
