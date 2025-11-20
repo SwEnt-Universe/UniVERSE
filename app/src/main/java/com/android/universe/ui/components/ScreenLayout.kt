@@ -14,6 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+
+object ScreenLayoutTestTags {
+  const val TOP_BAR = "topBar"
+  const val BOTTOM_BAR = "bottomBar"
+}
 
 /**
  * A layout composable that arranges its children in a way that is common for screen UIs. It places
@@ -55,7 +61,8 @@ fun ScreenLayout(
           modifier =
               Modifier.fillMaxWidth()
                   .onSizeChanged { topBarHeight = it.height }
-                  .align(Alignment.TopCenter)) {
+                  .align(Alignment.TopCenter)
+                  .testTag(ScreenLayoutTestTags.TOP_BAR)) {
             topBar()
           }
     }
@@ -66,7 +73,8 @@ fun ScreenLayout(
           modifier =
               Modifier.wrapContentSize()
                   .onSizeChanged { bottomBarHeight = it.height }
-                  .align(Alignment.BottomCenter)) {
+                  .align(Alignment.BottomCenter)
+                  .testTag(ScreenLayoutTestTags.BOTTOM_BAR)) {
             bottomBar()
           }
     }

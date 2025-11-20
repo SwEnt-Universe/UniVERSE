@@ -18,6 +18,10 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 
+object TopBarTestTags {
+  const val TOP_BAR_TITLE = "topBarTitle"
+}
+
 private val shape =
     RoundedCornerShape(
         topStart = 0.dp,
@@ -71,5 +75,9 @@ fun TopBarBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
  */
 @Composable
 fun TopBarTitle(text: String, modifier: Modifier = Modifier) {
-  Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier)
+  Text(
+      text = text,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      modifier = modifier.testTag(TopBarTestTags.TOP_BAR_TITLE))
 }
