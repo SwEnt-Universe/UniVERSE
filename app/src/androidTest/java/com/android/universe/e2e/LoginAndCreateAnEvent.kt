@@ -17,8 +17,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
+import com.android.universe.ui.common.EventCardTestTags
 import com.android.universe.ui.common.FormTestTags
-import com.android.universe.ui.event.EventScreenTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -180,18 +180,18 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
     composeTestRule.waitUntil(5_000L) {
       composeTestRule
-          .onAllNodesWithTag(EventScreenTestTags.EVENT_CARD)
+          .onAllNodesWithTag(EventCardTestTags.EVENT_CARD)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
     // There should be a single event therefore we can check using the onFirst() function
 
     composeTestRule
-        .onAllNodesWithTag(EventScreenTestTags.EVENT_TITLE)
+        .onAllNodesWithTag(EventCardTestTags.EVENT_TITLE)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.title)
     composeTestRule
-        .onAllNodesWithTag(EventScreenTestTags.EVENT_DESCRIPTION)
+        .onAllNodesWithTag(EventCardTestTags.EVENT_DESCRIPTION)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.description!!)
   }

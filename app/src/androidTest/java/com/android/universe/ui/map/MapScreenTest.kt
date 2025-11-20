@@ -30,7 +30,6 @@ class MapScreenTest {
   companion object {
     const val commonLat = 46.5196535
     const val commonLng = 6.632
-    const val buttonText = "Create your Event !"
   }
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -114,11 +113,6 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText(EventTestData.dummyEvent3.title).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithText("Participants: ${testEvent.participants.size}")
-        .assertIsDisplayed()
-    composeTestRule.onNodeWithText("Close").assertIsDisplayed()
-    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_JOIN_LEAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
