@@ -194,4 +194,23 @@ class EventViewModelTest {
     viewModel.setErrorMsg(null)
     assertEquals(null, viewModel.uiState.value.errormsg)
   }
+
+  @Test
+  fun updateSearchQuery_updatesState() = runTest {
+    assertEquals("", viewModel.searchQuery.value)
+
+    viewModel.updateSearchQuery("run")
+    advanceUntilIdle()
+
+    assertEquals("run", viewModel.searchQuery.value)
+  }
+
+  @Test
+  fun filteredEvents_returnsEmpty_whenNoMatch() = runTest {
+    viewModel.updateSearchQuery("zzzz")
+    advanceUntilIdle()
+
+    val filtered = viewModel.filteredEvents.value
+    assertEquals(0, filtered.size)
+  }
 }
