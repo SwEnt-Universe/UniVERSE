@@ -52,6 +52,5 @@ fun SearchBar(
       modifier =
           modifier
               .fillMaxWidth()
-              .padding(top = Dimensions.PaddingPutBelowStatusbar)
               .testTag(SearchTestTags.SEARCH_BAR))
 }
