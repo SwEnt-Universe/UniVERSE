@@ -23,29 +23,27 @@ import com.android.universe.ui.theme.TagBackgroundDark
 import com.android.universe.ui.theme.TagBackgroundLight
 
 object TagGroupTestTag {
-    const val TOP_FADE = "top fade"
-    const val BOTTOM_FADE = "Bottom fade"
+  const val TOP_FADE = "top fade"
+  const val BOTTOM_FADE = "Bottom fade"
 }
 
-/**
- * Contain the dimensions used specially in this composable.
- */
+/** Contain the dimensions used specially in this composable. */
 object TagGroupDefaults {
-    val DefaultHeight = 250.dp
-    val DefaultOuterPaddingH = 8.dp
-    val DefaultOuterPaddingV = 12.dp
-    val DefaultInterPaddingH = 8.dp
-    val DefaultInterPaddingV = 4.dp
-    val CornerShapeDp = 16.dp
+  val DefaultHeight = 250.dp
+  val DefaultOuterPaddingH = 8.dp
+  val DefaultOuterPaddingV = 12.dp
+  val DefaultInterPaddingH = 8.dp
+  val DefaultInterPaddingV = 4.dp
+  val CornerShapeDp = 16.dp
 }
 
 /**
  * Displays a labeled group of selectable tags, rendered as clickable buttons in a responsive
  * horizontal flow layout.
  *
- * Each tag button visually indicates its selection state: selected tags are highlighted with a border and check icon.
- * Supports scrolling if the content overflows.
- * Top and bottom fade effects make the tags disappear smoothly when scrolling.
+ * Each tag button visually indicates its selection state: selected tags are highlighted with a
+ * border and check icon. Supports scrolling if the content overflows. Top and bottom fade effects
+ * make the tags disappear smoothly when scrolling.
  *
  * When a tag is clicked:
  * - If it was not previously selected, [onTagSelect] is invoked.
@@ -58,10 +56,14 @@ object TagGroupDefaults {
  * @param modifierColumn Modifier applied to the outer Column of the tag group.
  * @param modifierFlowRow Modifier applied to the FlowRow containing the tags.
  * @param height The height of the tag container. Defaults to [TagGroupDefaults.DefaultHeight].
- * @param interPaddingH Horizontal spacing between tags inside the FlowRow. Defaults to [TagGroupDefaults.DefaultInterPaddingH].
- * @param interPaddingV Vertical spacing between tags inside the FlowRow. Defaults to [TagGroupDefaults.DefaultInterPaddingV].
- * @param outerPaddingH Horizontal padding of the outer Column. Defaults to [TagGroupDefaults.DefaultOuterPaddingH].
- * @param outerPaddingV Vertical padding of the outer Column. Defaults to [TagGroupDefaults.DefaultOuterPaddingV].
+ * @param interPaddingH Horizontal spacing between tags inside the FlowRow. Defaults to
+ *   [TagGroupDefaults.DefaultInterPaddingH].
+ * @param interPaddingV Vertical spacing between tags inside the FlowRow. Defaults to
+ *   [TagGroupDefaults.DefaultInterPaddingV].
+ * @param outerPaddingH Horizontal padding of the outer Column. Defaults to
+ *   [TagGroupDefaults.DefaultOuterPaddingH].
+ * @param outerPaddingV Vertical padding of the outer Column. Defaults to
+ *   [TagGroupDefaults.DefaultOuterPaddingV].
  * @param name Optional title displayed above the tag group. If empty or blank, no title is shown.
  * @param tagList The list of tags to display.
  * @param selectedTags The list of tags that are currently selected.
@@ -90,63 +92,68 @@ fun TagGroup(
     displayText: Boolean = true,
     tagElement: ((Tag) -> String)? = null
 ) {
-    val isDark = LocalIsDarkTheme.current
-    val backGround = (if (isDark){
+  val isDark = LocalIsDarkTheme.current
+  val backGround =
+      (if (isDark) {
         TagBackgroundDark
-    }else{
+      } else {
         TagBackgroundLight
-    })
-    Column(modifier = modifierColumn.padding(horizontal = outerPaddingH, vertical = outerPaddingV).fillMaxWidth().clip(RoundedCornerShape(TagGroupDefaults.CornerShapeDp)).background(backGround)) {
+      })
+  Column(
+      modifier =
+          modifierColumn
+              .padding(horizontal = outerPaddingH, vertical = outerPaddingV)
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(TagGroupDefaults.CornerShapeDp))
+              .background(backGround)) {
         if (displayText) {
-            Text(
-                name,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth()
-            )
+          Text(
+              name,
+              style = MaterialTheme.typography.titleMedium,
+              modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
         }
         Box(modifier = Modifier.fillMaxWidth().height(height)) {
-            FlowRow(
-                modifier = modifierFlowRow.padding(
-                    horizontal = interPaddingH,
-                    vertical = interPaddingV
-                ).fillMaxWidth().verticalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.Center
-            ) {
+          FlowRow(
+              modifier =
+                  modifierFlowRow
+                      .padding(horizontal = interPaddingH, vertical = interPaddingV)
+                      .fillMaxWidth()
+                      .verticalScroll(rememberScrollState()),
+              horizontalArrangement = Arrangement.Center) {
                 tagList.forEach { tag ->
-                    TagItem(
-                        tag = tag,
-                        isSelectable = isSelectable,
-                        isAlreadySelected = selectedTags.contains(tag),
-                        onSelect = { tag -> onTagSelect(tag) },
-                        onDeSelect = { tag -> onTagReSelect(tag) },
-                        modifier = Modifier.padding(Dimensions.PaddingMedium).then(if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
+                  TagItem(
+                      tag = tag,
+                      isSelectable = isSelectable,
+                      isAlreadySelected = selectedTags.contains(tag),
+                      onSelect = { tag -> onTagSelect(tag) },
+                      onDeSelect = { tag -> onTagReSelect(tag) },
+                      modifier =
+                          Modifier.padding(Dimensions.PaddingMedium)
+                              .then(
+                                  if (tagElement != null) Modifier.testTag(tagElement(tag))
+                                  else Modifier))
                 }
-            }
-            // Top fade
-            Box(
-                modifier = Modifier.testTag(TagGroupTestTag.TOP_FADE)
-                    .fillMaxWidth()
-                    .height( height * 0.1f)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent)
-                        )
-                    )
-            )
+              }
+          // Top fade
+          Box(
+              modifier =
+                  Modifier.testTag(TagGroupTestTag.TOP_FADE)
+                      .fillMaxWidth()
+                      .height(height * 0.1f)
+                      .background(
+                          Brush.verticalGradient(
+                              colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent))))
 
-            // Bottom fade
-            Box(
-                modifier = Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
-                    .fillMaxWidth()
-                    .height( height * 0.1f)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f))
-                        )
-                    )
-            )
+          // Bottom fade
+          Box(
+              modifier =
+                  Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
+                      .fillMaxWidth()
+                      .height(height * 0.1f)
+                      .align(Alignment.BottomCenter)
+                      .background(
+                          Brush.verticalGradient(
+                              colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f)))))
         }
-
-    }
-    }
+      }
+}

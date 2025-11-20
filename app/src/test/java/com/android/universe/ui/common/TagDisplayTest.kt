@@ -35,7 +35,19 @@ class TagGroupTest {
     private val TOPICS = Category.TOPIC
     private val sampleTags = listOf(READING, RUNNING, MUSIC)
     private const val SELECTED = "Selected"
-    private val multipleTags = listOf(Tag.METAL, Tag.HANDBALL, Tag.SAFARI, Tag.MACHINE_LEARNING, Tag.AI, Tag.CYCLING, Tag.BRAIN_GAMES, Tag.ONLINE_GAMES, Tag.FOOTBALL, Tag.MUSIC, Tag.BASKETBALL)
+    private val multipleTags =
+        listOf(
+            Tag.METAL,
+            Tag.HANDBALL,
+            Tag.SAFARI,
+            Tag.MACHINE_LEARNING,
+            Tag.AI,
+            Tag.CYCLING,
+            Tag.BRAIN_GAMES,
+            Tag.ONLINE_GAMES,
+            Tag.FOOTBALL,
+            Tag.MUSIC,
+            Tag.BASKETBALL)
   }
 
   @Test
@@ -133,19 +145,14 @@ class TagGroupTest {
   @Test
   fun tagList_isScrollable() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(
-        name = "Test",
-        tagList = multipleTags,
-        selectedTags = emptyList()
-      )
+      TagGroup(name = "Test", tagList = multipleTags, selectedTags = emptyList())
     }
 
     val lastTag = Tag.BASKETBALL.displayName
 
     composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true).assertIsNotDisplayed()
 
-    composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true)
-      .performScrollTo()
+    composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true).performScrollTo()
 
     composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true).assertExists()
   }
@@ -154,11 +161,10 @@ class TagGroupTest {
   fun tagElement_appliesUniqueTestTags() {
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-        name = "Test",
-        tagList = sampleTags,
-        selectedTags = emptyList(),
-        tagElement = { t -> "Tag_${t.displayName}" }
-      )
+          name = "Test",
+          tagList = sampleTags,
+          selectedTags = emptyList(),
+          tagElement = { t -> "Tag_${t.displayName}" })
     }
 
     sampleTags.forEach { tag ->
@@ -172,12 +178,11 @@ class TagGroupTest {
 
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-        name = "Test",
-        tagList = sampleTags,
-        selectedTags = emptyList(),
-        isSelectable = false,
-        onTagSelect = { called = true }
-      )
+          name = "Test",
+          tagList = sampleTags,
+          selectedTags = emptyList(),
+          isSelectable = false,
+          onTagSelect = { called = true })
     }
 
     composeTestRule.onNodeWithText(READING.displayName).performClick()

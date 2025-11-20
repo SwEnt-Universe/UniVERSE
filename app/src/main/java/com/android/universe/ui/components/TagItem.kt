@@ -30,23 +30,19 @@ import com.android.universe.ui.theme.TagSelectedBorderDark
 import com.android.universe.ui.theme.TagSelectedBorderLight
 import com.android.universe.ui.theme.tagColor
 
-object TagItemTestTag{
-    const val BUTTON = "Button"
-    const val TEXT = "Text"
-    const val ICON = "Icon"
+object TagItemTestTag {
+  const val BUTTON = "Button"
+  const val TEXT = "Text"
+  const val ICON = "Icon"
 }
 
-
-
-/**
- * Contain the dimensions used specially in this composable.
- */
-object TagItemDefaults{
-    const val HEIGHT_TAG = 30f
-    const val WIDTH_TAG = 160f
-    val FontSizeText = 13.sp
-    val SizeIcon = 18.dp
-    val SelectedBorderWidth = 3.dp
+/** Contain the dimensions used specially in this composable. */
+object TagItemDefaults {
+  const val HEIGHT_TAG = 30f
+  const val WIDTH_TAG = 160f
+  val FontSizeText = 13.sp
+  val SizeIcon = 18.dp
+  val SelectedBorderWidth = 3.dp
 }
 
 /**
@@ -77,9 +73,7 @@ fun TagItem(
     onDeSelect: (Tag) -> Unit
 ) {
   val isSelected = remember { mutableStateOf(isAlreadySelected) }
-    LaunchedEffect(isAlreadySelected) {
-        isSelected.value = isAlreadySelected
-    }
+  LaunchedEffect(isAlreadySelected) { isSelected.value = isAlreadySelected }
   val buttonColor by
       animateColorAsState(
           targetValue =
@@ -89,7 +83,7 @@ fun TagItem(
       onClick = {
         isSelected.value = !isSelected.value
         if (isSelected.value) {
-            onSelect(tag)
+          onSelect(tag)
         } else {
           onDeSelect(tag)
         }
@@ -101,33 +95,38 @@ fun TagItem(
       color = buttonColor,
       content = {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Text(tag.displayName, fontSize = TagItemDefaults.FontSizeText, modifier = Modifier.testTag(
-              TagItemTestTag.TEXT))
+          Text(
+              tag.displayName,
+              fontSize = TagItemDefaults.FontSizeText,
+              modifier = Modifier.testTag(TagItemTestTag.TEXT))
           if (isSelected.value) {
             Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = "Selected",
-                tint = if (isDark){
-                    IconDark
-                }else{
-                    IconLight
-                },
+                tint =
+                    if (isDark) {
+                      IconDark
+                    } else {
+                      IconLight
+                    },
                 modifier = Modifier.testTag(TagItemTestTag.ICON).size(TagItemDefaults.SizeIcon))
           }
         }
       },
       modifier =
-          modifier.testTag(TagItemTestTag.BUTTON).then(
-              if (isSelected.value)
-                  Modifier.border(
-                      width = TagItemDefaults.SelectedBorderWidth,
-                      color =
-                          if (isDark) {
-                            TagSelectedBorderDark
-                          } else {
-                            TagSelectedBorderLight
-                          },
-                      shape = CapsuleLarge)
-              else Modifier))
+          modifier
+              .testTag(TagItemTestTag.BUTTON)
+              .then(
+                  if (isSelected.value)
+                      Modifier.border(
+                          width = TagItemDefaults.SelectedBorderWidth,
+                          color =
+                              if (isDark) {
+                                TagSelectedBorderDark
+                              } else {
+                                TagSelectedBorderLight
+                              },
+                          shape = CapsuleLarge)
+                  else Modifier))
 }
