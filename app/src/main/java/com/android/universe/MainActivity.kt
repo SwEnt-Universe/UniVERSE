@@ -228,7 +228,8 @@ fun UniverseApp(
               ChatScreen(
                   chatID = it.arguments?.getString("chatID")!!,
                   userID = authInstance.currentUser!!.uid,
-                  onTabSelected = onTabSelected)
+                  onTabSelected = onTabSelected,
+                  onBack = { navigationActions.goBack() })
             }
       }
 
