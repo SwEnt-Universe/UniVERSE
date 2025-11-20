@@ -2,7 +2,9 @@ package com.android.universe.utils
 
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 object EventTestData {
   private val userWithNullDescription = UserTestData.NullDescription
@@ -81,4 +83,12 @@ object EventTestData {
       )
 
   val NoImage = BaseEvent.copy(eventPicture = null)
+
+  val futureEventNoTags =
+      NoTagsEvent.copy(
+          id = "event-007",
+          date =
+              LocalDateTime.of(
+                  LocalDate.of(LocalDate.now().year, LocalDate.now().month, 27).plusMonths(1),
+                  LocalTime.of(13, 25)))
 }
