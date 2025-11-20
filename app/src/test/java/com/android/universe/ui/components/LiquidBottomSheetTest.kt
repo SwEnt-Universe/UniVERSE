@@ -21,119 +21,101 @@ import org.junit.runner.RunWith
 @OptIn(ExperimentalMaterial3Api::class)
 class LiquidBottomSheetTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    private val TEST_SHEET_CONTENT = "Sheet Body Content"
-    private val TEST_CUSTOM_HANDLE = "Custom Handle Text"
+  private val TEST_SHEET_CONTENT = "Sheet Body Content"
+  private val TEST_CUSTOM_HANDLE = "Custom Handle Text"
 
-    @Test
-    fun liquidBottomSheet_whenNotPresented_doesNotDisplayContent() {
-        composeTestRule.setContentWithStubBackdrop {
-            UniverseTheme {
-                LiquidBottomSheet(
-                    isPresented = false,
-                    onDismissRequest = {}
-                ) {
-                    Text(TEST_SHEET_CONTENT)
-                }
-            }
-        }
-
-        // The sheet should not be in the hierarchy or displayed
-        composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertDoesNotExist()
+  @Test
+  fun liquidBottomSheet_whenNotPresented_doesNotDisplayContent() {
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        LiquidBottomSheet(isPresented = false, onDismissRequest = {}) { Text(TEST_SHEET_CONTENT) }
+      }
     }
 
-    @Test
-    fun liquidBottomSheet_whenPresented_displaysContent() {
-        composeTestRule.setContentWithStubBackdrop {
-            UniverseTheme {
-                LiquidBottomSheet(
-                    isPresented = true,
-                    onDismissRequest = {}
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    ) {
-                        Text(TEST_SHEET_CONTENT)
-                    }
-                }
-            }
+    // The sheet should not be in the hierarchy or displayed
+    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertDoesNotExist()
+  }
+
+  @Test
+  fun liquidBottomSheet_whenPresented_displaysContent() {
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        LiquidBottomSheet(isPresented = true, onDismissRequest = {}) {
+          Box(modifier = Modifier.fillMaxWidth().height(200.dp)) { Text(TEST_SHEET_CONTENT) }
         }
-
-        // Allow time for the BottomSheet animation to start/settle
-        composeTestRule.waitForIdle()
-
-        // Verify the content inside the sheet is visible
-        composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+      }
     }
 
-    @Test
-    fun liquidBottomSheet_rendersCustomDragHandle() {
-        composeTestRule.setContentWithStubBackdrop {
-            UniverseTheme {
-                LiquidBottomSheet(
-                    isPresented = true,
-                    onDismissRequest = {},
-                    // Inject a specific text element as the drag handle to verify its presence
-                    dragHandle = { Text(TEST_CUSTOM_HANDLE) }
-                ) {
-                    Text(TEST_SHEET_CONTENT)
-                }
+    // Allow time for the BottomSheet animation to start/settle
+    composeTestRule.waitForIdle()
+
+    // Verify the content inside the sheet is visible
+    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+  }
+
+  @Test
+  fun liquidBottomSheet_rendersCustomDragHandle() {
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        LiquidBottomSheet(
+            isPresented = true,
+            onDismissRequest = {},
+            // Inject a specific text element as the drag handle to verify its presence
+            dragHandle = { Text(TEST_CUSTOM_HANDLE) }) {
+              Text(TEST_SHEET_CONTENT)
             }
-        }
-
-        composeTestRule.waitForIdle()
-
-        // Verify both the handle and the content are displayed
-        composeTestRule.onNodeWithText(TEST_CUSTOM_HANDLE).assertIsDisplayed()
-        composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+      }
     }
 
-    @Test
-    fun liquidBottomSheet_canRemoveDragHandle() {
-        composeTestRule.setContentWithStubBackdrop {
-            UniverseTheme {
-                LiquidBottomSheet(
-                    isPresented = true,
-                    onDismissRequest = {},
-                    // Pass null to remove the handle
-                    dragHandle = null
-                ) {
-                    Text(TEST_SHEET_CONTENT)
-                }
+    composeTestRule.waitForIdle()
+
+    // Verify both the handle and the content are displayed
+    composeTestRule.onNodeWithText(TEST_CUSTOM_HANDLE).assertIsDisplayed()
+    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+  }
+
+  @Test
+  fun liquidBottomSheet_canRemoveDragHandle() {
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        LiquidBottomSheet(
+            isPresented = true,
+            onDismissRequest = {},
+            // Pass null to remove the handle
+            dragHandle = null) {
+              Text(TEST_SHEET_CONTENT)
             }
-        }
-
-        composeTestRule.waitForIdle()
-
-        // Content should still be there
-        composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
-        // We cannot easily assert "CustomDragHandle" is missing because it has no text,
-        // but we verify the sheet still renders correctly without crashing.
+      }
     }
 
-    @Test
-    fun liquidBottomSheet_maintainsState_acrossRecompositions() {
-        // This test verifies that the internal LiquidBox parameters don't cause crashes
-        // during recomposition cycles.
+    composeTestRule.waitForIdle()
 
-        composeTestRule.setContentWithStubBackdrop {
-            UniverseTheme {
-                LiquidBottomSheet(
-                    isPresented = true,
-                    onDismissRequest = {},
-                    blurRadius = 8.dp,
-                    refractionHeight = 10.dp
-                ) {
-                    Text(TEST_SHEET_CONTENT)
-                }
+    // Content should still be there
+    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+    // We cannot easily assert "CustomDragHandle" is missing because it has no text,
+    // but we verify the sheet still renders correctly without crashing.
+  }
+
+  @Test
+  fun liquidBottomSheet_maintainsState_acrossRecompositions() {
+    // This test verifies that the internal LiquidBox parameters don't cause crashes
+    // during recomposition cycles.
+
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        LiquidBottomSheet(
+            isPresented = true,
+            onDismissRequest = {},
+            blurRadius = 8.dp,
+            refractionHeight = 10.dp) {
+              Text(TEST_SHEET_CONTENT)
             }
-        }
-
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+      }
     }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
+  }
 }
