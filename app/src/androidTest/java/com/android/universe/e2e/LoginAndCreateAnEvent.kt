@@ -1,12 +1,10 @@
 package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,7 +14,6 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
-import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventScreenTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
@@ -30,11 +27,7 @@ import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import io.mockk.every
-import io.mockk.mockkObject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -60,10 +53,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Before
   override fun setUp() {
     super.setUp()
-    mockkObject(DefaultDP)
-    every { DefaultDP.io } returns UnconfinedTestDispatcher()
-    every { DefaultDP.default } returns UnconfinedTestDispatcher()
-    every { DefaultDP.main } returns Dispatchers.Main
     runTest {
       val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
       fakeUser = fakeUser.copy(uid = uid)
@@ -79,7 +68,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).isDisplayed()
     }
     loginAndWait()
-    zoomOnMapAndWait()
     clickOnMapAndCreateEvent()
     seeAddedEventInEventList()
   }
@@ -110,30 +98,12 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     }
   }
 
-  private fun zoomOnMapAndWait() {
-    val startOffset1 = Offset(x = 400f, y = 400f) // Finger 1 start (e.g., bottom-left of center)
-    val endOffset1 = Offset(x = 200f, y = 200f) // Finger 1 end (moves toward top-left)
-
-    val startOffset2 = Offset(x = 600f, y = 600f) // Finger 2 start (e.g., top-right of center)
-    val endOffset2 = Offset(x = 800f, y = 800f) // Finger 2 end (moves toward bottom-right)
-
-    composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).performTouchInput {
-      down(pointerId = 0, startOffset1)
-      down(pointerId = 1, startOffset2)
-
-      moveTo(pointerId = 0, position = endOffset1, 1000)
-      moveTo(pointerId = 1, position = endOffset2, 1000)
-
-      up(pointerId = 0)
-      up(pointerId = 1)
-    }
-    composeTestRule.waitForIdle()
-  }
-
   private fun clickOnMapAndCreateEvent() {
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
-      longClick(center, 2_000L)
+      advanceEventTime(1000)
+      down(center)
     }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
