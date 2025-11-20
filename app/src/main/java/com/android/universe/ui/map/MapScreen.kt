@@ -230,11 +230,7 @@ fun TomTomMapComposable(modifier: Modifier = Modifier, onMapReady: (TomTomMap) -
   val mapView = rememberMapViewWithLifecycle(onMapReady)
 
   AndroidView(
-      factory = {
-        mapView.apply {
-          configureUiSettings()
-        }
-      },
+      factory = { mapView.apply { configureUiSettings() } },
       modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
 }
 

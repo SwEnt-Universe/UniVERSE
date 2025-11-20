@@ -40,7 +40,8 @@ fun EventInfoPopup(
 ) {
   Box(
       modifier =
-          modifier.fillMaxSize()
+          modifier
+              .fillMaxSize()
               .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f))
               .clickable(onClick = onDismiss)
               .testTag(MapScreenTestTags.EVENT_INFO_POPUP),
