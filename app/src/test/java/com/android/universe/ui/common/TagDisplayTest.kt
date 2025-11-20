@@ -199,4 +199,102 @@ class TagGroupTest {
     composeTestRule.onNodeWithTag(TagGroupTestTag.TOP_FADE).assertExists()
     composeTestRule.onNodeWithTag(TagGroupTestTag.BOTTOM_FADE).assertExists()
   }
+
+  @Test
+  fun clickingUnselectedTag_callsOnTagSelectForColumn() {
+    var selectedTag: String? = null
+
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(
+          tags = sampleTags,
+          onTagSelect = { tag -> selectedTag = tag.displayName },
+          isSelected = { tag: Tag -> false },
+          tagElement = { tag -> tag.displayName })
+    }
+    composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
+    assertEquals(RUNNING.displayName, selectedTag)
+  }
+
+  @Test
+  fun clickingSelectedTag_callsOnTagReSelectColumn() {
+    var reselectedTag: String? = null
+
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(
+          tags = sampleTags,
+          onTagReSelect = { tag -> reselectedTag = tag.displayName },
+          isSelected = { tag: Tag -> true },
+          tagElement = { tag -> tag.displayName })
+    }
+
+    composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
+    assertEquals(RUNNING.displayName, reselectedTag)
+  }
+
+  @Test
+  fun nonSelectableTag_doesNotTriggerCallbacksColumn() {
+    var called = false
+
+    composeTestRule.setContentWithStubBackdrop {
+      TagColumn(
+          tags = sampleTags,
+          onTagSelect = { tag -> called = true },
+          isSelected = { tag: Tag -> false },
+          tagElement = { tag -> tag.displayName },
+          isSelectable = false)
+    }
+
+    composeTestRule.onNodeWithText(READING.displayName).performClick()
+
+    assertEquals(false, called)
+  }
+
+  @Test
+  fun clickingUnselectedTag_callsOnTagSelectForRow() {
+    var selectedTag: String? = null
+
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(
+          tags = sampleTags,
+          onTagSelect = { tag -> selectedTag = tag.displayName },
+          isSelected = { tag: Tag -> false },
+          tagElement = { tag -> tag.displayName })
+    }
+    composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
+    assertEquals(RUNNING.displayName, selectedTag)
+  }
+
+  @Test
+  fun clickingSelectedTag_callsOnTagReSelectRow() {
+    var reselectedTag: String? = null
+
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(
+          tags = sampleTags,
+          onTagReSelect = { tag -> reselectedTag = tag.displayName },
+          isSelected = { tag: Tag -> true },
+          tagElement = { tag -> tag.displayName })
+    }
+
+    composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
+    assertEquals(RUNNING.displayName, reselectedTag)
+  }
+
+  @Test
+  fun nonSelectableTag_doesNotTriggerCallbacksRow() {
+    var called = false
+
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(
+          tags = sampleTags,
+          onTagSelect = { tag -> called = true },
+          isSelected = { tag: Tag -> false },
+          tagElement = { tag -> tag.displayName },
+          isSelectable = false)
+    }
+
+    composeTestRule.onNodeWithText(READING.displayName).performClick()
+
+    assertEquals(false, called)
+  }
 }

@@ -29,28 +29,28 @@ import com.android.universe.ui.theme.tagColor
 
 /** Contain the tag for the tests. */
 object TagItemTestTag {
-    /** Give the tag for a button according to the tag displayName. */
-    fun tagButton(tag: Tag): String {
-        return "Button" + tag.displayName
-    }
+  /** Give the tag for a button according to the tag displayName. */
+  fun tagButton(tag: Tag): String {
+    return "Button" + tag.displayName
+  }
 
-    /** Give the tag for a text according to the tag displayName. */
-    fun tagText(tag: Tag): String {
-        return "Text" + tag.displayName
-    }
+  /** Give the tag for a text according to the tag displayName. */
+  fun tagText(tag: Tag): String {
+    return "Text" + tag.displayName
+  }
 
-    /** Give the tag for a icon according to the tag displayName. */
-    fun tagIcon(tag: Tag): String {
-        return "Icon" + tag.displayName
-    }
+  /** Give the tag for a icon according to the tag displayName. */
+  fun tagIcon(tag: Tag): String {
+    return "Icon" + tag.displayName
+  }
 }
 
 /** Contain the dimensions used specially in this composable. */
 object TagItemDefaults {
-    const val HEIGHT_TAG = 30f
-    const val WIDTH_TAG = 160f
-    val SizeIcon = 18.dp
-    val SelectedBorderWidth = 3.dp
+  const val HEIGHT_TAG = 30f
+  const val WIDTH_TAG = 160f
+  val SizeIcon = 18.dp
+  val SelectedBorderWidth = 3.dp
 }
 
 /**
@@ -81,61 +81,57 @@ fun TagItem(
     onSelect: (Tag) -> Unit,
     onDeSelect: (Tag) -> Unit
 ) {
-    val buttonColor by
-    animateColorAsState(
-        targetValue =
-            tagColor(category = tag.category.displayName, isSelected = isSelected))
-    val isDark = LocalIsDarkTheme.current
-    LiquidButton(
-        onClick = {
-            if (isSelected) {
-                onDeSelect(tag)
-            } else {
-                onSelect(tag)
-            }
-        },
-        enabled = isSelectable,
-        isInteractive = isSelectable,
-        height = heightTag,
-        width = TagItemDefaults.WIDTH_TAG,
-        color = buttonColor,
-        modifier =
-            modifier
-                .testTag(TagItemTestTag.tagButton(tag))
-                .then(
-                    if (isSelected)
-                        Modifier.border(
-                            width = TagItemDefaults.SelectedBorderWidth,
-                            color =
-                                if (isDark) {
-                                    TagSelectedBorderDark
-                                } else {
-                                    TagSelectedBorderLight
-                                },
-                            shape = CapsuleLarge)
-                    else Modifier))
-    {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                tag.displayName,
-                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
-            if (isSelected) {
-                Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
-                    tint =
-                        if (isDark) {
-                            IconDark
-                        } else {
-                            IconLight
-                        },
-                    modifier =
-                        Modifier.testTag(TagItemTestTag.tagIcon(tag)).size(TagItemDefaults.SizeIcon))
-            }
+  val buttonColor by
+      animateColorAsState(
+          targetValue = tagColor(category = tag.category.displayName, isSelected = isSelected))
+  val isDark = LocalIsDarkTheme.current
+  LiquidButton(
+      onClick = {
+        if (isSelected) {
+          onDeSelect(tag)
+        } else {
+          onSelect(tag)
         }
-    }
+      },
+      enabled = isSelectable,
+      isInteractive = isSelectable,
+      height = heightTag,
+      width = TagItemDefaults.WIDTH_TAG,
+      color = buttonColor,
+      modifier =
+          modifier
+              .testTag(TagItemTestTag.tagButton(tag))
+              .then(
+                  if (isSelected)
+                      Modifier.border(
+                          width = TagItemDefaults.SelectedBorderWidth,
+                          color =
+                              if (isDark) {
+                                TagSelectedBorderDark
+                              } else {
+                                TagSelectedBorderLight
+                              },
+                          shape = CapsuleLarge)
+                  else Modifier)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              tag.displayName,
+              fontSize = MaterialTheme.typography.labelMedium.fontSize,
+              modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
+          if (isSelected) {
+            Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Selected",
+                tint =
+                    if (isDark) {
+                      IconDark
+                    } else {
+                      IconLight
+                    },
+                modifier =
+                    Modifier.testTag(TagItemTestTag.tagIcon(tag)).size(TagItemDefaults.SizeIcon))
+          }
+        }
+      }
 }
-
-
