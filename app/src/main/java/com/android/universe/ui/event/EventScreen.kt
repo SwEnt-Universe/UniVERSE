@@ -28,7 +28,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -47,6 +50,8 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.search.SearchBar
+import com.android.universe.ui.search.SearchTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
@@ -121,13 +126,35 @@ fun EventScreen(
     }
   }
   val events by viewModel.eventsState.collectAsState()
-  Scaffold(
-      modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Event, onTabSelected = onTabSelected) },
-  ) { paddingValues ->
+
+  var searchQuery by remember { mutableStateOf("") }
+
+  val filteredEvents = remember(searchQuery, events) {
+    if (searchQuery.isBlank()) events
+    else events.filter { event ->
+      event.title.contains(searchQuery, ignoreCase = true) ||
+          event.description.contains(searchQuery, ignoreCase = true) ||
+          event.tags.any { it.contains(searchQuery, ignoreCase = true) } ||
+          event.creator.contains(searchQuery, ignoreCase = true)
+    }
+  }
+
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+  ) {
+
+    SearchBar(
+      query = searchQuery,
+      onQueryChange = { searchQuery = it },
+      modifier = Modifier
+        .padding(PaddingMedium)
+        .testTag(SearchTestTags.SEARCH_BAR)
+    )
+
     LazyColumn(
         modifier =
-            Modifier.fillMaxSize().padding(paddingValues).testTag(EventScreenTestTags.EVENTS_LIST),
+            Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
         contentPadding = PaddingValues(PaddingMedium),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
           items(events) { event ->

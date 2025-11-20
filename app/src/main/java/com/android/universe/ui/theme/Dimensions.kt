@@ -58,7 +58,7 @@ object Dimensions {
   val ElevationCard = 4.dp
 
   // Corner radii
-  val RoundedCorner = 8.dp // General rounded corners
+  val RoundedCorner = 24.dp // General rounded corners
 
   // Thickness
   val ThicknessMedium = 2.dp
