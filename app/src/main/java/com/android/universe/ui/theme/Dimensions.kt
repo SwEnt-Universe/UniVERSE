@@ -34,6 +34,8 @@ object Dimensions {
   val PaddingErrorIndent = 8.dp // ErrorIndent
   val PaddingFieldIconSpacing = 8.dp // FieldIconSpacing
 
+  val PaddingPutBelowStatusbar = 48.dp
+
   // Spacer sizes
   val SpacerSmall = 4.dp // InternalSpacing, tag padding
   val SpacerMedium = 8.dp // General spacing, tag group horizontal

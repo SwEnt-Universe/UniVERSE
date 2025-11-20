@@ -17,44 +17,42 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.ui.theme.Dimensions
 
 object SearchTestTags {
-  const val SEARCH_BAR = "search_bar"
+	const val SEARCH_BAR = "search_bar"
 }
 
 @Composable
 fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    placeholder: String = "Search events..."
+	query: String,
+	onQueryChange: (String) -> Unit,
+	modifier: Modifier = Modifier,
+	placeholder: String = "Search events..."
 ) {
-  OutlinedTextField(
-      value = query,
-      onValueChange = onQueryChange,
-      singleLine = true,
-      placeholder = { Text(placeholder) },
-      leadingIcon = { Icon(Icons.Default.Search, contentDescription = "search_icon") },
-      shape = RoundedCornerShape(Dimensions.RoundedCorner),
-      colors =
-          OutlinedTextFieldDefaults.colors(
-              // BACKGROUND
-              focusedContainerColor = MaterialTheme.colorScheme.surface,
-              unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+	OutlinedTextField(
+		value = query,
+		onValueChange = onQueryChange,
+		singleLine = true,
+		placeholder = { Text(placeholder) },
+		leadingIcon = { Icon(Icons.Default.Search, contentDescription = "search_icon") },
+		shape = RoundedCornerShape(Dimensions.RoundedCorner),
+		colors =
+			OutlinedTextFieldDefaults.colors(
+				// BACKGROUND
+				unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+				focusedContainerColor = MaterialTheme.colorScheme.surface,
 
-              // TEXT
-              focusedTextColor = MaterialTheme.colorScheme.onSurface,
-              unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-              focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface,
-              unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface,
+				// TEXT & PLACEHOLDER
+				focusedTextColor = MaterialTheme.colorScheme.onSurface,
+				unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+				focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+				unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
 
-              // BORDER
-              focusedBorderColor = MaterialTheme.colorScheme.primary,
-              unfocusedBorderColor = MaterialTheme.colorScheme.onSurface),
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .padding(
-                  top = 48.dp,
-                  bottom = 0.dp,
-              )
-              .testTag(SearchTestTags.SEARCH_BAR))
+				// BORDER
+				focusedBorderColor = MaterialTheme.colorScheme.primary,
+				unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+			),
+		modifier =
+			modifier
+				.fillMaxWidth()
+				.padding(top = Dimensions.PaddingPutBelowStatusbar)
+				.testTag(SearchTestTags.SEARCH_BAR))
 }
