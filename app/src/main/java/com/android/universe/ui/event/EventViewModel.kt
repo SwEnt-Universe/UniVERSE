@@ -10,6 +10,7 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.search.SearchEngine
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -283,10 +284,16 @@ class EventViewModel(
     combine(eventsState, searchQuery) { events, query ->
       if (query.isBlank()) events
       else events.filter { event ->
-        event.title.contains(query, ignoreCase = true) ||
-            event.description.contains(query, ignoreCase = true) ||
-            event.tags.any { it.contains(query, ignoreCase = true) } ||
-            event.creator.contains(query, ignoreCase = true)
+        val fields = listOf(
+          event.title,
+          event.description,
+          event.creator
+        ) + event.tags
+
+        fields.any { field ->
+          field.contains(query, ignoreCase = true) ||
+              SearchEngine.fuzzyMatch(field, query)
+        }
       }
     }.stateIn(
       viewModelScope,
