@@ -65,6 +65,35 @@ object EventCardTestTags {
   const val CHAT_BUTTON = "event_chat_button"
 }
 
+/**
+ * Displays a single event as a card with image, title, description, date/time, tags, participant
+ * info, and action buttons for chat, participation toggle, and location.
+ *
+ * The card includes:
+ * - A top image area that shows either the event image or a default placeholder.
+ * - An optional location button overlay on the image (hidden if `isMapScreen` is true).
+ * - The event title and formatted date/time overlaid on the image.
+ * - Event description below the image, showing a fallback message if null.
+ * - A row at the bottom with:
+ *     - Chat button (calls [onChatClick]).
+ *     - Participant count with icon.
+ *     - Participation button (calls [onToggleEventParticipation]) showing "Join" or "Leave" based
+ *       on [isUserParticipant].
+ *
+ * @param modifier Modifier for the card container.
+ * @param title The event title.
+ * @param description Optional event description.
+ * @param date The date and time of the event.
+ * @param tags List of tags for the event (currently unused visually).
+ * @param participants Number of participants attending the event.
+ * @param eventImage Optional image byte array for the event.
+ * @param isUserParticipant Whether the current user is participating.
+ * @param onToggleEventParticipation Function invoked when the participation button is clicked.
+ * @param onChatClick Function invoked when the chat button is clicked.
+ * @param onLocationClick Function invoked when the location button is clicked.
+ * @param isMapScreen If true, adjusts layout for map screen (e.g., hides location button, adds
+ *   extra bottom space).
+ */
 @Composable
 fun EventCard(
     modifier: Modifier = Modifier,
