@@ -61,6 +61,8 @@ fun SendMessageInput(vm: ChatUIViewModel) {
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
+                    focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
                     cursorColor = MaterialTheme.colorScheme.primary),
         trailingIcon = {
           IconButton(
