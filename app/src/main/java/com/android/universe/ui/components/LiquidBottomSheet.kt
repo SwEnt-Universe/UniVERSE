@@ -119,6 +119,13 @@ fun LiquidBottomSheet(
   }
 }
 
+/**
+ * A default drag handle (gripper) designed for the Liquid Bottom Sheet.
+ *
+ * It renders a small, semi-transparent pill shape. The color is derived from the
+ * Theme with reduced alpha to blend
+ * seamlessly with the glass effect.
+ */
 @Composable
 fun CustomDragHandle() {
   Row(
