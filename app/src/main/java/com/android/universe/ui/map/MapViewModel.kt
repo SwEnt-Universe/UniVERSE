@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** UI state for the Map screen. */
 data class MapUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
@@ -32,19 +33,19 @@ data class MapUiState(
     val isLocationPermissionGranted: Boolean = false,
     val isMapInteractive: Boolean = false,
 
-    // PERSISTENCE: Store the last known camera state here.
-    // Defaults to Amsterdam (or your preferred default).
+    // Defaults to Lausanne
     val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
     val zoomLevel: Double = 14.0
 )
 
+/** One-off actions for Map interactions. */
 sealed interface MapAction {
   data class MoveCamera(val target: GeoPoint, val currentZoom: Double) : MapAction
 
   data object ZoomIn : MapAction
 }
 
-// Domain model for markers
+/** UI model representing a map marker. */
 data class MapMarkerUiModel(
     val event: Event,
     val position: GeoPoint, // TomTom uses GeoPoint(lat, lon)
@@ -52,10 +53,13 @@ data class MapMarkerUiModel(
 )
 
 /**
- * ViewModel for managing the map screen state and location tracking.
+ * Manages map screen state, location tracking, and event data.
  *
+ * @property currentUserId ID of the currently logged-in user.
  * @property locationRepository Repository for accessing location data.
  * @property eventRepository Repository for accessing event data.
+ * @property userRepository Repository for user profile data.
+ * @property ioDispatcher Dispatcher for background operations.
  */
 class MapViewModel(
     private val currentUserId: String,
@@ -66,40 +70,166 @@ class MapViewModel(
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
+  /** Observable UI state. */
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
   private val _mapActions = Channel<MapAction>(Channel.BUFFERED)
+  /** Stream of one-off map actions. */
   val mapActions = _mapActions.receiveAsFlow()
 
-  val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
-
-  private var locationTrackingJob: Job? = null
-
   private val _eventMarkers = MutableStateFlow<List<Event>>(emptyList())
+  /** List of events to display as markers. */
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
   private val _selectedEvent = MutableStateFlow<Event?>(null)
+  /** The currently selected event, if any. */
   val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
 
+  /** Provider for location services. */
+  val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
+
+  // Jobs for tracking execution
+  private var locationTrackingJob: Job? = null
+  private var pollingJob: Job? = null
+
+  /** Initializes data loading and starts event polling. */
   fun initData() {
     // Temporary until the filtering of event works well.
     loadAllEvents()
     startEventPolling()
   }
 
+  /** Handles permission grant by loading location and starting tracking. */
   fun onPermissionGranted() {
     loadLastKnownLocation()
     startLocationTracking()
   }
 
-  private var pollingJob: Job? = null
+  override fun onCleared() {
+    super.onCleared()
+    stopLocationTracking()
+    stopEventPolling()
+  }
 
   /**
-   * Starts polling for events at regular intervals.
+   * Updates the camera position and zoom level in state.
    *
-   * @param intervalMinutes The interval in minutes between polling events.
-   * @param maxIterations The maximum number of iterations before stopping polling. user only for
-   *   tests
+   * @param position New camera center.
+   * @param zoomLevel New zoom level.
+   */
+  fun onCameraStateChange(position: GeoPoint, zoomLevel: Double) {
+    _uiState.update { it.copy(cameraPosition = position, zoomLevel = zoomLevel) }
+  }
+
+  /**
+   * Triggers a camera move action.
+   *
+   * @param target Destination coordinates.
+   * @param currentZoom Current zoom level to maintain or adjust.
+   */
+  fun onCameraMoveRequest(target: GeoPoint, currentZoom: Double) {
+    viewModelScope.launch { _mapActions.send(MapAction.MoveCamera(target, currentZoom)) }
+  }
+
+  /** Marks the map as interactive. */
+  fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
+
+  /** Clears selected location on map click. */
+  fun onMapClick() {
+    _uiState.value = _uiState.value.copy(selectedLocation = null)
+  }
+
+  /**
+   * Selects a specific map location.
+   *
+   * @param latitude Latitude of the selected point.
+   * @param longitude Longitude of the selected point.
+   */
+  fun onMapLongClick(latitude: Double, longitude: Double) {
+    _uiState.value = _uiState.value.copy(selectedLocation = GeoPoint(latitude, longitude))
+  }
+
+  /**
+   * Manually selects a location (testing only).
+   *
+   * @param location The GeoPoint to select.
+   */
+  fun selectLocation(location: GeoPoint) {
+    _uiState.value = _uiState.value.copy(selectedLocation = location)
+  }
+
+  /** Loads last known location, updating state with result or error. */
+  fun loadLastKnownLocation() {
+    _uiState.update { it.copy(isLoading = true, error = null) }
+
+    locationRepository.getLastKnownLocation(
+        onSuccess = { location ->
+          _uiState.update { it.copy(isLoading = false, userLocation = location.toGeoPoint()) }
+        },
+        onFailure = {
+          _uiState.update { it.copy(isLoading = false, error = "No last known location available") }
+        })
+  }
+
+  /** Starts real-time location tracking. */
+  fun startLocationTracking() {
+    locationTrackingJob?.cancel()
+    locationTrackingJob =
+        viewModelScope.launch {
+          locationRepository
+              .startLocationTracking()
+              .catch { exception ->
+                _uiState.update {
+                  it.copy(error = "Location tracking failed: ${exception.message}")
+                }
+              }
+              .collect { location ->
+                _uiState.update { it.copy(userLocation = location.toGeoPoint(), error = null) }
+              }
+        }
+  }
+
+  /** Stops real-time location tracking. */
+  fun stopLocationTracking() {
+    locationTrackingJob?.cancel()
+    locationTrackingJob = null
+  }
+
+  /** Loads all events from repository and updates markers. */
+  fun loadAllEvents() {
+    viewModelScope.launch {
+      try {
+        val events = eventRepository.getAllEvents()
+        _eventMarkers.value = events
+        val markers =
+            events.map { event ->
+              MapMarkerUiModel(event, event.location.toGeoPoint(), R.drawable.ic_marker_icon)
+            }
+        _uiState.update { it.copy(markers = markers) }
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      }
+    }
+  }
+
+  /** Loads events suggested for the current user. */
+  fun loadSuggestedEventsForCurrentUser() {
+    viewModelScope.launch {
+      try {
+        val user = userRepository.getUser(currentUserId)
+        val events = eventRepository.getSuggestedEventsForUser(user)
+        _eventMarkers.value = events
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
+      }
+    }
+  }
+
+  /**
+   * Polls events every [intervalMinutes].
+   *
+   * @param intervalMinutes Minutes between poll attempts.
+   * @param maxIterations Optional limit on poll count (for testing).
    */
   fun startEventPolling(intervalMinutes: Long = 5, maxIterations: Int? = null) {
     pollingJob?.cancel()
@@ -118,147 +248,34 @@ class MapViewModel(
         }
   }
 
-  /** Stops polling for events. */
+  /** Stops the event polling job. */
   fun stopEventPolling() {
     pollingJob?.cancel()
     pollingJob = null
   }
 
-  fun onCameraStateChange(position: GeoPoint, zoomLevel: Double) {
-    _uiState.update { it.copy(cameraPosition = position, zoomLevel = zoomLevel) }
-  }
-
-  fun onCameraMoveRequest(target: GeoPoint, currentZoom: Double) {
-    viewModelScope.launch { _mapActions.send(MapAction.MoveCamera(target, currentZoom)) }
-  }
-
   /**
-   * Loads the last known location from the repository.
+   * Selects the clicked event.
    *
-   * Updates UI state to Loading, then either Success with location or Error if unavailable.
+   * @param event The event associated with the clicked marker.
    */
-  fun loadLastKnownLocation() {
-    _uiState.update { it.copy(isLoading = true, error = null) }
-
-    locationRepository.getLastKnownLocation(
-        onSuccess = { location ->
-          _uiState.update { it.copy(isLoading = false, userLocation = location.toGeoPoint()) }
-        },
-        onFailure = {
-          _uiState.update { it.copy(isLoading = false, error = "No last known location available") }
-        })
-  }
-
-  /**
-   * Starts tracking the user's location in real-time.
-   *
-   * Collects location updates from the repository and updates the UI state accordingly.
-   */
-  fun startLocationTracking() {
-    locationTrackingJob?.cancel()
-    locationTrackingJob =
-        viewModelScope.launch {
-          locationRepository
-              .startLocationTracking()
-              .catch { exception ->
-                _uiState.update {
-                  it.copy(error = "Location tracking failed: ${exception.message}")
-                }
-              }
-              .collect { location ->
-                _uiState.update { it.copy(userLocation = location.toGeoPoint(), error = null) }
-              }
-        }
-  }
-
-  /** Stops tracking the user's location. */
-  fun stopLocationTracking() {
-    locationTrackingJob?.cancel()
-    locationTrackingJob = null
-  }
-
-  override fun onCleared() {
-    super.onCleared()
-    stopLocationTracking()
-  }
-
-  /**
-   * Loads all event markers from the event repository.
-   *
-   * Updates the state flow with the list of events or an error message if loading fails.
-   */
-  fun loadAllEvents() {
-    viewModelScope.launch {
-      try {
-        val events = eventRepository.getAllEvents()
-        _eventMarkers.value = events
-        val markers =
-            events.map { event ->
-              MapMarkerUiModel(event, event.location.toGeoPoint(), R.drawable.ic_marker_icon)
-            }
-        _uiState.update { it.copy(markers = markers) }
-      } catch (e: Exception) {
-        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
-      }
-    }
-  }
-
-  /**
-   * Loads suggested event markers for the current user from the event repository.
-   *
-   * Updates the state flow with the list of suggested events or an error message if loading fails.
-   */
-  fun loadSuggestedEventsForCurrentUser() {
-    viewModelScope.launch {
-      try {
-        val user = userRepository.getUser(currentUserId)
-        val events = eventRepository.getSuggestedEventsForUser(user)
-        _eventMarkers.value = events
-      } catch (e: Exception) {
-        _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
-      }
-    }
-  }
-
-  // for testing purposes
-  fun selectLocation(location: GeoPoint) {
-    _uiState.value = _uiState.value.copy(selectedLocation = location)
-  }
-
-  fun onMapClick() {
-    _uiState.value = _uiState.value.copy(selectedLocation = null)
-  }
-
-  /**
-   * Selects a location on the map.
-   *
-   * Updates the UI state with the selected latitude and longitude.
-   */
-  fun onMapLongClick(latitude: Double, longitude: Double) {
-    _uiState.value = _uiState.value.copy(selectedLocation = GeoPoint(latitude, longitude))
-  }
-
   fun onMarkerClick(event: Event) {
     selectEvent(event)
   }
 
-  /** Updates the UI state to indicate that the map is now interactable. */
-  fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
-
   /**
-   * Selects an event to be the currently selected event by the user.
+   * Sets or clears the currently selected event.
    *
-   * @param event The event to select, or null to clear the selection.
+   * @param event The event to select, or null to clear selection.
    */
   fun selectEvent(event: Event?) {
     viewModelScope.launch { _selectedEvent.emit(event) }
   }
 
   /**
-   * Toggles the current user's participation in an event. If the user is already a participant,
-   * they will be removed. If they are not a participant, they will be added.
+   * Toggles current user's participation in [event].
    *
-   * @param event The event to join or leave
+   * @param event The event to join or leave.
    */
   fun toggleEventParticipation(event: Event) {
     viewModelScope.launch {
@@ -283,10 +300,10 @@ class MapViewModel(
   }
 
   /**
-   * Checks if the current user is a participant in the given event.
+   * Returns true if current user is participating in [event].
    *
-   * @param event The event to check
-   * @return true if the user is a participant, false otherwise
+   * @param event The event to check.
+   * @return True if the user is a participant, false otherwise.
    */
   fun isUserParticipant(event: Event): Boolean {
     return event.participants.contains(currentUserId)
