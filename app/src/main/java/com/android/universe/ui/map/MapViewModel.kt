@@ -1,7 +1,10 @@
 package com.android.universe.ui.map
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
@@ -10,6 +13,9 @@ import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
+import com.tomtom.sdk.map.display.MapOptions
+import com.tomtom.sdk.map.display.style.StyleDescriptor
+import com.tomtom.sdk.map.display.ui.MapView
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -80,6 +86,30 @@ class MapViewModel(
 
   private val _selectedEvent = MutableStateFlow<Event?>(null)
   val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+
+  private var _mapView: MapView? = null
+  var isMapInitialized: Boolean = false
+
+  /**
+   * Returns the existing MapView or creates a new one if it doesn't exist. This ensures the map is
+   * preserved when switching tabs.
+   */
+  fun getOrCreateMapView(context: Context): MapView {
+    if (_mapView == null) {
+      val mapOptions =
+          MapOptions(
+              mapKey = BuildConfig.TOMTOM_API_KEY,
+              mapStyle =
+                  StyleDescriptor(
+                      Uri.parse(
+                          "https://api.tomtom.com/maps/orbis/assets/styles/*/style.json?key=${BuildConfig.TOMTOM_API_KEY}&apiVersion=1&map=basic_street-light&hillshade=hillshade_light")),
+              renderToTexture = true)
+      // Use applicationContext to prevent leaking the Activity context
+      _mapView = MapView(context.applicationContext, mapOptions)
+    }
+    return _mapView!!
+  }
+
 
   fun initData() {
     // Temporary until the filtering of event works well.
@@ -218,6 +248,10 @@ class MapViewModel(
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
+  }
+
+  fun onMapClick() {
+    _uiState.value = _uiState.value.copy(selectedLocation = null)
   }
 
   /**

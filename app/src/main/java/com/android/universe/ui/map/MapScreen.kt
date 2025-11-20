@@ -3,12 +3,15 @@ package com.android.universe.ui.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
+import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -32,12 +35,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -45,17 +48,17 @@ import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.tomtom.sdk.common.Bundle
 import com.tomtom.sdk.common.UniqueId
-import com.tomtom.sdk.common.Uri
+import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
-import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.camera.CameraOptions
+import com.tomtom.sdk.map.display.camera.CameraSteadyListener
+import com.tomtom.sdk.map.display.gesture.MapClickListener
 import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.image.ImageFactory
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.marker.MarkerClickListener
 import com.tomtom.sdk.map.display.marker.MarkerOptions
-import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
@@ -75,13 +78,14 @@ fun MapScreen(
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
     createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
-    viewModel: MapViewModel = viewModel {
-      MapViewModel(
-          uid,
-          TomTomLocationRepository(context),
-          EventRepositoryProvider.repository,
-          UserRepositoryProvider.repository)
-    }
+    viewModel: MapViewModel =
+        viewModel() {
+          MapViewModel(
+              uid,
+              TomTomLocationRepository(context),
+              EventRepositoryProvider.repository,
+              UserRepositoryProvider.repository)
+        }
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
@@ -140,6 +144,10 @@ fun MapScreen(
     map.syncSelectedLocationMarker(uiState.selectedLocation)
   }
 
+  LaunchedEffect(uiState.cameraPosition) {
+    Log.e("MapViewModel", "cameraPosition: ${uiState.cameraPosition}")
+  }
+
   // Sync Camera Actions
   LaunchedEffect(viewModel) {
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
@@ -153,6 +161,7 @@ fun MapScreen(
         Box(modifier = Modifier.fillMaxSize()) {
           TomTomMapComposable(
               modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
+              viewModel = viewModel,
               onMapReady = { map ->
                 tomTomMap = map
 
@@ -161,19 +170,38 @@ fun MapScreen(
                 map.initLocationProvider(viewModel.locationProvider)
 
                 map.setUpMapListeners(
+                    onMapClick = { viewModel.onMapClick() },
                     onMapLongClick = { pos ->
                       viewModel.onMapLongClick(pos.latitude, pos.longitude)
                     },
                     onMarkerClick = { id ->
                       markerToEvent[id]?.let { event ->
-                        viewModel.selectEvent(event)
+                        viewModel.onMarkerClick(event)
                         true
                       } ?: false
-                    })
+                    },
+                    onCameraChange = { pos, zoom -> viewModel.onCameraStateChange(pos, zoom) })
 
                 map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
               })
 
+          if (uiState.selectedLocation != null) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.BottomCenter) {
+                  LiquidButton(
+                      onClick = {
+                        createEvent(
+                            uiState.selectedLocation!!.latitude,
+                            uiState.selectedLocation!!.longitude)
+                      },
+                      modifier =
+                          Modifier.padding(bottom = 96.dp)
+                              .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                        Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
+                      }
+                }
+          }
           // Overlays
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -201,67 +229,59 @@ fun MapScreen(
 // --- HELPER COMPOSABLES & EXTENSIONS ---
 
 @Composable
-fun TomTomMapComposable(modifier: Modifier = Modifier, onMapReady: (TomTomMap) -> Unit) {
-  val mapView = rememberMapViewWithLifecycle(onMapReady)
+fun TomTomMapComposable(
+    modifier: Modifier = Modifier,
+    viewModel: MapViewModel,
+    onMapReady: (TomTomMap) -> Unit
+) {
+  val context = LocalContext.current
+  val mapView = viewModel.getOrCreateMapView(context)
 
+  BindMapLifecycle(mapView = mapView, viewModel = viewModel, onMapReady = onMapReady)
   AndroidView(
       factory = {
-        mapView.apply {
-          configureUiSettings()
-        }
+        (mapView.parent as? ViewGroup)?.removeView(mapView)
+        mapView.apply { configureUiSettings() }
       },
       modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
 }
 
 @Composable
-fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
-  val context = LocalContext.current
+fun BindMapLifecycle(mapView: MapView, viewModel: MapViewModel, onMapReady: (TomTomMap) -> Unit) {
   val lifecycleOwner = LocalLifecycleOwner.current
 
-  val mapOptions = remember {
-    MapOptions(
-        mapKey = BuildConfig.TOMTOM_API_KEY,
-        mapStyle =
-            StyleDescriptor(
-                Uri.parse(
-                    "https://api.tomtom.com/maps/orbis/assets/styles/*/style.json?key=${BuildConfig.TOMTOM_API_KEY}&apiVersion=1&map=basic_street-light&hillshade=hillshade_light")),
-        renderToTexture = true)
-  }
-
-  val mapView = remember { MapView(context, mapOptions) }
-
-  DisposableEffect(lifecycleOwner) {
+  DisposableEffect(lifecycleOwner, mapView) {
     val lifecycle = lifecycleOwner.lifecycle
     val observer = LifecycleEventObserver { _, event ->
       when (event) {
-        Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
+        Lifecycle.Event.ON_CREATE -> {
+          if (!viewModel.isMapInitialized) {
+            mapView.onCreate(Bundle())
+            viewModel.isMapInitialized = true
+          }
+        }
         Lifecycle.Event.ON_START -> mapView.onStart()
         Lifecycle.Event.ON_RESUME -> mapView.onResume()
         Lifecycle.Event.ON_PAUSE -> mapView.onPause()
         Lifecycle.Event.ON_STOP -> mapView.onStop()
-        Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
         else -> {}
       }
     }
     lifecycle.addObserver(observer)
 
-    if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-      mapView.onStart()
-    }
-    // onResume means the user can use it so it needs to be called to enable the listeners
-    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-      mapView.onResume()
-    }
+    if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) mapView.onStart()
+
+    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) mapView.onResume()
 
     mapView.getMapAsync(onMapReady)
 
     onDispose {
       lifecycle.removeObserver(observer)
-      // Manually cleanup if the composable is disposed (e.g. tab switch)
-      mapView.onDestroy()
+      // We stop and pause, but we KEEP the instance alive.
+      mapView.onPause()
+      mapView.onStop()
     }
   }
-  return mapView
 }
 
 // --- MapView Extension Functions ---
@@ -284,9 +304,23 @@ private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
 }
 
 private fun TomTomMap.setUpMapListeners(
-    onMapLongClick: (com.tomtom.sdk.location.GeoPoint) -> Unit,
-    onMarkerClick: (UniqueId) -> Boolean
+    onMapClick: () -> Unit,
+    onMapLongClick: (GeoPoint) -> Unit,
+    onMarkerClick: (UniqueId) -> Boolean,
+    onCameraChange: (GeoPoint, Double) -> Unit
 ) {
+  // Clear existing listeners to prevent duplication on re-entry
+  this.removeMapClickListener(MapClickListener { true })
+  this.removeMapLongClickListener(MapLongClickListener { true })
+  this.removeMarkerClickListener {}
+  this.removeCameraSteadyListener {}
+
+  this.addMapClickListener(
+      MapClickListener {
+        onMapClick()
+        true
+      })
+
   this.addMapLongClickListener(
       MapLongClickListener { geoPoint ->
         onMapLongClick(geoPoint)
@@ -295,9 +329,14 @@ private fun TomTomMap.setUpMapListeners(
 
   this.addMarkerClickListener(
       MarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker.id) })
+
+  this.addCameraSteadyListener(
+      CameraSteadyListener {
+        onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
+      })
 }
 
-private fun TomTomMap.setInitialCamera(position: com.tomtom.sdk.location.GeoPoint, zoom: Double) {
+private fun TomTomMap.setInitialCamera(position: GeoPoint, zoom: Double) {
   this.moveCamera(CameraOptions(position = position, zoom = zoom))
 }
 
@@ -331,7 +370,7 @@ private fun TomTomMap.syncEventMarkers(
   }
 }
 
-private fun TomTomMap.syncSelectedLocationMarker(location: com.tomtom.sdk.location.GeoPoint?) {
+private fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
   this.removeMarkers("selected_location")
   location?.let { geoPoint ->
     this.addMarker(
@@ -345,9 +384,5 @@ private fun TomTomMap.syncSelectedLocationMarker(location: com.tomtom.sdk.locati
 @Preview
 @Composable
 fun mapPreview() {
-  Box(modifier = Modifier.fillMaxSize()) {
-    TomTomMapComposable(
-        modifier = Modifier.fillMaxSize(),
-    ) {}
-  }
+  Box(modifier = Modifier.fillMaxSize()) {}
 }
