@@ -56,8 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
+import com.android.universe.ui.common.UniversalDatePickerDialog
+import com.android.universe.ui.common.UniversalTimePickerDialog
 import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
+import java.time.LocalDate
+import java.time.LocalTime
 import kotlinx.coroutines.withContext
 
 /** All the tags that are used to test the EventCreation screen. */
@@ -78,11 +82,12 @@ object EventCreationTestTags {
   const val SAVE_EVENT_BUTTON = "SaveEventButton"
   const val ERROR_TITLE = "ErrorTitle"
   const val ERROR_DESCRIPTION = "ErrorDescription"
-  const val ERROR_DAY = "ErrorDay"
-  const val ERROR_MONTH = "ErrorMonth"
-  const val ERROR_YEAR = "ErrorYear"
-  const val ERROR_HOUR = "ErrorHour"
-  const val ERROR_MINUTE = "ErrorMinute"
+  const val ERROR_DATE = "ErrorDate"
+
+  const val DATE_BUTTON = "DateButton"
+  const val TIME_BUTTON = "TimeButton"
+  const val DATE_DIALOG = "DateDialog"
+  const val TIME_DIALOG = "TimeDialog"
 }
 
 /**
@@ -158,6 +163,14 @@ fun EventCreationScreen(
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
   val tags = eventCreationViewModel.eventTags.collectAsState()
   val eventImage = uiState.value.eventPicture
+  val dateText =
+      if (uiState.value.date == null) eventCreationViewModel.noDateText
+      else eventCreationViewModel.formatDate(uiState.value.date)
+  val showDate = remember { mutableStateOf(false) }
+  val timeText =
+      if (uiState.value.time == null) eventCreationViewModel.noTimeText
+      else eventCreationViewModel.formatTime(uiState.value.time)
+  val showTime = remember { mutableStateOf(false) }
   Scaffold(
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
@@ -260,58 +273,57 @@ fun EventCreationScreen(
               errorMessage = null,
               errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DESCRIPTION),
               singleLine = false)
-          Row(modifier = Modifier.padding(Dimensions.PaddingSmall)) {
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_DAY_TEXT_FIELD)
-                        .weight(1f)
-                        .padding(Dimensions.PaddingLarge),
-                value = uiState.value.day,
-                onValueChange = { day -> eventCreationViewModel.setEventDay(day) },
-                label = "Day",
-                errorMessage = uiState.value.dayError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_DAY))
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_MONTH_TEXT_FIELD)
-                        .weight(1f)
-                        .padding(Dimensions.PaddingLarge),
-                value = uiState.value.month,
-                onValueChange = { month -> eventCreationViewModel.setEventMonth(month) },
-                label = "Month",
-                errorMessage = uiState.value.monthError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MONTH))
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_YEAR_TEXT_FIELD)
-                        .weight(1f)
-                        .padding(Dimensions.PaddingLarge),
-                value = uiState.value.year,
-                onValueChange = { year -> eventCreationViewModel.setEventYear(year) },
-                label = "Year",
-                errorMessage = uiState.value.yearError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_YEAR))
-          }
-          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_HOUR_TEXT_FIELD).width(120.dp),
-                value = uiState.value.hour,
-                onValueChange = { hour -> eventCreationViewModel.setEventHour(hour) },
-                label = "Hour",
-                errorMessage = uiState.value.hourError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_HOUR))
-
+          Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
-            TextFieldEventCreation(
-                modifier =
-                    Modifier.testTag(EventCreationTestTags.EVENT_MINUTE_TEXT_FIELD).width(120.dp),
-                value = uiState.value.minute,
-                onValueChange = { minute -> eventCreationViewModel.setEventMinute(minute) },
-                label = "Minute",
-                errorMessage = uiState.value.minuteError,
-                errorModifier = Modifier.testTag(EventCreationTestTags.ERROR_MINUTE))
+            Text(text = dateText)
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+            Button(
+                onClick = { showDate.value = true },
+                modifier = Modifier.testTag(EventCreationTestTags.DATE_BUTTON)) {
+                  Text("Pick Date")
+                }
+            if (uiState.value.dateError != null) {
+              Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+              Text(
+                  text = uiState.value.dateError!!,
+                  color = MaterialTheme.colorScheme.error,
+                  modifier = Modifier.testTag(EventCreationTestTags.ERROR_DATE))
+            }
           }
+          UniversalDatePickerDialog(
+              modifier = Modifier.testTag(EventCreationTestTags.DATE_DIALOG),
+              visible = showDate.value,
+              initialDate = uiState.value.date ?: LocalDate.now(),
+              yearRange = IntRange(2025, 2050),
+              onDismiss = { showDate.value = false },
+              onConfirm = {
+                eventCreationViewModel.setDate(it)
+                showDate.value = false
+              })
+          Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+            Text(text = timeText)
+            Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+            Button(
+                onClick = { showTime.value = true },
+                modifier = Modifier.testTag(EventCreationTestTags.TIME_BUTTON)) {
+                  Text("Pick Time")
+                }
+            if (uiState.value.timeError != null) {
+              Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+              Text(text = uiState.value.timeError!!, color = MaterialTheme.colorScheme.error)
+            }
+          }
+          UniversalTimePickerDialog(
+              modifier = Modifier.testTag(EventCreationTestTags.TIME_DIALOG),
+              visible = showTime.value,
+              initialTime = uiState.value.time ?: LocalTime.of(12, 0),
+              onDismiss = { showTime.value = false },
+              onConfirm = { localTime ->
+                eventCreationViewModel.setTime(localTime)
+                showTime.value = false
+              })
+
           Row(modifier = Modifier.padding(Dimensions.PaddingMedium)) {
             Text(
                 "Selected Tags:",
