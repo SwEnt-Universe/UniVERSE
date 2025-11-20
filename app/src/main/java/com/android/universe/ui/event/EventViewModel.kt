@@ -15,10 +15,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -271,4 +273,25 @@ class EventViewModel(
   private fun formatCreator(user: UserProfile): String {
     return "${user.firstName} ${user.lastName}"
   }
+
+  val searchQuery = MutableStateFlow("")
+  fun updateSearchQuery(query: String) {
+    searchQuery.value = query
+  }
+
+  val filteredEvents: StateFlow<List<EventUIState>> =
+    combine(eventsState, searchQuery) { events, query ->
+      if (query.isBlank()) events
+      else events.filter { event ->
+        event.title.contains(query, ignoreCase = true) ||
+            event.description.contains(query, ignoreCase = true) ||
+            event.tags.any { it.contains(query, ignoreCase = true) } ||
+            event.creator.contains(query, ignoreCase = true)
+      }
+    }.stateIn(
+      viewModelScope,
+      SharingStarted.WhileSubscribed(5000),
+      emptyList()
+    )
+
 }

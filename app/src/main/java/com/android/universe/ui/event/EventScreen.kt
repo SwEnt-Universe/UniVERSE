@@ -126,19 +126,7 @@ fun EventScreen(
       Toast.makeText(context, error.errormsg, Toast.LENGTH_SHORT).show()
     }
   }
-  val events by viewModel.eventsState.collectAsState()
-
-  var searchQuery by remember { mutableStateOf("") }
-
-  val filteredEvents = remember(searchQuery, events) {
-    if (searchQuery.isBlank()) events
-    else events.filter { event ->
-      event.title.contains(searchQuery, ignoreCase = true) ||
-          event.description.contains(searchQuery, ignoreCase = true) ||
-          event.tags.any { it.contains(searchQuery, ignoreCase = true) } ||
-          event.creator.contains(searchQuery, ignoreCase = true)
-    }
-  }
+  val events by viewModel.filteredEvents.collectAsState()
 
   Column(
     modifier = Modifier
@@ -147,8 +135,8 @@ fun EventScreen(
   ) {
 
     SearchBar(
-      query = searchQuery,
-      onQueryChange = { searchQuery = it },
+      query = viewModel.searchQuery.collectAsState().value,
+      onQueryChange = viewModel::updateSearchQuery,
       modifier = Modifier
         .padding(PaddingMedium)
         .testTag(SearchTestTags.SEARCH_BAR)
@@ -158,7 +146,7 @@ fun EventScreen(
         modifier =
             Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-          items(filteredEvents) { event ->
+          items(events) { event ->
             EventCard(
                 title = event.title,
                 description = event.description,
