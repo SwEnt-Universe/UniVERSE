@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +53,6 @@ object TagItemTestTag {
 object TagItemDefaults {
   const val HEIGHT_TAG = 30f
   const val WIDTH_TAG = 160f
-  val FontSizeText = 13.sp
   val SizeIcon = 18.dp
   val SelectedBorderWidth = 3.dp
 }
@@ -110,7 +110,7 @@ fun TagItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
               tag.displayName,
-              fontSize = TagItemDefaults.FontSizeText,
+              fontSize = MaterialTheme.typography.labelMedium.fontSize,
               modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
           if (isSelected.value) {
             Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
