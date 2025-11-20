@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +31,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -47,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.search.SearchBar
@@ -127,38 +128,55 @@ fun EventScreen(
   val events by viewModel.filteredEvents.collectAsState()
   val focusManager = LocalFocusManager.current
 
-  Column(
-      modifier =
-          Modifier.fillMaxSize()
-              .padding(horizontal = PaddingMedium)
-              .testTag(NavigationTestTags.EVENT_SCREEN)
-              .clickable(
-                  indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                    focusManager.clearFocus()
-                  }) {
-        SearchBar(
-            query = viewModel.searchQuery.collectAsState().value,
-            onQueryChange = viewModel::updateSearchQuery,
-            modifier = Modifier.padding(PaddingMedium).testTag(SearchTestTags.SEARCH_BAR))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
-            verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-              items(events) { event ->
-                EventCard(
-                    title = event.title,
-                    description = event.description,
-                    date = event.date,
-                    tags = event.tags,
-                    creator = event.creator,
-                    participants = event.participants,
-                    onJoin = viewModel::joinOrLeaveEvent,
-                    index = event.index,
-                    joined = event.joined,
-                    eventImage = event.eventPicture)
-              }
-            }
+  Scaffold(
+    modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
+    bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }
+  ) { paddingValues ->
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(paddingValues)
+        .padding(horizontal = PaddingMedium)
+        .clickable(
+          indication = null,
+          interactionSource = remember { MutableInteractionSource() }
+        ) {
+          focusManager.clearFocus()
+        }
+    ) {
+
+      SearchBar(
+        query = viewModel.searchQuery.collectAsState().value,
+        onQueryChange = viewModel::updateSearchQuery,
+        modifier = Modifier
+          .padding(PaddingMedium)
+          .testTag(SearchTestTags.SEARCH_BAR)
+      )
+
+      LazyColumn(
+        modifier = Modifier
+          .fillMaxSize()
+          .testTag(EventScreenTestTags.EVENTS_LIST),
+        verticalArrangement = Arrangement.spacedBy(PaddingMedium)
+      ) {
+        items(events) { event ->
+          EventCard(
+            title = event.title,
+            description = event.description,
+            date = event.date,
+            tags = event.tags,
+            creator = event.creator,
+            participants = event.participants,
+            onJoin = viewModel::joinOrLeaveEvent,
+            index = event.index,
+            joined = event.joined,
+            eventImage = event.eventPicture
+          )
+        }
       }
+    }
+  }
 }
 
 /**
