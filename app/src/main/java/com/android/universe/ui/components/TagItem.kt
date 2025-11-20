@@ -105,7 +105,22 @@ fun TagItem(
       height = heightTag,
       width = TagItemDefaults.WIDTH_TAG,
       color = buttonColor,
-      content = {
+      modifier =
+          modifier
+              .testTag(TagItemTestTag.tagButton(tag))
+              .then(
+                  if (isSelected.value)
+                      Modifier.border(
+                          width = TagItemDefaults.SelectedBorderWidth,
+                          color =
+                              if (isDark) {
+                                  TagSelectedBorderDark
+                              } else {
+                                  TagSelectedBorderLight
+                              },
+                          shape = CapsuleLarge)
+                  else Modifier))
+      {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
               tag.displayName,
@@ -126,20 +141,5 @@ fun TagItem(
                     Modifier.testTag(TagItemTestTag.tagIcon(tag)).size(TagItemDefaults.SizeIcon))
           }
         }
-      },
-      modifier =
-          modifier
-              .testTag(TagItemTestTag.tagButton(tag))
-              .then(
-                  if (isSelected.value)
-                      Modifier.border(
-                          width = TagItemDefaults.SelectedBorderWidth,
-                          color =
-                              if (isDark) {
-                                TagSelectedBorderDark
-                              } else {
-                                TagSelectedBorderLight
-                              },
-                          shape = CapsuleLarge)
-                  else Modifier))
+      }
 }
