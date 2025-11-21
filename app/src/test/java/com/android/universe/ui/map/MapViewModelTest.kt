@@ -101,6 +101,7 @@ class MapViewModelTest {
 
     viewModel =
         MapViewModel(
+            prefs = mockk(relaxed = true),
             currentUserId = userId,
             locationRepository = locationRepository,
             eventRepository = eventRepository,
