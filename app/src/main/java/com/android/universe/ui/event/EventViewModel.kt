@@ -10,7 +10,7 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.search.SearchEngine
+import filterEvents
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -295,17 +295,6 @@ class EventViewModel(
   }
 
   val filteredEvents: StateFlow<List<EventUIState>> =
-      combine(eventsState, _searchQuery) { events, query ->
-            if (query.isBlank()) events
-            else
-                events.filter { event ->
-                  val fields = listOf(event.title, event.description, event.creator) + event.tags
-
-                  fields.any { field ->
-                    field.contains(query, ignoreCase = true) ||
-                        SearchEngine.fuzzyMatch(field, query)
-                  }
-                }
-          }
+      combine(eventsState, _searchQuery) { events, query -> filterEvents(events, query) }
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

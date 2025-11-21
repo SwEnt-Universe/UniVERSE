@@ -231,4 +231,23 @@ class EventViewModelTest {
     assertEquals(2, collected.last().size)
     job.cancel()
   }
+
+  @Test
+  fun filteredEvents_filtersByTitleContains() = runTest {
+    val collected = mutableListOf<List<EventUIState>>()
+    val job =
+        launch(UnconfinedTestDispatcher(testScheduler)) {
+          viewModel.filteredEvents.collect { collected.add(it) }
+        }
+
+    advanceUntilIdle()
+    viewModel.updateSearchQuery("run")
+    advanceUntilIdle()
+
+    val result = collected.last()
+    assertEquals(2, result.size)
+    assertEquals(EVENT1TITLE, result.first().title)
+
+    job.cancel()
+  }
 }
