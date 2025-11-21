@@ -60,11 +60,17 @@ object Dimensions {
   val ElevationCard = 4.dp
 
   // Corner radii
-  val RoundedCorner = 8.dp
+  val RoundedCorner = 8.dp // General rounded corners
   val RoundedCornerMedium = 24.dp
+  val RoundedCornerLarge = 30.dp // Cards, LiquidBoxes
 
   // Thickness
   val ThicknessMedium = 2.dp
+
+  // Event card
+  val EventCardImageHeight = 180.dp
+  val EventCardButtonHeight = 40f
+  val EventCardButtonWidth = 100f
 
   // Box size
   val BoxDescriptionSize = 80.dp
