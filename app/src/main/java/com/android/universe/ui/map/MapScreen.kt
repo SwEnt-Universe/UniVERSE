@@ -3,6 +3,7 @@ package com.android.universe.ui.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -82,6 +83,7 @@ fun MapScreen(
     createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
+          context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           uid,
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
@@ -143,6 +145,10 @@ fun MapScreen(
   LaunchedEffect(uiState.selectedLocation, tomTomMap) {
     val map = tomTomMap ?: return@LaunchedEffect
     map.syncSelectedLocationMarker(uiState.selectedLocation)
+  }
+
+  LaunchedEffect(uiState.cameraPosition) {
+    Log.e("MapScreen", "cameraPosition: ${uiState.cameraPosition}")
   }
 
   // Sync Camera Actions
@@ -255,7 +261,7 @@ fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
         mapStyle =
             StyleDescriptor(
                 Uri.parse(
-                    "https://api.tomtom.com/maps/orbis/assets/styles/*/style.json?key=${BuildConfig.TOMTOM_API_KEY}&apiVersion=1&map=basic_street-light&hillshade=hillshade_light")),
+                    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
         renderToTexture = true)
   }
 
@@ -319,11 +325,6 @@ private fun TomTomMap.setUpMapListeners(
     onMarkerClick: (UniqueId) -> Boolean,
     onCameraChange: (GeoPoint, Double) -> Unit
 ) {
-  // Clear existing listeners to prevent duplication on re-entry
-  this.removeMapClickListener(MapClickListener { true })
-  this.removeMapLongClickListener(MapLongClickListener { true })
-  this.removeMarkerClickListener {}
-  this.removeCameraSteadyListener {}
 
   this.addMapClickListener(
       MapClickListener {

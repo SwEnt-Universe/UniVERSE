@@ -1,5 +1,7 @@
 package com.android.universe.ui.map
 
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.R
@@ -22,6 +24,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+// Constants for SharedPreference keys
+private const val KEY_CAMERA_LAT = "camera_latitude"
+private const val KEY_CAMERA_LON = "camera_longitude"
+private const val KEY_CAMERA_ZOOM = "camera_zoom"
 
 /** UI state for the Map screen. */
 data class MapUiState(
@@ -62,6 +69,7 @@ data class MapMarkerUiModel(
  * @property ioDispatcher Dispatcher for background operations.
  */
 class MapViewModel(
+    private val prefs: SharedPreferences,
     private val currentUserId: String,
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
@@ -69,7 +77,14 @@ class MapViewModel(
     private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
 ) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(MapUiState())
+  private val _uiState =
+      MutableStateFlow(
+          MapUiState(
+              cameraPosition =
+                  GeoPoint(
+                      prefs.getFloat(KEY_CAMERA_LAT, 46.519653f).toDouble(),
+                      prefs.getFloat(KEY_CAMERA_LON, 6.632273f).toDouble()),
+              zoomLevel = prefs.getFloat(KEY_CAMERA_ZOOM, 14f).toDouble()))
   /** Observable UI state. */
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
@@ -119,6 +134,12 @@ class MapViewModel(
    */
   fun onCameraStateChange(position: GeoPoint, zoomLevel: Double) {
     _uiState.update { it.copy(cameraPosition = position, zoomLevel = zoomLevel) }
+    prefs.edit {
+      putFloat(KEY_CAMERA_LAT, position.latitude.toFloat())
+      putFloat(KEY_CAMERA_LON, position.longitude.toFloat())
+      putFloat(KEY_CAMERA_ZOOM, zoomLevel.toFloat())
+      apply()
+    }
   }
 
   /**
