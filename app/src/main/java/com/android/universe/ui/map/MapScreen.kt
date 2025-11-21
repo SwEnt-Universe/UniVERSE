@@ -3,12 +3,12 @@ package com.android.universe.ui.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,9 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
@@ -40,13 +44,27 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.tomtom.sdk.common.Bundle
+import com.tomtom.sdk.common.UniqueId
+import com.tomtom.sdk.common.Uri
 import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
+import com.tomtom.sdk.map.display.camera.CameraOptions
+import com.tomtom.sdk.map.display.camera.CameraSteadyListener
+import com.tomtom.sdk.map.display.gesture.MapClickListener
+import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.image.ImageFactory
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
+import com.tomtom.sdk.map.display.marker.MarkerClickListener
 import com.tomtom.sdk.map.display.marker.MarkerOptions
+import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
+import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
+import com.tomtom.sdk.map.display.ui.logo.LogoView
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -57,61 +75,92 @@ object MapScreenTestTags {
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
-/**
- * Composable for displaying a map screen with location tracking and permissions.
- *
- * This screen handles location permissions, manages the MapViewModel, and displays the map along
- * with appropriate UI states.
- *
- * @param uid The user ID for loading user-specific data.
- * @param onTabSelected Lambda to handle bottom navigation tab selection.
- */
 @Composable
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
-    createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> },
+    createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
+          context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           uid,
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
           UserRepositoryProvider.repository)
     }
 ) {
-
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
+  val layerBackdrop = LocalLayerBackdrop.current
 
-  val hasPermission =
-      ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-          PackageManager.PERMISSION_GRANTED
+  var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
+
+  // Local cache for marker click handling (ID -> Event)
+  val markerToEvent = remember { mutableMapOf<UniqueId, Event>() }
+
+  // --- 1. Permissions & Initialization ---
 
   val permissionLauncher =
       rememberLauncherForActivityResult(
-          contract = ActivityResultContracts.RequestPermission(),
-          onResult = { granted ->
-            if (granted) {
-              viewModel.loadLastKnownLocation()
-              viewModel.startLocationTracking()
+          contract = ActivityResultContracts.RequestMultiplePermissions(),
+          onResult = { permissions ->
+            val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+            val coarseLocationGranted =
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+
+            if (fineLocationGranted && coarseLocationGranted) {
+              viewModel.onPermissionGranted()
             }
           })
 
   LaunchedEffect(Unit) {
-    if (hasPermission) {
-      viewModel.loadLastKnownLocation()
-      viewModel.startLocationTracking()
+    viewModel.initData() // Start polling, etc.
+
+    val hasFineLocation =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+    val hasCoarseLocation =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+
+    if (hasFineLocation && hasCoarseLocation) {
+      viewModel.onPermissionGranted()
     } else {
-      permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+      permissionLauncher.launch(
+          arrayOf(
+              Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
     }
   }
 
-  DisposableEffect(Unit) { onDispose { viewModel.stopLocationTracking() } }
+  // --- 2. Reactive Updates (Side Effects) ---
 
+  // Sync Markers
+  LaunchedEffect(uiState.markers, tomTomMap) {
+    val map = tomTomMap ?: return@LaunchedEffect
+    map.syncEventMarkers(uiState.markers, markerToEvent)
+  }
+
+  // Sync Selection
+  LaunchedEffect(uiState.selectedLocation, tomTomMap) {
+    val map = tomTomMap ?: return@LaunchedEffect
+    map.syncSelectedLocationMarker(uiState.selectedLocation)
+  }
+
+  LaunchedEffect(uiState.cameraPosition) {
+    Log.e("MapScreen", "cameraPosition: ${uiState.cameraPosition}")
+  }
+
+  // Sync Camera Actions
+  LaunchedEffect(viewModel) {
+    viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
+  }
+
+  // --- 3. UI Structure ---
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Map, onTabSelected) }) { paddingValues ->
+      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
+          padding ->
         Box(
             modifier =
                 Modifier.fillMaxSize()
@@ -119,25 +168,52 @@ fun MapScreen(
                         if (uiState.isMapInteractive)
                             Modifier.testTag(MapScreenTestTags.INTERACTABLE)
                         else Modifier)) {
-              TomTomMapView(
-                  viewModel = viewModel,
-                  modifier = Modifier.fillMaxSize(),
-                  createEvent = createEvent)
+              TomTomMapComposable(
+                  modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
+                  onMapReady = { map ->
+                    tomTomMap = map
 
-              if (uiState.selectedLat != null && uiState.selectedLng != null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                  LiquidButton(
-                      onClick = {
-                        createEvent(uiState.selectedLat!!, uiState.selectedLng!!)
-                        viewModel.selectLocation(null, null)
-                      },
-                      modifier =
-                          Modifier.padding(bottom = 96.dp)
-                              .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                        Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
-                      }
-                }
+                    // --- 4. Map Initialization Sequence ---
+
+                    map.initLocationProvider(viewModel.locationProvider)
+
+                    map.setUpMapListeners(
+                        onMapClick = { viewModel.onMapClick() },
+                        onMapLongClick = { pos ->
+                          viewModel.onMapLongClick(pos.latitude, pos.longitude)
+                        },
+                        onMarkerClick = { id ->
+                          markerToEvent[id]?.let { event ->
+                            viewModel.onMarkerClick(event)
+                            true
+                          } ?: false
+                        },
+                        onCameraChange = { pos, zoom -> viewModel.onCameraStateChange(pos, zoom) })
+
+                    map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
+                    viewModel.nowInteractable()
+                  })
+
+              if (uiState.selectedLocation != null) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.BottomCenter) {
+                      LiquidButton(
+                          onClick = {
+                            createEvent(
+                                uiState.selectedLocation!!.latitude,
+                                uiState.selectedLocation!!.longitude)
+                          },
+                          modifier =
+                              Modifier.padding(bottom = 96.dp)
+                                  .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                            Text(
+                                "Create your Event !",
+                                color = MaterialTheme.colorScheme.onBackground)
+                          }
+                    }
               }
+              // Overlays
               if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier =
@@ -146,17 +222,14 @@ fun MapScreen(
               }
 
               uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier.padding(paddingValues)) { Text(errorMessage) }
-              }
-
-              if (uiState.isPermissionRequired) {
-                Snackbar(modifier = Modifier.padding(16.dp)) {
-                  Text("Location permission required")
+                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
+                  Text(errorMessage)
                 }
               }
 
               selectedEvent?.let { event ->
                 EventInfoPopup(
+                    modifier = Modifier.padding(padding),
                     event = event,
                     isUserParticipant = viewModel.isUserParticipant(event),
                     onDismiss = { viewModel.selectEvent(null) },
@@ -166,127 +239,161 @@ fun MapScreen(
       }
 }
 
-/**
- * A composable function that wraps the TomTom [MapView] in an [AndroidView].
- *
- * This function creates and manages a MapView instance, handling its lifecycle (onCreate, onStart,
- * onStop, onDestroy) and integrating with the MapViewModel for location tracking and camera
- * updates.
- *
- * @param viewModel The MapViewModel that manages map state and location data.
- * @param modifier The modifier to be applied to the layout.
- */
+// --- HELPER COMPOSABLES & EXTENSIONS ---
+
 @Composable
-fun TomTomMapView(
-    viewModel: MapViewModel,
-    modifier: Modifier = Modifier,
-    createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
-) {
-  val context = LocalContext.current
-  val state = viewModel.uiState.collectAsState()
-  LaunchedEffect(state.value.eventCount) { viewModel.loadAllEvents() }
-  LaunchedEffect(Unit) {
-    // Some polling so that we don't need to create a lot of listeners
-    viewModel.startEventPolling(1)
-  }
-  DisposableEffect(Unit) { onDispose { viewModel.stopEventPolling() } }
-  val mapView =
-      remember(context) { MapView(context, MapOptions(mapKey = BuildConfig.TOMTOM_API_KEY)) }
-  var tomtomMap by remember { mutableStateOf<TomTomMap?>(null) }
-  var isInitialized by remember { mutableStateOf(false) }
-  var isLocationProviderSet by remember { mutableStateOf(false) }
-  val eventMarkers by viewModel.eventMarkers.collectAsState()
+fun TomTomMapComposable(modifier: Modifier = Modifier, onMapReady: (TomTomMap) -> Unit) {
+  val mapView = rememberMapViewWithLifecycle(onMapReady)
 
   AndroidView(
-      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
-      factory = { ctx ->
-        mapView.apply {
-          if (!isInitialized) {
-            onCreate(null)
-            isInitialized = true
-          }
-          onStart()
+      factory = { mapView.apply { configureUiSettings() } },
+      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
+}
 
-          getMapAsync { map ->
-            val coordinateEventMap = mutableMapOf<Pair<Double, Double>, Event>()
-            eventMarkers.forEach { event ->
-              event.location?.let { loc ->
-                val coordinate = GeoPoint(loc.latitude, loc.longitude)
-                map.addMarker(
-                    MarkerOptions(
-                        coordinate = GeoPoint(loc.latitude, loc.longitude),
-                        pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
-                        pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
-                coordinateEventMap[Pair(loc.latitude, loc.longitude)] = event
-              }
-            }
-            tomtomMap = map
+@Composable
+fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
+  val context = LocalContext.current
+  val lifecycleOwner = LocalLifecycleOwner.current
 
-            if (!isLocationProviderSet && viewModel.locationProvider != null) {
-              map.setLocationProvider(viewModel.locationProvider)
-              isLocationProviderSet = true
+  val mapOptions = remember {
+    MapOptions(
+        mapKey = BuildConfig.TOMTOM_API_KEY,
+        mapStyle =
+            StyleDescriptor(
+                Uri.parse(
+                    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
+        renderToTexture = true)
+  }
 
-              val locationMarkerOptions =
-                  LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
-              map.enableLocationMarker(locationMarkerOptions)
-            }
+  val mapView = remember { MapView(context, mapOptions) }
 
-            map.addMapClickListener { geoPoint ->
-              map.removeMarkers(tag = "coordinate")
-              val latitude = geoPoint.latitude
-              val longitude = geoPoint.longitude
-              viewModel.selectLocation(latitude, longitude)
-
-              map.addMarker(
-                  MarkerOptions(
-                      tag = "coordinate",
-                      coordinate = GeoPoint(latitude, longitude),
-                      pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
-              true
-            }
-
-            map.addMarkerClickListener { clickedMarker ->
-              val clickedCoordinate =
-                  Pair(clickedMarker.coordinate.latitude, clickedMarker.coordinate.longitude)
-
-              coordinateEventMap[clickedCoordinate]?.let { clickedEvent ->
-                viewModel.selectEvent(clickedEvent)
-                true
-              } ?: false
-            }
-
-            viewModel.nowInteractable()
-          }
-        }
-      },
-      update = { view -> view.onStart() },
-      onReset = { mapView.onStop() })
-
-  LaunchedEffect(eventMarkers) {
-    tomtomMap?.let { map ->
-      map.clear()
-      eventMarkers.forEach { event ->
-        event.location?.let { loc ->
-          val coordinate = Pair(loc.latitude, loc.longitude)
-          map.addMarker(
-              MarkerOptions(
-                  coordinate = GeoPoint(loc.latitude, loc.longitude),
-                  pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon),
-                  pinIconImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
-        }
+  DisposableEffect(lifecycleOwner) {
+    val lifecycle = lifecycleOwner.lifecycle
+    val observer = LifecycleEventObserver { _, event ->
+      when (event) {
+        Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
+        Lifecycle.Event.ON_START -> mapView.onStart()
+        Lifecycle.Event.ON_RESUME -> mapView.onResume()
+        Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+        Lifecycle.Event.ON_STOP -> mapView.onStop()
+        else -> {}
       }
     }
+    lifecycle.addObserver(observer)
+
+    if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+      mapView.onStart()
+    }
+    // onResume means the user can use it so it needs to be called to enable the listeners
+    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+      mapView.onResume()
+    }
+
+    mapView.getMapAsync(onMapReady)
+
+    onDispose {
+      lifecycle.removeObserver(observer)
+      // Manually cleanup if the composable is disposed (e.g. tab switch)
+      mapView.onDestroy()
+    }
   }
+  return mapView
+}
 
-  Button(
-      onClick = { viewModel.loadAllEvents() },
-      modifier = Modifier.padding(top = 32.dp).padding(horizontal = 16.dp)) {
-        Text("Reload events")
-      }
+// --- MapView Extension Functions ---
 
-  LaunchedEffect(Unit) {
-    viewModel.cameraCommands.collect { camera -> tomtomMap?.moveCamera(camera) }
+private fun MapView.configureUiSettings() {
+  this.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
+  this.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
+  this.scaleView.isVisible = false
+}
+
+// --- TomTomMap Extension Functions ---
+
+private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
+  provider?.let {
+    this.setLocationProvider(it)
+    val locationMarkerOptions = LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
+    this.enableLocationMarker(locationMarkerOptions)
+    it.enable()
   }
+}
 
-  DisposableEffect(Unit) { onDispose { mapView.onStop() } }
+private fun TomTomMap.setUpMapListeners(
+    onMapClick: () -> Unit,
+    onMapLongClick: (GeoPoint) -> Unit,
+    onMarkerClick: (UniqueId) -> Boolean,
+    onCameraChange: (GeoPoint, Double) -> Unit
+) {
+
+  this.addMapClickListener(
+      MapClickListener {
+        onMapClick()
+        true
+      })
+
+  this.addMapLongClickListener(
+      MapLongClickListener { geoPoint ->
+        onMapLongClick(geoPoint)
+        true
+      })
+
+  this.addMarkerClickListener(
+      MarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker.id) })
+
+  this.addCameraSteadyListener(
+      CameraSteadyListener {
+        onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
+      })
+}
+
+private fun TomTomMap.setInitialCamera(position: GeoPoint, zoom: Double) {
+  this.moveCamera(CameraOptions(position = position, zoom = zoom))
+}
+
+private fun TomTomMap.executeMapAction(action: MapAction) {
+  when (action) {
+    is MapAction.MoveCamera -> {
+      this.moveCamera(CameraOptions(position = action.target, zoom = this.cameraPosition.zoom))
+    }
+    is MapAction.ZoomIn -> {
+      val newZoom = (this.cameraPosition.zoom + 1.0).coerceAtMost(22.0)
+      this.animateCamera(CameraOptions(zoom = newZoom))
+    }
+  }
+}
+
+private fun TomTomMap.syncEventMarkers(
+    markers: List<MapMarkerUiModel>,
+    markerMap: MutableMap<UniqueId, Event>
+) {
+  this.removeMarkers("event")
+  markerMap.clear()
+
+  markers.forEach { markerModel ->
+    val markerOptions =
+        MarkerOptions(
+            tag = "event",
+            coordinate = markerModel.position,
+            pinImage = ImageFactory.fromResource(markerModel.iconResId))
+    val addedMarker = this.addMarker(markerOptions)
+    markerMap[addedMarker.id] = markerModel.event
+  }
+}
+
+private fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
+  this.removeMarkers("selected_location")
+  location?.let { geoPoint ->
+    this.addMarker(
+        MarkerOptions(
+            tag = "selected_location",
+            coordinate = geoPoint,
+            pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+  }
+}
+
+@Preview
+@Composable
+fun mapPreview() {
+  Box(modifier = Modifier.fillMaxSize()) {}
 }
