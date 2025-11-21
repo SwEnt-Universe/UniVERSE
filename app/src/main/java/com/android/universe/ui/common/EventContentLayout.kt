@@ -1,7 +1,5 @@
 package com.android.universe.ui.common
 
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,34 +29,45 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.android.universe.R
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Displays the main content layout of an Event object (Card or Popup).
+ *
+ * @param modifier Modifier for styling/layout.
+ * @param eventId Unique ID used for test tags.
+ * @param title Event title text.
+ * @param description Optional event description.
+ * @param date Event date and time.
+ * @param tags List of event tags (currently unused in this layout).
+ * @param participants Number of people attending.
+ * @param imageContent Composable that renders the event image.
+ * @param isUserParticipant Whether the user is part of the event.
+ * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
+ * @param onChatClick Callback for chat button.
+ * @param onLocationClick Optional callback for location button.
+ */
 @Composable
 fun EventContentLayout(
     modifier: Modifier = Modifier,
+    eventId: String,
     title: String,
     description: String? = null,
     date: LocalDateTime,
     tags: List<Tag>,
     participants: Int,
-    eventBitmap: Bitmap? = null,
+    imageContent: @Composable () -> Unit,
     isUserParticipant: Boolean,
     onToggleEventParticipation: () -> Unit,
     onChatClick: () -> Unit,
-    onLocationClick: (() -> Unit)? = null,
-    bottomSpacing: Dp = 0.dp
+    onLocationClick: (() -> Unit)? = null
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -68,21 +77,8 @@ fun EventContentLayout(
                   .height(Dimensions.EventCardImageHeight)
                   .align(Alignment.TopStart)
                   .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
-                  .testTag(EventCardTestTags.EVENT_IMAGE_CONTAINER)) {
-            if (eventBitmap == null) {
-              Image(
-                  painter = painterResource(id = R.drawable.default_event_img),
-                  contentDescription = null,
-                  contentScale = ContentScale.Crop,
-                  modifier =
-                      Modifier.matchParentSize().testTag(EventCardTestTags.DEFAULT_EVENT_IMAGE))
-            } else {
-              Image(
-                  bitmap = eventBitmap.asImageBitmap(),
-                  contentDescription = null,
-                  contentScale = ContentScale.Crop,
-                  modifier = Modifier.matchParentSize().testTag(EventCardTestTags.EVENT_IMAGE))
-            }
+                  .testTag("${EventContentTestTags.EVENT_IMAGE_CONTAINER}_$eventId")) {
+            imageContent()
 
             // Only show location button if callback is provided
             if (onLocationClick != null) {
@@ -94,7 +90,7 @@ fun EventContentLayout(
                           .clip(CircleShape)
                           .background(Color.White.copy(alpha = 0.4f))
                           .clickable { onLocationClick() }
-                          .testTag(EventCardTestTags.EVENT_LOCATION_BUTTON),
+                          .testTag("${EventContentTestTags.EVENT_LOCATION_BUTTON}_$eventId"),
                   contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.LocationOn,
@@ -118,7 +114,7 @@ fun EventContentLayout(
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.testTag(EventCardTestTags.EVENT_TITLE))
+                        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
                     Spacer(Modifier.height(Dimensions.SpacerSmall))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -127,7 +123,8 @@ fun EventContentLayout(
                               text = date.format(DateTimeFormatter.ofPattern("dd/MMM/yyyy")),
                               style = MaterialTheme.typography.bodyLarge,
                               color = Color.White,
-                              modifier = Modifier.testTag(EventCardTestTags.EVENT_DATE))
+                              modifier =
+                                  Modifier.testTag("${EventContentTestTags.EVENT_DATE}_$eventId"))
                           Spacer(Modifier.width(Dimensions.SpacerSmall))
                           Icon(
                               imageVector = Icons.Outlined.StarBorder,
@@ -140,7 +137,8 @@ fun EventContentLayout(
                               text = date.format(DateTimeFormatter.ofPattern("hh:mm")),
                               style = MaterialTheme.typography.bodyLarge,
                               color = Color.White,
-                              modifier = Modifier.testTag(EventCardTestTags.EVENT_TIME))
+                              modifier =
+                                  Modifier.testTag("${EventContentTestTags.EVENT_TIME}_$eventId"))
                         })
                   }
                 }
@@ -154,7 +152,7 @@ fun EventContentLayout(
         style = MaterialTheme.typography.bodyMedium,
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.testTag(EventCardTestTags.EVENT_DESCRIPTION))
+        modifier = Modifier.testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
@@ -168,7 +166,7 @@ fun EventContentLayout(
               onClick = onChatClick,
               height = Dimensions.EventCardButtonHeight,
               width = Dimensions.EventCardButtonWidth,
-              modifier = Modifier.testTag(EventCardTestTags.CHAT_BUTTON)) {
+              modifier = Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
                       imageVector = Icons.AutoMirrored.Filled.Chat,
@@ -181,7 +179,7 @@ fun EventContentLayout(
 
           Row(
               verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.testTag(EventCardTestTags.EVENT_PARTICIPANTS)) {
+              modifier = Modifier.testTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$eventId")) {
                 Icon(
                     imageVector = Icons.Outlined.Person,
                     contentDescription = "Participants",
@@ -196,7 +194,8 @@ fun EventContentLayout(
               onClick = onToggleEventParticipation,
               height = Dimensions.EventCardButtonHeight,
               width = Dimensions.EventCardButtonWidth,
-              modifier = Modifier.testTag(EventCardTestTags.PARTICIPATION_BUTTON)) {
+              modifier =
+                  Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
                       imageVector =
@@ -210,9 +209,5 @@ fun EventContentLayout(
                 }
               }
         }
-
-    if (bottomSpacing > 0.dp) {
-      Spacer(Modifier.height(bottomSpacing))
-    }
   }
 }

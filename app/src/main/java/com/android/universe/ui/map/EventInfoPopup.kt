@@ -1,7 +1,5 @@
 package com.android.universe.ui.map
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -14,18 +12,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.ui.common.EventContentLayout
+import com.android.universe.ui.common.EventImageHelper
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.theme.Dimensions
-import kotlinx.coroutines.withContext
 
+/*
+ * A popup component that displays detailed information about an event.
+ * Places an EventContentLayout inside a LiquidBottomSheet with slide-in/out animations.
+ *
+ * @param event The [Event] object containing event details to be displayed.
+ * @param isUserParticipant Boolean indicating if the user is a participant of the event.
+ * @param onDismiss Callback function invoked when the popup is dismissed.
+ * @param onToggleEventParticipation Callback function invoked when the user toggles their participation status.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventInfoPopup(
@@ -34,19 +38,6 @@ fun EventInfoPopup(
     onDismiss: () -> Unit,
     onToggleEventParticipation: () -> Unit
 ) {
-  val bitmap =
-      produceState<Bitmap?>(initialValue = null, event.eventPicture) {
-            value =
-                if (event.eventPicture != null) {
-                  withContext(DefaultDP.io) {
-                    BitmapFactory.decodeByteArray(event.eventPicture, 0, event.eventPicture.size)
-                  }
-                } else {
-                  null
-                }
-          }
-          .value
-
   Box(
       modifier =
           Modifier.fillMaxSize()
@@ -65,17 +56,17 @@ fun EventInfoPopup(
                   onDismissRequest = onDismiss) {
                     EventContentLayout(
                         modifier = Modifier.padding(Dimensions.PaddingLarge),
+                        eventId = event.id,
                         title = event.title,
                         description = event.description,
                         date = event.date,
                         tags = event.tags.toList(),
                         participants = event.participants.size,
-                        eventBitmap = bitmap,
+                        imageContent = { EventImageHelper(eventImage = event.eventPicture) },
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,
                         onChatClick = {},
-                        onLocationClick = null,
-                        bottomSpacing = 100.dp)
+                        onLocationClick = null)
                   }
             }
       }

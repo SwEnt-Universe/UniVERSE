@@ -1,12 +1,9 @@
 package com.android.universe.ui.event
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,20 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.di.DefaultDP
-import com.android.universe.ui.common.EventContentLayout
-import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.theme.CardShape
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
-import kotlinx.coroutines.withContext
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -39,8 +30,7 @@ object EventScreenTestTags {
  * The main screen for displaying a list of events.
  *
  * This composable function sets up a `Scaffold` with a bottom navigation bar and displays a
- * `LazyColumn` of `LiquidEventCard` composables. The list of events is fetched from the
- * `viewModel`.
+ * `LazyColumn` of `EventCard` composables. The list of events is fetched from the `viewModel`.
  *
  * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
  *   selected.
@@ -78,35 +68,7 @@ fun EventScreen(
             Modifier.fillMaxSize().padding(paddingValues).testTag(EventScreenTestTags.EVENTS_LIST),
         contentPadding = PaddingValues(PaddingMedium),
         verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-          items(events) { event ->
-            val bitmap =
-                produceState<Bitmap?>(initialValue = null, event.eventPicture) {
-                      value =
-                          if (event.eventPicture != null) {
-                            withContext(DefaultDP.io) {
-                              BitmapFactory.decodeByteArray(
-                                  event.eventPicture, 0, event.eventPicture.size)
-                            }
-                          } else {
-                            null
-                          }
-                    }
-                    .value
-            LiquidBox(shape = CardShape) {
-              EventContentLayout(
-                  title = event.title,
-                  description = event.description,
-                  date = event.date,
-                  tags = emptyList(),
-                  participants = event.participants,
-                  eventBitmap = bitmap,
-                  isUserParticipant = event.joined,
-                  onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
-                  onChatClick = { /* TODO: Implement chat navigation */ },
-                  onLocationClick = { /* TODO: Implement map navigation */ },
-                  modifier = Modifier.fillMaxWidth())
-            }
-          }
+          items(events) { event -> EventCard(event = event, viewModel = viewModel) }
         }
   }
 }

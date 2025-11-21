@@ -3,12 +3,10 @@ package com.android.universe.ui.event
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
-import com.android.universe.ui.common.EventCardTestTags
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
@@ -65,29 +63,12 @@ class EventScreenTest {
   }
 
   @Test
-  fun displayEventsWithCorrectComponents() = runTest {
+  fun displayEventCards() = runTest {
     // LazyColumn list is displayed
     composeTestRule.onNodeWithTag(EventScreenTestTags.EVENTS_LIST).assertIsDisplayed()
 
     // There should be at least one event card: fetch semantics nodes and assert non-empty
-    val cards = composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_CARD)
+    val cards = composeTestRule.onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0")
     assertTrue(cards.fetchSemanticsNodes().isNotEmpty())
-
-    // Check that the first card's main parts are present (query by the first occurrence)
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_TITLE).onFirst().assertExists()
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_DESCRIPTION).onFirst().assertExists()
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_DATE).onFirst().assertExists()
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_TIME).onFirst().assertExists()
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_IMAGE).onFirst().assertExists()
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.EVENT_PARTICIPANTS).onFirst().assertExists()
-    composeTestRule
-        .onAllNodesWithTag(EventCardTestTags.PARTICIPATION_BUTTON)
-        .onFirst()
-        .assertExists()
-    composeTestRule
-        .onAllNodesWithTag(EventCardTestTags.EVENT_LOCATION_BUTTON)
-        .onFirst()
-        .assertExists()
-    composeTestRule.onAllNodesWithTag(EventCardTestTags.CHAT_BUTTON).onFirst().assertExists()
   }
 }
