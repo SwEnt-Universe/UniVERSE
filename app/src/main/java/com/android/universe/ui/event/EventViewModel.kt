@@ -10,15 +10,18 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import filterEvents
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -271,4 +274,27 @@ class EventViewModel(
   private fun formatCreator(user: UserProfile): String {
     return "${user.firstName} ${user.lastName}"
   }
+
+  // private mutable flow
+  private val _searchQuery = MutableStateFlow("")
+
+  // public immutable flow
+  val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+  /**
+   * Updates the current search query used by the event filtering algorithm.
+   *
+   * This function is called whenever the user types into the `SearchBar` component. It updates the
+   * `searchQuery` `MutableStateFlow`, which triggers recomposition and automatically refreshes the
+   * filtered event list inside the ViewModel.
+   *
+   * @param query The latest text input from the search bar.
+   */
+  fun updateSearchQuery(query: String) {
+    _searchQuery.value = query
+  }
+
+  val filteredEvents: StateFlow<List<EventUIState>> =
+      combine(eventsState, _searchQuery) { events, query -> filterEvents(events, query) }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }
