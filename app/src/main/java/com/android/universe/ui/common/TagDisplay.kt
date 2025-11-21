@@ -31,12 +31,35 @@ import com.android.universe.ui.theme.TagBackgroundLight
 
 /** Contain the tag for the tests. */
 object TagGroupTestTag {
-  const val TOP_FADE = "top fade"
-  const val BOTTOM_FADE = "Bottom fade"
-  const val RIGHT_FADE = "Right fade"
-  const val LEFT_FADE = "Left fade"
-  const val COLUMN = "Column"
-  const val ROW = "Row"
+  fun tagTopFade(tags: List<Tag>): String {
+    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
+    return "Top fade$key"
+  }
+
+  fun tagBottomFade(tags: List<Tag>): String {
+    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
+    return "Bottom fade$key"
+  }
+
+  fun tagRightFade(tags: List<Tag>): String {
+    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
+    return "Right Fade$key"
+  }
+
+  fun tagLeftFade(tags: List<Tag>): String {
+    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
+    return "Left fade$key"
+  }
+
+  fun tagColumn(tags: List<Tag>): String {
+    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
+    return "Column$key"
+  }
+
+  fun tagRow(tags: List<Tag>): String {
+    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
+    return "Row$key"
+  }
 }
 
 /** Contain the dimensions used specially in this composable. */
@@ -113,7 +136,8 @@ fun TagColumn(
                   else Modifier)) {
         LazyColumn(
             state = state,
-            modifier = Modifier.testTag(TagGroupTestTag.COLUMN).align(Alignment.TopCenter)) {
+            modifier =
+                Modifier.testTag(TagGroupTestTag.tagColumn(tags)).align(Alignment.TopCenter)) {
               items(tags) { tag ->
                 TagItem(
                     tag = tag,
@@ -133,7 +157,7 @@ fun TagColumn(
           Box(
               modifier =
                   modifierFade
-                      .testTag(TagGroupTestTag.TOP_FADE)
+                      .testTag(TagGroupTestTag.tagTopFade(tags))
                       .fillMaxWidth()
                       .height(fadeHeight)
                       .background(
@@ -144,7 +168,7 @@ fun TagColumn(
           Box(
               modifier =
                   modifierFade
-                      .testTag(TagGroupTestTag.BOTTOM_FADE)
+                      .testTag(TagGroupTestTag.tagBottomFade(tags))
                       .fillMaxWidth()
                       .height(fadeHeight)
                       .align(Alignment.BottomCenter)
@@ -218,7 +242,8 @@ fun TagRow(
                   else Modifier)) {
         LazyRow(
             state = state,
-            modifier = Modifier.testTag(TagGroupTestTag.ROW).align(Alignment.CenterStart)) {
+            modifier =
+                Modifier.testTag(TagGroupTestTag.tagRow(tags)).align(Alignment.CenterStart)) {
               items(tags) { tag ->
                 TagItem(
                     tag = tag,
@@ -238,7 +263,7 @@ fun TagRow(
           Box(
               modifier =
                   modifierFade
-                      .testTag(TagGroupTestTag.LEFT_FADE)
+                      .testTag(TagGroupTestTag.tagLeftFade(tags))
                       .fillMaxHeight()
                       .width(fadeWidth)
                       .background(
@@ -249,7 +274,7 @@ fun TagRow(
           Box(
               modifier =
                   modifierFade
-                      .testTag(TagGroupTestTag.RIGHT_FADE)
+                      .testTag(TagGroupTestTag.tagRightFade(tags))
                       .fillMaxHeight()
                       .width(fadeWidth)
                       .align(Alignment.TopEnd)
@@ -352,7 +377,7 @@ fun TagGroup(
         // Top fade
         Box(
             modifier =
-                Modifier.testTag(TagGroupTestTag.TOP_FADE)
+                Modifier.testTag(TagGroupTestTag.tagTopFade(tagList))
                     .fillMaxWidth()
                     .height(height * 0.1f)
                     .background(
@@ -363,7 +388,7 @@ fun TagGroup(
         // Bottom fade
         Box(
             modifier =
-                Modifier.testTag(TagGroupTestTag.BOTTOM_FADE)
+                Modifier.testTag(TagGroupTestTag.tagBottomFade(tagList))
                     .fillMaxWidth()
                     .height(height * 0.1f)
                     .align(Alignment.BottomCenter)

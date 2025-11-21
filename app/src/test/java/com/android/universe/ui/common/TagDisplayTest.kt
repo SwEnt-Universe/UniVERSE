@@ -200,8 +200,8 @@ class TagGroupTest {
       TagGroup(name = "Test", tagList = sampleTags, selectedTags = emptyList())
     }
 
-    composeTestRule.onNodeWithTag(TagGroupTestTag.TOP_FADE).assertExists()
-    composeTestRule.onNodeWithTag(TagGroupTestTag.BOTTOM_FADE).assertExists()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertExists()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertExists()
   }
 
   @Test
@@ -270,8 +270,8 @@ class TagGroupTest {
       TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
     }
 
-    composeTestRule.onNodeWithTag(TagGroupTestTag.BOTTOM_FADE).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(TagGroupTestTag.TOP_FADE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.tagBottomFade(sampleTags)).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertIsDisplayed()
   }
 
   @Test
@@ -280,8 +280,8 @@ class TagGroupTest {
       TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = false)
     }
 
-    composeTestRule.onNodeWithText(TagGroupTestTag.BOTTOM_FADE).assertIsNotDisplayed()
-    composeTestRule.onNodeWithText(TagGroupTestTag.TOP_FADE).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText(TagGroupTestTag.tagBottomFade(sampleTags)).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText(TagGroupTestTag.tagTopFade(sampleTags)).assertIsNotDisplayed()
   }
 
   @Test
@@ -296,7 +296,7 @@ class TagGroupTest {
 
     val lastTag = READING
     composeTestRule
-        .onNodeWithTag(TagGroupTestTag.COLUMN)
+        .onNodeWithTag(TagGroupTestTag.tagColumn(manyTags))
         .performScrollToNode(hasTestTag(lastTag.displayName))
     composeTestRule.onNodeWithText(lastTag.displayName).assertIsDisplayed()
   }
@@ -396,8 +396,8 @@ class TagGroupTest {
       TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
     }
 
-    composeTestRule.onNodeWithTag(TagGroupTestTag.RIGHT_FADE).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(TagGroupTestTag.LEFT_FADE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.tagRightFade(sampleTags)).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TagGroupTestTag.tagLeftFade(sampleTags)).assertIsDisplayed()
   }
 
   @Test
@@ -406,8 +406,8 @@ class TagGroupTest {
       TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = false)
     }
 
-    composeTestRule.onNodeWithText(TagGroupTestTag.RIGHT_FADE).assertIsNotDisplayed()
-    composeTestRule.onNodeWithText(TagGroupTestTag.LEFT_FADE).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText(TagGroupTestTag.tagRightFade(sampleTags)).assertIsNotDisplayed()
+    composeTestRule.onNodeWithText(TagGroupTestTag.tagLeftFade(sampleTags)).assertIsNotDisplayed()
   }
 
   @Test
@@ -422,7 +422,7 @@ class TagGroupTest {
 
     val lastTag = READING
     composeTestRule
-        .onNodeWithTag(TagGroupTestTag.ROW)
+        .onNodeWithTag(TagGroupTestTag.tagRow(manyTags))
         .performScrollToNode(hasTestTag(lastTag.displayName))
     composeTestRule.onNodeWithText(lastTag.displayName).assertIsDisplayed()
   }
