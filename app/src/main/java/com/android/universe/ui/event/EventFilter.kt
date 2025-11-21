@@ -11,9 +11,9 @@ import com.android.universe.ui.search.SearchEngine
  * - tags
  *
  * Filtering succeeds if **any** of these fields:
- *  - contains the query string (case–insensitive), **or**
- *  - matches according to [SearchEngine.fuzzyMatch], which allows tolerant matching for typos
- *    or near-miss input.
+ * - contains the query string (case–insensitive), **or**
+ * - matches according to [SearchEngine.fuzzyMatch], which allows tolerant matching for typos or
+ *   near-miss input.
  *
  * If [query] is blank, the original list of events is returned without modification.
  *
