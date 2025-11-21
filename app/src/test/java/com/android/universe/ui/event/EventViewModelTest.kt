@@ -10,6 +10,8 @@ import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
@@ -193,5 +195,59 @@ class EventViewModelTest {
     assertEquals("No event $EVENT1TITLE found", viewModel.uiState.value.errormsg)
     viewModel.setErrorMsg(null)
     assertEquals(null, viewModel.uiState.value.errormsg)
+  }
+
+  @Test
+  fun updateSearchQuery_updatesState() = runTest {
+    assertEquals("", viewModel.searchQuery.value)
+
+    viewModel.updateSearchQuery("run")
+    advanceUntilIdle()
+
+    assertEquals("run", viewModel.searchQuery.value)
+  }
+
+  @Test
+  fun filteredEvents_returnsEmpty_whenNoMatch() = runTest {
+    viewModel.updateSearchQuery("zzzz")
+    advanceUntilIdle()
+
+    val filtered = viewModel.filteredEvents.value
+    assertEquals(0, filtered.size)
+  }
+
+  @Test
+  fun filteredEvents_returnsAllEvents_whenQueryBlank() = runTest {
+    val collected = mutableListOf<List<EventUIState>>()
+    val job =
+        launch(UnconfinedTestDispatcher(testScheduler)) {
+          viewModel.filteredEvents.collect { collected.add(it) }
+        }
+
+    advanceUntilIdle()
+    viewModel.updateSearchQuery("")
+    advanceUntilIdle()
+
+    assertEquals(2, collected.last().size)
+    job.cancel()
+  }
+
+  @Test
+  fun filteredEvents_filtersByTitleContains() = runTest {
+    val collected = mutableListOf<List<EventUIState>>()
+    val job =
+        launch(UnconfinedTestDispatcher(testScheduler)) {
+          viewModel.filteredEvents.collect { collected.add(it) }
+        }
+
+    advanceUntilIdle()
+    viewModel.updateSearchQuery("run")
+    advanceUntilIdle()
+
+    val result = collected.last()
+    assertEquals(2, result.size)
+    assertEquals(EVENT1TITLE, result.first().title)
+
+    job.cancel()
   }
 }

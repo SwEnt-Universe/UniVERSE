@@ -2,11 +2,11 @@ package com.android.universe.ui.navigation
 
 /**
  * Contains test tags for UI elements in the application. These tags are used in UI tests to find
- * and interact with specific Composables on the screen, making the tests more robust and readable.
+ * and interact with specific Composable on the screen, making the tests more robust and readable.
  */
 object NavigationTestTags {
 
-  const val GO_BACK_BUTTON = "GoBackButton"
+  const val BACK_BUTTON = "GoBackButton"
 
   // SCREENS
   const val MAP_SCREEN = "MapScreen"

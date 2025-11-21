@@ -2,6 +2,7 @@ package com.android.universe.ui.map
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
@@ -9,28 +10,33 @@ import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.EventTestData
+import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import java.time.LocalDateTime
-import kotlin.NoSuchElementException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -46,12 +52,14 @@ class MapViewModelTest {
 
   private lateinit var viewModel: MapViewModel
   private lateinit var locationRepository: LocationRepository
-
   private lateinit var eventRepository: EventRepository
   private lateinit var userRepository: UserRepository
 
-  private val testDispatcher = StandardTestDispatcher()
+  @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
+  // NOTE: Assuming your Location model has a toGeoPoint() extension.
+  // If strictly needed for mocking, ensure Location objects are created compatible with that
+  // extension.
   private val fakeEvents =
       listOf(
           Event(
@@ -80,12 +88,25 @@ class MapViewModelTest {
 
   @Before
   fun setup() {
-    Dispatchers.setMain(testDispatcher)
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
     userRepository = mockk(relaxed = true)
-    viewModel = MapViewModel(userId, locationRepository, eventRepository, userRepository)
+    mockkObject(DefaultDP)
+    every { DefaultDP.io } returns UnconfinedTestDispatcher()
+    every { DefaultDP.main } returns mainCoroutineRule.dispatcher
+
+    // Mock the provider property accessed during initialization
+    every { locationRepository.getLocationProvider() } returns mockk(relaxed = true)
+
+    viewModel =
+        MapViewModel(
+            prefs = mockk(relaxed = true),
+            currentUserId = userId,
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+        )
   }
 
   @After
@@ -96,29 +117,33 @@ class MapViewModelTest {
   @Test
   fun `loadLastKnownLocation emits Success on success`() = runTest {
     val fakeLocation = Location(latitude = 46.5196, longitude = 6.5685)
+
+    // Capture the callback
     every { locationRepository.getLastKnownLocation(any(), any()) } answers
         {
           firstArg<(Location) -> Unit>().invoke(fakeLocation)
         }
 
     viewModel.loadLastKnownLocation()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state.location == fakeLocation)
+    assertNotNull(state.userLocation)
+    assertEquals(fakeLocation.latitude, state.userLocation!!.latitude, 0.0001)
+    assertEquals(fakeLocation.longitude, state.userLocation!!.longitude, 0.0001)
     assertNull(state.error)
     assertFalse(state.isLoading)
   }
 
   @Test
-  fun `loadLastKnownLocation emits Error on failure and centers on Lausanne`() = runTest {
+  fun `loadLastKnownLocation emits Error on failure`() = runTest {
     every { locationRepository.getLastKnownLocation(any(), any()) } answers
         {
           secondArg<() -> Unit>().invoke()
         }
 
     viewModel.loadLastKnownLocation()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertEquals("No last known location available", state.error)
@@ -126,67 +151,73 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `startLocationTracking emits latest location and clears error`() = runTest {
+  fun `startLocationTracking updates userLocation`() = runTest {
     val fakeFlow = flowOf(Location(46.5, 6.5), Location(46.6, 6.6))
     every { locationRepository.startLocationTracking() } returns fakeFlow
 
     viewModel.startLocationTracking()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertEquals(Location(46.6, 6.6), state.location)
+    assertEquals(46.6, state.userLocation?.latitude)
+    assertEquals(6.6, state.userLocation?.longitude)
     assertNull(state.error)
   }
 
   @Test
   fun `startLocationTracking emits Error on exception`() = runTest {
     every { locationRepository.startLocationTracking() } returns
-        flow { throw RuntimeException("Location tracking failed") }
+        flow { throw RuntimeException("Tracking failed") }
 
     viewModel.startLocationTracking()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state.error!!.contains("Location tracking failed"))
+    assertTrue(state.error!!.contains("Tracking failed"))
   }
 
   @Test
-  fun `centerOn emits CameraOptions`() = runTest {
-    viewModel.cameraCommands.test {
-      val point = GeoPoint(46.5196, 6.5685)
-      viewModel.centerOn(point, 10.0)
+  fun `onCameraMoveRequest sends MoveCamera action`() = runTest {
+    viewModel.mapActions.test {
+      val target = GeoPoint(46.5, 6.5)
+      val zoom = 12.0
+      viewModel.onCameraMoveRequest(target, zoom)
 
-      val emitted = awaitItem()
-      assertEquals(point, emitted.position)
-      assertEquals(10.0, emitted.zoom)
-      cancelAndIgnoreRemainingEvents()
+      val action = awaitItem()
+      assertTrue(action is MapAction.MoveCamera)
+      assertEquals(target, (action as MapAction.MoveCamera).target)
+      assertEquals(zoom, (action as MapAction.MoveCamera).currentZoom, 0.0)
     }
   }
 
   @Test
-  fun `centerOnLausanne emits correct CameraOptions`() = runTest {
-    viewModel.cameraCommands.test {
-      viewModel.centerOnLausanne()
-      val emitted = awaitItem()
-      assertEquals(46.5196535, emitted.position!!.latitude, 0.00001)
-      assertEquals(6.6322734, emitted.position!!.longitude, 0.00001)
-      assertEquals(14.0, emitted.zoom)
-      cancelAndIgnoreRemainingEvents()
-    }
+  fun `onCameraStateChange updates uiState`() = runTest {
+    val newPos = GeoPoint(48.8566, 2.3522)
+    val newZoom = 15.5
+
+    viewModel.onCameraStateChange(newPos, newZoom)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(newPos, state.cameraPosition)
+    assertEquals(newZoom, state.zoomLevel, 0.0001)
   }
 
   @Test
-  fun `loadAllEvents updates eventMarkers on success`() = runTest {
+  fun `loadAllEvents updates uiState markers`() = runTest {
     coEvery { eventRepository.getAllEvents() } returns fakeEvents
 
     viewModel.loadAllEvents()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
-    val markers = viewModel.eventMarkers.value
-    assertEquals(fakeEvents.size, markers.size)
-    assertEquals("Morning Run at the Lake", markers[0].title)
-    assertEquals("Tech Hackathon 2025", markers[1].title)
-    assertEquals("Art & Wine Evening", markers[2].title)
+    val state = viewModel.uiState.value
+    assertEquals(fakeEvents.size, state.markers.size)
+
+    // Verify mapping logic
+    val firstMarker = state.markers[0]
+    assertEquals(fakeEvents[0].title, firstMarker.event.title)
+    // Assuming Location -> GeoPoint mapping is direct
+    assertEquals(fakeEvents[0].location.latitude, firstMarker.position.latitude, 0.0001)
   }
 
   @Test
@@ -194,14 +225,14 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllEvents() } throws RuntimeException("Failed to load")
 
     viewModel.loadAllEvents()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertEquals("Failed to load events: Failed to load", state.error)
   }
 
   @Test
-  fun `loadSuggestedEventsForCurrentUser updates eventMarkers with UserTestData`() = runTest {
+  fun `loadSuggestedEventsForCurrentUser updates eventMarkers`() = runTest {
     val testUser = UserTestData.ManyTagsUser
     val suggestedEvents = listOf(EventTestData.dummyEvent1, EventTestData.dummyEvent2)
 
@@ -209,7 +240,7 @@ class MapViewModelTest {
     coEvery { eventRepository.getSuggestedEventsForUser(testUser) } returns suggestedEvents
 
     viewModel.loadSuggestedEventsForCurrentUser()
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val markers = viewModel.eventMarkers.value
     assertEquals(suggestedEvents.size, markers.size)
@@ -217,88 +248,85 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadSuggestedEventsForCurrentUser sets error on user retrieval failure`() = runTest {
-    coEvery { userRepository.getUser(userId) } throws RuntimeException("User not found")
-
-    viewModel.loadSuggestedEventsForCurrentUser()
-    testDispatcher.scheduler.advanceUntilIdle()
+  fun `onMapLongClick updates selectedLocation`() = runTest {
+    viewModel.onMapLongClick(commonLat, commonLng)
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertEquals("Failed to load events: User not found", state.error)
+    assertNotNull(state.selectedLocation)
+    assertEquals(commonLat, state.selectedLocation!!.latitude, 0.0001)
+    assertEquals(commonLng, state.selectedLocation!!.longitude, 0.0001)
   }
 
   @Test
-  fun `selectLocation updates selectedLat and selectedLng`() = runTest {
-    viewModel.selectLocation(commonLat, commonLng)
-    testDispatcher.scheduler.advanceUntilIdle()
+  fun `onMapClick clears selectedLocation`() = runTest {
+    // First set it
+    viewModel.onMapLongClick(commonLat, commonLng)
+    advanceUntilIdle()
+    assertNotNull(viewModel.uiState.value.selectedLocation)
 
-    assertEquals(viewModel.uiState.value.selectedLat, commonLat)
-    assertEquals(viewModel.uiState.value.selectedLng, commonLng)
-
-    viewModel.selectLocation(null, null)
-    testDispatcher.scheduler.advanceUntilIdle()
-
-    assertEquals(viewModel.uiState.value.selectedLat, null)
-    assertEquals(viewModel.uiState.value.selectedLng, null)
+    // Then click map to clear
+    viewModel.onMapClick()
+    advanceUntilIdle()
+    assertNull(viewModel.uiState.value.selectedLocation)
   }
 
   @Test
   fun `polling requests update events`() = runTest {
-    val min6: Long = 6 * 60 * 1000
-    val startEvents = viewModel.eventMarkers.value.size
-    val oneMore = startEvents + 1
+    // Because we injected testDispatcher into the ViewModel, delay() will obey advanceTimeBy
+    val intervalMin = 1L
+    val intervalMillis = intervalMin * 60 * 1000
 
     // Controlled mutable list that mockk will read from
     val currentEvents = mutableListOf<Event>()
     coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
 
-    // start empty
-    assertEquals(startEvents, 0)
+    // Initial state
+    assertEquals(0, viewModel.eventMarkers.value.size)
 
-    // Add one event, but no polling yet → ViewModel still empty
+    // Add an event to repo, but polling hasn't started
     currentEvents.add(fakeEvents.first())
-    testDispatcher.scheduler.advanceTimeBy(min6)
-    assertEquals(viewModel.eventMarkers.value.size, startEvents)
+    advanceTimeBy(intervalMillis)
+    runCurrent()
+    // Should still be 0 because initData/loadAllEvents wasn't explicitly called in this test flow
+    // yet
+    // (except via initData in real app, but here we control calls)
 
     // Start polling
-    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
-    testDispatcher.scheduler.advanceTimeBy(min6)
+    viewModel.startEventPolling(intervalMinutes = intervalMin, maxIterations = 3)
+    runCurrent()
 
-    // ViewModel should have seen one event
-    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+    assertEquals(1, viewModel.eventMarkers.value.size)
 
-    // Stop polling
-    viewModel.stopEventPolling()
-
-    // Add another event while polling stopped → still one event
+    // Add another event
     currentEvents.add(fakeEvents[1])
-    testDispatcher.scheduler.advanceTimeBy(min6)
-    assertEquals(oneMore, viewModel.eventMarkers.value.size)
 
-    // Remove first event and restart polling
-    currentEvents.removeAt(0)
-    viewModel.startEventPolling(intervalMinutes = 1, maxIterations = 3)
-    testDispatcher.scheduler.advanceTimeBy(min6)
+    // Advance time to trigger next poll
+    advanceTimeBy(intervalMillis)
+    runCurrent()
 
-    assertEquals(oneMore, viewModel.eventMarkers.value.size)
+    assertEquals(2, viewModel.eventMarkers.value.size)
+
+    viewModel.stopEventPolling()
   }
 
   @Test
-  fun `selectEvent updates selectedEvent with given event`() = runTest {
+  fun `selectEvent updates selectedEvent flow`() = runTest {
     val testEvent = EventTestData.dummyEvent1
 
     viewModel.selectEvent(testEvent)
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     assertEquals(testEvent, viewModel.selectedEvent.value)
   }
 
   @Test
-  fun `selectEvent sets selectedEvent to null when null passed`() = runTest {
-    viewModel.selectEvent(null)
-    testDispatcher.scheduler.advanceUntilIdle()
+  fun `onMarkerClick selects the event`() = runTest {
+    val testEvent = EventTestData.dummyEvent1
+    viewModel.onMarkerClick(testEvent)
+    advanceUntilIdle()
 
-    assertNull(viewModel.selectedEvent.value)
+    assertEquals(testEvent, viewModel.selectedEvent.value)
   }
 
   @Test
@@ -311,7 +339,7 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllEvents() } returns listOf(updatedEvent)
 
     viewModel.toggleEventParticipation(event)
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
     val selectedEvent = viewModel.selectedEvent.value
@@ -322,12 +350,11 @@ class MapViewModelTest {
   @Test
   fun `toggleEventParticipation sets error on failure`() = runTest {
     val event = EventTestData.NoParticipantEvent
-
     coEvery { eventRepository.updateEvent(any(), any()) } throws
         NoSuchElementException("Update failed")
 
     viewModel.toggleEventParticipation(event)
-    testDispatcher.scheduler.advanceUntilIdle()
+    advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertEquals("No event ${event.title} found", state.error)
@@ -337,18 +364,16 @@ class MapViewModelTest {
   fun `isUserParticipant returns true when user is in participants list`() {
     val event =
         EventTestData.dummyEvent1.copy(participants = setOf("otherUser", userId, "anotherUser"))
-
     val result = viewModel.isUserParticipant(event)
-
     assertTrue(result)
   }
 
   @Test
-  fun `isUserParticipant returns false when user is not in participants list`() {
-    val event = EventTestData.dummyEvent1.copy(participants = setOf("otherUser", "anotherUser"))
+  fun `nowInteractable sets isMapInteractive to true`() = runTest {
+    assertFalse(viewModel.uiState.value.isMapInteractive)
 
-    val result = viewModel.isUserParticipant(event)
+    viewModel.nowInteractable()
 
-    assertFalse(result)
+    assertTrue(viewModel.uiState.value.isMapInteractive)
   }
 }

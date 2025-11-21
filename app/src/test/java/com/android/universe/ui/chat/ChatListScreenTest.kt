@@ -27,7 +27,7 @@ class ChatListScreenUiTest {
   // Mock the ViewModel and its state flow
   private lateinit var mockViewModel: ChatListViewModel
   private val mockChatPreviews = MutableStateFlow<List<ChatPreview>>(emptyList())
-  private val mockOnChatSelected: (String) -> Unit = mockk(relaxed = true)
+  private val mockOnChatSelected: (String, String) -> Unit = mockk(relaxed = true)
 
   @Before
   fun setUp() {
@@ -103,7 +103,7 @@ class ChatListScreenUiTest {
 
     composeTestRule.onNodeWithTag(chatItemTag).performClick()
 
-    verify(exactly = 1) { mockOnChatSelected(chatPreview.chatID) }
+    verify(exactly = 1) { mockOnChatSelected(chatPreview.chatID, chatPreview.chatName) }
   }
 }
 

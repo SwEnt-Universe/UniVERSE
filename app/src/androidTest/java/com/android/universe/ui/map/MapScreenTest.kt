@@ -19,6 +19,8 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
+import com.tomtom.sdk.location.GeoPoint
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -56,6 +58,7 @@ class MapScreenTest {
     runTest { fakeUserRepository.addUser(UserTestData.Alice) }
     viewModel =
         MapViewModel(
+            prefs = mockk(relaxed = true),
             currentUserId = uid,
             locationRepository = fakeLocationRepository,
             eventRepository = fakeEventRepository,
@@ -86,7 +89,7 @@ class MapScreenTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
-    viewModel.selectLocation(commonLat, commonLng)
+    viewModel.selectLocation(GeoPoint(commonLat, commonLng))
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
     }

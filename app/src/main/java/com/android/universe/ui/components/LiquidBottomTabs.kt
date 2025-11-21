@@ -119,10 +119,7 @@ fun LiquidBottomTabs(
   val tabsBackdrop = rememberLayerBackdrop()
 
   BoxWithConstraints(
-      modifier =
-          modifier
-              .padding(horizontal = Dimensions.PaddingExtraLarge)
-              .padding(bottom = Dimensions.PaddingExtraLarge),
+      modifier = modifier.padding(Dimensions.PaddingExtraLarge),
       contentAlignment = Alignment.CenterStart) {
         val density = LocalDensity.current
         val tabWidth = with(density) { (constraints.maxWidth.toFloat() - 8f.dp.toPx()) / tabsCount }
