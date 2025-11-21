@@ -96,7 +96,7 @@ fun SelectTagScreen(
             selectedTags = selectedTags,
             onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
             onTagReSelect = { tag -> selectedTagOverview.deleteTag(tag) },
-            modifier =
+            modifierFlowRow =
                 Modifier.testTag(
                     when (category) {
                       Tag.Category.MUSIC -> SelectTagsScreenTestTags.MUSIC_TAGS

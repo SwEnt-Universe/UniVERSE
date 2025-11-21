@@ -18,6 +18,7 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -31,8 +32,9 @@ class SelectTagScreenTest {
    * Private function scrollAndClick that is used in the tests to perform a scroll to an element and
    * click on it
    */
-  private fun scrollAndClick(clickName: String) {
-    composeTestRule.onNodeWithTag(LAZY_COLUMN_TAGS).performScrollToNode(hasTestTag(clickName))
+  private fun scrollAndClick(clickName: String, category: String) {
+    composeTestRule.onNodeWithTag(LAZY_COLUMN_TAGS).performScrollToNode(hasTestTag(category))
+    composeTestRule.onNodeWithTag(category).performScrollToNode(hasTestTag(clickName))
     composeTestRule.onNodeWithTag(clickName).performClick()
   }
 
@@ -64,7 +66,7 @@ class SelectTagScreenTest {
   }
 
   private fun launchDefaultScreen() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       SelectTagScreen(selectedTagOverview = viewModel, uid = dummyUser.uid)
     }
   }
@@ -133,7 +135,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_METAL)
+    scrollAndClick(BUTTON_METAL, SelectTagsScreenTestTags.MUSIC_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -143,7 +145,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_HANDBALL)
+    scrollAndClick(BUTTON_HANDBALL, SelectTagsScreenTestTags.SPORT_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -153,7 +155,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_BAKING)
+    scrollAndClick(BUTTON_BAKING, SelectTagsScreenTestTags.FOOD_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -163,7 +165,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_DOCUMENTARIES)
+    scrollAndClick(BUTTON_DOCUMENTARIES, SelectTagsScreenTestTags.ART_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -173,7 +175,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_SAFARI)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -183,7 +185,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_DND)
+    scrollAndClick(BUTTON_DND, SelectTagsScreenTestTags.GAMES_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -193,7 +195,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_PROGRAMMING)
+    scrollAndClick(BUTTON_PROGRAMMING, SelectTagsScreenTestTags.TECHNOLOGY_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -203,7 +205,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects a tag, it appears in the selected section with its trash
     // icon.
-    scrollAndClick(BUTTON_PHYSICS)
+    scrollAndClick(BUTTON_PHYSICS, SelectTagsScreenTestTags.TOPIC_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -213,10 +215,12 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that when the user selects multiple tags, they appear in the selected section with
     // their trash icons.
-    scrollAndClick(BUTTON_PHYSICS)
-    scrollAndClick(BUTTON_SAFARI)
+    scrollAndClick(BUTTON_PHYSICS, SelectTagsScreenTestTags.TOPIC_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
-    val deleteIcons = composeTestRule.onAllNodesWithTag(SelectTagsScreenTestTags.DELETE_ICON)
+    val deleteIcons =
+        composeTestRule.onAllNodesWithTag(
+            SelectTagsScreenTestTags.DELETE_ICON, useUnmergedTree = true)
     deleteIcons.assertAll(hasClickAction())
   }
 
@@ -225,7 +229,7 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that if we click on the trash icon, the tag is deselected and does not appear in the
     // selected tag section.
-    scrollAndClick(BUTTON_SAFARI)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).performClick()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsNotDisplayed()
@@ -236,14 +240,14 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that if we click again on the tag, it is deselected and does not appear in the selected
     // tag section.
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsNotDisplayed()
 
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_DND)
-    scrollAndClick(BUTTON_SAFARI)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_DND, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
@@ -253,9 +257,9 @@ class SelectTagScreenTest {
     launchDefaultScreen()
     // Check that the selected tags are displayed in the correct order, matching the sequence they
     // were clicked.
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_HANDBALL)
-    scrollAndClick(BUTTON_METAL)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_HANDBALL, SelectTagsScreenTestTags.SPORT_TAGS)
+    scrollAndClick(BUTTON_METAL, SelectTagsScreenTestTags.MUSIC_TAGS)
 
     val selectedTagNodes =
         composeTestRule
@@ -274,11 +278,11 @@ class SelectTagScreenTest {
   fun selectedTagsMaintainOrderAfterDeselection() {
     launchDefaultScreen()
     // Check that the selected tags are displayed in the correct order when we deselect one tag.
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_HANDBALL)
-    scrollAndClick(BUTTON_METAL)
-    scrollAndClick(BUTTON_DND)
-    scrollAndClick(BUTTON_METAL)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_HANDBALL, SelectTagsScreenTestTags.SPORT_TAGS)
+    scrollAndClick(BUTTON_METAL, SelectTagsScreenTestTags.MUSIC_TAGS)
+    scrollAndClick(BUTTON_DND, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_METAL, SelectTagsScreenTestTags.MUSIC_TAGS)
 
     val selectedTagNodes =
         composeTestRule
@@ -297,32 +301,32 @@ class SelectTagScreenTest {
   fun selectedTagsRemainStableAfterRapidClicks() {
     launchDefaultScreen()
     // Check that rapid repeated clicks on a tag do not break selection behavior.
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
-    scrollAndClick(BUTTON_SAFARI)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
+    scrollAndClick(BUTTON_SAFARI, SelectTagsScreenTestTags.TRAVEL_TAGS)
 
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SELECTED_TAGS).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.DELETE_ICON).assertIsDisplayed()
   }
 
   private fun selectLotsOfTags() {
-    scrollAndClick(BUTTON_VIDEO_GAMES)
-    scrollAndClick(BUTTON_BOARD_GAMES)
-    scrollAndClick(BUTTON_CARD_GAMES)
-    scrollAndClick(BUTTON_DND)
-    scrollAndClick(BUTTON_PUZZLE)
-    scrollAndClick(BUTTON_BRAIN_GAMES)
-    scrollAndClick(BUTTON_ONLINE_GAMES)
-    scrollAndClick(BUTTON_CO_OP_GAMES)
-    scrollAndClick(BUTTON_CHESS)
+    scrollAndClick(BUTTON_VIDEO_GAMES, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_BOARD_GAMES, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_CARD_GAMES, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_DND, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_PUZZLE, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_BRAIN_GAMES, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_ONLINE_GAMES, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_CO_OP_GAMES, SelectTagsScreenTestTags.GAMES_TAGS)
+    scrollAndClick(BUTTON_CHESS, SelectTagsScreenTestTags.GAMES_TAGS)
   }
 
   @Test
@@ -353,7 +357,7 @@ class SelectTagScreenTest {
   fun selectedTagsModeChange() {
     val modeViewModel = SelectTagViewModel(userRepository)
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       SelectTagScreen(
           selectTagMode = SelectTagMode.EVENT_CREATION,
           selectedTagOverview = modeViewModel,

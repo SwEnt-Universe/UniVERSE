@@ -222,7 +222,8 @@ internal fun ModalContent(
                       displayText = false,
                       onTagSelect = { tag -> onAddTag(tag) },
                       onTagReSelect = { tag -> onRemoveTag(tag) },
-                      modifier = Modifier.fillMaxWidth())
+                      interPaddingH = 0.dp,
+                      outerPaddingH = 0.dp)
                 }
           }
         }
