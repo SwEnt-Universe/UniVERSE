@@ -153,18 +153,18 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
     composeTestRule.waitUntil(5_000L) {
       composeTestRule
-          .onAllNodesWithTag(EventScreenTestTags.EVENT_CARD)
+          .onAllNodesWithTag(EventScreenTestTags.EVENT_CARD, useUnmergedTree = true)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
     // There should be a single event therefore we can check using the onFirst() function
 
     composeTestRule
-        .onAllNodesWithTag(EventScreenTestTags.EVENT_TITLE)
+        .onAllNodesWithTag(EventScreenTestTags.EVENT_TITLE, useUnmergedTree = true)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.title)
     composeTestRule
-        .onAllNodesWithTag(EventScreenTestTags.EVENT_DESCRIPTION)
+        .onAllNodesWithTag(EventScreenTestTags.EVENT_DESCRIPTION, useUnmergedTree = true)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.description!!)
   }
