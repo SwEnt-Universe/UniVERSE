@@ -61,6 +61,7 @@ object Dimensions {
 
   // Corner radii
   val RoundedCorner = 8.dp
+  val RoundedCornerMedium = 24.dp
 
   // Thickness
   val ThicknessMedium = 2.dp

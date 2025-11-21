@@ -47,7 +47,7 @@ fun SearchBar(
       singleLine = true,
       placeholder = { Text(placeholder) },
       leadingIcon = { Icon(Icons.Default.Search, contentDescription = "search_icon") },
-      shape = RoundedCornerShape(Dimensions.RoundedCorner),
+      shape = RoundedCornerShape(Dimensions.RoundedCornerMedium),
       colors =
           OutlinedTextFieldDefaults.colors(
               // BACKGROUND
