@@ -13,6 +13,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.chat.composable.ChatUIViewModel
 import com.android.universe.ui.chat.composable.SendMessageInput
 import com.android.universe.ui.chat.composable.SendMessageInputTestTags
+import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -50,7 +51,7 @@ class SendMessageInputTest {
 
   @Test
   fun sendMessageInput_sendButtonControl() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       Column(modifier = Modifier.fillMaxSize()) { SendMessageInput(vm = mockViewModel) }
     }
 
@@ -81,7 +82,7 @@ class SendMessageInputTest {
   fun sendMessageInput_typingCallsOnInput() {
     val testMessage = "Test"
 
-    composeTestRule.setContent { SendMessageInput(vm = mockViewModel) }
+    composeTestRule.setContentWithStubBackdrop { SendMessageInput(vm = mockViewModel) }
 
     val textField = composeTestRule.onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD)
 

@@ -1,6 +1,5 @@
 package com.android.universe.ui.chat.composable
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.theme.Dimensions
+
+const val MAX_MESSAGE_WIDTH_FRACTION = 0.9f
+const val MESSAGE_ALPHA = 0.5f
 
 object MessageItemTestTags {
   const val USERNAME = "USERNAME"
@@ -54,61 +57,78 @@ fun MessageItem(
 ) {
 
   val userName by vm.getUserName(senderID).collectAsState()
-  val messageCornerRadius: Dp = Dimensions.RoundedCorner * 2
   val arrangement = if (isUserMe) Arrangement.End else Arrangement.Start
+  val messageCornerRadius: Dp = Dimensions.RoundedCorner * 2
+  val shape =
+      RoundedCornerShape(
+          topStart = messageCornerRadius,
+          topEnd = messageCornerRadius,
+          bottomStart = if (isUserMe) messageCornerRadius else 0.dp,
+          bottomEnd = if (isUserMe) 0.dp else messageCornerRadius)
 
+  // Creates a row filling the entire width of the screen.
+  // Content is placed to the left or right depending on arrangement
+  // [content-->], [<--content] (--> can grow in this direction)
   Row(
       modifier =
           modifier
               .fillMaxWidth()
-              .padding(Dimensions.PaddingMedium)
+              .padding(bottom = Dimensions.PaddingMedium)
               .testTag(MessageItemTestTags.MESSAGE_CONTAINER),
       horizontalArrangement = arrangement) {
-        Row(modifier = Modifier.fillMaxWidth(0.9f), horizontalArrangement = arrangement) {
-          Column(
-              modifier =
-                  Modifier.wrapContentWidth()
-                      .background(
-                          color =
-                              if (isUserMe) MaterialTheme.colorScheme.primary
-                              else MaterialTheme.colorScheme.surfaceVariant,
-                          shape =
-                              RoundedCornerShape(
-                                  topStart = messageCornerRadius,
-                                  topEnd = messageCornerRadius,
-                                  bottomStart = if (isUserMe) messageCornerRadius else 0.dp,
-                                  bottomEnd = if (isUserMe) 0.dp else messageCornerRadius))
-                      .padding(Dimensions.PaddingMedium),
-              horizontalAlignment = Alignment.End) {
-                Column {
-                  if (!isUserMe) {
-                    Text(
-                        text = userName,
-                        style =
-                            MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.testTag(MessageItemTestTags.USERNAME))
+
+        // Creates a row with a maximum width that the message can fill
+        // Content is placed to the left or right depending on arrangement
+        // [[message-->]...], [...[<--message]] (... empty space that won't be filled)
+        Row(
+            modifier = Modifier.fillMaxWidth(MAX_MESSAGE_WIDTH_FRACTION),
+            horizontalArrangement = arrangement) {
+
+              // Apply liquid glass theme to the message bubble
+              LiquidBox(
+                  color = MaterialTheme.colorScheme.surface.copy(alpha = MESSAGE_ALPHA),
+                  shape = shape) {
+
+                    // Creates a column that wraps the content.
+                    // Positions content to the right, so that the time is put in the correct
+                    // position.
+                    // +---------------+
+                    // ¦+-------------+¦
+                    // ¦¦username---->¦¦
+                    // ¦¦message----->¦¦
+                    // ¦+-------------+¦
+                    // ¦...........time¦
+                    // +---------------+
+                    Column(
+                        modifier = Modifier.wrapContentWidth().padding(Dimensions.PaddingMedium),
+                        horizontalAlignment = Alignment.End) {
+                          Column {
+                            if (!isUserMe) {
+                              Text(
+                                  text = userName,
+                                  style =
+                                      MaterialTheme.typography.titleMedium.copy(
+                                          fontWeight = FontWeight.Bold),
+                                  color = MaterialTheme.colorScheme.onSurface,
+                                  modifier = Modifier.testTag(MessageItemTestTags.USERNAME))
+                            }
+
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier =
+                                    Modifier.padding(Dimensions.PaddingSmall)
+                                        .testTag(MessageItemTestTags.MESSAGE_TEXT))
+                          }
+
+                          Text(
+                              text = time,
+                              style = MaterialTheme.typography.labelSmall,
+                              color = MaterialTheme.colorScheme.onSurfaceVariant,
+                              modifier = Modifier.testTag(MessageItemTestTags.TIME))
+                        }
                   }
-
-                  Text(
-                      text = message,
-                      style = MaterialTheme.typography.bodyMedium,
-                      color =
-                          if (isUserMe) MaterialTheme.colorScheme.onPrimary
-                          else MaterialTheme.colorScheme.onSurface,
-                      modifier =
-                          Modifier.padding(Dimensions.PaddingSmall)
-                              .testTag(MessageItemTestTags.MESSAGE_TEXT))
-                }
-
-                Text(
-                    text = time,
-                    style = MaterialTheme.typography.labelSmall,
-                    color =
-                        if (isUserMe) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.testTag(MessageItemTestTags.TIME))
-              }
-        }
+            }
       }
 }

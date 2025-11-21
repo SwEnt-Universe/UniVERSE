@@ -216,19 +216,27 @@ fun UniverseApp(
           ChatListScreen(
               userID = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
-              onChatSelected = { chatID ->
+              onChatSelected = { chatID, chatName ->
                 navController.navigate(
-                    route = NavigationScreens.ChatInstance.route.replace("{chatID}", chatID))
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName))
               })
         }
 
         composable(
             route = NavigationScreens.ChatInstance.route,
-            arguments = listOf(navArgument("chatID") { type = NavType.StringType })) {
+            arguments =
+                listOf(
+                    navArgument("chatID") { type = NavType.StringType },
+                    navArgument("chatName") { type = NavType.StringType })) {
               ChatScreen(
                   chatID = it.arguments?.getString("chatID")!!,
+                  chatName = it.arguments?.getString("chatName")!!,
                   userID = authInstance.currentUser!!.uid,
-                  onTabSelected = onTabSelected)
+                  onTabSelected = onTabSelected,
+                  onBack = { navigationActions.goBack() })
             }
       }
 
