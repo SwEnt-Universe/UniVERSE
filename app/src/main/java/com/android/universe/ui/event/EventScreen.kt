@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.Toast
@@ -104,6 +105,7 @@ object EventScreenTestTags {
  * @param viewModel The [EventViewModel] that provides the state for the screen, including the list
  *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
  */
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EventScreen(
     onTabSelected: (Tab) -> Unit = {},
