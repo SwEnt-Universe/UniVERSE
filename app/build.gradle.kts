@@ -18,8 +18,6 @@ plugins {
   jacoco
 }
 
-buildscript { dependencies { classpath(libs.commons.compress) } }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Kotlin configuration
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,11 +176,22 @@ sonar {
     property("sonar.host.url", "https://sonarcloud.io")
     property("sonar.sourceEnconding", "UTF-8")
     property("sonar.language", "kotlin")
+
+    property(
+        "sonar.tests",
+        "src/test/java" + "," +
+        "src/androidTest/java" + "," +
+        "src/testFixtures/java"
+    )
     // Comma-separated paths to the various directories containing the *.xml JUnit report files.
     // Each path may be absolute or relative to the project base directory.
     property(
         "sonar.junit.reportPaths",
-        "${project.layout.buildDirectory.get()}/test-results/testDebugunitTest/")
+        "${project.layout.buildDirectory.get()}/test-results/testDebugUnitTest/"
+        + ","
+        + "${project.layout.buildDirectory.get()}/outputs/androidTest-results/connected/debug/"
+    )
+
     // Paths to xml files with Android Lint issues. If the main flavor is changed, this file will
     // have to be changed too.
     property(
@@ -406,5 +415,5 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
 }
 
 tasks.named("sonar") {
-  mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest", "jacocoTestReport")
+  mustRunAfter("lintDebug", "testDebugUnitTest", "connectedDebugAndroidTest", "jacocoTestReport")
 }
