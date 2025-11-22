@@ -37,7 +37,7 @@ jacoco {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Load local properties (for TomTom API key)
+// Load local properties (for API keys)
 // ─────────────────────────────────────────────────────────────────────────────
 val localPropertiesFile = rootProject.file("local.properties")
 val localProperties = Properties()
@@ -50,6 +50,10 @@ val tomtomApiKey: String = System.getenv("TOMTOM_API_KEY")
     ?: localProperties.getProperty("TOMTOM_API_KEY")
     ?: throw GradleException("TOMTOM_API_KEY not found in environment or local.properties")
 
+val openaiApiKey: String = System.getenv("OPENAI_API_KEY")
+    ?: localProperties.getProperty("OPENAI_API_KEY")
+    ?: throw GradleException("OPENAI_API_KEY not found in environment or local.properties")
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Android configuration
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,15 +61,17 @@ android {
     namespace = "com.android.universe"
     compileSdk = 36
 
-    // BuildConfig is required for injecting TOMTOM_API_KEY
+    // BuildConfig is required for injecting API keys
     buildFeatures {
         buildConfig = true
         compose = true
     }
 
     // Expose TOMTOM_API_KEY as BuildConfig.TOMTOM_API_KEY
+    // Expose OPENAI_API_KEY as BuildConfig.OPENAI_API_KEY
     buildTypes.configureEach {
         buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"")
+        buildConfigField("String", "OPENAI_API_KEY", "\"$openaiApiKey\"")
     }
 
     // ─────────────────────────────────────────────────────────────────────────
