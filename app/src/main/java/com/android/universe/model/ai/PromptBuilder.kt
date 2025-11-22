@@ -72,6 +72,9 @@ object PromptBuilder {
         location: Location(latitude: Double, longitude: Double)
         eventPicture: ByteArray | null
         
+        Tags must be returned using display names exactly as provided:
+        ["Metal", "Rock", "Jazz"]
+
         JSON Example Structure:
         [
           {
@@ -79,7 +82,7 @@ object PromptBuilder {
             "title": "Rock Night at Flon",
             "description": "Local metal event",
             "date": "2025-03-21T20:00",
-            "tags": ["MUSIC", "METAL"],
+            "tags": ["Music", "Metal"],
             "creator": "example-user-id",
             "participants": ["user-1", "user-2"],
             "location": { "latitude": 46.52, "longitude": 6.63 },
