@@ -1,5 +1,6 @@
 package com.android.universe.model.ai
 
+import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -35,24 +36,24 @@ interface OpenAIService {
 // Request / Response models
 // ===================================================================
 
+@Serializable
 data class ChatCompletionRequest(
 	val model: String = "gpt-4o-mini",
 	val messages: List<Message>,
 	val temperature: Double? = null,
 	val max_tokens: Int? = null,
 	val top_p: Double? = null,
-	val stream: Boolean? = null,        // set to true for streaming endpoint
-	val user: String? = null            // end-user identifier (for abuse monitoring)
+	val stream: Boolean? = null,
+	val user: String? = null
 )
 
+@Serializable
 data class Message(
-	val role: String,         // "system", "user", "assistant", "tool"
-	val content: String,
-	val name: String? = null, // optional for role="tool" or function calling
-	val tool_calls: List<ToolCall>? = null,
-	val tool_call_id: String? = null
+	val role: String,
+	val content: String
 )
 
+@Serializable
 data class ChatCompletionResponse(
 	val id: String,
 	val choices: List<Choice>,
@@ -61,25 +62,16 @@ data class ChatCompletionResponse(
 	val usage: Usage?
 )
 
+@Serializable
 data class Choice(
 	val index: Int,
 	val message: Message,
-	val finish_reason: String?   // "stop", "length", "tool_calls", etc.
+	val finish_reason: String? = null
 )
 
+@Serializable
 data class Usage(
 	val prompt_tokens: Int,
 	val completion_tokens: Int,
 	val total_tokens: Int
-)
-
-data class ToolCall(
-	val id: String,
-	val type: String = "function",
-	val function: FunctionCall
-)
-
-data class FunctionCall(
-	val name: String,
-	val arguments: String // JSON string
 )

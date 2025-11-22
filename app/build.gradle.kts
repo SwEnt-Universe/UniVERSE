@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonarqube)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.serialization)
     jacoco
 }
 // ─────────────────────────────────────────────────────────────────────────────

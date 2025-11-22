@@ -8,6 +8,7 @@ import org.junit.Test
 
 class PromptBuilderTest {
 
+  //TODO Move user to fixtures
   private val DummyDate = LocalDate.of(2000, 8, 11)
 
   val allTags =
