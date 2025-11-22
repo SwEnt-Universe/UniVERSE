@@ -1,9 +1,6 @@
 package com.android.universe.model.ai
 
-import com.android.universe.model.location.Location
-import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
-import java.time.LocalDateTime
 
 object PromptBuilder {
 
@@ -58,6 +55,7 @@ object PromptBuilder {
         """
           .trimIndent()
 
+  // TODO! See if this is optimal
   private fun outputFormatBlock(): String =
       """
         Response Format:
@@ -91,15 +89,3 @@ object PromptBuilder {
         """
           .trimIndent()
 }
-
-data class Event(
-    val id: String,
-    val title: String,
-    val description: String? = null,
-    val date: LocalDateTime,
-    val tags: Set<Tag>,
-    val creator: String,
-    val participants: Set<String> = emptySet(),
-    val location: Location,
-    val eventPicture: ByteArray? = null
-) {}
