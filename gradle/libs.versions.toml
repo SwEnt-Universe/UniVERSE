@@ -58,6 +58,7 @@ turbine = "1.2.1"
 
 # ===== UTILITIES =====
 logback = "1.5.21"
+commonsCompress = "1.28.0"
 
 
 [libraries]
@@ -153,6 +154,7 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 # UTILITIES
 # ==============================================================================
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress"}
 
 [plugins]
 # ==============================================================================

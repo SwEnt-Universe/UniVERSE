@@ -18,6 +18,12 @@ plugins {
   jacoco
 }
 
+buildscript {
+    dependencies{
+        classpath(libs.commons.compress)
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Kotlin configuration
 // ─────────────────────────────────────────────────────────────────────────────
