@@ -31,12 +31,11 @@ object PromptBuilder {
 
   private fun taskBlock(task: TaskConfig): String = """
         Task:
-        Generate realistic public events that could take place in ${task.city}.
+        Generate realistic public events/activities that could take place in the context location.
         Requirements:
         - must be feasible (no fantasy)
         - must match the user’s interests
         - include a short description
-        ${if (task.requireRealCoordinates) "- include real coordinates inside ${task.city}" else ""}
         ${if (task.requireRelevantTags) "- include meaningful tags" else ""}
         ${if (task.outdoorOnly) "- only outdoor events" else ""}
     """.trimIndent()
@@ -53,15 +52,17 @@ object PromptBuilder {
         """
           .trimIndent()
 
+  // TODO! Figure out how weather data can be incorporated
   private fun contextBlock(context: ContextConfig): String = """
         Context:
-        Location: Lausanne, Switzerland
-        ${if (context.includeDate) "Current Date: ${LocalDate.now()}" else ""}
+        Location:${context.location},
         ${context.radiusKm?.let { "Search Radius: $it km" } ?: ""}
+        ${if (context.includeDate) "Current Date: ${LocalDate.now()}" else ""}
         ${if (context.includeWeather) "Weather: <INSERT WEATHER DATA>" else ""}
     """.trimIndent()
 
-  // TODO! See if this is optimal, we need to define the ID later on in the flow.
+  // TODO! See if this is optimal,
+  // TODO! id cannot be defined here. We need to define the id later on in the flow.
   private fun outputFormatBlock(): String =
       """
         Response Format:
