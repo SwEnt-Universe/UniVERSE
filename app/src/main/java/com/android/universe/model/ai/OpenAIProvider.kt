@@ -25,10 +25,10 @@ object OpenAIProvider {
 
   private const val BASE_URL = "https://api.openai.com/v1/"
 
-  // Single shared OkHttpClient – lazily initialized, thread-safe
+  // Single shared OkHttpClient – lazily initialized, thread-safe.
   private val okHttpClient: OkHttpClient by lazy {
     OkHttpClient.Builder()
-      // Auth interceptor – adds Bearer token to every request
+      // Auth interceptor
       .addInterceptor { chain ->
         val request = chain.request().newBuilder()
           .addHeader("Authorization", "Bearer ${BuildConfig.OPENAI_API_KEY}")
@@ -36,7 +36,7 @@ object OpenAIProvider {
           .build()
         chain.proceed(request)
       }
-      // Logging – full body only in debug builds (auto-stripped in release)
+      // Logging
       .addInterceptor(
         HttpLoggingInterceptor().apply {
           level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
@@ -54,7 +54,6 @@ object OpenAIProvider {
     Retrofit.Builder()
       .baseUrl(BASE_URL)
       .client(okHttpClient)
-      // Modern 2025 way – no more Gson!
       .addConverterFactory(
         Json {
           ignoreUnknownKeys = true      // don't crash if OpenAI adds new fields
@@ -65,9 +64,8 @@ object OpenAIProvider {
       .build()
   }
 
-  // Public access point – use this everywhere in the app
+  // Public access point
   val api: OpenAIService by lazy { retrofit.create(OpenAIService::class.java) }
-
 
   val eventGen: EventGen by lazy { OpenAIEventGen(api) }
 }
