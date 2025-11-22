@@ -5,14 +5,19 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Streaming
 
-// ===================================================================
-// OpenAI Chat Completions API[](https://platform.openai.com/docs/api-reference/chat)
-// Works with gpt-4o, gpt-4o-mini, gpt-4-turbo, o1-preview, o1-mini, etc.
-// ===================================================================
-
+/**
+ * Retrofit service interface defining HTTP endpoints for OpenAI.
+ *
+ * Responsibilities:
+ * - Map Kotlin functions to REST endpoints (chat completions, streaming completions, etc.)
+ * - Provide strongly typed request and response models used by [OpenAIEventGen]
+ *
+ * Does not contain business logic — only API definitions.
+ * @see <a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat API</a>
+ */
 interface OpenAIService {
 
-	// Non-streaming chat completion (most common)
+	// Non-streaming chat completion
 	@POST("chat/completions")
 	suspend fun chatCompletion(
 		@Body request: ChatCompletionRequest
@@ -27,7 +32,7 @@ interface OpenAIService {
 }
 
 // ===================================================================
-// Request / Response models (use data classes + Gson or kotlinx.serialization)
+// Request / Response models
 // ===================================================================
 
 data class ChatCompletionRequest(

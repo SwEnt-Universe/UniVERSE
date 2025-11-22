@@ -2,6 +2,16 @@ package com.android.universe.model.ai
 
 import com.android.universe.model.user.UserProfile
 
+/**
+ * Builds the full prompt string sent to OpenAI for generating event recommendations.
+ *
+ * Responsibilities:
+ * - Convert a [UserProfile] into contextual prompt text
+ * - Include metadata such as location, preferences, and instructions
+ * - Specify required JSON output format and constraints
+ *
+ * The generated prompt is used as input to the Chat Completion request.
+ */
 object PromptBuilder {
 
   fun build(profile: UserProfile): String {
