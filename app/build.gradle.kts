@@ -365,7 +365,6 @@ configurations.forEach { configuration ->
 // - Must run after test tasks
 // ─────────────────────────────────────────────────────────────────────────────
 tasks.register("jacocoTestReport", JacocoReport::class) {
-  dependsOn("testDebugUnitTest", "connectedDebugAndroidTest")
   mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest")
 
   reports {
@@ -405,6 +404,5 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
 }
 
 tasks.named("sonar") {
-  dependsOn("jacocoTestReport")
-  mustRunAfter("jacocoTestReport")
+  mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest", "jacocoTestReport")
 }
