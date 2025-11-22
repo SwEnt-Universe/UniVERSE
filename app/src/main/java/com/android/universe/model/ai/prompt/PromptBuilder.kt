@@ -5,50 +5,41 @@ import java.time.LocalDate
 import java.time.Period
 
 /**
- * Builds the full prompt string sent to OpenAI for generating event recommendations.
+ * Builds the complete prompt string sent to OpenAI when generating event recommendations.
  *
- * Responsibilities:
- * - Convert a [com.android.universe.model.user.UserProfile] into contextual prompt text
- * - Include metadata such as location, preferences, and instructions
- * - Specify required JSON output format and constraints
- *
- * The generated prompt is used as input to the Chat Completion request.
+ * This class is intentionally a single object. Flexibility is controlled through [TaskConfig]
+ * and [ContextConfig] rather than splitting logic across many files.
  */
 object PromptBuilder {
 
   fun build(
-		profile: UserProfile,
-		taskConfig: TaskConfig = TaskConfig.Default,
-		contextConfig: ContextConfig = ContextConfig.Default
+    profile: UserProfile,
+    task: TaskConfig = TaskConfig.Default,
+    context: ContextConfig = ContextConfig.Default
   ): String {
     return listOf(
-      responseBlock(),
-      taskBlock(taskConfig),
+      systemBlock(),
+      taskBlock(task),
       userProfileBlock(profile),
-      contextBlock(contextConfig),
+      contextBlock(context),
       outputFormatBlock()
     ).joinToString("\n\n")
   }
 
-  private fun calculateAge(dob: LocalDate): Int {
-    return Period.between(dob, LocalDate.now()).years
-  }
+  private fun systemBlock(): String =
+    "You are EventCuratorGPT, an assistant that generates realistic event suggestions."
 
-  private fun responseBlock(): String =
-      "You are EventCuratorGPT, an assistant that generates realistic event suggestions."
-
-  private fun taskBlock(): String =
-      """
+  private fun taskBlock(task: TaskConfig): String = """
         Task:
-        Generate realistic public event ideas that could actually take place in Lausanne.
-        Each event must:
-        - be feasible (no fantasy or impossible situations)
-        - match the user's interests
+        Generate realistic public events that could take place in ${task.city}.
+        Requirements:
+        - must be feasible (no fantasy)
+        - must match the user’s interests
         - include a short description
-        - include real coordinates within Lausanne
-        - include relevant tags
-        """
-          .trimIndent()
+        ${if (task.requireRealCoordinates) "- include real coordinates inside ${task.city}" else ""}
+        ${if (task.requireRelevantTags) "- include meaningful tags" else ""}
+        ${if (task.outdoorOnly) "- only outdoor events" else ""}
+    """.trimIndent()
 
   private fun userProfileBlock(profile: UserProfile): String =
       """
@@ -62,16 +53,15 @@ object PromptBuilder {
         """
           .trimIndent()
 
-  // TODO! See if it is possible to include the weather here
-  private fun contextBlock(): String =
-      """
+  private fun contextBlock(context: ContextConfig): String = """
         Context:
         Location: Lausanne, Switzerland
-        Current Date: ${LocalDate.now()}
-        """
-          .trimIndent()
+        ${if (context.includeDate) "Current Date: ${LocalDate.now()}" else ""}
+        ${context.radiusKm?.let { "Search Radius: $it km" } ?: ""}
+        ${if (context.includeWeather) "Weather: <INSERT WEATHER DATA>" else ""}
+    """.trimIndent()
 
-  // TODO! See if this is optimal
+  // TODO! See if this is optimal, we need to define the ID later on in the flow.
   private fun outputFormatBlock(): String =
       """
         Response Format:
@@ -107,4 +97,8 @@ object PromptBuilder {
         ]
         """
           .trimIndent()
+
+  private fun calculateAge(dob: LocalDate): Int {
+    return Period.between(dob, LocalDate.now()).years
+  }
 }

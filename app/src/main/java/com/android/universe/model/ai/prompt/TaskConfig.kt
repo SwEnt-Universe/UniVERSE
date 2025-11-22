@@ -1,11 +1,12 @@
 package com.android.universe.model.ai.prompt
 
 data class TaskConfig(
-	val targetCity: String,
-	val includeRealCoordinates: Boolean = true,
-	val requireOutdoorOnly: Boolean = false
+	val city: String = "Lausanne",
+	val requireRealCoordinates: Boolean = true,
+	val requireRelevantTags: Boolean = true,
+	val outdoorOnly: Boolean = false,
 ) {
 	companion object {
-		val Default = TaskConfig(targetCity = "Lausanne")
+		val Default = TaskConfig()
 	}
 }
