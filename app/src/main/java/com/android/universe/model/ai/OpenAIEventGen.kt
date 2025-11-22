@@ -1,5 +1,6 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.event.Event
 import com.android.universe.model.user.UserProfile
 

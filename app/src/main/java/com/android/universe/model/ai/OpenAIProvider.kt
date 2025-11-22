@@ -25,7 +25,7 @@ object OpenAIProvider {
 
   private const val BASE_URL = "https://api.openai.com/v1/"
 
-  // Single shared OkHttpClient – lazily initialized, thread-safe.
+  // Single shared OkHttpClient – lazily initialized, thread-safe
   private val okHttpClient: OkHttpClient by lazy {
     OkHttpClient.Builder()
       // Auth interceptor

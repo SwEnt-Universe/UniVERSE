@@ -1,12 +1,14 @@
-package com.android.universe.model.ai
+package com.android.universe.model.ai.prompt
 
 import com.android.universe.model.user.UserProfile
+import java.time.LocalDate
+import java.time.Period
 
 /**
  * Builds the full prompt string sent to OpenAI for generating event recommendations.
  *
  * Responsibilities:
- * - Convert a [UserProfile] into contextual prompt text
+ * - Convert a [com.android.universe.model.user.UserProfile] into contextual prompt text
  * - Include metadata such as location, preferences, and instructions
  * - Specify required JSON output format and constraints
  *
@@ -14,18 +16,22 @@ import com.android.universe.model.user.UserProfile
  */
 object PromptBuilder {
 
-  fun build(profile: UserProfile): String {
+  fun build(
+		profile: UserProfile,
+		taskConfig: TaskConfig = TaskConfig.Default,
+		contextConfig: ContextConfig = ContextConfig.Default
+  ): String {
     return listOf(
-            responseBlock(),
-            taskBlock(),
-            userProfileBlock(profile),
-            contextBlock(),
-            outputFormatBlock())
-        .joinToString("\n\n")
+      responseBlock(),
+      taskBlock(taskConfig),
+      userProfileBlock(profile),
+      contextBlock(contextConfig),
+      outputFormatBlock()
+    ).joinToString("\n\n")
   }
 
-  private fun calculateAge(dob: java.time.LocalDate): Int {
-    return java.time.Period.between(dob, java.time.LocalDate.now()).years
+  private fun calculateAge(dob: LocalDate): Int {
+    return Period.between(dob, LocalDate.now()).years
   }
 
   private fun responseBlock(): String =
@@ -61,7 +67,7 @@ object PromptBuilder {
       """
         Context:
         Location: Lausanne, Switzerland
-        Current Date: ${java.time.LocalDate.now()}
+        Current Date: ${LocalDate.now()}
         """
           .trimIndent()
 

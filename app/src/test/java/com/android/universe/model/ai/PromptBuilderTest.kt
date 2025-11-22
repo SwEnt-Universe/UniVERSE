@@ -1,5 +1,6 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
