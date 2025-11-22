@@ -15,17 +15,17 @@
 androidGradlePlugin = "8.13.1"
 kotlin = "2.2.21"
 googleServices = "4.4.4"
-ktfmt = "0.20.1"
-sonarqube = "5.1.0.4882"
+ktfmt = "0.25.0"
+sonarqube = "7.0.1.6134"
 jacoco = "0.8.13"
 
 # ===== ANDROIDX & CORE =====
 multidex = "2.0.1"
-androidxNavigation = "2.8.9"
+androidxNavigation = "2.9.6"
 
 # ===== UI & COMPOSE =====
 # The Compose BOM controls the versions of all core Compose libraries.
-composeBom = "2025.11.00"
+composeBom = "2025.11.01"
 
 # ===== LEGACY UI =====
 appcompat = "1.7.1"
@@ -34,11 +34,12 @@ constraintlayout = "2.2.1"
 
 # ===== FIREBASE =====
 # The Firebase BOM controls the versions of all Firebase libraries.
-firebaseBom = "34.4.0"
+firebaseBom = "34.6.0"
 
 # ===== GOOGLE & AUTHENTICATION =====
-googleCredentials = "1.3.0"
+googleCredentials = "1.5.0"
 googleId = "1.1.1"
+googlePlayAuth = "21.4.0"
 
 # ===== MAPS =====
 tomtom = "1.26.0"
@@ -48,15 +49,16 @@ junit4 = "4.13.2"
 androidxTestJunit = "1.3.0"
 androidxEspresso = "3.7.0"
 androidxTestCore = "1.7.0"
-mockk = "1.14.2"
+mockk = "1.14.6"
 kakaocup = "1.0.0"
 backdrop = "1.0.0"
-kaspresso = "1.5.4"
+kaspresso = "1.6.0"
 robolectric = "4.16"
-turbine = "1.0.0"
+turbine = "1.2.1"
 
 # ===== UTILITIES =====
-logback = "1.5.19"
+logback = "1.5.21"
+commonsCompress = "1.28.0"
 
 
 [libraries]
@@ -108,6 +110,7 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore"}
 google-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "googleCredentials" }
 google-id = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleId" }
+google-play-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "googlePlayAuth"}
 
 # ==============================================================================
 # MAPS
@@ -151,6 +154,7 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 # UTILITIES
 # ==============================================================================
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress"}
 
 [plugins]
 # ==============================================================================

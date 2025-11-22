@@ -2,7 +2,6 @@
 
 # --- Configuration ---
 LOG_FILE="firebase-emulator.log"
-PROJECT_ID="demo-project"
 EMULATOR_PORTS=(8080 9099)
 EMULATOR_COMPONENTS="auth,firestore"
 
@@ -29,7 +28,7 @@ trap cleanup SIGINT
 echo "Starting Firebase emulators for $EMULATOR_COMPONENTS (Project: $PROJECT_ID)..."
 
 # Start emulators in the background, logging output
-nohup firebase emulators:start --only $EMULATOR_COMPONENTS --project $PROJECT_ID > "$LOG_FILE" 2>&1 &
+nohup firebase emulators:start --only $EMULATOR_COMPONENTS > "$LOG_FILE" 2>&1 &
 EMULATOR_PID=$!
 
 # 2. Wait for Ports to be Ready

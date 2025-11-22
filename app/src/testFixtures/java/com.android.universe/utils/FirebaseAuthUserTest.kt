@@ -146,16 +146,15 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
   open fun setUp() {
     FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     emulator.connect(isRobolectric)
+  }
 
+  @After
+  open fun tearDown() {
     runBlocking {
       clearFirestoreUsers()
       clearTestCollection()
       clearAuthUsers()
     }
-  }
-
-  @After
-  open fun tearDown() {
     Firebase.auth.signOut()
   }
 }

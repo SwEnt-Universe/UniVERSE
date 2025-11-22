@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 
 @OptIn(ExperimentalLayoutApi::class)
 @RunWith(AndroidJUnit4::class)
-class TagGroupTest {
+class TagDisplayTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
