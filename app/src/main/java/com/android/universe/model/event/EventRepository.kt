@@ -33,6 +33,14 @@ interface EventRepository {
   suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event>
 
   /**
+   * Retrieves all events where the specific user is a participant.
+   *
+   * @param userId the unique ID of the user.
+   * @return a list of [Event] objects the user has joined.
+   */
+  suspend fun getEventsForUser(userId: String): List<Event>
+
+  /**
    * Adds a new event to the repository.
    *
    * @param event the [Event] to add.

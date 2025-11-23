@@ -45,6 +45,10 @@ class FakeEventRepository : EventRepository {
     return events.filter { event -> event.tags.any { it in user.tags } }
   }
 
+  override suspend fun getEventsForUser(userId: String): List<Event> {
+    return emptyList()
+  }
+
   /**
    * Adds a new event to the repository.
    *

@@ -169,6 +169,10 @@ class EventRepositoryFirestore(
     return rankedEvents.take(50).map { it.first }
   }
 
+  override suspend fun getEventsForUser(userId: String): List<Event> {
+    return emptyList()
+  }
+
   /**
    * Adds a new event to the repository.
    *
