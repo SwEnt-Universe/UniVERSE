@@ -45,8 +45,14 @@ class FakeEventRepository : EventRepository {
     return events.filter { event -> event.tags.any { it in user.tags } }
   }
 
+  /**
+   * Retrieves all events where the specific user is either the creator or a participant.
+   *
+   * @param userId the unique ID of the user.
+   * @return a list of [Event] objects associated with the user.
+   */
   override suspend fun getEventsForUser(userId: String): List<Event> {
-    return emptyList()
+    return events.filter { event -> event.creator == userId || userId in event.participants }
   }
 
   /**
