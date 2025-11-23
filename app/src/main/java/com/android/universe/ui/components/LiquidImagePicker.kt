@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.toImageBitmap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +54,7 @@ fun LiquidImagePicker(
     // We use that Box with fillMaxSize to manage the alignment of inner children
     Box(modifier = Modifier.fillMaxSize()) {
       Box(
-          modifier = Modifier.matchParentSize().padding(16.dp).clip(RoundedCornerShape(16.dp)),
+          modifier = Modifier.matchParentSize().padding(Dimensions.PaddingLarge).clip(RoundedCornerShape(16.dp)),
           contentAlignment = Alignment.Center) {
             if (imageBitmap != null) {
               Image(
@@ -74,8 +75,8 @@ fun LiquidImagePicker(
           onClick = onPickImage,
           width = 32f,
           height = 32f,
-          contentPadding = 4.dp,
-          modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp)) {
+          contentPadding = Dimensions.PaddingSmall,
+          modifier = Modifier.align(Alignment.BottomEnd).padding(Dimensions.PaddingExtraLarge)) {
             Icon(
                 imageVector = if (imageBitmap != null) Icons.Default.Edit else Icons.Default.Add,
                 contentDescription = if (imageBitmap != null) "Edit Image" else "Add Image",
