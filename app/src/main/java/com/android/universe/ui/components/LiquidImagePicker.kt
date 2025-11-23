@@ -54,7 +54,10 @@ fun LiquidImagePicker(
     // We use that Box with fillMaxSize to manage the alignment of inner children
     Box(modifier = Modifier.fillMaxSize()) {
       Box(
-          modifier = Modifier.matchParentSize().padding(Dimensions.PaddingLarge).clip(RoundedCornerShape(16.dp)),
+          modifier =
+              Modifier.matchParentSize()
+                  .padding(Dimensions.PaddingLarge)
+                  .clip(RoundedCornerShape(16.dp)),
           contentAlignment = Alignment.Center) {
             if (imageBitmap != null) {
               Image(
