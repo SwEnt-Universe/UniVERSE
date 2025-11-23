@@ -1,12 +1,22 @@
 package com.android.universe.ui.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.setContentWithStubBackdrop
 import org.junit.Assert.assertEquals
@@ -79,5 +89,52 @@ class LiquidBottomTabsTest {
     // At rest, the pressProgress is 0f.
     // lerp(1f, 1.2f, 0f) results in 1.0f.
     composeTestRule.onNodeWithText("ScaleValue:1.0").assertExists()
+  }
+
+  @Test
+  fun liquidBottomTabs_initialStateMinusOne_doesNotCrash() {
+    composeTestRule.setContentWithStubBackdrop {
+      MaterialTheme {
+        LiquidBottomTabs(
+            selectedTabIndex = { -1 },
+            onTabSelected = {},
+            tabsCount = 2,
+            modifier = Modifier.testTag("LiquidTabs")) {
+              Box(Modifier.size(50.dp))
+              Box(Modifier.size(50.dp))
+            }
+      }
+    }
+
+    composeTestRule.onNodeWithTag("LiquidTabs").assertIsDisplayed()
+  }
+
+  @Test
+  fun liquidBottomTabs_transitionFromNoneToSelected_updateState() {
+    composeTestRule.setContentWithStubBackdrop {
+      MaterialTheme {
+        val selectedIndex = remember { mutableIntStateOf(-1) }
+
+        LiquidBottomTabs(
+            selectedTabIndex = { selectedIndex.intValue },
+            onTabSelected = { selectedIndex.intValue = it },
+            tabsCount = 2,
+            modifier = Modifier.testTag("LiquidTabs")) {
+              LiquidBottomTab(
+                  onClick = { selectedIndex.intValue = 0 }, modifier = Modifier.testTag("Tab0")) {
+                    Box(Modifier.size(50.dp))
+                  }
+
+              LiquidBottomTab(
+                  onClick = { selectedIndex.intValue = 1 }, modifier = Modifier.testTag("Tab1")) {
+                    Box(Modifier.size(50.dp))
+                  }
+            }
+      }
+    }
+
+    composeTestRule.onNodeWithTag("LiquidTabs").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("Tab0").performClick()
+    composeTestRule.onNodeWithTag("LiquidTabs").assertIsDisplayed()
   }
 }
