@@ -4,10 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.event.Event
+import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Period
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +21,10 @@ import kotlinx.coroutines.launch
  * UI state for user profiles.
  *
  * @param userProfile The user's profile to hold the state of.
+ * @param age The calculated age of the user.
+ * @property incomingEvents List of events the user has joined that are in the future.
+ * @property historyEvents List of events the user has joined that are in the past.
+ * @property errorMsg An error message to display, if any.
  */
 data class UserProfileUIState(
     val userProfile: UserProfile =
@@ -40,9 +47,11 @@ data class UserProfileUIState(
  * ViewModel for managing user profiles. Notably loading a user's profile from the repository.
  *
  * @param userRepository The repository to fetch user profiles from.
+ * @param eventRepository The repository to fetch user events from.
  */
 class UserProfileViewModel(
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository
 ) : ViewModel() {
   private val _userState = MutableStateFlow(UserProfileUIState())
   val userState: StateFlow<UserProfileUIState> = _userState.asStateFlow()
@@ -57,13 +66,37 @@ class UserProfileViewModel(
     viewModelScope.launch {
       try {
         val userProfile = userRepository.getUser(uid)
+
         _userState.value =
             _userState.value.copy(
                 userProfile = userProfile, age = calculateAge(userProfile.dateOfBirth))
+
+        loadUserEvents(uid)
       } catch (e: Exception) {
-        Log.e("UserProfileViewModel", "User $uid not found")
+        Log.e("UserProfileViewModel", "User $uid not found", e)
         setErrorMsg("Username not Found")
       }
+    }
+  }
+
+  /**
+   * Fetches events, splits them into History/Incoming based on current time, and sorts them.
+   *
+   * @param uid The unique identifier of the user.
+   */
+  private suspend fun loadUserEvents(uid: String) {
+    try {
+      val rawEvents = eventRepository.getEventsForUser(uid)
+      val now = LocalDateTime.now()
+
+      val (incoming, history) = rawEvents.partition { event -> event.date.isAfter(now) }
+
+      _userState.value =
+          _userState.value.copy(
+              incomingEvents = incoming.sortedBy { it.date },
+              historyEvents = history.sortedByDescending { it.date })
+    } catch (e: Exception) {
+      Log.e("UserProfileViewModel", "Error loading events", e)
     }
   }
 
