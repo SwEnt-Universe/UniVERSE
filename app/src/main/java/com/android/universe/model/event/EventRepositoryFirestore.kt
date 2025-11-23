@@ -180,7 +180,7 @@ class EventRepositoryFirestore(
    * @param userId the unique ID of the user.
    * @return a list of [Event] objects associated with the user.
    */
-  override suspend fun getEventsForUser(userId: String): List<Event> {
+  override suspend fun getUserInvolvedEvents(userId: String): List<Event> {
     return withContext(ioDispatcher) {
       val createdTask = db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("creator", userId).get()
 

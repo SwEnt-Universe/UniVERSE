@@ -60,7 +60,7 @@ class FakeEventRepositoryTest {
   }
 
   @Test
-  fun getEventsForUser_returnsEventsWhereUserIsParticipantOrCreator() = runTest {
+  fun getEventsForUser_returnsEventsWhereUserInvolvedEventsIsParticipantOrCreator() = runTest {
     val createdEvent =
         EventTestData.dummyEvent1.copy(
             id = "event-created", creator = userA.uid, participants = emptySet())
@@ -77,7 +77,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(participatingEvent)
     repository.addEvent(unrelatedEvent)
 
-    val result = repository.getEventsForUser(userA.uid)
+    val result = repository.getUserInvolvedEvents(userA.uid)
 
     assertEquals(2, result.size)
     assertTrue("Should contain event created by user", result.contains(createdEvent))
@@ -87,12 +87,12 @@ class FakeEventRepositoryTest {
   }
 
   @Test
-  fun getEventsForUser_returnsEmptyList_whenUserHasNoAssociatedEvents() = runTest {
+  fun getEventsForUser_returnsEmptyList_whenUserHasNoAssociatedEventsInvolvedEvents() = runTest {
     val event = EventTestData.dummyEvent1.copy(creator = userA.uid, participants = setOf(userB.uid))
 
     repository.addEvent(event)
 
-    val result = repository.getEventsForUser("NonExistentUser")
+    val result = repository.getUserInvolvedEvents("NonExistentUser")
 
     assertTrue(result.isEmpty())
   }

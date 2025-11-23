@@ -98,7 +98,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   }
 
   @Test
-  fun getEventsForUser_returnsEventsWhereUserIsParticipantOrCreator() = runTest {
+  fun getEventsForUser_returnsEventsWhereUserInvolvedEventsIsParticipantOrCreator() = runTest {
     val userId = "user-123"
     val otherUser = "user-456"
 
@@ -113,7 +113,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(participatingEvent)
     eventRepository.addEvent(unrelatedEvent)
 
-    val result = eventRepository.getEventsForUser(userId)
+    val result = eventRepository.getUserInvolvedEvents(userId)
 
     assertEquals(2, result.size)
     assertTrue("Should contain event created by user", result.contains(createdEvent))
@@ -123,7 +123,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   }
 
   @Test
-  fun getEventsForUser_returnsEmptyList_whenUserHasNoAssociatedEvents() = runTest {
+  fun getEventsForUser_returnsEmptyList_whenUserHasNoAssociatedEventsInvolvedEvents() = runTest {
     val userId = "lonely-user"
     val otherUser = "popular-user"
 
@@ -131,7 +131,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
 
     eventRepository.addEvent(event)
 
-    val result = eventRepository.getEventsForUser(userId)
+    val result = eventRepository.getUserInvolvedEvents(userId)
 
     assertTrue(result.isEmpty())
   }

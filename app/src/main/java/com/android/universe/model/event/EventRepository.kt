@@ -38,7 +38,7 @@ interface EventRepository {
    * @param userId the unique ID of the user.
    * @return a list of [Event] objects the user has joined.
    */
-  suspend fun getEventsForUser(userId: String): List<Event>
+  suspend fun getUserInvolvedEvents(userId: String): List<Event>
 
   /**
    * Adds a new event to the repository.

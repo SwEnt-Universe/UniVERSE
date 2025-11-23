@@ -86,7 +86,7 @@ class UserProfileViewModel(
    */
   private suspend fun loadUserEvents(uid: String) {
     try {
-      val rawEvents = eventRepository.getEventsForUser(uid)
+      val rawEvents = eventRepository.getUserInvolvedEvents(uid)
       val now = LocalDateTime.now()
 
       val (incoming, history) = rawEvents.partition { event -> event.date.isAfter(now) }

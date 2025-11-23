@@ -51,7 +51,7 @@ class FakeEventRepository : EventRepository {
    * @param userId the unique ID of the user.
    * @return a list of [Event] objects associated with the user.
    */
-  override suspend fun getEventsForUser(userId: String): List<Event> {
+  override suspend fun getUserInvolvedEvents(userId: String): List<Event> {
     return events.filter { event -> event.creator == userId || userId in event.participants }
   }
 
