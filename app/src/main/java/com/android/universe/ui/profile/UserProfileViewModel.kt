@@ -3,6 +3,7 @@ package com.android.universe.ui.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.event.Event
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -30,6 +31,8 @@ data class UserProfileUIState(
             tags = emptySet(),
             profilePicture = null),
     val age: Int = 0,
+    val incomingEvents: List<Event> = emptyList(),
+    val historyEvents: List<Event> = emptyList(),
     val errorMsg: String? = null
 )
 
