@@ -3,12 +3,30 @@ package com.android.universe.ui.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.opengl.GLSurfaceView
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.PixelCopy
+import android.view.Surface
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import android.view.TextureView
+import android.view.SurfaceView
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFrom
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -24,18 +42,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
+import androidx.core.view.drawToBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
+import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
@@ -44,11 +67,15 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme.isDark
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
+import com.tomtom.sdk.annotations.InternalTomTomSdkApi
 import com.tomtom.sdk.common.Bundle
 import com.tomtom.sdk.common.UniqueId
 import com.tomtom.sdk.common.Uri
+import com.tomtom.sdk.common.graphics.toAndroidBitmap
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
@@ -65,6 +92,8 @@ import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import java.io.File
+import java.io.FileOutputStream
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -93,7 +122,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   val layerBackdrop = LocalLayerBackdrop.current
-
+    var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
 
   // Local cache for marker click handling (ID -> Event)
@@ -156,26 +185,43 @@ fun MapScreen(
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
   }
 
-  // --- 3. UI Structure ---
+    // --- 3. UI Structure ---
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
+      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab ->
+          val view = mapViewInstance
+          //TODO IF TAB != MAP THEN SAVE SNAPSHOT
+          if (view != null) {
+              view.takeSnapshot { bmp ->
+                  if(bmp != null){
+                      BackgroundSnapshotRepository.updateSnapshot(bmp)
+                  }
+              }
+          }
+          onTabSelected(tab)
+      }) }) {
           padding ->
         Box(
             modifier =
-                Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize()
                     .then(
                         if (uiState.isMapInteractive)
                             Modifier.testTag(MapScreenTestTags.INTERACTABLE)
-                        else Modifier)) {
+                        else Modifier
+                    )) {
+
               TomTomMapComposable(
-                  modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
+                  modifier = Modifier
+                      .fillMaxSize()
+                      .layerBackdrop(layerBackdrop),
+                  onMapViewReady = { mapViewInstance = it },
                   onMapReady = { map ->
                     tomTomMap = map
 
                     // --- 4. Map Initialization Sequence ---
-
-                    map.initLocationProvider(viewModel.locationProvider)
+                      //TODO RESOLVE CRASH FROM LOCATION TRACKER NOT ALLOWED
+                    //map.initLocationProvider(viewModel.locationProvider)
 
                     map.setUpMapListeners(
                         onMapClick = { viewModel.onMapClick() },
@@ -196,7 +242,9 @@ fun MapScreen(
 
               if (uiState.selectedLocation != null) {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.BottomCenter) {
                       LiquidButton(
                           onClick = {
@@ -205,7 +253,8 @@ fun MapScreen(
                                 uiState.selectedLocation!!.longitude)
                           },
                           modifier =
-                              Modifier.padding(bottom = 96.dp)
+                              Modifier
+                                  .padding(bottom = 96.dp)
                                   .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
                             Text(
                                 "Create your Event !",
@@ -214,15 +263,18 @@ fun MapScreen(
                     }
               }
               // Overlays
-              if (uiState.isLoading) {
+              if (false) {
                 CircularProgressIndicator(
                     modifier =
-                        Modifier.align(Alignment.Center)
+                        Modifier
+                            .align(Alignment.Center)
                             .testTag(MapScreenTestTags.LOADING_INDICATOR))
               }
 
               uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
+                Snackbar(modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)) {
                   Text(errorMessage)
                 }
               }
@@ -242,12 +294,22 @@ fun MapScreen(
 // --- HELPER COMPOSABLES & EXTENSIONS ---
 
 @Composable
-fun TomTomMapComposable(modifier: Modifier = Modifier, onMapReady: (TomTomMap) -> Unit) {
-  val mapView = rememberMapViewWithLifecycle(onMapReady)
+fun TomTomMapComposable(
+    modifier: Modifier = Modifier,
+    onMapViewReady: (MapView) -> Unit,
+    onMapReady: (TomTomMap) -> Unit
+) {
+    val mapView = rememberMapViewWithLifecycle(onMapReady)
 
-  AndroidView(
-      factory = { mapView.apply { configureUiSettings() } },
-      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
+    AndroidView(
+        factory = {
+            mapView.apply { configureUiSettings() }
+        },
+        modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
+        update = {
+            onMapViewReady(mapView)
+        }
+    )
 }
 
 @Composable
@@ -260,8 +322,8 @@ fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
         mapKey = BuildConfig.TOMTOM_API_KEY,
         mapStyle =
             StyleDescriptor(
-                Uri.parse(
-                    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
+                //TODO RESTORE KEY
+                Uri.parse(Dimensions.MapStyleText)),
         renderToTexture = true)
   }
 
@@ -361,6 +423,69 @@ private fun TomTomMap.executeMapAction(action: MapAction) {
       this.animateCamera(CameraOptions(zoom = newZoom))
     }
   }
+}
+//TODO DOC
+fun View.findRenderingView(): View? {
+    if (this is TextureView) return this
+
+    if (this is ViewGroup) {
+        for (child in children) {
+            val result = child.findRenderingView()
+            if (result != null) return result
+        }
+    }
+    return null
+}
+//TODO DOC
+fun MapView.getRendererView(): View? {
+    return this.findRenderingView()
+}
+//TODO COD
+fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
+
+    val renderer = getRendererView() ?: return onResult(null)
+
+    val width = renderer.width
+    val height = renderer.height
+
+    if (width == 0 || height == 0) {
+        onResult(null)
+        return
+    }
+
+    val bitmap = renderer.drawToBitmap()
+    val handler = Handler(Looper.getMainLooper())
+
+    when (renderer) {
+        is TextureView -> {
+            val surface = Surface(renderer.surfaceTexture)
+            PixelCopy.request(surface, bitmap, { result ->
+                onResult(if (result == PixelCopy.SUCCESS) bitmap else null)
+            }, handler)
+        }
+
+        else -> onResult(null)
+    }
+}
+//TODO KEEP OR LEAVE
+fun saveSnapshotToFile(context: Context, bitmap: Bitmap): File? {
+    return try {
+        val picturesDir = context.getExternalFilesDir("snapshots")
+        if (picturesDir != null && !picturesDir.exists()) {
+            picturesDir.mkdirs()
+        }
+
+        val file = File(picturesDir, "map_snapshot_${System.currentTimeMillis()}.png")
+
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        }
+
+        file
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
 
 private fun TomTomMap.syncEventMarkers(

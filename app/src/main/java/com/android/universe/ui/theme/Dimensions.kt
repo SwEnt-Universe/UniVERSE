@@ -36,6 +36,8 @@ object Dimensions {
 
   val PaddingPutBelowStatusbar = 48.dp
 
+  //TODO REMOVE
+  val MapStyleText = "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
   // Spacer sizes
   val SpacerSmall = 4.dp // InternalSpacing, tag padding
   val SpacerMedium = 8.dp // General spacing, tag group horizontal
