@@ -46,7 +46,7 @@ fun FlowBottomMenu(
     onBackClicked: () -> Unit,
     onContinueClicked: () -> Unit,
 ) {
-  val selectedTabIndex = remember { mutableIntStateOf(1) }
+  val selectedTabIndex = remember { mutableIntStateOf(-1) }
 
   LiquidBottomTabs(
       selectedTabIndex = { selectedTabIndex.intValue },
