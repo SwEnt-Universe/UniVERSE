@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -18,8 +19,10 @@ private const val TAG = "ImageExtensions"
  * @return the decoded [ImageBitmap], or null if the ByteArray could not be decoded (e.g., corrupt
  *   data or unsupported format).
  */
-suspend fun ByteArray.toImageBitmap(): ImageBitmap? {
-  return withContext(Dispatchers.Default) {
+suspend fun ByteArray.toImageBitmap(
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
+): ImageBitmap? {
+  return withContext(dispatcher) {
     try {
       val bitmap = BitmapFactory.decodeByteArray(this@toImageBitmap, 0, this@toImageBitmap.size)
       bitmap?.asImageBitmap()

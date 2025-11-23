@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.android.universe.ui.utils.toImageBitmap
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 /**
  * A custom image picker component displaying a "liquid" style container.
@@ -39,11 +41,12 @@ import com.android.universe.ui.utils.toImageBitmap
 fun LiquidImagePicker(
     imageBytes: ByteArray?,
     onPickImage: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
   val imageBitmap by
       produceState<ImageBitmap?>(initialValue = null, key1 = imageBytes) {
-        value = imageBytes?.toImageBitmap()
+        value = imageBytes?.toImageBitmap(dispatcher)
       }
 
   LiquidBox(shape = RoundedCornerShape(24.dp), modifier = modifier) {
