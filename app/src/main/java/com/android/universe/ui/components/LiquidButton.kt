@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.lerp
@@ -66,6 +67,7 @@ import kotlin.math.tanh
  * @param height The height of the component. 48f by default
  * @param width The width of the component. 192f by default
  * @param color The color of the component. MaterialTheme.colorScheme.background by default
+ * @param contentPadding The padding of the content. 16.dp by default
  * @param content The composable content for the button, typically a series of `Icon` or `Text`
  *   composables. This lambda is executed within a [RowScope].
  */
@@ -78,6 +80,7 @@ fun LiquidButton(
     height: Float = 48f,
     width: Float = 192f,
     color: Color = MaterialTheme.colorScheme.background,
+    contentPadding: Dp = 16.dp,
     content: @Composable RowScope.() -> Unit
 ) {
   val animationScope = rememberCoroutineScope()
@@ -142,7 +145,7 @@ fun LiquidButton(
               })
           .height(height.dp)
           .width(width.dp)
-          .padding(horizontal = 16f.dp),
+          .padding(horizontal = contentPadding),
       horizontalArrangement = Arrangement.spacedBy(8f.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
       content = content)
