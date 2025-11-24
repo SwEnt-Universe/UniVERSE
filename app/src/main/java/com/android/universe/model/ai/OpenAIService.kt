@@ -14,7 +14,7 @@ import retrofit2.http.Streaming
  * - Provide strongly typed request and response models used by [OpenAIEventGen]
  *
  * Does not contain business logic — only API definitions.
- * @see <a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat API</a>
+ * @see <a href="https://platform.openai.com/docs/pricing?utm_source=chatgpt.com"> OpenAI Model Pricing
  */
 interface OpenAIService {
 
@@ -38,7 +38,7 @@ interface OpenAIService {
 
 @Serializable
 data class ChatCompletionRequest(
-	val model: String = "gpt-4o-mini",
+	val model: String = "gpt-5-nano",
 	val messages: List<Message>,
 	val temperature: Double? = null,
 	val max_tokens: Int? = null,
