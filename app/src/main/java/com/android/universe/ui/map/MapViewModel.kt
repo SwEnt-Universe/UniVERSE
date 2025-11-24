@@ -181,8 +181,7 @@ class MapViewModel(
 
   /** Loads last known location, updating state with result or error. */
   fun loadLastKnownLocation() {
-    // TODO FIX
-    _uiState.update { it.copy(isLoading = false, error = null) }
+    _uiState.update { it.copy(isLoading = true, error = null) }
 
     locationRepository.getLastKnownLocation(
         onSuccess = { location ->

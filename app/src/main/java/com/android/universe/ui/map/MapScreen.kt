@@ -204,8 +204,7 @@ fun MapScreen(
                     tomTomMap = map
 
                     // --- 4. Map Initialization Sequence ---
-                    // TODO RESOLVE CRASH FROM LOCATION TRACKER NOT ALLOWED
-                    // map.initLocationProvider(viewModel.locationProvider)
+                    map.initLocationProvider(viewModel.locationProvider)
 
                     map.setUpMapListeners(
                         onMapClick = { viewModel.onMapClick() },
@@ -252,8 +251,7 @@ fun MapScreen(
                     }
               }
               // Overlays
-              // TODO
-              if (false) {
+              if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier =
                         Modifier.align(Alignment.Center)

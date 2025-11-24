@@ -9,7 +9,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.ui.MapView
-import junit.framework.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -56,7 +58,7 @@ class MapScreenHelperTest {
     val renderer = root.findRenderingView()
 
     assertNotNull(renderer)
-    assertTrue(renderer is TextureView)
+    assertEquals(renderer is TextureView, true)
   }
 
   @Test
