@@ -74,35 +74,37 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     // Enable edge-to-edge with auto-contrast (icons adapt to content/theme)
     enableEdgeToEdge()
-      Firebase.firestore.useEmulator("10.0.2.2", 8080)
-      Firebase.auth.useEmulator("10.0.2.2", 9099)
+    Firebase.firestore.useEmulator("10.0.2.2", 8080)
+    Firebase.auth.useEmulator("10.0.2.2", 9099)
 
     // Enable automatic index creation for Firestore (makes offline queries faster)
     Firebase.firestore.persistentCacheIndexManager?.apply { enableIndexAutoCreation() }
 
     setContent {
       UniverseTheme {
-          val backgroundColor = Color.White
-          val backdrop = rememberLayerBackdrop {
-              drawRect(backgroundColor)
-              drawContent()
-          }
-          CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
-              // A surface container using the 'background' color from the theme
-              Surface(
-                  modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-                  color = MaterialTheme.colorScheme.background) {
-                  UniverseApp()
+        val backgroundColor = Color.White
+        val backdrop = rememberLayerBackdrop {
+          drawRect(backgroundColor)
+          drawContent()
+        }
+        CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
+          // A surface container using the 'background' color from the theme
+          Surface(
+              modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+              color = MaterialTheme.colorScheme.background) {
+                UniverseApp()
               }
-          }
+        }
       }
     }
   }
 }
-private object Common{
-    const val BACKGROUNDTEXT = "Background"
-    val BLURVALUE = 8.dp
+
+private object Common {
+  const val BACKGROUNDTEXT = "Background"
+  val BLURVALUE = 8.dp
 }
+
 /**
  * The main composable for the Universe app.
  *
@@ -118,10 +120,13 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
-    val backdrop = LocalLayerBackdrop.current
-    val repo = BackgroundSnapshotRepository
-    repo.loadInitialSnapshot(context)
-    val bitmap = repo.currentSnapshot ?: BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2).asImageBitmap()
+  val backdrop = LocalLayerBackdrop.current
+  val repo = BackgroundSnapshotRepository
+  repo.loadInitialSnapshot(context)
+  val bitmap =
+      repo.currentSnapshot
+          ?: BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
+              .asImageBitmap()
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
@@ -130,235 +135,236 @@ fun UniverseApp(
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
+      Image(
+          bitmap,
+          modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+          contentDescription = Common.BACKGROUNDTEXT)
       LinearProgressIndicator()
     }
   } else {
 
-      NavHost(navController = navController, startDestination = startDestination!!.name) {
-          navigation(
-              route = NavigationScreens.SignIn.name,
-              startDestination = NavigationScreens.SignIn.route,
-          ) {
-              composable(NavigationScreens.SignIn.route) {
-                  var navigateToDestination by remember {
-                      mutableStateOf<NavigationScreens?>(
-                          null
-                      )
-                  }
+    NavHost(navController = navController, startDestination = startDestination!!.name) {
+      navigation(
+          route = NavigationScreens.SignIn.name,
+          startDestination = NavigationScreens.SignIn.route,
+      ) {
+        composable(NavigationScreens.SignIn.route) {
+          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
 
-                  LaunchedEffect(navigateToDestination) {
-                      navigateToDestination?.let { destination ->
-                          navigationActions.navigateTo(
-                              destination
-                          )
-                      }
-                  }
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  SignInScreen(
-                      onSignedIn = {
-                          mainActivityScope.launch {
-                              navigateToDestination =
-                                  resolveUserDestinationScreen(userRepository)
-                          }
-                      },
-                      credentialManager = credentialManager
-                  )
-              }
+          LaunchedEffect(navigateToDestination) {
+            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
-          navigation(
-              startDestination = NavigationScreens.AddProfile.route,
-              route = NavigationScreens.AddProfile.name,
-          ) {
-              composable(NavigationScreens.AddProfile.route) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  AddProfileScreen(
-                      uid = authInstance.currentUser!!.uid,
-                      navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
-                      onBack = {
-                          // Navigate back to Sign In
-                          navController.navigate(NavigationScreens.SignIn.route) {
-                              popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-                          }
-                      })
-              }
-          }
-
-          navigation(
-              startDestination = NavigationScreens.EmailValidation.route,
-              route = NavigationScreens.EmailValidation.name,
-          ) {
-              composable(NavigationScreens.EmailValidation.route) {
-                  var navigateToDestination by remember {
-                      mutableStateOf<NavigationScreens?>(
-                          null
-                      )
-                  }
-
-                  LaunchedEffect(navigateToDestination) {
-                      navigateToDestination?.let { destination ->
-                          navigationActions.navigateTo(
-                              destination
-                          )
-                      }
-                  }
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  EmailVerificationScreen(
-                      user = authInstance.currentUser!!,
-                      onSuccess = {
-                          mainActivityScope.launch {
-                              navigateToDestination =
-                                  resolveUserDestinationScreen(userRepository)
-                          }
-                      },
-                      onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
-              }
-          }
-
-          navigation(
-              route = NavigationScreens.SelectTagUser.name,
-              startDestination = NavigationScreens.SelectTagUser.route
-          ) {
-              composable(NavigationScreens.SelectTagUser.route) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  SelectTagScreen(
-                      uid = authInstance.currentUser!!.uid,
-                      navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
-              }
-          }
-
-          navigation(
-              startDestination = NavigationScreens.Map.route,
-              route = NavigationScreens.Map.name,
-          ) {
-              composable(NavigationScreens.Map.route) {
-                  MapScreen(
-                      uid = authInstance.currentUser!!.uid,
-                      onTabSelected = onTabSelected,
-                      createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") }
-                  )
-              }
-          }
-
-          navigation(
-              startDestination = NavigationScreens.Event.route,
-              route = NavigationScreens.Event.name,
-          ) {
-              composable(NavigationScreens.Event.route) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
-              }
-          }
-
-          navigation(
-              startDestination = NavigationScreens.Chat.route,
-              route = NavigationScreens.Chat.name,
-          ) {
-              composable(NavigationScreens.Chat.route) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  ChatListScreen(
-                      userID = authInstance.currentUser!!.uid,
-                      onTabSelected = onTabSelected,
-                      onChatSelected = { chatID, chatName ->
-                          navController.navigate(
-                              route =
-                                  NavigationScreens.ChatInstance.route
-                                      .replace("{chatID}", chatID)
-                                      .replace("{chatName}", chatName)
-                          )
-                      })
-              }
-
-              composable(
-                  route = NavigationScreens.ChatInstance.route,
-                  arguments =
-                      listOf(
-                          navArgument("chatID") { type = NavType.StringType },
-                          navArgument("chatName") { type = NavType.StringType })
-              ) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  ChatScreen(
-                      chatID = it.arguments?.getString("chatID")!!,
-                      chatName = it.arguments?.getString("chatName")!!,
-                      userID = authInstance.currentUser!!.uid,
-                      onTabSelected = onTabSelected,
-                      onBack = { navigationActions.goBack() })
-              }
-          }
-
-          navigation(
-              startDestination = NavigationScreens.Profile.route,
-              route = NavigationScreens.Profile.name,
-          ) {
-              composable(NavigationScreens.Profile.route) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  UserProfileScreen(
-                      uid = authInstance.currentUser!!.uid,
-                      onTabSelected = onTabSelected,
-                      onEditProfileClick = { uid ->
-                          navController.navigate(
-                              NavigationScreens.Settings.route.replace(
-                                  "{uid}",
-                                  uid
-                              )
-                          )
-                      })
-              }
-          }
-          composable(
-              route = NavigationScreens.Settings.route,
-              arguments = listOf(navArgument("uid") { type = NavType.StringType })
-          ) { backStackEntry ->
-              Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-              val uid = backStackEntry.arguments?.getString("uid") ?: "0"
-              SettingsScreen(
-                  uid = uid,
-                  onBack = {
-                      navController.popBackStack(
-                          NavigationScreens.Profile.route,
-                          inclusive = false
-                      )
-                  },
-                  onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
-                  clear = {
-                      credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
-                  })
-          }
-          navigation(
-              startDestination = NavigationScreens.EventCreation.route,
-              route = NavigationScreens.EventCreation.name,
-          ) {
-              composable(
-                  route = NavigationScreens.EventCreation.route,
-                  arguments =
-                      listOf(
-                          navArgument("latitude") { type = NavType.FloatType },
-                          navArgument("longitude") { type = NavType.FloatType })
-              ) { backStackEntry ->
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
-                  val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
-
-                  EventCreationScreen(
-                      location = Location(latitude.toDouble(), longitude.toDouble()),
-                      onAddTag = { navController.navigate("selectTagEvent") },
-                      onSave = {
-                          navController.popBackStack(
-                              route = NavigationScreens.EventCreation.route, inclusive = true
-                          )
-                      })
-              }
-              composable(
-                  route = NavigationScreens.SelectTagEvent.route,
-              ) {
-                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
-                  SelectTagScreen(
-                      selectTagMode = SelectTagMode.EVENT_CREATION,
-                      uid = authInstance.currentUser!!.uid,
-                      navigateOnSave = { navController.popBackStack() })
-              }
-          }
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          SignInScreen(
+              onSignedIn = {
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
+                }
+              },
+              credentialManager = credentialManager)
+        }
+      }
+      navigation(
+          startDestination = NavigationScreens.AddProfile.route,
+          route = NavigationScreens.AddProfile.name,
+      ) {
+        composable(NavigationScreens.AddProfile.route) {
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          AddProfileScreen(
+              uid = authInstance.currentUser!!.uid,
+              navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
+              onBack = {
+                // Navigate back to Sign In
+                navController.navigate(NavigationScreens.SignIn.route) {
+                  popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
+                }
+              })
+        }
       }
 
+      navigation(
+          startDestination = NavigationScreens.EmailValidation.route,
+          route = NavigationScreens.EmailValidation.name,
+      ) {
+        composable(NavigationScreens.EmailValidation.route) {
+          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
+
+          LaunchedEffect(navigateToDestination) {
+            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
+          }
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          EmailVerificationScreen(
+              user = authInstance.currentUser!!,
+              onSuccess = {
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
+                }
+              },
+              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
+        }
+      }
+
+      navigation(
+          route = NavigationScreens.SelectTagUser.name,
+          startDestination = NavigationScreens.SelectTagUser.route) {
+            composable(NavigationScreens.SelectTagUser.route) {
+              Image(
+                  bitmap,
+                  modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+                  contentDescription = Common.BACKGROUNDTEXT)
+              SelectTagScreen(
+                  uid = authInstance.currentUser!!.uid,
+                  navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
+            }
+          }
+
+      navigation(
+          startDestination = NavigationScreens.Map.route,
+          route = NavigationScreens.Map.name,
+      ) {
+        composable(NavigationScreens.Map.route) {
+          MapScreen(
+              uid = authInstance.currentUser!!.uid,
+              onTabSelected = onTabSelected,
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
+        }
+      }
+
+      navigation(
+          startDestination = NavigationScreens.Event.route,
+          route = NavigationScreens.Event.name,
+      ) {
+        composable(NavigationScreens.Event.route) {
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
+        }
+      }
+
+      navigation(
+          startDestination = NavigationScreens.Chat.route,
+          route = NavigationScreens.Chat.name,
+      ) {
+        composable(NavigationScreens.Chat.route) {
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          ChatListScreen(
+              userID = authInstance.currentUser!!.uid,
+              onTabSelected = onTabSelected,
+              onChatSelected = { chatID, chatName ->
+                navController.navigate(
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName))
+              })
+        }
+
+        composable(
+            route = NavigationScreens.ChatInstance.route,
+            arguments =
+                listOf(
+                    navArgument("chatID") { type = NavType.StringType },
+                    navArgument("chatName") { type = NavType.StringType })) {
+              Image(
+                  bitmap,
+                  modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+                  contentDescription = Common.BACKGROUNDTEXT)
+              ChatScreen(
+                  chatID = it.arguments?.getString("chatID")!!,
+                  chatName = it.arguments?.getString("chatName")!!,
+                  userID = authInstance.currentUser!!.uid,
+                  onTabSelected = onTabSelected,
+                  onBack = { navigationActions.goBack() })
+            }
+      }
+
+      navigation(
+          startDestination = NavigationScreens.Profile.route,
+          route = NavigationScreens.Profile.name,
+      ) {
+        composable(NavigationScreens.Profile.route) {
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          UserProfileScreen(
+              uid = authInstance.currentUser!!.uid,
+              onTabSelected = onTabSelected,
+              onEditProfileClick = { uid ->
+                navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
+              })
+        }
+      }
+      composable(
+          route = NavigationScreens.Settings.route,
+          arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry ->
+            Image(
+                bitmap,
+                modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+                contentDescription = Common.BACKGROUNDTEXT)
+            val uid = backStackEntry.arguments?.getString("uid") ?: "0"
+            SettingsScreen(
+                uid = uid,
+                onBack = {
+                  navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+                },
+                onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+                clear = {
+                  credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
+                })
+          }
+      navigation(
+          startDestination = NavigationScreens.EventCreation.route,
+          route = NavigationScreens.EventCreation.name,
+      ) {
+        composable(
+            route = NavigationScreens.EventCreation.route,
+            arguments =
+                listOf(
+                    navArgument("latitude") { type = NavType.FloatType },
+                    navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+              Image(
+                  bitmap,
+                  modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+                  contentDescription = Common.BACKGROUNDTEXT)
+              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
+              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
+
+              EventCreationScreen(
+                  location = Location(latitude.toDouble(), longitude.toDouble()),
+                  onAddTag = { navController.navigate("selectTagEvent") },
+                  onSave = {
+                    navController.popBackStack(
+                        route = NavigationScreens.EventCreation.route, inclusive = true)
+                  })
+            }
+        composable(
+            route = NavigationScreens.SelectTagEvent.route,
+        ) {
+          Image(
+              bitmap,
+              modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
+              contentDescription = Common.BACKGROUNDTEXT)
+          SelectTagScreen(
+              selectTagMode = SelectTagMode.EVENT_CREATION,
+              uid = authInstance.currentUser!!.uid,
+              navigateOnSave = { navController.popBackStack() })
+        }
+      }
+    }
   }
 }

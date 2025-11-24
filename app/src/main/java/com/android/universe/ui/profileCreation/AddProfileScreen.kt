@@ -176,9 +176,10 @@ fun AddProfileScreen(
                         contentDescription = "Back to Login")
                   }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-            ),
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
             modifier = Modifier.testTag(NavigationTestTags.ADD_PROFILE_SCREEN))
       },
       containerColor = Color.Transparent,

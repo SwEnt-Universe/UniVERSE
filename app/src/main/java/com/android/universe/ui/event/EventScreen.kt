@@ -1,10 +1,7 @@
 package com.android.universe.ui.event
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -20,25 +17,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.search.SearchBar
 import com.android.universe.ui.search.SearchTestTags
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
-import com.android.universe.ui.utils.LocalLayerBackdrop
-import com.kyant.backdrop.Backdrop
-import com.kyant.backdrop.backdrops.LayerBackdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
 
 object EventScreenTestTags {
   // LazyColumn containing all events
@@ -88,25 +77,18 @@ fun EventScreen(
       bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { _ ->
         Column(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = PaddingMedium)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }) {
-                        focusManager.clearFocus()
+                Modifier.fillMaxSize().padding(horizontal = PaddingMedium).clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                      focusManager.clearFocus()
                     }) {
               SearchBar(
                   query = viewModel.searchQuery.collectAsState().value,
                   onQueryChange = viewModel::updateSearchQuery,
-                  modifier = Modifier
-                      .padding(PaddingMedium)
-                      .testTag(SearchTestTags.SEARCH_BAR))
+                  modifier = Modifier.padding(PaddingMedium).testTag(SearchTestTags.SEARCH_BAR))
 
               LazyColumn(
-                  modifier = Modifier
-                      .fillMaxSize()
-                      .testTag(EventScreenTestTags.EVENTS_LIST),
+                  modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
                   verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
                     items(events) { event -> EventCard(event = event, viewModel = viewModel) }
                   }

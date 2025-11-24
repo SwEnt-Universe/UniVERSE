@@ -4,29 +4,21 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.opengl.GLSurfaceView
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.PixelCopy
 import android.view.Surface
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import android.view.TextureView
-import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,8 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,15 +57,11 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.UniverseTheme.isDark
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
-import com.tomtom.sdk.annotations.InternalTomTomSdkApi
 import com.tomtom.sdk.common.Bundle
 import com.tomtom.sdk.common.UniqueId
 import com.tomtom.sdk.common.Uri
-import com.tomtom.sdk.common.graphics.toAndroidBitmap
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
@@ -92,8 +78,6 @@ import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
-import java.io.File
-import java.io.FileOutputStream
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -185,42 +169,43 @@ fun MapScreen(
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
   }
 
-    // --- 3. UI Structure ---
+  // --- 3. UI Structure ---
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab ->
-          val view = mapViewInstance
-          if (!uiState.isLoading && uiState.isMapInteractive && view != null && tab != Tab.Map) {
-              view.takeSnapshot { bmp ->
-                  if(bmp != null){
-                      BackgroundSnapshotRepository.updateSnapshot(bmp)
+      bottomBar = {
+        NavigationBottomMenu(
+            selectedTab = Tab.Map,
+            onTabSelected = { tab ->
+              val view = mapViewInstance
+              if (!uiState.isLoading &&
+                  uiState.isMapInteractive &&
+                  view != null &&
+                  tab != Tab.Map) {
+                view.takeSnapshot { bmp ->
+                  if (bmp != null) {
+                    BackgroundSnapshotRepository.updateSnapshot(bmp)
                   }
+                }
               }
-          }
-          onTabSelected(tab)
-      }) }) {
-          padding ->
+              onTabSelected(tab)
+            })
+      }) { padding ->
         Box(
             modifier =
-                Modifier
-                    .fillMaxSize()
+                Modifier.fillMaxSize()
                     .then(
                         if (uiState.isMapInteractive)
                             Modifier.testTag(MapScreenTestTags.INTERACTABLE)
-                        else Modifier
-                    )) {
-
+                        else Modifier)) {
               TomTomMapComposable(
-                  modifier = Modifier
-                      .fillMaxSize()
-                      .layerBackdrop(layerBackdrop),
+                  modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
                   onMapViewReady = { mapViewInstance = it },
                   onMapReady = { map ->
                     tomTomMap = map
 
                     // --- 4. Map Initialization Sequence ---
-                      //TODO RESOLVE CRASH FROM LOCATION TRACKER NOT ALLOWED
-                    //map.initLocationProvider(viewModel.locationProvider)
+                    // TODO RESOLVE CRASH FROM LOCATION TRACKER NOT ALLOWED
+                    // map.initLocationProvider(viewModel.locationProvider)
 
                     map.setUpMapListeners(
                         onMapClick = { viewModel.onMapClick() },
@@ -241,27 +226,24 @@ fun MapScreen(
 
               if (uiState.selectedLocation != null) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
+                    modifier = Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.BottomCenter) {
                       LiquidButton(
                           onClick = {
-                              val view = mapViewInstance
-                              if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
-                                  view.takeSnapshot { bmp ->
-                                      if(bmp != null){
-                                          BackgroundSnapshotRepository.updateSnapshot(bmp)
-                                      }
-                                  }
+                            val view = mapViewInstance
+                            if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
+                              view.takeSnapshot { bmp ->
+                                if (bmp != null) {
+                                  BackgroundSnapshotRepository.updateSnapshot(bmp)
+                                }
                               }
+                            }
                             createEvent(
                                 uiState.selectedLocation!!.latitude,
                                 uiState.selectedLocation!!.longitude)
                           },
                           modifier =
-                              Modifier
-                                  .padding(bottom = 96.dp)
+                              Modifier.padding(bottom = 96.dp)
                                   .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
                             Text(
                                 "Create your Event !",
@@ -270,19 +252,16 @@ fun MapScreen(
                     }
               }
               // Overlays
-            //TODO
+              // TODO
               if (false) {
                 CircularProgressIndicator(
                     modifier =
-                        Modifier
-                            .align(Alignment.Center)
+                        Modifier.align(Alignment.Center)
                             .testTag(MapScreenTestTags.LOADING_INDICATOR))
               }
 
               uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)) {
+                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
                   Text(errorMessage)
                 }
               }
@@ -307,17 +286,12 @@ fun TomTomMapComposable(
     onMapViewReady: (MapView) -> Unit,
     onMapReady: (TomTomMap) -> Unit
 ) {
-    val mapView = rememberMapViewWithLifecycle(onMapReady)
+  val mapView = rememberMapViewWithLifecycle(onMapReady)
 
-    AndroidView(
-        factory = {
-            mapView.apply { configureUiSettings() }
-        },
-        modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
-        update = {
-            onMapViewReady(mapView)
-        }
-    )
+  AndroidView(
+      factory = { mapView.apply { configureUiSettings() } },
+      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
+      update = { onMapViewReady(mapView) })
 }
 
 @Composable
@@ -330,7 +304,8 @@ fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
         mapKey = BuildConfig.TOMTOM_API_KEY,
         mapStyle =
             StyleDescriptor(
-                Uri.parse("https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
+                Uri.parse(
+                    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
         renderToTexture = true)
   }
 
@@ -433,81 +408,81 @@ private fun TomTomMap.executeMapAction(action: MapAction) {
 }
 
 /**
- * Recursively searches this view hierarchy for the TextureView used to render
- * the TomTom map.
+ * Recursively searches this view hierarchy for the TextureView used to render the TomTom map.
  *
- * TomTom's MapView internally contains multiple nested views. Depending on
- * configuration (e.g., `renderToTexture = true`), the actual rendered map
- * surface may be hosted inside a `TextureView`. This method walks the view
- * tree in depth-first order and returns the first `TextureView` encountered.
+ * TomTom's MapView internally contains multiple nested views. Depending on configuration (e.g.,
+ * `renderToTexture = true`), the actual rendered map surface may be hosted inside a `TextureView`.
+ * This method walks the view tree in depth-first order and returns the first `TextureView`
+ * encountered.
  *
  * @return The first discovered [TextureView] instance, or `null` if none exists.
  */
 fun View.findRenderingView(): View? {
-    if (this is TextureView) return this
+  if (this is TextureView) return this
 
-    if (this is ViewGroup) {
-        for (child in children) {
-            val result = child.findRenderingView()
-            if (result != null) return result
-        }
+  if (this is ViewGroup) {
+    for (child in children) {
+      val result = child.findRenderingView()
+      if (result != null) return result
     }
-    return null
+  }
+  return null
 }
 
 /**
  * Retrieves the internal rendering view used by this [MapView].
  *
- * This is a convenience wrapper around [findRenderingView], which performs a
- * recursive traversal of the MapView's internal view hierarchy to locate the
- * map rendering surface (normally a [TextureView] when `renderToTexture = true`).
+ * This is a convenience wrapper around [findRenderingView], which performs a recursive traversal of
+ * the MapView's internal view hierarchy to locate the map rendering surface (normally a
+ * [TextureView] when `renderToTexture = true`).
  *
  * @return The underlying rendering view, or `null` if none is found.
  */
 fun MapView.getRendererView(): View? {
-    return this.findRenderingView()
+  return this.findRenderingView()
 }
 
 /**
  * Captures a bitmap snapshot of the visible contents rendered by this [MapView].
  *
- * The function attempts to locate the internal rendering surface (usually a
- * [TextureView]) via [getRendererView]. If successful, a bitmap of equal size
- * is created and populated using [PixelCopy]. PixelCopy ensures accurate,
- * GPU-correct rendering even when the map is drawn on a separate hardware layer.
+ * The function attempts to locate the internal rendering surface (usually a [TextureView]) via
+ * [getRendererView]. If successful, a bitmap of equal size is created and populated using
+ * [PixelCopy]. PixelCopy ensures accurate, GPU-correct rendering even when the map is drawn on a
+ * separate hardware layer.
  *
- * Because snapshotting is asynchronous, the result is delivered via a callback.
- * If the rendering view cannot be found, has invalid size, or PixelCopy fails,
- * the callback receives `null`.
+ * Because snapshotting is asynchronous, the result is delivered via a callback. If the rendering
+ * view cannot be found, has invalid size, or PixelCopy fails, the callback receives `null`.
  *
- * @param onResult Callback invoked with the resulting [Bitmap], or `null`
- *                 if snapshot acquisition failed.
+ * @param onResult Callback invoked with the resulting [Bitmap], or `null` if snapshot acquisition
+ *   failed.
  */
 fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
 
-    val renderer = getRendererView() ?: return onResult(null)
+  val renderer = getRendererView() ?: return onResult(null)
 
-    val width = renderer.width
-    val height = renderer.height
+  val width = renderer.width
+  val height = renderer.height
 
-    if (width == 0 || height == 0) {
-        onResult(null)
-        return
+  if (width == 0 || height == 0) {
+    onResult(null)
+    return
+  }
+
+  val bitmap = renderer.drawToBitmap()
+  val handler = Handler(Looper.getMainLooper())
+
+  when (renderer) {
+    is TextureView -> {
+      val surface = Surface(renderer.surfaceTexture)
+      PixelCopy.request(
+          surface,
+          bitmap,
+          { result -> onResult(if (result == PixelCopy.SUCCESS) bitmap else null) },
+          handler)
     }
 
-    val bitmap = renderer.drawToBitmap()
-    val handler = Handler(Looper.getMainLooper())
-
-    when (renderer) {
-        is TextureView -> {
-            val surface = Surface(renderer.surfaceTexture)
-            PixelCopy.request(surface, bitmap, { result ->
-                onResult(if (result == PixelCopy.SUCCESS) bitmap else null)
-            }, handler)
-        }
-
-        else -> onResult(null)
-    }
+    else -> onResult(null)
+  }
 }
 
 private fun TomTomMap.syncEventMarkers(
