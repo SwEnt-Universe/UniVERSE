@@ -1,12 +1,11 @@
 package com.android.universe.model.ai.prompt
-
-// TODO! Figure out how to deduce location
 data class ContextConfig(
-	val location: String = "Lausanne",
-	val includeDate: Boolean = true,
-	val radiusKm: Int? = null
+    val location: String? = "Lausanne",
+    val locationCoordinates: Pair<Double, Double>? = null,
+    val radiusKm: Int? = null,
+    val timeFrame: String? = "today"
 ) {
-	companion object {
-		val Default = ContextConfig()
-	}
+  companion object {
+    val Default = ContextConfig()
+  }
 }

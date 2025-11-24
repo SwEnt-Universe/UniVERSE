@@ -2,13 +2,13 @@ package com.android.universe.model.ai
 
 import com.android.universe.BuildConfig
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import java.util.concurrent.TimeUnit
+import kotlin.jvm.java
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import java.util.concurrent.TimeUnit
-import kotlin.jvm.java
 
 /**
  * Provides configured networking components for interacting with the OpenAI API.
@@ -28,40 +28,43 @@ object OpenAIProvider {
   // Single shared OkHttpClient – lazily initialized, thread-safe
   private val okHttpClient: OkHttpClient by lazy {
     OkHttpClient.Builder()
-      // Auth interceptor
-      .addInterceptor { chain ->
-        val request = chain.request().newBuilder()
-          .addHeader("Authorization", "Bearer ${BuildConfig.OPENAI_API_KEY}")
-          .addHeader("Content-Type", "application/json")
-          .build()
-        chain.proceed(request)
-      }
-      // Logging
-      .addInterceptor(
-        HttpLoggingInterceptor().apply {
-          level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-          else HttpLoggingInterceptor.Level.NONE
+        // Auth interceptor
+        .addInterceptor { chain ->
+          val request =
+              chain
+                  .request()
+                  .newBuilder()
+                  .addHeader("Authorization", "Bearer ${BuildConfig.OPENAI_API_KEY}")
+                  .addHeader("Content-Type", "application/json")
+                  .build()
+          chain.proceed(request)
         }
-      )
-      // Timeouts tuned for OpenAI (they can be slow with gpt-4o, o1, etc.)
-      .connectTimeout(30, TimeUnit.SECONDS)
-      .readTimeout(60, TimeUnit.SECONDS)
-      .writeTimeout(60, TimeUnit.SECONDS)
-      .build()
+        // Logging
+        .addInterceptor(
+            HttpLoggingInterceptor().apply {
+              level =
+                  if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                  else HttpLoggingInterceptor.Level.NONE
+            })
+        // Timeouts tuned for OpenAI (they can be slow with gpt-4o, o1, etc.)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
   }
 
   private val retrofit: Retrofit by lazy {
     Retrofit.Builder()
-      .baseUrl(BASE_URL)
-      .client(okHttpClient)
-      .addConverterFactory(
-        Json {
-          ignoreUnknownKeys = true      // don't crash if OpenAI adds new fields
-          coerceInputValues = true      // safely handle null → default values
-          encodeDefaults = true         // include default values if you want
-        }.asConverterFactory("application/json".toMediaType())
-      )
-      .build()
+        .baseUrl(BASE_URL)
+        .client(okHttpClient)
+        .addConverterFactory(
+            Json {
+                  ignoreUnknownKeys = true // don't crash if OpenAI adds new fields
+                  coerceInputValues = true // safely handle null → default values
+                  encodeDefaults = true // include default values if you want
+                }
+                .asConverterFactory("application/json".toMediaType()))
+        .build()
   }
 
   // Public access point

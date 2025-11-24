@@ -5,11 +5,12 @@ import retrofit2.Response
 
 class FakeOpenAIService : OpenAIService {
 
-	override suspend fun chatCompletion(
-		request: ChatCompletionRequest
-	): Response<ChatCompletionResponse> {
+  override suspend fun chatCompletion(
+      request: ChatCompletionRequest
+  ): Response<ChatCompletionResponse> {
 
-		val json = """
+    val json =
+        """
             [
               {
                 "id": "event-123",
@@ -23,31 +24,28 @@ class FakeOpenAIService : OpenAIService {
                 "eventPicture": null
               }
             ]
-        """.trimIndent()
+        """
+            .trimIndent()
 
-		val fakeResponse = ChatCompletionResponse(
-			id = "fake-id",
-			created = System.currentTimeMillis(),
-			model = "fake-model",
-			usage = null,
-			choices = listOf(
-				Choice(
-					index = 0,
-					message = Message(
-						role = "assistant",
-						content = json
-					),
-					finish_reason = "stop"
-				)
-			)
-		)
+    val fakeResponse =
+        ChatCompletionResponse(
+            id = "fake-id",
+            created = System.currentTimeMillis(),
+            model = "fake-model",
+            usage = null,
+            choices =
+                listOf(
+                    Choice(
+                        index = 0,
+                        message = Message(role = "assistant", content = json),
+                        finish_reason = "stop")))
 
-		return Response.success(fakeResponse)
-	}
+    return Response.success(fakeResponse)
+  }
 
-	override suspend fun chatCompletionStream(
-		request: ChatCompletionRequest
-	): Response<ResponseBody> {
-		return Response.success(ResponseBody.create(null, ""))
-	}
+  override suspend fun chatCompletionStream(
+      request: ChatCompletionRequest
+  ): Response<ResponseBody> {
+    return Response.success(ResponseBody.create(null, ""))
+  }
 }

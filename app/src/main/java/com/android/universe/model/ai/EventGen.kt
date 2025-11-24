@@ -1,18 +1,21 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.user.UserProfile
 
 /**
  * Defines the contract for generating event suggestions.
  *
- * Example usage:
- * val events = eventGen.generateEventsForUser(profile)
+ * Example usage: val events = eventGen.generateEventsForUser(profile)
  */
 interface EventGen {
 
-  /**
-   * Generates events based on user profile
-   */
-  suspend fun generateEventsForUser(profile: UserProfile): List<Event>
+  /** Generates events based on user profile */
+  suspend fun generateEventsForUser(
+      profile: UserProfile,
+      task: TaskConfig = TaskConfig.Default,
+      context: ContextConfig = ContextConfig.Default
+  ): List<Event>
 }
