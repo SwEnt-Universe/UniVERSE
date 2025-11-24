@@ -1,8 +1,6 @@
 package com.android.universe.model.ai
 
-import com.android.universe.model.ai.prompt.ContextConfig
 import com.android.universe.model.ai.prompt.PromptBuilder
-import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 
 class OpenAIEventGen(
@@ -11,22 +9,17 @@ class OpenAIEventGen(
 
   override suspend fun generateEvents(query: EventQuery): List<Event> {
 
-    val systemMessage =
-      "You are UniVERSE EventCuratorGPT. Always output ONLY valid JSON arrays of event objects."
-
-    // Build prompt using user + task + context
-    val prompt = PromptBuilder.build(
-      profile = query.user,
-      task = query.task,
-      context = query.context
+    val system = PromptBuilder.buildSystemMessage()
+    val user = PromptBuilder.buildUserMessage(
+      query.user, query.task, query.context
     )
 
     // Build OpenAI request
     val request = ChatCompletionRequest(
       model = "gpt-5-nano",
       messages = listOf(
-        Message("system", systemMessage),
-        Message("user", prompt)
+        Message(role = "system", content = system),
+        Message(role = "user", content = user)
       ),
       max_tokens = 800,
       temperature = 0.9

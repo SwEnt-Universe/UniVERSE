@@ -1,16 +1,16 @@
 package com.android.universe.model.ai
 
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.ResponseBody
 import retrofit2.Response
 
 class FakeOpenAIService : OpenAIService {
 
   override suspend fun chatCompletion(
-      request: ChatCompletionRequest
+    request: ChatCompletionRequest
   ): Response<ChatCompletionResponse> {
 
-    val json =
-        """
+    val json = """
             [
               {
                 "id": "event-123",
@@ -24,28 +24,30 @@ class FakeOpenAIService : OpenAIService {
                 "eventPicture": null
               }
             ]
-        """
-            .trimIndent()
+        """.trimIndent()
 
-    val fakeResponse =
-        ChatCompletionResponse(
-            id = "fake-id",
-            created = System.currentTimeMillis(),
-            model = "fake-model",
-            usage = null,
-            choices =
-                listOf(
-                    Choice(
-                        index = 0,
-                        message = Message(role = "assistant", content = json),
-                        finish_reason = "stop")))
+    val fakeResponse = ChatCompletionResponse(
+      id = "fake-id",
+      created = System.currentTimeMillis(),
+      model = "fake-model",
+      usage = null,
+      choices = listOf(
+        Choice(
+          index = 0,
+          message = Message(role = "assistant", content = json),
+          finish_reason = "stop"
+        )
+      )
+    )
 
     return Response.success(fakeResponse)
   }
 
   override suspend fun chatCompletionStream(
-      request: ChatCompletionRequest
+    request: ChatCompletionRequest
   ): Response<ResponseBody> {
-    return Response.success(ResponseBody.create(null, ""))
+    return Response.success(
+      ResponseBody.create("text/plain".toMediaTypeOrNull(), "streaming not supported")
+    )
   }
 }

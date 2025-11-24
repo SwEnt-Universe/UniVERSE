@@ -1,5 +1,7 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
@@ -11,25 +13,42 @@ class PromptBuilderTest {
   // TODO Move user to fixtures
   private val DummyDate = LocalDate.of(2000, 8, 11)
 
-  val allTags =
-      (Tag.getTagsForCategory(Tag.Category.TOPIC) + Tag.getTagsForCategory(Tag.Category.FOOD))
-          .toSet()
+  private val allTags =
+    (Tag.getTagsForCategory(Tag.Category.TOPIC) +
+        Tag.getTagsForCategory(Tag.Category.FOOD))
+      .toSet()
 
-  val tags = setOf(Tag.ROCK, Tag.POP)
-  val allTags_CH_user =
-      UserProfile(
-          uid = "69",
-          username = "ai_69",
-          firstName = "AI",
-          lastName = "Base",
-          country = "CH",
-          description = "Has all tags, country = switzerland",
-          dateOfBirth = DummyDate,
-          tags = allTags)
+  private val user =
+    UserProfile(
+      uid = "69",
+      username = "ai_69",
+      firstName = "AI",
+      lastName = "Base",
+      country = "CH",
+      description = "Has all tags, country = Switzerland",
+      dateOfBirth = DummyDate,
+      tags = allTags
+    )
 
   @Test
   fun printPrompt() {
-    val prompt = PromptBuilder.build(allTags_CH_user)
-    println(prompt) // prints to test output window
+    val task = TaskConfig(
+      eventCount = 5,
+      requireRelevantTags = true
+    )
+
+    val context = ContextConfig(
+      location = "Lausanne",
+      radiusKm = 5,
+      timeFrame = "today",
+      locationCoordinates = 46.5191 to 6.5668
+    )
+
+    val system = PromptBuilder.buildSystemMessage()
+    val userMsg = PromptBuilder.buildUserMessage(user, task, context)
+
+    println("SYSTEM MESSAGE:\n$system\n")
+    println("USER MESSAGE:\n$userMsg")
   }
+
 }

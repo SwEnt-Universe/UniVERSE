@@ -1,36 +1,49 @@
-import com.android.universe.model.ai.FakeOpenAIService
-import com.android.universe.model.ai.OpenAIEventGen
+package com.android.universe.model.ai
+
+import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
-import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import java.time.LocalDate
 
 class FakeOpenAIEventGenTest {
 
   private val fakeService = FakeOpenAIService()
   private val eventGen = OpenAIEventGen(fakeService)
-  private val DummyDate = LocalDate.of(2000, 8, 11)
-  val allTags =
-      (Tag.getTagsForCategory(Tag.Category.TOPIC) + Tag.getTagsForCategory(Tag.Category.FOOD))
-          .toSet()
 
-  val tags = setOf(Tag.ROCK, Tag.POP)
-  val allTags_CH_user =
-      UserProfile(
-          uid = "69",
-          username = "ai_69",
-          firstName = "AI",
-          lastName = "Base",
-          country = "CH",
-          description = "Has all tags, country = switzerland",
-          dateOfBirth = DummyDate,
-          tags = allTags)
+  private val dummyDate = LocalDate.of(2000, 8, 11)
+
+  private val allTags =
+    (Tag.getTagsForCategory(Tag.Category.TOPIC) +
+        Tag.getTagsForCategory(Tag.Category.FOOD))
+      .toSet()
+
+  private val testUser =
+    UserProfile(
+      uid = "69",
+      username = "ai_69",
+      firstName = "AI",
+      lastName = "Base",
+      country = "CH",
+      description = "Has all tags, country = switzerland",
+      dateOfBirth = dummyDate,
+      tags = allTags
+    )
 
   @Test
   fun `test parsing of json response`() = runBlocking {
-    val events = eventGen.generateEventsForUser(allTags_CH_user)
+    val query = EventQuery(
+      user = testUser,
+      task = TaskConfig(eventCount = 1),            // tells the model how many to return
+      context = ContextConfig(location = "Lausanne")
+    )
+
+    val events = eventGen.generateEvents(query)
+
     assert(events.isNotEmpty())
+    assert(events.first().title == "Fake Rock Concert")
     println(events)
   }
 }

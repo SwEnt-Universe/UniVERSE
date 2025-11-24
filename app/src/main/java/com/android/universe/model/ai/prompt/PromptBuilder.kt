@@ -1,115 +1,104 @@
 package com.android.universe.model.ai.prompt
 
-import android.R.attr.radius
 import com.android.universe.model.user.UserProfile
+import kotlinx.serialization.json.*
 import java.time.LocalDate
 import java.time.Period
 
 /**
- * Lightweight prompt builder for generating event recommendations. This version minimizes token
- * usage by:
- * - Removing verbose prose
- * - Using compact JSON-like structures
- * - Removing full example JSON
- * - Compressing schema into a single definition line
- * - Shrinking context and user profile blocks
+ * PromptBuilder (STRICT JSON MODE)
+ *
+ * Produces:
+ * 1. SYSTEM message: strict JSON defining rules + schema.
+ * 2. USER message: strict JSON with task, user, and context.
+ *
+ * This is OpenAI’s recommended modern prompt format.
  */
 object PromptBuilder {
 
-  fun build(profile: UserProfile, task: TaskConfig, context: ContextConfig): String {
-    return listOf(taskBlock(task), userBlock(profile), contextBlock(context), outputFormatBlock())
-        .joinToString("\n\n")
+  private val json = Json { prettyPrint = false }
+
+  // ----------------------------------------------------------
+  // SYSTEM MESSAGE JSON
+  // ----------------------------------------------------------
+  fun buildSystemMessage(): String {
+    val systemObj = buildJsonObject {
+      put("role", "EventCuratorGPT")
+
+      putJsonArray("rules") {
+        add("Always output ONLY a JSON array of event objects")
+        add("No markdown, no commentary, no prose")
+        add("Output must strictly follow the provided schema")
+      }
+
+      putJsonObject("schema") {
+        put("id", "String")
+        put("title", "String")
+        put("description", "String | null")
+        put("date", "YYYY-MM-DD'T'HH:mm")
+        put("tags", "[String]")
+        put("creator", "String")
+        put("participants", "[String]")
+        putJsonObject("location") {
+          put("latitude", "Double")
+          put("longitude", "Double")
+        }
+        put("eventPicture", "null")
+      }
+    }
+
+    return json.encodeToString(JsonObject.serializer(), systemObj)
   }
 
-  // ----------------------------------------------------------------------
-  // TASK — compressed into one line
-  // ----------------------------------------------------------------------
-  private fun taskBlock(task: TaskConfig): String {
-    val fields =
-        listOfNotNull(
-                task.eventCount?.let { "\"eventsToGenerate\": $it" },
-                "\"requireRelevantTags\": ${task.requireRelevantTags}")
-            .joinToString(",\n  ")
+  // ----------------------------------------------------------
+  // USER MESSAGE JSON
+  // ----------------------------------------------------------
+  fun buildUserMessage(
+    profile: UserProfile,
+    task: TaskConfig,
+    context: ContextConfig
+  ): String {
 
-    return """
-        Task: {
-          "goal": "generate realistic, feasible public events matching the user's interests",
-          $fields
+    val obj = buildJsonObject {
+
+      // TASK
+      putJsonObject("task") {
+        put("goal", "generate realistic public events matching the user's interests")
+        task.eventCount?.let { put("eventsToGenerate", it) }
+        put("requireRelevantTags", task.requireRelevantTags)
+      }
+
+      // USER
+      putJsonObject("user") {
+        put("uid", profile.uid)
+        put("name", "${profile.firstName} ${profile.lastName}")
+        put("age", calculateAge(profile.dateOfBirth))
+        put("country", profile.country)
+        profile.description?.let { put("description", it) }
+
+        putJsonArray("interests") {
+          profile.tags.forEach { tag ->
+            add(tag.displayName)
+          }
         }
-    """
-        .trimIndent()
+      }
+
+      // CONTEXT
+      putJsonObject("context") {
+        context.location?.let { put("location", it) }
+        context.locationCoordinates?.let { coords ->
+          putJsonObject("coordinates") {
+            put("lat", coords.first)
+            put("lon", coords.second)
+          }
+        }
+        context.radiusKm?.let { put("radiusKm", it) }
+        context.timeFrame?.let { put("timeFrame", it) }
+      }
+    }
+
+    return json.encodeToString(JsonObject.serializer(), obj)
   }
-
-  // ----------------------------------------------------------------------
-  // USER — compressed compact JSON-like object
-  // ----------------------------------------------------------------------
-  private fun userBlock(profile: UserProfile): String {
-    val age = calculateAge(profile.dateOfBirth)
-    val interests = profile.tags.joinToString(", ") { "\"${it.displayName}\"" }
-
-    val uid = "\"uid\": \"${profile.uid}\""
-    val name = "\"name\": \"${profile.firstName} ${profile.lastName}\""
-    val ageField = "\"age\": $age"
-    val country = "\"country\": \"${profile.country}\""
-    val desc = profile.description?.let { "\"description\": \"$it\"" }
-    val interestsField = "\"interests\": [$interests]"
-
-    val fields =
-        listOfNotNull(uid, name, ageField, country, desc, interestsField).joinToString(",\n  ")
-
-    return """
-        User: {
-          $fields
-        }
-    """
-        .trimIndent()
-  }
-
-  // ----------------------------------------------------------------------
-  // CONTEXT — compact structure, minimal prose
-  // ----------------------------------------------------------------------
-  private fun contextBlock(context: ContextConfig): String {
-    val location = context.location?.let { "\"location\": \"$it\"" }
-    val radius = context.radiusKm?.let { "\"radiusKm\": $it" }
-    val timeframe = context.timeFrame?.let { "\"timeFrame\": \"$it\"" }
-    val locationCoordinates =
-        context.locationCoordinates?.let {
-          "\"coordinates\": { \"lat\": ${it.first}, \"lon\": ${it.second} }"
-        }
-
-    // Filter out null fields and join with commas
-    val fields =
-        listOfNotNull(location, locationCoordinates, radius, timeframe).joinToString(",\n  ")
-
-    return """
-        Context: {
-          $fields
-        }
-    """
-        .trimIndent()
-  }
-
-  // ----------------------------------------------------------------------
-  // OUTPUT FORMAT — ultra-compact schema (no example JSON)
-  // ----------------------------------------------------------------------
-  private fun outputFormatBlock(): String =
-      """
-        Output:
-        Return ONLY a JSON array of:
-        {
-          id: String,
-          title: String,
-          description: String | null,
-          date: "YYYY-MM-DD'T'HH:mm",
-          tags: [String],
-          creator: String,
-          participants: [String],
-          location: { latitude: Double, longitude: Double },
-          eventPicture: null
-        }
-        No commentary or markdown.
-    """
-          .trimIndent()
 
   private fun calculateAge(dob: LocalDate): Int {
     return Period.between(dob, LocalDate.now()).years
