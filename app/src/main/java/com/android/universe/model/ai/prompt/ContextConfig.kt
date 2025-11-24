@@ -4,7 +4,6 @@ package com.android.universe.model.ai.prompt
 data class ContextConfig(
 	val location: String = "Lausanne",
 	val includeDate: Boolean = true,
-	val includeWeather: Boolean = false,
 	val radiusKm: Int? = null
 ) {
 	companion object {

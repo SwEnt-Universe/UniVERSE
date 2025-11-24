@@ -33,12 +33,11 @@ object PromptBuilder {
   // ----------------------------------------------------------------------
   private fun taskBlock(task: TaskConfig): String {
     val tags = if (task.requireRelevantTags) "tags," else ""
-    val outdoor = if (task.outdoorOnly) "outdoor-only," else ""
 
     return """
             Task:
             Generate realistic, feasible public events matching the user's interests and country.
-            Requirements: short description, $tags $outdoor no fantasy elements.
+            Requirements: short description, $tags no fantasy elements.
         """.trimIndent()
   }
 
@@ -47,7 +46,7 @@ object PromptBuilder {
   // ----------------------------------------------------------------------
   private fun userBlock(profile: UserProfile): String {
     val age = calculateAge(profile.dateOfBirth)
-    val tags = profile.tags.joinToString(",") { "\"$it\"" }
+    val tags = profile.tags.joinToString(",") { "\"${it.displayName}\"" }
 
     return """
             User: {
@@ -66,14 +65,13 @@ object PromptBuilder {
   private fun contextBlock(context: ContextConfig): String {
     val radius = context.radiusKm?.let { "\"radiusKm\": $it," } ?: ""
     val date = if (context.includeDate) "\"date\": \"${LocalDate.now()}\"," else ""
-    val weather = if (context.includeWeather) "\"weather\": \"<INSERT>\"," else ""
+    //val weather = if (context.includeWeather) "\"weather\": \"<INSERT>\"," else ""
 
     return """
             Context: {
               "location": "${context.location}",
               $radius
               $date
-              $weather
             }
         """.trimIndent()
   }
@@ -92,7 +90,7 @@ object PromptBuilder {
           tags: [String],
           creator: String,
           participants: [String],
-          location: { lat: Double, lon: Double },
+          location: { latitude: Double, longitude: Double },
           eventPicture: null
         }
         No commentary or markdown.
