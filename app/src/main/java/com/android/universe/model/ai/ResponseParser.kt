@@ -1,56 +1,65 @@
-package com.android.universe.model.ai
-
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventDTO
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
-import java.time.LocalDateTime
-import kotlin.collections.map
+import kotlinx.serialization.builtins.ByteArraySerializer
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import java.time.LocalDateTime
+import kotlin.ByteArray
+import kotlin.String
+import kotlin.collections.Set
+import kotlin.collections.map
 
-/**
- * Converts raw JSON returned from OpenAI into strongly typed [Event] objects.
- *
- * Responsibilities:
- * - Parse JSON string into a list of DTOs
- * - Validate required fields and convert values (e.g. tags to [Tag], location, LocalDateTime)
- * - Transform DTOs to domain-level [Event] instances usable by application logic
- *
- * Isolated to maintain separation between AI data structures and real app models.
- */
+
 object ResponseParser {
 
-  private val json = Json {
-    ignoreUnknownKeys = true // tolerate missing & new fields
-    coerceInputValues = true
-  }
+	private const val CREATOR = "OpenAI"
 
-  fun parseEvents(rawJson: String): List<Event> {
-    val cleaned = enforceStrictJson(rawJson)
+	// private const val DEFAULT_AI_IMAGE = ?
 
-    val dtos: List<EventDTO> = json.decodeFromString(cleaned)
 
-    return dtos.map { dto ->
-      Event(
-          id = dto.id,
-          title = dto.title,
-          description = dto.description,
-          date = LocalDateTime.parse(dto.date),
-          tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
-          creator = dto.creator,
-          participants = dto.participants.toSet(),
-          location = Location(dto.location.latitude, dto.location.longitude),
-          eventPicture = null)
-    }
-  }
+	private val json = Json {
+		ignoreUnknownKeys = true
+		coerceInputValues = true
+	}
 
-  private fun enforceStrictJson(raw: String): String {
-    val cleaned = raw.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+	fun parseEvents(rawJson: String): List<Event> {
+		val cleaned = cleanJson(rawJson)
 
-    if (!cleaned.startsWith("[")) {
-      throw IllegalStateException("OpenAI did not return a JSON array. Response was:\n$raw")
-    }
+		// Parse root object
+		val root = json.parseToJsonElement(cleaned).jsonObject
 
-    return cleaned
-  }
+		// Extract events array
+		val eventsJson = root["events"]
+			?: throw IllegalStateException("Missing 'events' field in OpenAI response")
+
+		// Decode into DTOs
+		val dtos: List<EventDTO> = json.decodeFromJsonElement(
+			deserializer = ListSerializer(EventDTO.serializer()),
+			element = eventsJson
+		)
+
+		// Convert to domain objects
+		return dtos.map { dto ->
+			Event(
+				id = dto.id,
+				title = dto.title,
+				description = dto.description,
+				date = LocalDateTime.parse(dto.date),
+				tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
+				creator = CREATOR,
+				participants = emptySet(),
+				location = Location(dto.location.latitude, dto.location.longitude),
+			)
+		}
+	}
+
+	private fun cleanJson(raw: String): String =
+		raw.trim()
+			.removePrefix("```json")
+			.removePrefix("```")
+			.removeSuffix("```")
+			.trim()
 }

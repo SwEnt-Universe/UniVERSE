@@ -7,7 +7,6 @@ import kotlin.jvm.java
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 
 /**
@@ -41,11 +40,10 @@ object OpenAIProvider {
         }
         // Logging
         .addInterceptor(
-            HttpLoggingInterceptor().apply {
-              level =
-                  if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                  else HttpLoggingInterceptor.Level.NONE
-            })
+          LoggingInterceptor(
+            logBody = BuildConfig.DEBUG
+          )
+        )
         // Timeouts tuned for OpenAI (they can be slow with gpt-4o, o1, etc.)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
