@@ -15,21 +15,18 @@ class OpenAIEventGen(private val service: OpenAIService) : EventGen {
     val user = PromptBuilder.buildUserMessage(query.user, query.task, query.context)
 
     // Strict JSON schema
-    val eventFormat = ResponseFormat(
-      type = "json_schema",
-      json_schema = EventSchema.jsonObject
-    )
+    val eventFormat = ResponseFormat(type = "json_schema", json_schema = EventSchema.jsonObject)
 
     // Build request body
-    val request = ChatCompletionRequest(
-      model = MODEL,
-      messages = listOf(
-        Message(role = "system", content = system),
-        Message(role = "user", content = user)
-      ),
-      max_completion_tokens = MAX_TOKENS,
-      response_format = eventFormat
-    )
+    val request =
+        ChatCompletionRequest(
+            model = MODEL,
+            messages =
+                listOf(
+                    Message(role = "system", content = system),
+                    Message(role = "user", content = user)),
+            max_completion_tokens = MAX_TOKENS,
+            response_format = eventFormat)
 
     // Call OpenAI API
     val response = service.chatCompletion(request)
@@ -41,19 +38,18 @@ class OpenAIEventGen(private val service: OpenAIService) : EventGen {
 
     // Extract completion
     val body = response.body()
-    val choice = body?.choices?.firstOrNull()
-      ?: throw IllegalStateException("OpenAI returned no choices")
+    val choice =
+        body?.choices?.firstOrNull() ?: throw IllegalStateException("OpenAI returned no choices")
 
     val raw = choice.message.content.orEmpty()
 
     // Validate content
     if (raw.isBlank()) {
       throw IllegalStateException(
-        "OpenAI returned empty content. " +
-            "finish_reason=${choice.finish_reason}, " +
-            "prompt_tokens=${body?.usage?.prompt_tokens}, " +
-            "completion_tokens=${body?.usage?.completion_tokens}"
-      )
+          "OpenAI returned empty content. " +
+              "finish_reason=${choice.finish_reason}, " +
+              "prompt_tokens=${body?.usage?.prompt_tokens}, " +
+              "completion_tokens=${body?.usage?.completion_tokens}")
     }
 
     // Parse JSON → events

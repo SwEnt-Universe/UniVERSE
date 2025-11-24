@@ -20,15 +20,13 @@ interface OpenAIService {
 
   // Non-streaming: normal chat completion
   @POST("chat/completions")
-  suspend fun chatCompletion(
-    @Body request: ChatCompletionRequest
-  ): Response<ChatCompletionResponse>
+  suspend fun chatCompletion(@Body request: ChatCompletionRequest): Response<ChatCompletionResponse>
 
   // Streaming (real-time token events)
   @Streaming
   @POST("chat/completions")
   suspend fun chatCompletionStream(
-    @Body request: ChatCompletionRequest
+      @Body request: ChatCompletionRequest
   ): Response<okhttp3.ResponseBody>
 }
 
@@ -47,59 +45,37 @@ interface OpenAIService {
  */
 @Serializable
 data class ChatCompletionRequest(
-  val model: String,
-  val messages: List<Message>,
-  val temperature: Double? = null,
-  val max_completion_tokens: Int? = null,
-  val response_format: ResponseFormat? = null
+    val model: String,
+    val messages: List<Message>,
+    val temperature: Double? = null,
+    val max_completion_tokens: Int? = null,
+    val response_format: ResponseFormat? = null
 )
 
-/**
- * One chat message (system / user / assistant).
- */
-@Serializable
-data class Message(
-  val role: String,
-  val content: String
-)
+/** One chat message (system / user / assistant). */
+@Serializable data class Message(val role: String, val content: String)
 
-/**
- * Controls structured output, e.g. JSON schema.
- */
+/** Controls structured output, e.g. JSON schema. */
 @Serializable
 data class ResponseFormat(
-  val type: String,                 // "json_schema"
-  val json_schema: JsonObject? = null
+    val type: String, // "json_schema"
+    val json_schema: JsonObject? = null
 )
 
-/**
- * Response wrapper returned by OpenAI.
- */
+/** Response wrapper returned by OpenAI. */
 @Serializable
 data class ChatCompletionResponse(
-  val id: String,
-  val choices: List<Choice>,
-  val created: Long,
-  val model: String,
-  val usage: Usage? = null
+    val id: String,
+    val choices: List<Choice>,
+    val created: Long,
+    val model: String,
+    val usage: Usage? = null
 )
 
-/**
- * Each "completion" alternative returned.
- */
+/** Each "completion" alternative returned. */
 @Serializable
-data class Choice(
-  val index: Int,
-  val message: Message,
-  val finish_reason: String? = null
-)
+data class Choice(val index: Int, val message: Message, val finish_reason: String? = null)
 
-/**
- * Token accounting for pricing.
- */
+/** Token accounting for pricing. */
 @Serializable
-data class Usage(
-  val prompt_tokens: Int,
-  val completion_tokens: Int,
-  val total_tokens: Int
-)
+data class Usage(val prompt_tokens: Int, val completion_tokens: Int, val total_tokens: Int)

@@ -3,7 +3,8 @@ import kotlinx.serialization.json.jsonObject
 
 object EventSchema {
 
-	val json = """
+  val json =
+      """
     {
       "name": "EventList",
       "strict": true,
@@ -49,7 +50,8 @@ object EventSchema {
         }
       }
     }
-    """.trimIndent()
+    """
+          .trimIndent()
 
-	val jsonObject = Json.parseToJsonElement(json).jsonObject
+  val jsonObject = Json.parseToJsonElement(json).jsonObject
 }

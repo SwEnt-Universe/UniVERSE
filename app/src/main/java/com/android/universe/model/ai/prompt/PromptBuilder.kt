@@ -1,6 +1,5 @@
 package com.android.universe.model.ai.prompt
 
-import com.android.universe.R
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.Period
@@ -27,7 +26,8 @@ object PromptBuilder {
       put("role", "EventCuratorGPT")
 
       putJsonArray("rules") {
-        add("Always output a JSON object with a top-level \"events\" array that matches the provided JSON schema.")
+        add(
+            "Always output a JSON object with a top-level \"events\" array that matches the provided JSON schema.")
         add("No markdown, no commentary, no prose.")
         add("Output must strictly follow the provided schema.")
         add("Do not include any fields not defined in the schema.")

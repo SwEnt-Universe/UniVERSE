@@ -39,11 +39,7 @@ object OpenAIProvider {
           chain.proceed(request)
         }
         // Logging
-        .addInterceptor(
-          LoggingInterceptor(
-            logBody = BuildConfig.DEBUG
-          )
-        )
+        .addInterceptor(LoggingInterceptor(logBody = BuildConfig.DEBUG))
         // Timeouts tuned for OpenAI (they can be slow with gpt-4o, o1, etc.)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
