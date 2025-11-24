@@ -32,26 +32,20 @@ object ResponseParser {
 
     return dtos.map { dto ->
       Event(
-        id = dto.id,
-        title = dto.title,
-        description = dto.description,
-        date = LocalDateTime.parse(dto.date),
-        tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
-        creator = dto.creator,
-        participants = dto.participants.toSet(),
-        location = Location(dto.location.latitude, dto.location.longitude),
-        eventPicture = null
-      )
+          id = dto.id,
+          title = dto.title,
+          description = dto.description,
+          date = LocalDateTime.parse(dto.date),
+          tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
+          creator = dto.creator,
+          participants = dto.participants.toSet(),
+          location = Location(dto.location.latitude, dto.location.longitude),
+          eventPicture = null)
     }
   }
 
   private fun enforceStrictJson(raw: String): String {
-    val cleaned = raw
-      .trim()
-      .removePrefix("```json")
-      .removePrefix("```")
-      .removeSuffix("```")
-      .trim()
+    val cleaned = raw.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
 
     if (!cleaned.startsWith("[")) {
       throw IllegalStateException("OpenAI did not return a JSON array. Response was:\n$raw")

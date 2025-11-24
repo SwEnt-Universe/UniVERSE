@@ -22,39 +22,47 @@ class OpenAIEventGenTest {
     // 2. Dummy user profile
     val dummyDate = LocalDate.of(2000, 8, 11)
 
-    val studentTags = setOf(
-      Tag.ROCK, Tag.POP, Tag.ELECTRONIC, Tag.LIVE_MUSIC,
-      Tag.HIKING, Tag.RUNNING, Tag.FITNESS, Tag.CYCLING,
-      Tag.CAFES, Tag.STREET_FOOD, Tag.BRUNCH, Tag.BARS,
-      Tag.CINEMA, Tag.COMEDY,
-      Tag.VIDEO_GAMES, Tag.CHESS,
-      Tag.PROGRAMMING, Tag.AI, Tag.COMPUTER_SCIENCE,
-      Tag.MATHEMATICS, Tag.PHYSICS
-    )
+    val studentTags =
+        setOf(
+            Tag.ROCK,
+            Tag.POP,
+            Tag.ELECTRONIC,
+            Tag.LIVE_MUSIC,
+            Tag.HIKING,
+            Tag.RUNNING,
+            Tag.FITNESS,
+            Tag.CYCLING,
+            Tag.CAFES,
+            Tag.STREET_FOOD,
+            Tag.BRUNCH,
+            Tag.BARS,
+            Tag.CINEMA,
+            Tag.COMEDY,
+            Tag.VIDEO_GAMES,
+            Tag.CHESS,
+            Tag.PROGRAMMING,
+            Tag.AI,
+            Tag.COMPUTER_SCIENCE,
+            Tag.MATHEMATICS,
+            Tag.PHYSICS)
 
-    val studentProfile = UserProfile(
-      uid = "69",
-      username = "ai_69",
-      firstName = "Student",
-      lastName = "Studentson",
-      country = "CH",
-      description = "Student",
-      dateOfBirth = dummyDate,
-      tags = studentTags
-    )
+    val studentProfile =
+        UserProfile(
+            uid = "69",
+            username = "ai_69",
+            firstName = "Student",
+            lastName = "Studentson",
+            country = "CH",
+            description = "Student",
+            dateOfBirth = dummyDate,
+            tags = studentTags)
 
     // 3. Construct an event query with Task + Context
-    val query = EventQuery(
-      user = studentProfile,
-      task = TaskConfig(
-        eventCount = 1
-      ),
-      context = ContextConfig(
-        location = "Lausanne",
-        radiusKm = 5,
-        timeFrame = "today"
-      )
-    )
+    val query =
+        EventQuery(
+            user = studentProfile,
+            task = TaskConfig(eventCount = 1),
+            context = ContextConfig(location = "Lausanne", radiusKm = 5, timeFrame = "today"))
 
     // 4. Run actual OpenAI query
     val events: List<Event> = eventGen.generateEvents(query)

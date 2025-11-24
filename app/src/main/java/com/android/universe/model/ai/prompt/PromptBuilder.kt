@@ -1,9 +1,9 @@
 package com.android.universe.model.ai.prompt
 
 import com.android.universe.model.user.UserProfile
-import kotlinx.serialization.json.*
 import java.time.LocalDate
 import java.time.Period
+import kotlinx.serialization.json.*
 
 /**
  * PromptBuilder (STRICT JSON MODE)
@@ -53,11 +53,7 @@ object PromptBuilder {
   // ----------------------------------------------------------
   // USER MESSAGE JSON
   // ----------------------------------------------------------
-  fun buildUserMessage(
-    profile: UserProfile,
-    task: TaskConfig,
-    context: ContextConfig
-  ): String {
+  fun buildUserMessage(profile: UserProfile, task: TaskConfig, context: ContextConfig): String {
 
     val obj = buildJsonObject {
 
@@ -76,11 +72,7 @@ object PromptBuilder {
         put("country", profile.country)
         profile.description?.let { put("description", it) }
 
-        putJsonArray("interests") {
-          profile.tags.forEach { tag ->
-            add(tag.displayName)
-          }
-        }
+        putJsonArray("interests") { profile.tags.forEach { tag -> add(tag.displayName) } }
       }
 
       // CONTEXT
