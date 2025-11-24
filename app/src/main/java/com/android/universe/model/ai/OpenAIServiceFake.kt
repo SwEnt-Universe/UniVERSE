@@ -12,19 +12,19 @@ class OpenAIServiceFake : OpenAIService {
 
     val json =
         """
-            [
-              {
-                "id": "event-123",
-                "title": "Fake Rock Concert",
-                "description": "A generated test event",
-                "date": "2025-03-21T20:00",
-                "tags": ["Rock", "Music"],
-                "creator": "ai-system",
-                "participants": [],
-                "location": { "latitude": 46.52, "longitude": 6.63 },
-                "eventPicture": null
-              }
-            ]
+        [
+          {
+            "id": "event-123",
+            "title": "Fake Rock Concert",
+            "description": "A generated test event",
+            "date": "2025-03-21T20:00",
+            "tags": ["Rock", "Music"],
+            "creator": "ai-system",
+            "participants": [],
+            "location": { "latitude": 46.52, "longitude": 6.63 },
+            "eventPicture": null
+          }
+        ]
         """
             .trimIndent()
 

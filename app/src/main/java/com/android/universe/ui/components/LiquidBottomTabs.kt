@@ -140,7 +140,7 @@ fun LiquidBottomTabs(
             remember(animationScope) {
               DampedDragAnimation(
                   animationScope = animationScope,
-                  initialValue = selectedTabIndex().toFloat(),
+                  initialValue = selectedTabIndex().coerceAtLeast(0).toFloat(),
                   valueRange = 0f..(tabsCount - 1).toFloat(),
                   visibilityThreshold = 0.001f,
                   initialScale = 1f,
@@ -244,7 +244,8 @@ fun LiquidBottomTabs(
             }
 
         Box(
-            Modifier.padding(horizontal = 4f.dp)
+            Modifier.alpha(if (selectedTabIndex() != -1) 1f else 0f)
+                .padding(horizontal = 4f.dp)
                 .graphicsLayer {
                   translationX =
                       if (isLtr) dampedDragAnimation.value * tabWidth + panelOffset
