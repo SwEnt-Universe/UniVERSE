@@ -5,10 +5,13 @@ import java.time.LocalDate
 import java.time.Period
 
 /**
- * Builds the complete prompt string sent to OpenAI when generating event recommendations.
- *
- * This class is intentionally a single object. Flexibility is controlled through [TaskConfig]
- * and [ContextConfig] rather than splitting logic across many files.
+ * Lightweight prompt builder for generating event recommendations.
+ * This version minimizes token usage by:
+ *  - Removing verbose prose
+ *  - Using compact JSON-like structures
+ *  - Removing full example JSON
+ *  - Compressing schema into a single definition line
+ *  - Shrinking context and user profile blocks
  */
 object PromptBuilder {
 
@@ -18,86 +21,82 @@ object PromptBuilder {
     context: ContextConfig = ContextConfig.Default
   ): String {
     return listOf(
-      systemBlock(),
       taskBlock(task),
-      userProfileBlock(profile),
+      userBlock(profile),
       contextBlock(context),
       outputFormatBlock()
     ).joinToString("\n\n")
   }
 
-  private fun systemBlock(): String =
-    "You are EventCuratorGPT, an assistant that generates realistic event suggestions."
+  // ----------------------------------------------------------------------
+  // TASK — compressed into one line
+  // ----------------------------------------------------------------------
+  private fun taskBlock(task: TaskConfig): String {
+    val tags = if (task.requireRelevantTags) "tags," else ""
+    val outdoor = if (task.outdoorOnly) "outdoor-only," else ""
 
-  private fun taskBlock(task: TaskConfig): String = """
-        Task:
-        Generate realistic public events/activities that could take place in the context location.
-        Requirements:
-        - must be feasible (no fantasy)
-        - must match the user’s interests
-        - include a short description
-        ${if (task.requireRelevantTags) "- include meaningful tags" else ""}
-        ${if (task.outdoorOnly) "- only outdoor events" else ""}
+    return """
+            Task:
+            Generate realistic, feasible public events matching the user's interests and country.
+            Requirements: short description, $tags $outdoor no fantasy elements.
+        """.trimIndent()
+  }
+
+  // ----------------------------------------------------------------------
+  // USER — compressed compact JSON-like object
+  // ----------------------------------------------------------------------
+  private fun userBlock(profile: UserProfile): String {
+    val age = calculateAge(profile.dateOfBirth)
+    val tags = profile.tags.joinToString(",") { "\"$it\"" }
+
+    return """
+            User: {
+              uid: "${profile.uid}",
+              name: "${profile.firstName} ${profile.lastName}",
+              age: $age,
+              country: "${profile.country}",
+              interests: [$tags]
+            }
+        """.trimIndent()
+  }
+
+  // ----------------------------------------------------------------------
+  // CONTEXT — compact structure, minimal prose
+  // ----------------------------------------------------------------------
+  private fun contextBlock(context: ContextConfig): String {
+    val radius = context.radiusKm?.let { "\"radiusKm\": $it," } ?: ""
+    val date = if (context.includeDate) "\"date\": \"${LocalDate.now()}\"," else ""
+    val weather = if (context.includeWeather) "\"weather\": \"<INSERT>\"," else ""
+
+    return """
+            Context: {
+              "location": "${context.location}",
+              $radius
+              $date
+              $weather
+            }
+        """.trimIndent()
+  }
+
+  // ----------------------------------------------------------------------
+  // OUTPUT FORMAT — ultra-compact schema (no example JSON)
+  // ----------------------------------------------------------------------
+  private fun outputFormatBlock(): String = """
+        Output:
+        Return ONLY a JSON array of:
+        {
+          id: String,
+          title: String,
+          description: String | null,
+          date: "YYYY-MM-DD'T'HH:mm",
+          tags: [String],
+          creator: String,
+          participants: [String],
+          location: { lat: Double, lon: Double },
+          eventPicture: null
+        }
+        No commentary or markdown.
     """.trimIndent()
-
-  private fun userProfileBlock(profile: UserProfile): String =
-      """
-        User Profile:
-        UID: ${profile.uid}
-        Name: ${profile.firstName} ${profile.lastName}
-        Age: ${calculateAge(profile.dateOfBirth)}
-        Country: ${profile.country}
-        Description: ${profile.description ?: "No description provided"}
-        Interests (tags): ${profile.tags.joinToString(", ")}
-        """
-          .trimIndent()
-
-  // TODO! Figure out how weather data can be incorporated
-  private fun contextBlock(context: ContextConfig): String = """
-        Context:
-        Location:${context.location},
-        ${context.radiusKm?.let { "Search Radius: $it km" } ?: ""}
-        ${if (context.includeDate) "Current Date: ${LocalDate.now()}" else ""}
-        ${if (context.includeWeather) "Weather: <INSERT WEATHER DATA>" else ""}
-    """.trimIndent()
-
-  // TODO! See if this is optimal,
-  // TODO! id cannot be defined here. We need to define the id later on in the flow.
-  private fun outputFormatBlock(): String =
-      """
-        Response Format:
-        Return ONLY valid JSON. No commentary, no markdown, no explanations.
-        
-        Event Object Definition:
-        id: String
-        title: String
-        description: String | null
-        date: LocalDateTime "yyyy-MM-dd'T'HH:mm"
-        tags: Set<Tag>
-        creator: String
-        participants: Set<String>
-        location: Location(latitude: Double, longitude: Double)
-        eventPicture: ByteArray | null
-        
-        Tags must be returned using display names exactly as provided:
-        ["Metal", "Rock", "Jazz"]
-
-        JSON Example Structure:
-        [
-          {
-            "id": "example-id-123",
-            "title": "Rock Night at Flon",
-            "description": "Local metal event",
-            "date": "2025-03-21T20:00",
-            "tags": ["Music", "Metal"],
-            "creator": "example-user-id",
-            "participants": ["user-1", "user-2"],
-            "location": { "latitude": 46.52, "longitude": 6.63 },
-            "eventPicture": null
-          }
-        ]
-        """
-          .trimIndent()
 
   private fun calculateAge(dob: LocalDate): Int {
     return Period.between(dob, LocalDate.now()).years

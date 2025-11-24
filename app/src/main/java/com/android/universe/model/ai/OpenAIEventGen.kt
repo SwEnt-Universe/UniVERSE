@@ -19,8 +19,14 @@ class OpenAIEventGen(
 		val request = ChatCompletionRequest(
 			model = "gpt-5-nano",
 			messages = listOf(
-				Message(role = "system", content = "You are UniVERSE Event Curator."),
-				Message(role = "user", content = prompt)
+				Message(
+					role = "system",
+					content = "You are UniVERSE EventCuratorGPT. Always output ONLY valid JSON arrays of event objects."
+				),
+				Message(
+					role = "user",
+					content = prompt
+				)
 			),
 			max_tokens = 800,
 			temperature = 0.9
