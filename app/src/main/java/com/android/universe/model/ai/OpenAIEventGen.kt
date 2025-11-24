@@ -4,6 +4,10 @@ import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.event.Event
 
 private const val MAX_TOKENS = 800
+
+/**
+ * See [OpenAI pricing](https://platform.openai.com/docs/pricing?utm_source=chatgpt.com)
+ */
 private const val MODEL = "gpt-4o-mini"
 
 class OpenAIEventGen(private val service: OpenAIService) : EventGen {
