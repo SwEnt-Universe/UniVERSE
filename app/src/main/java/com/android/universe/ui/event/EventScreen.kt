@@ -1,6 +1,7 @@
 package com.android.universe.ui.event
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -60,10 +61,8 @@ object EventScreenTestTags {
 fun EventScreen(
     onTabSelected: (Tab) -> Unit = {},
     uid: String = "",
-    viewModel: EventViewModel = viewModel(),
-    backdrop: LayerBackdrop? = null
+    viewModel: EventViewModel = viewModel()
 ) {
-    //Image(image!!, modifier = Modifier.layerBackdrop(backdrop).blur(8.dp), contentDescription = "background")
   val context = LocalContext.current
   LaunchedEffect(uid) {
     if (viewModel.storedUid != uid) {
@@ -83,25 +82,31 @@ fun EventScreen(
   val focusManager = LocalFocusManager.current
 
   Scaffold(
-      //TODO
       containerColor = Color.Transparent,
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
       contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
       bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { _ ->
         Column(
             modifier =
-                Modifier.fillMaxSize().padding(horizontal = PaddingMedium).clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
-                      focusManager.clearFocus()
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = PaddingMedium)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }) {
+                        focusManager.clearFocus()
                     }) {
               SearchBar(
                   query = viewModel.searchQuery.collectAsState().value,
                   onQueryChange = viewModel::updateSearchQuery,
-                  modifier = Modifier.padding(PaddingMedium).testTag(SearchTestTags.SEARCH_BAR))
+                  modifier = Modifier
+                      .padding(PaddingMedium)
+                      .testTag(SearchTestTags.SEARCH_BAR))
 
               LazyColumn(
-                  modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
+                  modifier = Modifier
+                      .fillMaxSize()
+                      .testTag(EventScreenTestTags.EVENTS_LIST),
                   verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
                     items(events) { event -> EventCard(event = event, viewModel = viewModel) }
                   }

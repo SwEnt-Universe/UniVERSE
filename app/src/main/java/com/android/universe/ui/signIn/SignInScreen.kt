@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -84,7 +85,7 @@ fun SignInScreen(
     }
   }
 
-  Scaffold(modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN).fillMaxSize()) {
+  Scaffold(modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN).fillMaxSize(), containerColor = Color.Transparent) {
       paddingValues ->
     Column(
         modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 32.dp),

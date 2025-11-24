@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -202,6 +203,7 @@ fun SettingsScreenContent(
       },
       onDismiss = { showDialog.value = false })
   Scaffold(
+      containerColor = Color.Transparent,
       topBar = {
         TopAppBar(
             title = {
@@ -218,6 +220,7 @@ fun SettingsScreenContent(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
             },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
