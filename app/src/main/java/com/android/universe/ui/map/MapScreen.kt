@@ -190,8 +190,7 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab ->
           val view = mapViewInstance
-          //TODO IF TAB != MAP THEN SAVE SNAPSHOT
-          if (view != null) {
+          if (!uiState.isLoading && uiState.isMapInteractive && view != null && tab != Tab.Map) {
               view.takeSnapshot { bmp ->
                   if(bmp != null){
                       BackgroundSnapshotRepository.updateSnapshot(bmp)
@@ -248,6 +247,14 @@ fun MapScreen(
                     contentAlignment = Alignment.BottomCenter) {
                       LiquidButton(
                           onClick = {
+                              val view = mapViewInstance
+                              if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
+                                  view.takeSnapshot { bmp ->
+                                      if(bmp != null){
+                                          BackgroundSnapshotRepository.updateSnapshot(bmp)
+                                      }
+                                  }
+                              }
                             createEvent(
                                 uiState.selectedLocation!!.latitude,
                                 uiState.selectedLocation!!.longitude)
@@ -323,8 +330,7 @@ fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
         mapKey = BuildConfig.TOMTOM_API_KEY,
         mapStyle =
             StyleDescriptor(
-                //TODO RESTORE KEY
-                Uri.parse(Dimensions.MapStyleText)),
+                Uri.parse("https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
         renderToTexture = true)
   }
 
@@ -425,7 +431,18 @@ private fun TomTomMap.executeMapAction(action: MapAction) {
     }
   }
 }
-//TODO DOC
+
+/**
+ * Recursively searches this view hierarchy for the TextureView used to render
+ * the TomTom map.
+ *
+ * TomTom's MapView internally contains multiple nested views. Depending on
+ * configuration (e.g., `renderToTexture = true`), the actual rendered map
+ * surface may be hosted inside a `TextureView`. This method walks the view
+ * tree in depth-first order and returns the first `TextureView` encountered.
+ *
+ * @return The first discovered [TextureView] instance, or `null` if none exists.
+ */
 fun View.findRenderingView(): View? {
     if (this is TextureView) return this
 
@@ -437,11 +454,35 @@ fun View.findRenderingView(): View? {
     }
     return null
 }
-//TODO DOC
+
+/**
+ * Retrieves the internal rendering view used by this [MapView].
+ *
+ * This is a convenience wrapper around [findRenderingView], which performs a
+ * recursive traversal of the MapView's internal view hierarchy to locate the
+ * map rendering surface (normally a [TextureView] when `renderToTexture = true`).
+ *
+ * @return The underlying rendering view, or `null` if none is found.
+ */
 fun MapView.getRendererView(): View? {
     return this.findRenderingView()
 }
-//TODO COD
+
+/**
+ * Captures a bitmap snapshot of the visible contents rendered by this [MapView].
+ *
+ * The function attempts to locate the internal rendering surface (usually a
+ * [TextureView]) via [getRendererView]. If successful, a bitmap of equal size
+ * is created and populated using [PixelCopy]. PixelCopy ensures accurate,
+ * GPU-correct rendering even when the map is drawn on a separate hardware layer.
+ *
+ * Because snapshotting is asynchronous, the result is delivered via a callback.
+ * If the rendering view cannot be found, has invalid size, or PixelCopy fails,
+ * the callback receives `null`.
+ *
+ * @param onResult Callback invoked with the resulting [Bitmap], or `null`
+ *                 if snapshot acquisition failed.
+ */
 fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
 
     val renderer = getRendererView() ?: return onResult(null)

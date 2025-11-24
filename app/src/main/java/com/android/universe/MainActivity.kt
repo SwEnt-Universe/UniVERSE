@@ -1,14 +1,8 @@
 package com.android.universe
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.SurfaceTexture
 import android.os.Bundle
-import android.view.PixelCopy
-import android.view.Surface
-import android.view.SurfaceView
-import android.view.TextureView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,13 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -108,7 +99,10 @@ class MainActivity : ComponentActivity() {
     }
   }
 }
-
+private object Common{
+    const val BACKGROUNDTEXT = "Background"
+    val BLURVALUE = 8.dp
+}
 /**
  * The main composable for the Universe app.
  *
@@ -125,13 +119,10 @@ fun UniverseApp(
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
     val backdrop = LocalLayerBackdrop.current
-    //TODO REPO HANDLING
     val repo = BackgroundSnapshotRepository
     repo.loadInitialSnapshot(context)
     val bitmap = repo.currentSnapshot ?: BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2).asImageBitmap()
   // Hold the start destination in state
-
-    Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(8.dp), contentDescription = "background")
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
     startDestination = resolveUserDestinationScreen(userRepository = userRepository)
@@ -139,6 +130,7 @@ fun UniverseApp(
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
       LinearProgressIndicator()
     }
   } else {
@@ -162,6 +154,7 @@ fun UniverseApp(
                           )
                       }
                   }
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   SignInScreen(
                       onSignedIn = {
                           mainActivityScope.launch {
@@ -178,6 +171,7 @@ fun UniverseApp(
               route = NavigationScreens.AddProfile.name,
           ) {
               composable(NavigationScreens.AddProfile.route) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   AddProfileScreen(
                       uid = authInstance.currentUser!!.uid,
                       navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
@@ -208,6 +202,7 @@ fun UniverseApp(
                           )
                       }
                   }
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   EmailVerificationScreen(
                       user = authInstance.currentUser!!,
                       onSuccess = {
@@ -225,6 +220,7 @@ fun UniverseApp(
               startDestination = NavigationScreens.SelectTagUser.route
           ) {
               composable(NavigationScreens.SelectTagUser.route) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   SelectTagScreen(
                       uid = authInstance.currentUser!!.uid,
                       navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
@@ -249,6 +245,7 @@ fun UniverseApp(
               route = NavigationScreens.Event.name,
           ) {
               composable(NavigationScreens.Event.route) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
               }
           }
@@ -258,6 +255,7 @@ fun UniverseApp(
               route = NavigationScreens.Chat.name,
           ) {
               composable(NavigationScreens.Chat.route) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   ChatListScreen(
                       userID = authInstance.currentUser!!.uid,
                       onTabSelected = onTabSelected,
@@ -278,6 +276,7 @@ fun UniverseApp(
                           navArgument("chatID") { type = NavType.StringType },
                           navArgument("chatName") { type = NavType.StringType })
               ) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   ChatScreen(
                       chatID = it.arguments?.getString("chatID")!!,
                       chatName = it.arguments?.getString("chatName")!!,
@@ -292,6 +291,7 @@ fun UniverseApp(
               route = NavigationScreens.Profile.name,
           ) {
               composable(NavigationScreens.Profile.route) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   UserProfileScreen(
                       uid = authInstance.currentUser!!.uid,
                       onTabSelected = onTabSelected,
@@ -309,6 +309,7 @@ fun UniverseApp(
               route = NavigationScreens.Settings.route,
               arguments = listOf(navArgument("uid") { type = NavType.StringType })
           ) { backStackEntry ->
+              Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
               val uid = backStackEntry.arguments?.getString("uid") ?: "0"
               SettingsScreen(
                   uid = uid,
@@ -334,6 +335,7 @@ fun UniverseApp(
                           navArgument("latitude") { type = NavType.FloatType },
                           navArgument("longitude") { type = NavType.FloatType })
               ) { backStackEntry ->
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
                   val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
 
@@ -349,6 +351,7 @@ fun UniverseApp(
               composable(
                   route = NavigationScreens.SelectTagEvent.route,
               ) {
+                  Image(bitmap, modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE), contentDescription = Common.BACKGROUNDTEXT)
                   SelectTagScreen(
                       selectTagMode = SelectTagMode.EVENT_CREATION,
                       uid = authInstance.currentUser!!.uid,
