@@ -4,44 +4,44 @@ import com.android.universe.model.ai.prompt.ContextConfig
 import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
-import com.android.universe.model.user.UserProfile
 
-class OpenAIEventGen(private val service: OpenAIService) : EventGen {
+class OpenAIEventGen(
+  private val service: OpenAIService
+) : EventGen {
 
-  override suspend fun generateEventsForUser(
-      profile: UserProfile,
-      task: TaskConfig,
-      context: ContextConfig
-  ): List<Event> {
+  override suspend fun generateEvents(query: EventQuery): List<Event> {
 
-    // 1: build the prompt with task + context
-    val SYSTEM_MESSAGE =
-        "You are UniVERSE EventCuratorGPT. Always output ONLY valid JSON arrays of event objects."
+    val systemMessage =
+      "You are UniVERSE EventCuratorGPT. Always output ONLY valid JSON arrays of event objects."
 
-    val prompt = PromptBuilder.build(profile = profile, task = task, context = context)
+    // Build prompt using user + task + context
+    val prompt = PromptBuilder.build(
+      profile = query.user,
+      task = query.task,
+      context = query.context
+    )
 
-    // 2: create request
-    val request =
-        ChatCompletionRequest(
-            model = "gpt-5-nano",
-            messages =
-                listOf(
-                    Message(role = "system", content = SYSTEM_MESSAGE),
-                    Message(role = "user", content = prompt)),
-            max_tokens = 800,
-            temperature = 0.9)
+    // Build OpenAI request
+    val request = ChatCompletionRequest(
+      model = "gpt-5-nano",
+      messages = listOf(
+        Message("system", systemMessage),
+        Message("user", prompt)
+      ),
+      max_tokens = 800,
+      temperature = 0.9
+    )
 
-    // 3: OpenAI API call
+    // Call OpenAI API
     val response = service.chatCompletion(request)
     if (!response.isSuccessful) {
       throw IllegalStateException("OpenAI error: ${response.code()} ${response.message()}")
     }
 
-    val json =
-        response.body()?.choices?.first()?.message?.content
-            ?: throw IllegalStateException("OpenAI returned empty response")
+    val json = response.body()?.choices?.first()?.message?.content
+      ?: throw IllegalStateException("OpenAI returned empty response")
 
-    // 4: parse JSON to Event objects
+    // Parse to domain objects
     return ResponseParser.parseEvents(json)
   }
 }

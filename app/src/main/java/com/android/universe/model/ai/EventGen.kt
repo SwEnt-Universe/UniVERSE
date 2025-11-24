@@ -8,14 +8,20 @@ import com.android.universe.model.user.UserProfile
 /**
  * Defines the contract for generating event suggestions.
  *
- * Example usage: val events = eventGen.generateEventsForUser(profile)
+ * Example usage:
+ * val query = EventQuery(
+ *     user = profile,
+ *     task = TaskConfig(eventSum = 5),             // generate 5 events
+ *     context = ContextConfig(
+ *         location = "Lausanne",
+ *         radiusKm = 5,
+ *         timeFrame = "today"
+ *     )
+ * )
+ *
+ * generateEvents(query)
  */
 interface EventGen {
-
-  /** Generates events based on user profile */
-  suspend fun generateEventsForUser(
-      profile: UserProfile,
-      task: TaskConfig = TaskConfig.Default,
-      context: ContextConfig = ContextConfig.Default
-  ): List<Event>
+  suspend fun generateEvents(query: EventQuery): List<Event>
 }
+
