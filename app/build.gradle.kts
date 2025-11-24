@@ -339,20 +339,20 @@ dependencies {
   implementation("com.squareup.retrofit2:retrofit:2.11.0")
   implementation(
       "com.squareup.retrofit2:converter-gson:2.11.0") // Legacy Gson support (kept only for existing
-                                                      // endpoints)
+  // endpoints)
 
   // Primary JSON library in 2025 – type-safe, null-safe, Kotlin-first
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
   implementation(
       "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0") // Preferred
-                                                                                  // converter for
-                                                                                  // new APIs
+  // converter for
+  // new APIs
 
   // OkHttp – explicit version to guarantee logging-interceptor compatibility
   implementation("com.squareup.okhttp3:okhttp:4.12.0")
   implementation(
       "com.squareup.okhttp3:logging-interceptor:4.12.0") // Debug logging (automatically disabled in
-                                                         // release via ProGuard/R8)
+  // release via ProGuard/R8)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
