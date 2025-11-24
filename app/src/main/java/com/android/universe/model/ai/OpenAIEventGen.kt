@@ -4,6 +4,9 @@ import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.event.Event
 import com.android.universe.model.user.UserProfile
 
+/**
+ * @see <a href="https://platform.openai.com/docs/pricing?utm_source=chatgpt.com"> OpenAI Model Pricing
+ */
 class OpenAIEventGen(
 	private val service: OpenAIService
 ) : EventGen {
@@ -14,7 +17,7 @@ class OpenAIEventGen(
 
 		// 2: create request
 		val request = ChatCompletionRequest(
-			model = "gpt-4o-mini",
+			model = "gpt-5-nano",
 			messages = listOf(
 				Message(role = "system", content = "You are UniVERSE Event Curator."),
 				Message(role = "user", content = prompt)
