@@ -22,9 +22,9 @@ class FlowBottomMenuTest {
       FlowBottomMenu(onBackClicked = {}, onContinueClicked = {})
     }
 
-    composeTestRule.onNodeWithTag("FlowBottomMenu").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("BtnBack").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("BtnContinue").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.MENU).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONTINUE_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -37,10 +37,10 @@ class FlowBottomMenuTest {
           onBackClicked = { backClicked = true }, onContinueClicked = { continueClicked = true })
     }
 
-    composeTestRule.onNodeWithTag("BtnBack").performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
     assertTrue("Back callback should be invoked", backClicked)
 
-    composeTestRule.onNodeWithTag("BtnContinue").performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONTINUE_BUTTON).performClick()
     assertTrue("Continue callback should be invoked", continueClicked)
   }
 }

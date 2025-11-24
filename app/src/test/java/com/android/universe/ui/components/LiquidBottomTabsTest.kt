@@ -29,6 +29,12 @@ class LiquidBottomTabsTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
+  private companion object {
+    const val TAG_LIQUID_TABS = "LiquidTabs"
+    const val TAG_TAB_0 = "Tab0"
+    const val TAG_TAB_1 = "Tab1"
+  }
+
   @Test
   fun liquidBottomTabs_rendersContent() {
     composeTestRule.setContentWithStubBackdrop {
@@ -99,14 +105,14 @@ class LiquidBottomTabsTest {
             selectedTabIndex = { -1 },
             onTabSelected = {},
             tabsCount = 2,
-            modifier = Modifier.testTag("LiquidTabs")) {
+            modifier = Modifier.testTag(TAG_LIQUID_TABS)) {
               Box(Modifier.size(50.dp))
               Box(Modifier.size(50.dp))
             }
       }
     }
 
-    composeTestRule.onNodeWithTag("LiquidTabs").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_LIQUID_TABS).assertIsDisplayed()
   }
 
   @Test
@@ -119,22 +125,24 @@ class LiquidBottomTabsTest {
             selectedTabIndex = { selectedIndex.intValue },
             onTabSelected = { selectedIndex.intValue = it },
             tabsCount = 2,
-            modifier = Modifier.testTag("LiquidTabs")) {
+            modifier = Modifier.testTag(TAG_LIQUID_TABS)) {
               LiquidBottomTab(
-                  onClick = { selectedIndex.intValue = 0 }, modifier = Modifier.testTag("Tab0")) {
+                  onClick = { selectedIndex.intValue = 0 },
+                  modifier = Modifier.testTag(TAG_TAB_0)) {
                     Box(Modifier.size(50.dp))
                   }
 
               LiquidBottomTab(
-                  onClick = { selectedIndex.intValue = 1 }, modifier = Modifier.testTag("Tab1")) {
+                  onClick = { selectedIndex.intValue = 1 },
+                  modifier = Modifier.testTag(TAG_TAB_1)) {
                     Box(Modifier.size(50.dp))
                   }
             }
       }
     }
 
-    composeTestRule.onNodeWithTag("LiquidTabs").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("Tab0").performClick()
-    composeTestRule.onNodeWithTag("LiquidTabs").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_LIQUID_TABS).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(TAG_TAB_0).performClick()
+    composeTestRule.onNodeWithTag(TAG_TAB_1).assertIsDisplayed()
   }
 }

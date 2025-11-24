@@ -21,6 +21,13 @@ import com.android.universe.ui.components.LiquidBottomTab
 import com.android.universe.ui.components.LiquidBottomTabs
 import com.android.universe.ui.theme.Dimensions
 
+/** Constants used for tagging UI elements in [FlowBottomMenu] for testing purposes. */
+object FlowBottomMenuTestTags {
+  const val MENU = "FlowBottomMenu"
+  const val BACK_BUTTON = "BtnBack"
+  const val CONTINUE_BUTTON = "BtnContinue"
+}
+
 /**
  * Represents an action tab in the flow bottom bar.
  *
@@ -59,7 +66,7 @@ fun FlowBottomMenu(
         }
       },
       tabsCount = flowTabs.count(),
-      modifier = Modifier.testTag("FlowBottomMenu")) {
+      modifier = Modifier.testTag(FlowBottomMenuTestTags.MENU)) {
         flowTabs.forEach { tab ->
           LiquidBottomTab(
               onClick = {
@@ -67,7 +74,10 @@ fun FlowBottomMenu(
 
                 if (tab is FlowTab.Back) onBackClicked() else onContinueClicked()
               },
-              modifier = Modifier.testTag(if (tab is FlowTab.Back) "BtnBack" else "BtnContinue")) {
+              modifier =
+                  Modifier.testTag(
+                      if (tab is FlowTab.Back) FlowBottomMenuTestTags.BACK_BUTTON
+                      else FlowBottomMenuTestTags.CONTINUE_BUTTON)) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center) {
