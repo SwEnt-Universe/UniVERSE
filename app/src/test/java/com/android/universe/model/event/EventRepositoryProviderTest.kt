@@ -32,6 +32,8 @@ class EventRepositoryProviderTest {
 
           override suspend fun getSuggestedEventsForUser(user: UserProfile) = emptyList<Event>()
 
+          override suspend fun getUserInvolvedEvents(userId: String): List<Event> = emptyList()
+
           override suspend fun addEvent(event: Event) {}
 
           override suspend fun updateEvent(eventId: String, newEvent: Event) {}
