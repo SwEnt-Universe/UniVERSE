@@ -122,7 +122,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   val layerBackdrop = LocalLayerBackdrop.current
-    var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
+  var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
 
   // Local cache for marker click handling (ID -> Event)
@@ -263,6 +263,7 @@ fun MapScreen(
                     }
               }
               // Overlays
+            //TODO
               if (false) {
                 CircularProgressIndicator(
                     modifier =
@@ -465,26 +466,6 @@ fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
         }
 
         else -> onResult(null)
-    }
-}
-//TODO KEEP OR LEAVE
-fun saveSnapshotToFile(context: Context, bitmap: Bitmap): File? {
-    return try {
-        val picturesDir = context.getExternalFilesDir("snapshots")
-        if (picturesDir != null && !picturesDir.exists()) {
-            picturesDir.mkdirs()
-        }
-
-        val file = File(picturesDir, "map_snapshot_${System.currentTimeMillis()}.png")
-
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-        }
-
-        file
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
     }
 }
 

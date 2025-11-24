@@ -19,10 +19,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -31,6 +34,9 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.search.SearchBar
 import com.android.universe.ui.search.SearchTestTags
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 
 object EventScreenTestTags {
@@ -54,8 +60,10 @@ object EventScreenTestTags {
 fun EventScreen(
     onTabSelected: (Tab) -> Unit = {},
     uid: String = "",
-    viewModel: EventViewModel = viewModel()
+    viewModel: EventViewModel = viewModel(),
+    backdrop: LayerBackdrop? = null
 ) {
+    //Image(image!!, modifier = Modifier.layerBackdrop(backdrop).blur(8.dp), contentDescription = "background")
   val context = LocalContext.current
   LaunchedEffect(uid) {
     if (viewModel.storedUid != uid) {
