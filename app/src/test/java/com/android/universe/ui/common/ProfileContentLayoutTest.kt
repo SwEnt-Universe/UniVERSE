@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.core.graphics.createBitmap
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -79,7 +80,27 @@ class ProfileContentLayoutTest {
   }
 
   @Test
-  fun profileContent_actionsRow_isDisplayed_whenNoSettings() {
+  fun profileContent_settingsButton_isNotDisplayed_whenOnSettingsIsNull() {
+    setProfileContent(onSettingsClick = null)
+
+    composeTestRule.onNodeWithTag(ProfileContentTestTags.SETTINGS_BUTTON).assertDoesNotExist()
+  }
+
+  @Test
+  fun profileContent_actionsRow_isNotDisplayed_whenSettingsProvided() {
+    setProfileContent(onSettingsClick = {})
+
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.CHAT_BUTTON}_${testUserProfile.uid}")
+        .assertDoesNotExist()
+
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.ADD_BUTTON}_${testUserProfile.uid}")
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun profileContent_actionsRow_isDisplayed_whenSettingsIsNull() {
     var chatClicked = false
     var addClicked = false
 
@@ -101,5 +122,26 @@ class ProfileContentLayoutTest {
     setProfileContent()
 
     composeTestRule.onNodeWithTag(ProfileContentTestTags.TAGS_COLUMN).assertExists()
+  }
+
+  @Test
+  fun profileContent_displaysFollowersAndFollowingCounts() {
+    setProfileContent(followers = 100, following = 50)
+
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${testUserProfile.uid}")
+        .assertExists()
+
+    composeTestRule.onNodeWithText("100").assertExists()
+
+    composeTestRule.onNodeWithText("followers").assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${testUserProfile.uid}")
+        .assertExists()
+
+    composeTestRule.onNodeWithText("50").assertExists()
+
+    composeTestRule.onNodeWithText("following").assertExists()
   }
 }
