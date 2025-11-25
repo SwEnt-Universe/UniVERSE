@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.scale
 import androidx.core.view.children
 import androidx.core.view.drawToBitmap
 import androidx.lifecycle.Lifecycle
@@ -57,6 +58,7 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.tomtom.sdk.common.Bundle
@@ -183,7 +185,11 @@ fun MapScreen(
                   tab != Tab.Map) {
                 view.takeSnapshot { bmp ->
                   if (bmp != null) {
-                    BackgroundSnapshotRepository.updateSnapshot(bmp)
+                    val scaled =
+                        bmp.scale(
+                            (bmp.width * Dimensions.ImageScale).toInt(),
+                            (bmp.height * Dimensions.ImageScale).toInt())
+                    BackgroundSnapshotRepository.updateSnapshot(scaled)
                   }
                 }
               }
@@ -233,7 +239,11 @@ fun MapScreen(
                             if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
                               view.takeSnapshot { bmp ->
                                 if (bmp != null) {
-                                  BackgroundSnapshotRepository.updateSnapshot(bmp)
+                                  val scaled =
+                                      bmp.scale(
+                                          (bmp.width * Dimensions.ImageScale).toInt(),
+                                          (bmp.height * Dimensions.ImageScale).toInt())
+                                  BackgroundSnapshotRepository.updateSnapshot(scaled)
                                 }
                               }
                             }

@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -58,6 +59,7 @@ import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
@@ -120,9 +122,12 @@ fun UniverseApp(
   val backdrop = LocalLayerBackdrop.current
   val repo = BackgroundSnapshotRepository
   repo.loadInitialSnapshot(context)
+  val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
   val bitmap =
       repo.currentSnapshot
-          ?: BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
+          ?: res.scale(
+                  (res.width * Dimensions.ImageScale).toInt(),
+                  (res.height * Dimensions.ImageScale).toInt())
               .asImageBitmap()
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }

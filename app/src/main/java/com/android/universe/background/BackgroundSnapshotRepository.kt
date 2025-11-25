@@ -8,69 +8,64 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.scale
 import com.android.universe.R
+import com.android.universe.ui.theme.Dimensions
 
 /**
- * A lightweight in-memory repository responsible for storing and providing the background image
- * used across the app (e.g., blurred map snapshot).
+ * Holds the background image used across the app (typically a blurred map snapshot).
  *
- * ## Purpose
- * The repository serves two roles:
- * 1. **Default background** When the user has not yet visited the Map screen, the UI needs a
- *    default fallback background. This is provided by loading a static image from resources, e.g.
- *    `R.drawable.map_snapshot2`.
- * 2. **Dynamic background from Map snapshots** Once the user interacts with the Map screen and
- *    navigates away, a snapshot is taken and stored here. Every screen observing this repository
- *    automatically updates to display the new snapshot as its backdrop.
+ * This repository keeps the most recent background **in memory only**, exposed as a Compose state
+ * so that all screens automatically recompose when the value changes.
  *
- * ## Why Compose State?
- * `currentSnapshot` is backed by `mutableStateOf`, meaning:
- * - All screens recomposing when this value changes update instantly.
- * - No manual state management or LiveData/Flow required.
+ * ## What this repository does
+ * - Provides a **default background** when the app starts (from a drawable resource).
+ * - Stores a **dynamic snapshot** taken from the Map screen when the user leaves it.
+ * - Makes the background available to all screens through `currentSnapshot`.
  *
- * ## Persistence
- * This object **does not persist** snapshots to disk. It only keeps them in memory during the app's
- * lifecycle. The expectation is:
- * - If the app cold-starts → load fallback image.
- * - After Map screen updates snapshot → use the latest snapshot.
+ * ## What this repository does not do
+ * - It does not persist the snapshot to disk.
+ * - It does not apply blur, callers may do so before passing the bitmap.
  *
- * If persistent storage is needed, this repository could be extended later.
+ * ## Lifecycle expectations
+ * - On cold start, `loadInitialSnapshot()` should be called once to set the fallback background.
+ * - When leaving the map, `updateSnapshot(bitmap)` should be called to update the in-memory value.
+ * - Any Composable that reads `currentSnapshot` will recompose automatically.
  */
 object BackgroundSnapshotRepository {
 
   /**
-   * The current background snapshot exposed as a Compose state.
-   * - `null` initially (before anything is loaded)
-   * - Set to a default image via [loadInitialSnapshot] on first app launch
-   * - Updated dynamically through [updateSnapshot] whenever the map generates a new snapshot
+   * The current background image.
+   * - `null` until the app loads the fallback snapshot
+   * - Updated when the Map screen provides a new snapshot
    *
-   * Any composable reading this value will automatically recompose on change.
+   * Exposed as Compose state so screens recompose on change.
    */
   var currentSnapshot by mutableStateOf<ImageBitmap?>(null)
 
   /**
-   * Loads the default background image **only if** a snapshot is not already set.
+   * Loads the fallback background image from resources. Scaled Does nothing if a snapshot is
+   * already set.
    *
-   * Should typically be called once in `MainActivity` or early in app startup.
-   *
-   * @param context Application context, needed to decode drawable resources.
+   * Should be called once during app initialization.
    */
   fun loadInitialSnapshot(context: Context) {
     if (currentSnapshot != null) return
     val bmp = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
     if (bmp != null) {
-      currentSnapshot = bmp.asImageBitmap()
-      return
+      currentSnapshot =
+          bmp.scale(
+                  (bmp.width * Dimensions.ImageScale).toInt(),
+                  (bmp.height * Dimensions.ImageScale).toInt())
+              .asImageBitmap()
     }
   }
 
   /**
-   * Replaces the current snapshot with a new bitmap.
+   * Updates the current in-memory background snapshot. The UI will recompose wherever
+   * `currentSnapshot` is used.
    *
-   * This is called from the Map screen whenever a fresh snapshot is captured. The UI observing
-   * [currentSnapshot] will recompose immediately.
-   *
-   * @param bitmap The new map snapshot to use as background.
+   * @param bitmap A snapshot created by the Map screen (may be pre-processed before calling).
    */
   fun updateSnapshot(bitmap: Bitmap) {
     currentSnapshot = bitmap.asImageBitmap()
