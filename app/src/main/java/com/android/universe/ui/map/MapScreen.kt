@@ -3,6 +3,7 @@ package com.android.universe.ui.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,6 +37,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
@@ -54,17 +56,14 @@ import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.camera.CameraOptions
-import com.tomtom.sdk.map.display.camera.CameraSteadyListener
-import com.tomtom.sdk.map.display.gesture.MapClickListener
-import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.image.ImageFactory
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
-import com.tomtom.sdk.map.display.marker.MarkerClickListener
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import kotlinx.coroutines.withContext
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -222,7 +221,7 @@ fun MapScreen(
               }
 
               uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
+                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(padding)) {
                   Text(errorMessage)
                 }
               }
@@ -276,7 +275,7 @@ fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
         Lifecycle.Event.ON_RESUME -> mapView.onResume()
         Lifecycle.Event.ON_PAUSE -> mapView.onPause()
         Lifecycle.Event.ON_STOP -> mapView.onStop()
-        else -> {}
+        else -> { /* DO NOTHING */ }
       }
     }
     lifecycle.addObserver(observer)
@@ -326,25 +325,21 @@ private fun TomTomMap.setUpMapListeners(
     onCameraChange: (GeoPoint, Double) -> Unit
 ) {
 
-  this.addMapClickListener(
-      MapClickListener {
-        onMapClick()
-        true
-      })
+  this.addMapClickListener {
+      onMapClick()
+      true
+  }
 
-  this.addMapLongClickListener(
-      MapLongClickListener { geoPoint ->
+    this.addMapLongClickListener { geoPoint ->
         onMapLongClick(geoPoint)
         true
-      })
+    }
 
-  this.addMarkerClickListener(
-      MarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker.id) })
+    this.addMarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker.id) }
 
-  this.addCameraSteadyListener(
-      CameraSteadyListener {
+    this.addCameraSteadyListener {
         onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
-      })
+    }
 }
 
 private fun TomTomMap.setInitialCamera(position: GeoPoint, zoom: Double) {
@@ -363,32 +358,43 @@ private fun TomTomMap.executeMapAction(action: MapAction) {
   }
 }
 
-private fun TomTomMap.syncEventMarkers(
+private suspend fun TomTomMap.syncEventMarkers(
     markers: List<MapMarkerUiModel>,
     markerMap: MutableMap<UniqueId, Event>
 ) {
-  this.removeMarkers("event")
+  val pin = ImageFactory.fromResource(R.drawable.ic_marker_icon)
+  val optionsAndEvents = withContext(DefaultDP.default) {
+      markers.map {
+          val eventPicture = it.event.eventPicture
+          val image = if (eventPicture != null) ImageFactory.fromBitmap(BitmapFactory.decodeByteArray(eventPicture, 0, eventPicture.size)) else ImageFactory.fromResource(it.iconResId)
+          Triple(it, image, it.event)
+      }
+  }
+  this@syncEventMarkers.removeMarkers("event")
   markerMap.clear()
 
-  markers.forEach { markerModel ->
+  optionsAndEvents.forEach { (markerModel, image, event) ->
     val markerOptions =
         MarkerOptions(
             tag = "event",
             coordinate = markerModel.position,
-            pinImage = ImageFactory.fromResource(markerModel.iconResId))
-    val addedMarker = this.addMarker(markerOptions)
-    markerMap[addedMarker.id] = markerModel.event
+            pinImage = pin,
+            pinIconImage = image
+            )
+    val addedMarker = this@syncEventMarkers.addMarker(markerOptions)
+    markerMap[addedMarker.id] = event
   }
 }
 
-private fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
+private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
   this.removeMarkers("selected_location")
+  val image = withContext(DefaultDP.default) { ImageFactory.fromResource(R.drawable.ic_marker_icon)}
   location?.let { geoPoint ->
     this.addMarker(
         MarkerOptions(
             tag = "selected_location",
             coordinate = geoPoint,
-            pinImage = ImageFactory.fromResource(R.drawable.ic_marker_icon)))
+            pinImage = image))
   }
 }
 
