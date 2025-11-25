@@ -6,8 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -22,14 +20,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.unit.dp
 import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
@@ -40,14 +35,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.universe.Common.BACKGROUNDTEXT
-import com.android.universe.Common.BLURVALUE
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.chat.ChatListScreen
 import com.android.universe.ui.chat.ChatScreen
+import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
@@ -68,7 +62,6 @@ import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
-import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
@@ -102,41 +95,6 @@ class MainActivity : ComponentActivity() {
   }
 }
 
-private object Common {
-  const val BACKGROUNDTEXT = "Background"
-  val BLURVALUE = 8.dp
-}
-
-/**
- * A default container for the background image and content.
- *
- * @param bitmap The bitmap to use as the background image.
- * @param content The content to display inside the container.
- */
-@Composable
-fun UniverseBackgroundContainer(bitmap: ImageBitmap, content: @Composable () -> Unit) {
-  Box(Modifier.fillMaxSize()) {
-    UniverseBackground(bitmap)
-    content()
-  }
-}
-
-/**
- * A composable for the background image.
- *
- * @param bitmap The bitmap to use as the background image.
- * @param modifier The modifier to apply to the background image.
- */
-@Composable
-fun UniverseBackground(bitmap: ImageBitmap, modifier: Modifier = Modifier) {
-  val backdrop = LocalLayerBackdrop.current
-
-  Image(
-      bitmap = bitmap,
-      modifier = modifier.fillMaxSize().layerBackdrop(backdrop),
-      contentDescription = BACKGROUNDTEXT)
-}
-
 /**
  * The main composable for the Universe app.
  *
@@ -152,7 +110,6 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
-  val backdrop = LocalLayerBackdrop.current
   val repo = BackgroundSnapshotRepository
   repo.loadInitialSnapshot(context)
   val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
@@ -169,11 +126,7 @@ fun UniverseApp(
   }
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      Image(
-          bitmap,
-          modifier = Modifier.layerBackdrop(backdrop).blur(Common.BLURVALUE),
-          contentDescription = Common.BACKGROUNDTEXT)
+    UniverseBackgroundContainer(bitmap, contentAlignment = Alignment.Center) {
       LinearProgressIndicator()
     }
   } else {
