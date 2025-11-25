@@ -130,8 +130,8 @@ fun ProfileContentLayout(
           userProfile = userProfile,
           followers = followers ?: 0,
           following = following ?: 0,
-          onChatClick = { onChatClick },
-          onAddClick = { onAddClick },
+          onChatClick = { onChatClick() },
+          onAddClick = { onAddClick() },
           modifier = Modifier.fillMaxWidth())
     }
   }

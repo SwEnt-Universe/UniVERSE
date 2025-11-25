@@ -90,7 +90,12 @@ fun UserInfoColumn(userProfile: UserProfile) {
  *   not.
  */
 @Composable
-fun ProfileImageBox(userProfile: UserProfile, userProfileImage: ImageBitmap, username: String, showUsernameOverlay: Boolean) {
+fun ProfileImageBox(
+    userProfile: UserProfile,
+    userProfileImage: ImageBitmap,
+    username: String,
+    showUsernameOverlay: Boolean
+) {
   Box(modifier = Modifier.fillMaxWidth()) {
     Box(
         modifier =
@@ -154,7 +159,8 @@ fun ProfileCardActionsRow(
             onClick = onChatClick,
             height = Dimensions.CardButtonHeight,
             width = Dimensions.CardButtonWidth,
-            modifier = Modifier.testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
+            modifier =
+                Modifier.testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
               Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.Chat,
@@ -169,7 +175,8 @@ fun ProfileCardActionsRow(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.testTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${userProfile.uid}")) {
+            modifier =
+                Modifier.testTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${userProfile.uid}")) {
               LiquidBox(
                   modifier = Modifier.size(40.dp).clip(CircleShape),
                   contentAlignment = Alignment.Center) {
@@ -187,7 +194,8 @@ fun ProfileCardActionsRow(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.testTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${userProfile.uid}")) {
+            modifier =
+                Modifier.testTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${userProfile.uid}")) {
               LiquidBox(
                   modifier = Modifier.size(40.dp).clip(CircleShape),
                   contentAlignment = Alignment.Center) {
@@ -207,7 +215,8 @@ fun ProfileCardActionsRow(
             onClick = onAddClick,
             height = Dimensions.CardButtonHeight,
             width = Dimensions.CardButtonWidth,
-            modifier = Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
+            modifier =
+                Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
               Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.PersonAdd,
