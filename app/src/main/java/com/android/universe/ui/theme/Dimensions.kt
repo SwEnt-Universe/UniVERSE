@@ -67,10 +67,14 @@ object Dimensions {
   // Thickness
   val ThicknessMedium = 2.dp
 
-  // Event card
-  val EventCardImageHeight = 180.dp
-  val EventCardButtonHeight = 40f
-  val EventCardButtonWidth = 100f
+  // Card
+  val CardImageHeight = 180.dp
+  val CardButtonHeight = 40f
+  val CardButtonWidth = 100f
+
+  // Card image tag overlay
+  val CardImageTagOverlayHeight = 30f
+  val CardImageTagOverlayWidth = 100f
 
   // Box size
   val BoxDescriptionSize = 80.dp
