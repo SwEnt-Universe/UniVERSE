@@ -332,7 +332,7 @@ fun TagGroup(
     interPaddingV: Dp = TagGroupDefaults.DefaultInterPaddingV,
     outerPaddingH: Dp = TagGroupDefaults.DefaultOuterPaddingH,
     outerPaddingV: Dp = TagGroupDefaults.DefaultOuterPaddingV,
-    name: String,
+    title: String,
     tagList: List<Tag>,
     selectedTags: List<Tag>,
     isSelectable: Boolean = true,
@@ -347,7 +347,7 @@ fun TagGroup(
     ) {
       if (displayText) {
         Text(
-            name,
+            title,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
       }

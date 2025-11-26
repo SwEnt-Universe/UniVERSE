@@ -91,7 +91,7 @@ fun SelectTagScreen(
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
         TagGroup(
-            name =
+            title =
                 when (category) {
                   Tag.Category.MUSIC -> "What kind of music are you into ?"
                   Tag.Category.SPORT -> "Which sports catch your interest ?"

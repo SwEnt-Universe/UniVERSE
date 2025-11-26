@@ -57,7 +57,7 @@ class TagDisplayTest {
   @Test
   fun displaysTitle_whenNameIsProvided() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(name = TOPICS.displayName, tagList = sampleTags, selectedTags = emptyList())
+      TagGroup(title = TOPICS.displayName, tagList = sampleTags, selectedTags = emptyList())
     }
 
     composeTestRule.onNodeWithText(TOPICS.displayName).assertIsDisplayed()
@@ -66,7 +66,7 @@ class TagDisplayTest {
   @Test
   fun doesNotDisplayTitle_whenNameIsEmpty() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(name = "", tagList = sampleTags, selectedTags = emptyList())
+      TagGroup(title = "", tagList = sampleTags, selectedTags = emptyList())
     }
 
     composeTestRule.onAllNodesWithText(TOPICS.displayName).assertCountEquals(0)
@@ -78,7 +78,7 @@ class TagDisplayTest {
 
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-          name = "Test",
+          title = "Test",
           tagList = sampleTags,
           selectedTags = emptyList(),
           onTagSelect = { tag -> selectedTag = tag.displayName })
@@ -94,7 +94,7 @@ class TagDisplayTest {
 
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-          name = "Test",
+          title = "Test",
           tagList = sampleTags,
           selectedTags = listOf(RUNNING),
           onTagReSelect = { tag -> reselectedTag = tag.displayName })
@@ -107,7 +107,7 @@ class TagDisplayTest {
   @Test
   fun selectedTag_showsCheckIcon() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(name = "Test", tagList = sampleTags, selectedTags = listOf(READING))
+      TagGroup(title = "Test", tagList = sampleTags, selectedTags = listOf(READING))
     }
 
     // Verify that the icon appears for the selected tag
@@ -122,7 +122,7 @@ class TagDisplayTest {
 
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-          name = "Test",
+          title = "Test",
           tagList = sampleTags,
           selectedTags = selectedTags,
           onTagSelect = {
@@ -149,7 +149,7 @@ class TagDisplayTest {
   @Test
   fun tagList_isScrollable() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(name = "Test", tagList = multipleTags, selectedTags = emptyList())
+      TagGroup(title = "Test", tagList = multipleTags, selectedTags = emptyList())
     }
 
     val lastTag = Tag.BASKETBALL.displayName
@@ -165,7 +165,7 @@ class TagDisplayTest {
   fun tagElement_appliesUniqueTestTags() {
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-          name = "Test",
+          title = "Test",
           tagList = sampleTags,
           selectedTags = emptyList(),
           tagElement = { t -> "Tag_${t.displayName}" })
@@ -182,7 +182,7 @@ class TagDisplayTest {
 
     composeTestRule.setContentWithStubBackdrop {
       TagGroup(
-          name = "Test",
+          title = "Test",
           tagList = sampleTags,
           selectedTags = emptyList(),
           isSelectable = false,
@@ -197,7 +197,7 @@ class TagDisplayTest {
   @Test
   fun fadeBoxes_arePresent() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(name = "Test", tagList = sampleTags, selectedTags = emptyList())
+      TagGroup(title = "Test", tagList = sampleTags, selectedTags = emptyList())
     }
 
     composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertExists()
