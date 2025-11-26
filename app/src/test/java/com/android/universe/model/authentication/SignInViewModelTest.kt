@@ -7,6 +7,7 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.signIn.SignInViewModel
 import com.android.universe.utils.MainCoroutineRule
 import com.google.firebase.FirebaseNetworkException
@@ -295,7 +296,7 @@ class SignInViewModelTest {
     // Assert
     val state = viewModel.uiState.value
     assertEquals(validEmail, state.email)
-    assertNull(state.emailErrorMsg)
+    assertTrue(state.emailErrorMsg is ValidationState.Valid)
   }
 
   @Test
@@ -305,7 +306,7 @@ class SignInViewModelTest {
     // Assert
     val state = viewModel.uiState.value
     assertEquals(invalidEmail, state.email)
-    assertTrue(!state.emailErrorMsg.isNullOrEmpty())
+    assertTrue(state.emailErrorMsg is ValidationState.Invalid)
   }
 
   @Test
@@ -313,7 +314,7 @@ class SignInViewModelTest {
     viewModel.setPassword(validPassword)
     val state = viewModel.uiState.value
     assertEquals(validPassword, state.password)
-    assertNull(state.passwordErrorMsg)
+    assertTrue(state.passwordErrorMsg is ValidationState.Valid)
   }
 
   @Test
@@ -321,7 +322,7 @@ class SignInViewModelTest {
     viewModel.setPassword(invalidPassword)
     val state = viewModel.uiState.value
     assertEquals(invalidPassword, state.password)
-    assertTrue(!state.passwordErrorMsg.isNullOrEmpty())
+    assertTrue(state.passwordErrorMsg is ValidationState.Invalid)
   }
 
   @Test
@@ -384,8 +385,8 @@ class SignInViewModelTest {
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
     assertEquals(mockFirebaseUser, state.user)
-    assertNull(state.errorMsg)
-    assertNull(state.emailErrorMsg)
+    assertTrue(state.emailErrorMsg is ValidationState.Valid)
+    assertTrue(state.passwordErrorMsg is ValidationState.Valid)
   }
 
   @Test
@@ -442,7 +443,9 @@ class SignInViewModelTest {
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
-    assertEquals("Invalid email format", state.emailErrorMsg)
+    assertTrue(state.emailErrorMsg is ValidationState.Invalid)
+    assertEquals(
+        "Invalid email format", (state.emailErrorMsg as ValidationState.Invalid).errorMessage)
   }
 
   @Test

@@ -59,7 +59,7 @@ data class SignInUIState(
     val email: String = "",
     val emailErrorMsg: ValidationState = ValidationState.Valid,
     val password: String = "",
-    val passwordErrorMsg: ValidationState = ValidationState.Valid,
+    val passwordErrorMsg: ValidationState = ValidationState.Neutral,
     val onboardingState: OnboardingState = OnboardingState.WELCOME,
 ) {
   val signInEnabled: Boolean
@@ -68,17 +68,11 @@ data class SignInUIState(
             validateEmail(email) is ValidationState.Valid &&
             validatePassword(password) is ValidationState.Valid
 
-  val editEmailEnabled: Boolean
-    get() = !isLoading && (onboardingState == OnboardingState.ENTER_EMAIL)
-
   val confirmEmailEnabled: Boolean
     get() =
         !isLoading &&
             (onboardingState == OnboardingState.ENTER_EMAIL) &&
             validateEmail(email) is ValidationState.Valid
-
-  val editPasswordEnabled: Boolean
-    get() = !isLoading && (onboardingState == OnboardingState.SIGN_IN_PASSWORD)
 
   val confirmPasswordEnabled: Boolean
     get() =
@@ -241,7 +235,7 @@ class SignInViewModel(
    * @param email The new email string to set.
    */
   fun setEmail(email: String) {
-    if (!uiState.value.editEmailEnabled) return
+    if (_uiState.value.isLoading) return
     _uiState.update { it.copy(email = email, emailErrorMsg = validateEmail(email)) }
   }
 
@@ -302,7 +296,9 @@ class SignInViewModel(
         _uiState.update { it.copy(errorMsg = "Invalid password", isLoading = false) }
       }
       is InvalidEmailException -> {
-        _uiState.update { it.copy(errorMsg = tr.message, isLoading = false) }
+        _uiState.update {
+          it.copy(emailErrorMsg = ValidationState.Invalid(tr.message ?: ""), isLoading = false)
+        }
       }
       is FirebaseNetworkException -> {
         _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
