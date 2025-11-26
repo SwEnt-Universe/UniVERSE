@@ -19,7 +19,6 @@ object EventSchema {
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
-                  "id",
                   "title",
                   "description",
                   "date",
@@ -27,7 +26,6 @@ object EventSchema {
                   "location"
                 ],
                 "properties": {
-                  "id": { "type": "string" },
                   "title": { "type": "string" },
                   "description": { "type": ["string"] },
                   "date": { "type": "string" },

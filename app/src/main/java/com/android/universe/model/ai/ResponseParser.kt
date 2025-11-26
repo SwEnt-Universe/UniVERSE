@@ -1,6 +1,5 @@
-import androidx.constraintlayout.motion.widget.TransitionBuilder.validate
-import com.android.universe.model.ai.EventValidator
-import com.android.universe.model.ai.validateEvent
+package com.android.universe.model.ai
+
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventDTO
 import com.android.universe.model.location.Location
@@ -41,7 +40,7 @@ object ResponseParser {
       EventValidator.validate(dto)
 
       Event(
-          id = dto.id,
+          id = "",
           title = dto.title,
           description = dto.description,
           date = LocalDateTime.parse(dto.date),

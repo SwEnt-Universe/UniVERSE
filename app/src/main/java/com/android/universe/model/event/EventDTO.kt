@@ -3,14 +3,16 @@ package com.android.universe.model.event
 import kotlinx.serialization.Serializable
 
 /**
+ * Contract for incoming API data
+ *
  * Notice that the event DTO is **not** identical to the Event object. It does not define:
+ * - ID
  * - creator
  * - participants
  * - eventPicture
  */
 @Serializable
 data class EventDTO(
-    val id: String,
     val title: String,
     val description: String,
     val date: String, // "2025-04-12T20:00"

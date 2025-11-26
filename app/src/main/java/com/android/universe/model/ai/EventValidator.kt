@@ -6,10 +6,6 @@ import java.time.LocalDateTime
 object EventValidator {
 
 	fun validate(dto: EventDTO) {
-		require(dto.id.isNotBlank()) {
-			"Event id missing or blank."
-		}
-
 		require(dto.title.isNotBlank()) {
 			"Event title cannot be empty."
 		}
