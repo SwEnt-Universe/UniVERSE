@@ -35,6 +35,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+enum class OnboardingState {
+  WELCOME,
+  ENTER_EMAIL,
+  SIGN_IN_PASSWORD,
+  SIGN_IN_GOOGLE,
+  SIGN_UP
+}
+
 /**
  * Represents the UI state for the Sign In screen.
  *
@@ -49,14 +57,33 @@ data class SignInUIState(
     val user: FirebaseUser? = null,
     val signedOut: Boolean = false,
     val email: String = "",
-    val emailErrorMsg: String? = null,
+    val emailErrorMsg: ValidationState = ValidationState.Valid,
     val password: String = "",
-    val passwordErrorMsg: String? = null,
+    val passwordErrorMsg: ValidationState = ValidationState.Valid,
+    val onboardingState: OnboardingState = OnboardingState.WELCOME,
 ) {
   val signInEnabled: Boolean
     get() =
         !isLoading &&
             validateEmail(email) is ValidationState.Valid &&
+            validatePassword(password) is ValidationState.Valid
+
+  val editEmailEnabled: Boolean
+    get() = !isLoading && (onboardingState == OnboardingState.ENTER_EMAIL)
+
+  val confirmEmailEnabled: Boolean
+    get() =
+        !isLoading &&
+            (onboardingState == OnboardingState.ENTER_EMAIL) &&
+            validateEmail(email) is ValidationState.Valid
+
+  val editPasswordEnabled: Boolean
+    get() = !isLoading && (onboardingState == OnboardingState.SIGN_IN_PASSWORD)
+
+  val confirmPasswordEnabled: Boolean
+    get() =
+        !isLoading &&
+            (onboardingState == OnboardingState.SIGN_IN_PASSWORD) &&
             validatePassword(password) is ValidationState.Valid
 }
 
@@ -214,17 +241,8 @@ class SignInViewModel(
    * @param email The new email string to set.
    */
   fun setEmail(email: String) {
-    if (_uiState.value.isLoading) return
-    val ValidationState = validateEmail(email)
-
-    val errorMsg =
-        when (ValidationState) {
-          is ValidationState.Valid -> null
-          is ValidationState.Neutral -> null
-          is ValidationState.Invalid -> ValidationState.errorMessage
-        }
-
-    _uiState.update { it.copy(email = email, emailErrorMsg = errorMsg) }
+    if (!uiState.value.editEmailEnabled) return
+    _uiState.update { it.copy(email = email, emailErrorMsg = validateEmail(email)) }
   }
 
   /**
@@ -234,16 +252,7 @@ class SignInViewModel(
    */
   fun setPassword(password: String) {
     if (_uiState.value.isLoading) return
-    val ValidationState = validatePassword(password)
-
-    val errorMsg =
-        when (ValidationState) {
-          is ValidationState.Valid -> null
-          is ValidationState.Neutral -> null
-          is ValidationState.Invalid -> ValidationState.errorMessage
-        }
-
-    _uiState.update { it.copy(password = password, passwordErrorMsg = errorMsg) }
+    _uiState.update { it.copy(password = password, passwordErrorMsg = validatePassword(password)) }
   }
 
   /**
@@ -293,7 +302,7 @@ class SignInViewModel(
         _uiState.update { it.copy(errorMsg = "Invalid password", isLoading = false) }
       }
       is InvalidEmailException -> {
-        _uiState.update { it.copy(emailErrorMsg = tr.message, isLoading = false) }
+        _uiState.update { it.copy(errorMsg = tr.message, isLoading = false) }
       }
       is FirebaseNetworkException -> {
         _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
@@ -303,5 +312,46 @@ class SignInViewModel(
         _uiState.update { it.copy(errorMsg = SIGN_IN_FAILED_EXCEPTION_MESSAGE, isLoading = false) }
       }
     }
+  }
+
+  fun onJoinUniverse() {
+    _uiState.update { it.copy(onboardingState = OnboardingState.ENTER_EMAIL) }
+  }
+
+  fun onBack() {
+    Log.w(TAG, "onBack:")
+    when (_uiState.value.onboardingState) {
+      OnboardingState.ENTER_EMAIL ->
+          _uiState.update { it.copy(onboardingState = OnboardingState.WELCOME) }
+      else -> _uiState.update { it.copy(onboardingState = OnboardingState.ENTER_EMAIL) }
+    }
+  }
+
+  fun confirmEmail() {
+    if (!_uiState.value.confirmEmailEnabled) return
+    viewModelScope.launch {
+      val queryResult = authModel.fetchSignInMethodsForEmail(_uiState.value.email)
+      val methods = queryResult.signInMethods ?: emptyList()
+      when {
+        // Existing Google account
+        "google.com" in methods -> {
+          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_GOOGLE) }
+        }
+
+        // Existing email/password account
+        "password" in methods -> {
+          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_PASSWORD) }
+        }
+
+        // Sign Up
+        else -> {
+          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_UP) }
+        }
+      }
+    }
+  }
+
+  fun onSignUpWithPassword() {
+    _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_PASSWORD) }
   }
 }

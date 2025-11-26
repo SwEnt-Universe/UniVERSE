@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,10 +51,12 @@ fun ScreenLayout(
     var topBarHeight by remember { mutableIntStateOf(0) }
     var bottomBarHeight by remember { mutableIntStateOf(0) }
     // Main content fills the screen
-    content(
-        PaddingValues(
-            top = with(LocalDensity.current) { topBarHeight.toDp() },
-            bottom = with(LocalDensity.current) { bottomBarHeight.toDp() }))
+    Box(modifier = Modifier.fillMaxSize().imePadding()) {
+      content(
+          PaddingValues(
+              top = with(LocalDensity.current) { topBarHeight.toDp() },
+              bottom = with(LocalDensity.current) { bottomBarHeight.toDp() }))
+    }
 
     // Floating top bar
     if (topBar != null) {
