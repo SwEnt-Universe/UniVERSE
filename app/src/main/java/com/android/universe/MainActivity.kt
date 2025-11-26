@@ -110,11 +110,10 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
-  val repo = BackgroundSnapshotRepository
-  repo.loadInitialSnapshot(context)
+  BackgroundSnapshotRepository.loadInitialSnapshot(context)
   val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
   val bitmap =
-      repo.currentSnapshot
+      BackgroundSnapshotRepository.currentSnapshot
           ?: res.scale(
                   (res.width * Dimensions.ImageScale).toInt(),
                   (res.height * Dimensions.ImageScale).toInt())
@@ -126,7 +125,7 @@ fun UniverseApp(
   }
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
-    UniverseBackgroundContainer(bitmap, contentAlignment = Alignment.Center) {
+    UniverseBackgroundContainer(bitmap = bitmap, contentAlignment = Alignment.Center) {
       LinearProgressIndicator()
     }
   } else {

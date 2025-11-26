@@ -40,7 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.scale
 import androidx.core.view.children
 import androidx.core.view.drawToBitmap
 import androidx.lifecycle.Lifecycle
@@ -49,7 +48,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.BuildConfig
 import com.android.universe.R
-import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.TomTomLocationRepository
@@ -58,7 +56,6 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.tomtom.sdk.common.Bundle
@@ -185,11 +182,7 @@ fun MapScreen(
                   tab != Tab.Map) {
                 view.takeSnapshot { bmp ->
                   if (bmp != null) {
-                    val scaled =
-                        bmp.scale(
-                            (bmp.width * Dimensions.ImageScale).toInt(),
-                            (bmp.height * Dimensions.ImageScale).toInt())
-                    BackgroundSnapshotRepository.updateSnapshot(scaled)
+                    viewModel.onSnapshotAvailable(bmp)
                   }
                 }
               }
@@ -239,11 +232,7 @@ fun MapScreen(
                             if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
                               view.takeSnapshot { bmp ->
                                 if (bmp != null) {
-                                  val scaled =
-                                      bmp.scale(
-                                          (bmp.width * Dimensions.ImageScale).toInt(),
-                                          (bmp.height * Dimensions.ImageScale).toInt())
-                                  BackgroundSnapshotRepository.updateSnapshot(scaled)
+                                  viewModel.onSnapshotAvailable(bmp)
                                 }
                               }
                             }

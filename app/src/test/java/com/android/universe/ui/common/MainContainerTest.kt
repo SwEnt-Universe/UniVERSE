@@ -3,7 +3,6 @@ package com.android.universe.ui.common
 import android.graphics.Bitmap
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.test.assertIsDisplayed
@@ -37,9 +36,7 @@ class MainContainerTest {
   fun universeBackground_displaysImage() {
     val img = bitmap
 
-    composeTestRule.setContentWithStubBackdrop {
-      UniverseBackground(bitmap = img, modifier = Modifier)
-    }
+    composeTestRule.setContentWithStubBackdrop { UniverseBackground(newBitmap = img) }
 
     composeTestRule
         .onNodeWithContentDescription(CommonBackground.BACKGROUNDTEXT)

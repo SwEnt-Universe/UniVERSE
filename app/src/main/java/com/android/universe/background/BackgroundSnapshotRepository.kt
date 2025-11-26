@@ -10,7 +10,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.scale
 import com.android.universe.R
+import com.android.universe.di.DefaultDP
 import com.android.universe.ui.theme.Dimensions
+import kotlinx.coroutines.withContext
 
 /**
  * Holds the background image used across the app (typically a blurred map snapshot).
@@ -67,7 +69,11 @@ object BackgroundSnapshotRepository {
    *
    * @param bitmap A snapshot created by the Map screen (may be pre-processed before calling).
    */
-  fun updateSnapshot(bitmap: Bitmap) {
-    currentSnapshot = bitmap.asImageBitmap()
+  suspend fun updateSnapshot(bitmap: Bitmap) {
+    withContext(DefaultDP.default) {
+      val processed = bitmap.asImageBitmap()
+
+      withContext(DefaultDP.main) { currentSnapshot = processed }
+    }
   }
 }
