@@ -25,7 +25,9 @@ data class UserProfile(
     val description: String? = null,
     val dateOfBirth: LocalDate,
     val tags: Set<Tag>,
-    val profilePicture: ByteArray? = null
+    val profilePicture: ByteArray? = null,
+    val followers: Set<String> = emptySet(),
+    val following: Set<String> = emptySet()
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -44,6 +46,9 @@ data class UserProfile(
     if ((profilePicture != null || other.profilePicture != null) &&
         (!profilePicture.contentEquals(other.profilePicture)))
         return false
+    if (followers != other.followers) return false
+    if (following != other.following) return false
+
 
     return true
   }
@@ -58,6 +63,8 @@ data class UserProfile(
     result = 31 * result + dateOfBirth.hashCode()
     result = 31 * result + tags.hashCode()
     result = 31 * result + (profilePicture?.contentHashCode() ?: 0)
+    result = 31 * result + followers.hashCode()
+    result = 31 * result + following.hashCode()
     return result
   }
 }
