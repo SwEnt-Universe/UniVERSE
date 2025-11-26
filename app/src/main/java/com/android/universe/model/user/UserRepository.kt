@@ -55,8 +55,8 @@ interface UserRepository {
   suspend fun isUsernameUnique(username: String): Boolean
 
   /**
-   * Add the targetUserId to the currentUser following list.
-   * Add the currentUserId to the targetUser follower list.
+   * Add the targetUserId to the currentUser following list. Add the currentUserId to the targetUser
+   * follower list.
    *
    * @param currentUserId the uid of the user who wants to follow the target user.
    * @param targetUserId the uid of the user who is being followed by the current user.
@@ -64,8 +64,8 @@ interface UserRepository {
   suspend fun followUser(currentUserId: String, targetUserId: String)
 
   /**
-   * Remove the targetUserId to the currentUser following list.
-   * Remove the currentUserId to the targetUser follower list.
+   * Remove the targetUserId to the currentUser following list. Remove the currentUserId to the
+   * targetUser follower list.
    *
    * @param currentUserId the uid of the user who wants to unfollow the target user.
    * @param targetUserId the uid of the user who is being unfollowed by the current user.

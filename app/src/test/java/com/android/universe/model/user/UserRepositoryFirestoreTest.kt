@@ -163,7 +163,6 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     assertEquals(expectedFollowerSet, targetUser.followers)
   }
 
-
   @Test
   fun checkUnfollowAExistingUser() = runTest {
     userRepository.addUser(userProfile1)
