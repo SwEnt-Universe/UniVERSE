@@ -1,7 +1,7 @@
 package com.android.universe.model.ai.openai
 
 import com.android.universe.BuildConfig
-import com.android.universe.model.ai.AIEventGen
+import com.android.universe.model.ai.openai.AIEventGen
 import com.android.universe.model.ai.LoggingInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
@@ -18,7 +18,7 @@ import retrofit2.Retrofit
  * - Create and configure a shared OkHttpClient with authentication and logging
  * - Build a Retrofit instance with JSON serialization support
  * - Expose a lazily initialized [OpenAIService] Retrofit API interface
- * - Expose a lazily initialized [com.android.universe.model.ai.AIEventGen] implementation (dependency injection style singleton)
+ * - Expose a lazily initialized [AIEventGen] implementation (dependency injection style singleton)
  *
  * Intended to be the entry point for accessing OpenAI functionality inside the app.
  */

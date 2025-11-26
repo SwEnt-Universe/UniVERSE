@@ -1,6 +1,6 @@
 package com.android.universe.model.ai.openai
 
-import com.android.universe.model.ai.AIEventGen
+import com.android.universe.model.ai.openai.AIEventGen
 import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.ai.ResponseParser
 import com.android.universe.model.ai.prompt.PromptBuilder

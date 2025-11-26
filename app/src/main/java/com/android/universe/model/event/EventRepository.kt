@@ -63,6 +63,13 @@ interface EventRepository {
   suspend fun deleteEvent(eventId: String)
 
   /**
+   * Saves a AI generated events.
+   *
+   * @param events the list of events
+   */
+  suspend fun persistAIEvents(events: List<Event>): List<Event>
+
+  /**
    * Generates a new unique ID for an event.
    *
    * @return a new unique event ID as a [String].

@@ -1,4 +1,4 @@
-package com.android.universe.model.ai
+package com.android.universe.model.ai.openai
 
 import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.event.Event
