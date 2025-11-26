@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     steps:
       # ------------------ Checkout ------------------
@@ -99,6 +100,13 @@ jobs:
         run: |
           if [ -z "$TOMTOM_API_KEY" ]; then
             echo "::error::TOMTOM_API_KEY secret is not set"
+            exit 1
+          fi
+
+      - name: Validate OPENAI_API_KEY
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::OPENAI_API_KEY secret is not set"
             exit 1
           fi
 
