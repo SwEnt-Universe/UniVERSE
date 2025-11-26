@@ -189,6 +189,7 @@ class SignInScreenTest {
     composeTestRule.setContentWithStubBackdrop { SignInScreen(viewModel = mockViewModel) }
 
     composeTestRule.onNodeWithTag(SignInScreenTestTags.SIGN_IN_BOX).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FormTestTags.EMAIL_FIELD).assertIsDisplayed().assertIsNotEnabled()
 
     // Google button click
     composeTestRule
@@ -211,5 +212,35 @@ class SignInScreenTest {
     verify(exactly = 1) { mockViewModel.onBack() }
     verify(exactly = 1) { mockViewModel.signIn(any(), any()) }
     verify(exactly = 1) { mockViewModel.onSignUpWithPassword() }
+  }
+
+  /**
+   * -------------------------------
+   * GOOGLE SCREEN
+   * -------------------------------
+   */
+  @Test
+  fun signUpScreen_googleButton_callsSignIn() {
+    fakeUiState.value =
+        SignInUIState(onboardingState = OnboardingState.SIGN_IN_GOOGLE, email = validEmail)
+
+    composeTestRule.setContentWithStubBackdrop { SignInScreen(viewModel = mockViewModel) }
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_BOX).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FormTestTags.EMAIL_FIELD).assertIsDisplayed().assertIsNotEnabled()
+
+    composeTestRule
+        .onNodeWithTag(FlowBottomMenuTestTags.GOOGLE_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule
+        .onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule.waitForIdle()
+
+    verify(exactly = 1) { mockViewModel.signIn(any(), any()) }
+    verify(exactly = 1) { mockViewModel.onBack() }
   }
 }
