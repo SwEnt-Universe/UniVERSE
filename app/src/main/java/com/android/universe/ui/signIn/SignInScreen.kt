@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,25 +34,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
+import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
+import com.android.universe.ui.signIn.SignInScreenTestTags.WELCOME_BOX
 import com.android.universe.ui.theme.Dimensions
 
 object SignInScreenTestTags {
-  const val SIGN_IN_BUTTON = "signInButton"
-  const val EMAIL_SIGN_IN_BUTTON = "emailSignInButton"
-  const val SIGN_IN_LOGO = "signInLogo"
-  const val SIGN_IN_TITLE = "signInTitle"
-  const val SIGN_IN_PROGRESS_BAR = "signInProgressBar"
+  const val JOIN_BUTTON = "joinButton"
+  const val WELCOME_BOX = "welcomeBox"
+  const val ENTER_EMAIL_BOX = "enter_emailBox"
+  const val GOOGLE_BOX = "googleBox"
+  const val PASSWORD_BOX = "passwordBox"
+  const val SIGN_IN_BOX = "signInBox"
 }
 
 /**
@@ -83,44 +88,53 @@ fun SignInScreen(
       onSignedIn()
     }
   }
-  when (uiState.onboardingState) {
-    OnboardingState.WELCOME -> WelcomeBox(onClick = viewModel::onJoinUniverse)
+  if (uiState.isLoading)
+      Column(
+          modifier = Modifier.fillMaxSize(),
+          verticalArrangement = Arrangement.Center,
+          horizontalAlignment = Alignment.CenterHorizontally) {
+            LinearProgressIndicator()
+          }
+  else
+      when (uiState.onboardingState) {
+        OnboardingState.WELCOME -> WelcomeBox(onClick = viewModel::onJoinUniverse)
 
-    OnboardingState.ENTER_EMAIL ->
-        EmailBox(
-            email = uiState.email,
-            validationState = uiState.emailErrorMsg,
-            onEmailChange = viewModel::setEmail,
-            confirmEnabled = uiState.confirmEmailEnabled,
-            onConfirm = viewModel::confirmEmail,
-            onBack = viewModel::onBack)
-    /*
-    OnboardingState.SIGN_IN_GOOGLE -> GoogleBox(
-      email = uiState.email,
-      onBack = viewModel::onBack,
-      onSignIn = { viewModel.signIn(context = context, credentialManager = credentialManager) }
-    )
-    */
+        OnboardingState.ENTER_EMAIL ->
+            EmailBox(
+                email = uiState.email,
+                validationState = uiState.emailErrorMsg,
+                onEmailChange = viewModel::setEmail,
+                confirmEnabled = uiState.confirmEmailEnabled,
+                onConfirm = viewModel::confirmEmail,
+                onBack = viewModel::onBack)
 
-    OnboardingState.SIGN_IN_PASSWORD ->
-        PasswordBox(
-            email = uiState.email,
-            password = uiState.password,
-            validationState = uiState.passwordErrorMsg,
-            onPasswordChange = viewModel::setPassword,
-            confirmEnabled = uiState.confirmPasswordEnabled,
-            onConfirm = viewModel::signInWithEmail,
-            onBack = viewModel::onBack)
+        OnboardingState.SIGN_IN_GOOGLE ->
+            GoogleBox(
+                email = uiState.email,
+                onBack = viewModel::onBack,
+                onSignIn = {
+                  viewModel.signIn(context = context, credentialManager = credentialManager)
+                })
 
-    else ->
-        SignUpBox(
-            email = uiState.email,
-            onPassword = viewModel::onSignUpWithPassword,
-            onGoogle = {
-              viewModel.signIn(context = context, credentialManager = credentialManager)
-            },
-            onBack = viewModel::onBack)
-  }
+        OnboardingState.SIGN_IN_PASSWORD ->
+            PasswordBox(
+                email = uiState.email,
+                password = uiState.password,
+                validationState = uiState.passwordErrorMsg,
+                onPasswordChange = viewModel::setPassword,
+                confirmEnabled = uiState.confirmPasswordEnabled,
+                onConfirm = viewModel::signInWithEmail,
+                onBack = viewModel::onBack)
+
+        else ->
+            SignUpBox(
+                email = uiState.email,
+                onPassword = viewModel::onSignUpWithPassword,
+                onGoogle = {
+                  viewModel.signIn(context = context, credentialManager = credentialManager)
+                },
+                onBack = viewModel::onBack)
+      }
 }
 
 val shape =
@@ -133,8 +147,12 @@ val shape =
 const val FRACTION = 0.4f
 
 @Composable
-fun Layout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit) {
-  Box(modifier = Modifier.fillMaxSize()) {
+fun Layout(
+    modifier: Modifier = Modifier,
+    bottomBar: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+  Box(modifier = modifier.fillMaxSize()) {
     LiquidBox(
         modifier = Modifier.fillMaxHeight(FRACTION).align(Alignment.BottomCenter), shape = shape) {
           Column(
@@ -160,6 +178,7 @@ fun EmailTextField(
     enabled: Boolean = true,
 ) {
   CustomTextField(
+      modifier = Modifier.testTag(FormTestTags.EMAIL_FIELD),
       label = "Email",
       placeholder = "example@epfl.ch",
       leadingIcon = Icons.Filled.MarkEmailUnread,
@@ -170,12 +189,35 @@ fun EmailTextField(
 }
 
 @Composable
+fun PasswordTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    validationState: ValidationState = ValidationState.Neutral,
+) {
+  CustomTextField(
+      modifier = Modifier.testTag(FormTestTags.PASSWORD_FIELD),
+      label = "Password",
+      isPassword = true,
+      placeholder = "",
+      leadingIcon = Icons.Filled.Lock,
+      value = value,
+      onValueChange = onValueChange,
+      validationState = validationState)
+}
+
+@Composable
 fun WelcomeBox(onClick: () -> Unit = {}) {
   Layout(
+      modifier = Modifier.testTag(SignInScreenTestTags.WELCOME_BOX),
       bottomBar = {
-        LiquidButton(onClick = onClick, modifier = Modifier.fillMaxWidth(0.8f)) {
-          Text(text = "Join the UniVERSE", style = MaterialTheme.typography.titleLarge)
-        }
+        LiquidButton(
+            onClick = onClick,
+            modifier =
+                Modifier.fillMaxWidth(0.8f)
+                    .padding(bottom = Dimensions.PaddingExtraLarge)
+                    .testTag(SignInScreenTestTags.JOIN_BUTTON)) {
+              Text(text = "Join the UniVERSE", style = MaterialTheme.typography.titleLarge)
+            }
       }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(text = "UniVERSE", style = MaterialTheme.typography.headlineLarge)
@@ -202,6 +244,7 @@ fun EmailBox(
     onBack: () -> Unit
 ) {
   Layout(
+      modifier = Modifier.testTag(SignInScreenTestTags.ENTER_EMAIL_BOX),
       bottomBar = {
         FlowBottomMenu(
             flowTabs =
@@ -219,6 +262,7 @@ fun EmailBox(
 @Composable
 fun GoogleBox(email: String, onBack: () -> Unit, onSignIn: () -> Unit) {
   Layout(
+      modifier = Modifier.testTag(SignInScreenTestTags.GOOGLE_BOX),
       bottomBar = {
         FlowBottomMenu(
             flowTabs = listOf(FlowTab.Back(onClick = onBack), FlowTab.Google(onClick = onSignIn)))
@@ -240,6 +284,7 @@ fun PasswordBox(
     onBack: () -> Unit
 ) {
   Layout(
+      modifier = Modifier.testTag(SignInScreenTestTags.PASSWORD_BOX),
       bottomBar = {
         FlowBottomMenu(
             flowTabs =
@@ -251,10 +296,7 @@ fun PasswordBox(
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         EmailTextField(value = email, onValueChange = {}, enabled = false)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
-        CustomTextField(
-            label = "Password",
-            placeholder = "",
-            leadingIcon = Icons.Filled.Lock,
+        PasswordTextField(
             value = password,
             onValueChange = { onPasswordChange(it) },
             validationState = validationState)
@@ -264,6 +306,7 @@ fun PasswordBox(
 @Composable
 fun SignUpBox(email: String, onPassword: () -> Unit, onGoogle: () -> Unit, onBack: () -> Unit) {
   Layout(
+      modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_BOX),
       bottomBar = {
         FlowBottomMenu(
             flowTabs =
