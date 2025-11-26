@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,7 +66,7 @@ object TagGroupTestTag {
 
 /** Contain the dimensions used specially in this composable. */
 object TagGroupDefaults {
-  val DefaultHeight = 250.dp
+  val DefaultHeight = 278.dp
   val DefaultWidth = 500.dp
   val DefaultOuterPaddingH = 8.dp
   val DefaultOuterPaddingV = 12.dp
@@ -73,6 +74,7 @@ object TagGroupDefaults {
   val DefaultInterPaddingV = 4.dp
   val CornerShapeDp = 16.dp
   val titleFontSize = 28.sp
+  val textSectionSize = 60.dp
 }
 
 /**
@@ -351,8 +353,12 @@ fun TagGroup(
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth(),
-                fontSize = TagGroupDefaults.titleFontSize)
+                modifier =
+                    Modifier.padding(Dimensions.PaddingLarge)
+                        .fillMaxWidth()
+                        .height(TagGroupDefaults.textSectionSize),
+                fontSize = TagGroupDefaults.titleFontSize,
+                textAlign = TextAlign.Center)
           }
           Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             FlowRow(
