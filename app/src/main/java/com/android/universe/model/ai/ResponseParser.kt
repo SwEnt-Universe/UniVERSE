@@ -13,8 +13,6 @@ object ResponseParser {
 
   private const val CREATOR = "OpenAI"
 
-  // private const val DEFAULT_AI_IMAGE = ?
-
   private val json = Json {
     ignoreUnknownKeys = true
     coerceInputValues = true
