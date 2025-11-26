@@ -67,6 +67,8 @@ private val IconBoxSize = 32.dp
  *   `keyboardType`).
  * @param keyboardActions Optional actions to run when a keyboard button (like 'Done' or 'Next') is
  *   pressed.
+ * @param enabled Controls the enabled state of the input field. When `false`, this input field will
+ *   not be clickable.
  */
 @Composable
 fun CustomTextField(
@@ -80,7 +82,8 @@ fun CustomTextField(
     maxLines: Int = 1,
     validationState: ValidationState = ValidationState.Neutral,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    enabled: Boolean = true
 ) {
   // Determine if the text should be visually masked (for passwords)
   val visualTransformation =
@@ -153,6 +156,7 @@ fun CustomTextField(
           BasicTextField(
               value = value,
               onValueChange = onValueChange,
+              enabled = enabled,
               visualTransformation = visualTransformation,
               singleLine = maxLines == 1,
               maxLines = maxLines,

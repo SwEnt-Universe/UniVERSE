@@ -1,11 +1,13 @@
 package com.android.universe.ui.navigation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,7 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.painterResource
+import com.android.universe.R
 import com.android.universe.ui.components.LiquidBottomTab
 import com.android.universe.ui.components.LiquidBottomTabs
 import com.android.universe.ui.theme.Dimensions
@@ -25,7 +28,9 @@ import com.android.universe.ui.theme.Dimensions
 object FlowBottomMenuTestTags {
   const val MENU = "FlowBottomMenu"
   const val BACK_BUTTON = "BtnBack"
-  const val CONTINUE_BUTTON = "BtnContinue"
+  const val CONFIRM_BUTTON = "BtnConfirm"
+  const val GOOGLE_BUTTON = "BtnGoogle"
+  const val PASSWORD_BUTTON = "BtnPassword"
 }
 
 /**
@@ -34,70 +39,88 @@ object FlowBottomMenuTestTags {
  * @property icon the [ImageVector] to display.
  * @property label the label to display.
  */
-sealed class FlowTab(val icon: ImageVector, val label: String) {
-  object Back : FlowTab(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+sealed class FlowTab(
+    val icon: @Composable () -> Unit,
+    val label: String,
+    val testTag: String = "",
+    val onClick: () -> Unit = {}
+) {
+  class Back(onClick: () -> Unit) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Back",
+          testTag = FlowBottomMenuTestTags.BACK_BUTTON,
+          onClick = onClick)
 
-  object Continue : FlowTab(Icons.Filled.Check, "Continue")
+  class Confirm(onClick: () -> Unit, enabled: Boolean) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = "Confirm",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint =
+                    if (enabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+          },
+          label = "Confirm",
+          testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
+          onClick = onClick)
+
+  class Google(onClick: () -> Unit) :
+      FlowTab(
+          icon = {
+            Image(
+                painter = painterResource(id = R.drawable.google_logo),
+                contentDescription = "Google",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Google",
+          testTag = FlowBottomMenuTestTags.GOOGLE_BUTTON,
+          onClick = onClick)
+
+  class Password(onClick: () -> Unit) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = "Password",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Password",
+          testTag = FlowBottomMenuTestTags.PASSWORD_BUTTON,
+          onClick = onClick)
 }
 
-val flowTabs = listOf(FlowTab.Back, FlowTab.Continue)
-
-/**
- * A bottom bar specifically for linear flows (Sign in, Create Event, Settings).
- *
- * @param onBackClicked Callback for the left 'Back' action.
- * @param onContinueClicked Callback for the right 'Continue' action.
- */
 @Composable
-fun FlowBottomMenu(
-    onBackClicked: () -> Unit,
-    onContinueClicked: () -> Unit,
-) {
+fun FlowBottomMenu(flowTabs: List<FlowTab>) {
   val selectedTabIndex = remember { mutableIntStateOf(-1) }
 
   LiquidBottomTabs(
       selectedTabIndex = { selectedTabIndex.intValue },
       onTabSelected = { index ->
         selectedTabIndex.intValue = index
-        if (flowTabs[index] is FlowTab.Back) {
-          onBackClicked()
-        } else {
-          onContinueClicked()
-        }
+        flowTabs[index].onClick()
       },
       tabsCount = flowTabs.count(),
       modifier = Modifier.testTag(FlowBottomMenuTestTags.MENU)) {
         flowTabs.forEach { tab ->
-          LiquidBottomTab(
-              onClick = {
-                selectedTabIndex.intValue = flowTabs.indexOf(tab)
-
-                if (tab is FlowTab.Back) onBackClicked() else onContinueClicked()
-              },
-              modifier =
-                  Modifier.testTag(
-                      if (tab is FlowTab.Back) FlowBottomMenuTestTags.BACK_BUTTON
-                      else FlowBottomMenuTestTags.CONTINUE_BUTTON)) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center) {
-                      Icon(
-                          imageVector = tab.icon,
-                          contentDescription = tab.label,
-                          modifier = Modifier.size(Dimensions.IconSizeLarge),
-                          tint = MaterialTheme.colorScheme.onBackground)
-                      Text(
-                          text = tab.label,
-                          style = MaterialTheme.typography.labelSmall,
-                          color = MaterialTheme.colorScheme.onBackground)
-                    }
-              }
+          LiquidBottomTab(onClick = tab.onClick, modifier = Modifier.testTag(tab.testTag)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                  tab.icon()
+                  Text(
+                      text = tab.label,
+                      style = MaterialTheme.typography.labelSmall,
+                      color = MaterialTheme.colorScheme.onSurface)
+                }
+          }
         }
       }
-}
-
-@Preview
-@Composable
-fun FlowBottomMenuPreview() {
-  FlowBottomMenu(onBackClicked = {}, onContinueClicked = {})
 }
