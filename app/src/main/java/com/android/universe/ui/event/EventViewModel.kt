@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 /**
  * UI state for an event item.
  *
+ * @property id The unique identifier of the event.
  * @property title The title of the event.
  * @property description A brief description of the event.
  * @property date The formatted date of the event.
@@ -35,6 +36,7 @@ import kotlinx.coroutines.launch
  * @property joined Whether the current user has joined the event.
  */
 data class EventUIState(
+    val id: String = "",
     val title: String = "",
     val description: String = "",
     val date: LocalDateTime = LocalDateTime.now(),
@@ -203,6 +205,7 @@ class EventViewModel(
       joined: Boolean = false
   ): EventUIState {
     return EventUIState(
+        id = id,
         title = title,
         description = description ?: "",
         date = date,

@@ -20,9 +20,14 @@ object EventCardTestTags {
  * @param event The [EventUIState] object containing event details to be displayed.
  * @param viewModel The [EventViewModel] used to handle user interactions such as joining or leaving
  *   the event.
+ * @param onChatNavigate A lambda function that takes a chatId and chatto navigate to the chat.
  */
 @Composable
-fun EventCard(event: EventUIState, viewModel: EventViewModel) {
+fun EventCard(
+    event: EventUIState,
+    viewModel: EventViewModel,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit
+) {
   LiquidBox(
       shape = CardShape,
       modifier =
@@ -41,7 +46,7 @@ fun EventCard(event: EventUIState, viewModel: EventViewModel) {
             },
             isUserParticipant = event.joined,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
-            onChatClick = { /* TODO: Implement chat navigation */ },
+            onChatClick = { onChatNavigate(event.id, event.title) },
             onLocationClick = { /* TODO: Implement map navigation */ },
             modifier = Modifier.padding(Dimensions.PaddingLarge))
       }

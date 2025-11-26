@@ -92,6 +92,7 @@ fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
@@ -269,6 +270,7 @@ fun MapScreen(
                     event = event,
                     isUserParticipant = viewModel.isUserParticipant(event),
                     onDismiss = { viewModel.selectEvent(null) },
+                    onChatNavigate = onChatNavigate,
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
               }
             }

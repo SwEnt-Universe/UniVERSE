@@ -37,6 +37,7 @@ fun EventInfoPopup(
     event: Event,
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
     onToggleEventParticipation: () -> Unit
 ) {
   Box(
@@ -67,7 +68,7 @@ fun EventInfoPopup(
                         imageContent = { EventImageHelper(eventImage = event.eventPicture) },
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,
-                        onChatClick = {},
+                        onChatClick = { onChatNavigate(event.id, event.title) },
                         onLocationClick = null)
                   }
             }

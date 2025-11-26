@@ -50,7 +50,8 @@ object EventScreenTestTags {
 fun EventScreen(
     onTabSelected: (Tab) -> Unit = {},
     uid: String = "",
-    viewModel: EventViewModel = viewModel()
+    viewModel: EventViewModel = viewModel(),
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> }
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
@@ -90,7 +91,10 @@ fun EventScreen(
               LazyColumn(
                   modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
                   verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-                    items(events) { event -> EventCard(event = event, viewModel = viewModel) }
+                    items(events) { event ->
+                      EventCard(
+                          event = event, viewModel = viewModel, onChatNavigate = onChatNavigate)
+                    }
                   }
             }
       }

@@ -216,6 +216,14 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
+              onChatNavigate = { chatID, chatName ->
+                navController.navigate(
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName)
+                            .replace("{userID}", authInstance.currentUser!!.uid))
+              },
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
       }
@@ -226,7 +234,17 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.Event.route) {
           UniverseBackgroundContainer(bitmap) {
-            EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
+            EventScreen(
+                onTabSelected,
+                uid = authInstance.currentUser!!.uid,
+                onChatNavigate = { chatID, chatName ->
+                  navController.navigate(
+                      route =
+                          NavigationScreens.ChatInstance.route
+                              .replace("{chatID}", chatID)
+                              .replace("{chatName}", chatName)
+                              .replace("{userID}", authInstance.currentUser!!.uid))
+                })
           }
         }
       }
