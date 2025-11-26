@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -84,54 +85,56 @@ fun SignInScreen(
     }
   }
 
-  Scaffold(modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN).fillMaxSize()) {
-      paddingValues ->
-    Column(
-        modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Text(
-          modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_TITLE),
-          text = "Welcome to Universe",
-          style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
-          textAlign = TextAlign.Center,
-          fontWeight = FontWeight.Bold)
+  Scaffold(
+      modifier = Modifier.testTag(NavigationTestTags.SIGN_IN_SCREEN).fillMaxSize(),
+      containerColor = Color.Transparent) { paddingValues ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+          Text(
+              modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_TITLE),
+              text = "Welcome to Universe",
+              style =
+                  MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp, lineHeight = 64.sp),
+              textAlign = TextAlign.Center,
+              fontWeight = FontWeight.Bold)
 
-      Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
+          Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
 
-      EmailInputField(
-          value = uiState.email,
-          onValueChange = { viewModel.setEmail(it) },
-          errorMsg = uiState.emailErrorMsg)
+          EmailInputField(
+              value = uiState.email,
+              onValueChange = { viewModel.setEmail(it) },
+              errorMsg = uiState.emailErrorMsg)
 
-      PasswordInputField(
-          value = uiState.password,
-          onValueChange = { viewModel.setPassword(it) },
-          errorMsg = uiState.passwordErrorMsg)
+          PasswordInputField(
+              value = uiState.password,
+              onValueChange = { viewModel.setPassword(it) },
+              errorMsg = uiState.passwordErrorMsg)
 
-      Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
+          Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
-      if (uiState.isLoading)
-          LinearProgressIndicator(
-              modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_PROGRESS_BAR))
-      else {
-        SignInButton(onClick = { viewModel.signInWithEmail() }, enabled = uiState.signInEnabled)
-        Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
-        Text(
-            text = "OR",
-            style =
-                MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight))
-        Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
-        GoogleSignInButton(
-            onClick = {
-              viewModel.signIn(context = context, credentialManager = credentialManager)
-            })
+          if (uiState.isLoading)
+              LinearProgressIndicator(
+                  modifier = Modifier.testTag(SignInScreenTestTags.SIGN_IN_PROGRESS_BAR))
+          else {
+            SignInButton(onClick = { viewModel.signInWithEmail() }, enabled = uiState.signInEnabled)
+            Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
+            Text(
+                text = "OR",
+                style =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight))
+            Spacer(modifier = Modifier.height(Dimensions.SpacerExtraLarge))
+            GoogleSignInButton(
+                onClick = {
+                  viewModel.signIn(context = context, credentialManager = credentialManager)
+                })
+          }
+        }
       }
-    }
-  }
 }
 
 /**

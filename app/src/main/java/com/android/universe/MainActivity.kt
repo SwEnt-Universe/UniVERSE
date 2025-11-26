@@ -1,11 +1,11 @@
 package com.android.universe
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -33,11 +35,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.chat.ChatListScreen
 import com.android.universe.ui.chat.ChatScreen
+import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
@@ -52,6 +56,7 @@ import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
@@ -77,7 +82,6 @@ class MainActivity : ComponentActivity() {
           drawRect(backgroundColor)
           drawContent()
         }
-
         CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
           // A surface container using the 'background' color from the theme
           Surface(
@@ -106,6 +110,14 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
+  BackgroundSnapshotRepository.loadInitialSnapshot(context)
+  val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
+  val bitmap =
+      BackgroundSnapshotRepository.currentSnapshot
+          ?: res.scale(
+                  (res.width * Dimensions.ImageScale).toInt(),
+                  (res.height * Dimensions.ImageScale).toInt())
+              .asImageBitmap()
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
@@ -113,7 +125,7 @@ fun UniverseApp(
   }
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    UniverseBackgroundContainer(bitmap = bitmap, contentAlignment = Alignment.Center) {
       LinearProgressIndicator()
     }
   } else {
@@ -129,13 +141,16 @@ fun UniverseApp(
           LaunchedEffect(navigateToDestination) {
             navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
-          SignInScreen(
-              onSignedIn = {
-                mainActivityScope.launch {
-                  navigateToDestination = resolveUserDestinationScreen(userRepository)
-                }
-              },
-              credentialManager = credentialManager)
+
+          UniverseBackgroundContainer(bitmap) {
+            SignInScreen(
+                onSignedIn = {
+                  mainActivityScope.launch {
+                    navigateToDestination = resolveUserDestinationScreen(userRepository)
+                  }
+                },
+                credentialManager = credentialManager)
+          }
         }
       }
       navigation(
@@ -143,15 +158,17 @@ fun UniverseApp(
           route = NavigationScreens.AddProfile.name,
       ) {
         composable(NavigationScreens.AddProfile.route) {
-          AddProfileScreen(
-              uid = authInstance.currentUser!!.uid,
-              navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
-              onBack = {
-                // Navigate back to Sign In
-                navController.navigate(NavigationScreens.SignIn.route) {
-                  popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-                }
-              })
+          UniverseBackgroundContainer(bitmap) {
+            AddProfileScreen(
+                uid = authInstance.currentUser!!.uid,
+                navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
+                onBack = {
+                  // Navigate back to Sign In
+                  navController.navigate(NavigationScreens.SignIn.route) {
+                    popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
+                  }
+                })
+          }
         }
       }
 
@@ -165,14 +182,17 @@ fun UniverseApp(
           LaunchedEffect(navigateToDestination) {
             navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
-          EmailVerificationScreen(
-              user = authInstance.currentUser!!,
-              onSuccess = {
-                mainActivityScope.launch {
-                  navigateToDestination = resolveUserDestinationScreen(userRepository)
-                }
-              },
-              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
+
+          UniverseBackgroundContainer(bitmap) {
+            EmailVerificationScreen(
+                user = authInstance.currentUser!!,
+                onSuccess = {
+                  mainActivityScope.launch {
+                    navigateToDestination = resolveUserDestinationScreen(userRepository)
+                  }
+                },
+                onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
+          }
         }
       }
 
@@ -180,9 +200,11 @@ fun UniverseApp(
           route = NavigationScreens.SelectTagUser.name,
           startDestination = NavigationScreens.SelectTagUser.route) {
             composable(NavigationScreens.SelectTagUser.route) {
-              SelectTagScreen(
-                  uid = authInstance.currentUser!!.uid,
-                  navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
+              UniverseBackgroundContainer(bitmap) {
+                SelectTagScreen(
+                    uid = authInstance.currentUser!!.uid,
+                    navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
+              }
             }
           }
 
@@ -194,8 +216,7 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
-              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") },
-          )
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
       }
 
@@ -204,7 +225,9 @@ fun UniverseApp(
           route = NavigationScreens.Event.name,
       ) {
         composable(NavigationScreens.Event.route) {
-          EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
+          UniverseBackgroundContainer(bitmap) {
+            EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
+          }
         }
       }
 
@@ -213,16 +236,18 @@ fun UniverseApp(
           route = NavigationScreens.Chat.name,
       ) {
         composable(NavigationScreens.Chat.route) {
-          ChatListScreen(
-              userID = authInstance.currentUser!!.uid,
-              onTabSelected = onTabSelected,
-              onChatSelected = { chatID, chatName ->
-                navController.navigate(
-                    route =
-                        NavigationScreens.ChatInstance.route
-                            .replace("{chatID}", chatID)
-                            .replace("{chatName}", chatName))
-              })
+          UniverseBackgroundContainer(bitmap) {
+            ChatListScreen(
+                userID = authInstance.currentUser!!.uid,
+                onTabSelected = onTabSelected,
+                onChatSelected = { chatID, chatName ->
+                  navController.navigate(
+                      route =
+                          NavigationScreens.ChatInstance.route
+                              .replace("{chatID}", chatID)
+                              .replace("{chatName}", chatName))
+                })
+          }
         }
 
         composable(
@@ -231,12 +256,14 @@ fun UniverseApp(
                 listOf(
                     navArgument("chatID") { type = NavType.StringType },
                     navArgument("chatName") { type = NavType.StringType })) {
-              ChatScreen(
-                  chatID = it.arguments?.getString("chatID")!!,
-                  chatName = it.arguments?.getString("chatName")!!,
-                  userID = authInstance.currentUser!!.uid,
-                  onTabSelected = onTabSelected,
-                  onBack = { navigationActions.goBack() })
+              UniverseBackgroundContainer(bitmap) {
+                ChatScreen(
+                    chatID = it.arguments?.getString("chatID")!!,
+                    chatName = it.arguments?.getString("chatName")!!,
+                    userID = authInstance.currentUser!!.uid,
+                    onTabSelected = onTabSelected,
+                    onBack = { navigationActions.goBack() })
+              }
             }
       }
 
@@ -245,27 +272,31 @@ fun UniverseApp(
           route = NavigationScreens.Profile.name,
       ) {
         composable(NavigationScreens.Profile.route) {
-          UserProfileScreen(
-              uid = authInstance.currentUser!!.uid,
-              onTabSelected = onTabSelected,
-              onEditProfileClick = { uid ->
-                navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
-              })
+          UniverseBackgroundContainer(bitmap) {
+            UserProfileScreen(
+                uid = authInstance.currentUser!!.uid,
+                onTabSelected = onTabSelected,
+                onEditProfileClick = { uid ->
+                  navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
+                })
+          }
         }
       }
       composable(
           route = NavigationScreens.Settings.route,
           arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry ->
             val uid = backStackEntry.arguments?.getString("uid") ?: "0"
-            SettingsScreen(
-                uid = uid,
-                onBack = {
-                  navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-                },
-                onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
-                clear = {
-                  credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
-                })
+            UniverseBackgroundContainer(bitmap) {
+              SettingsScreen(
+                  uid = uid,
+                  onBack = {
+                    navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+                  },
+                  onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+                  clear = {
+                    credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
+                  })
+            }
           }
       navigation(
           startDestination = NavigationScreens.EventCreation.route,
@@ -280,21 +311,25 @@ fun UniverseApp(
               val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
               val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
 
-              EventCreationScreen(
-                  location = Location(latitude.toDouble(), longitude.toDouble()),
-                  onAddTag = { navController.navigate("selectTagEvent") },
-                  onSave = {
-                    navController.popBackStack(
-                        route = NavigationScreens.EventCreation.route, inclusive = true)
-                  })
+              UniverseBackgroundContainer(bitmap) {
+                EventCreationScreen(
+                    location = Location(latitude.toDouble(), longitude.toDouble()),
+                    onAddTag = { navController.navigate("selectTagEvent") },
+                    onSave = {
+                      navController.popBackStack(
+                          route = NavigationScreens.EventCreation.route, inclusive = true)
+                    })
+              }
             }
         composable(
             route = NavigationScreens.SelectTagEvent.route,
         ) {
-          SelectTagScreen(
-              selectTagMode = SelectTagMode.EVENT_CREATION,
-              uid = authInstance.currentUser!!.uid,
-              navigateOnSave = { navController.popBackStack() })
+          UniverseBackgroundContainer(bitmap) {
+            SelectTagScreen(
+                selectTagMode = SelectTagMode.EVENT_CREATION,
+                uid = authInstance.currentUser!!.uid,
+                navigateOnSave = { navController.popBackStack() })
+          }
         }
       }
     }

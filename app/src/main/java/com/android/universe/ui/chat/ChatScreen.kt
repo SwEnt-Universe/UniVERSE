@@ -1,6 +1,5 @@
 package com.android.universe.ui.chat
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -9,9 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.chat.ChatScreenTestTags.ERROR
@@ -68,25 +64,6 @@ fun ChatScreen(
         Column(
             modifier =
                 Modifier.fillMaxSize()
-                    // TODO: replace with real background once we have one.
-                    .background(
-                        brush =
-                            Brush.linearGradient(
-                                colorStops =
-                                    arrayOf(
-                                        0.0f to Color(0xFFFF0000), // Red
-                                        0.125f to Color(0xFFFF7F00), // Orange
-                                        0.25f to Color(0xFFFFFF00), // Yellow
-                                        0.375f to Color(0xFF00FF00), // Green
-                                        0.5f to Color(0xFF0000FF), // Blue
-                                        0.625f to Color(0xFF4B0082), // Indigo
-                                        0.75f to Color(0xFF8B00FF), // Violet
-                                        0.875f to Color.Black, // Black
-                                        1.0f to Color.White // White
-                                        ),
-                                start = Offset.Zero,
-                                end = Offset(2000f, 2000f) // strong diagonal
-                                ))
                     .padding(paddingValues)
                     .padding(horizontal = Dimensions.PaddingMedium)) {
               when (val state = uiState) {
