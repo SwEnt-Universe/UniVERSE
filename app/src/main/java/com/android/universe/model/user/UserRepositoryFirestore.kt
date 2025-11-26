@@ -203,4 +203,86 @@ class UserRepositoryFirestore(
         }
     return querySnapshot.isEmpty
   }
+
+    /**
+     * Add the targetUserId to the currentUser following list.
+     * Add the currentUserId to the targetUser follower list.
+     *
+     * @param currentUserId the uid of the user who wants to follow the target user.
+     * @param targetUserId the uid of the user who is being followed by the current user.
+     */
+    override suspend fun followUser(currentUserId: String, targetUserId: String){
+        withContext(iODispatcher) {
+            db.runTransaction { transaction ->
+                val currentUserPath = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+                val targetUserPath = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+
+                val currentUserDoc = transaction.get(currentUserPath)
+                val targetUserDoc = transaction.get(targetUserPath)
+
+                if (!currentUserDoc.exists()){
+                    throw NoSuchElementException("No user with username $currentUserId found")
+                }else if (!targetUserDoc.exists()){
+                    throw NoSuchElementException("No user with username $targetUserId found")
+                }
+
+                val currentUser = documentToUserProfile(currentUserDoc)
+                val targetUser = documentToUserProfile(targetUserDoc)
+
+                if (!currentUser.following.contains(targetUserId) && !targetUser.followers.contains(currentUserId)) {
+                    transaction.update(
+                        currentUserPath,
+                        "following",
+                        (currentUser.following + targetUserId).toList()
+                    )
+                    transaction.update(
+                        targetUserPath,
+                        "followers",
+                        (targetUser.followers + currentUserId).toList()
+                    )
+                }
+            }.await()
+        }
+    }
+
+    /**
+     * Remove the targetUserId to the currentUser following list.
+     * Remove the currentUserId to the targetUser follower list.
+     *
+     * @param currentUserId the uid of the user who wants to unfollow the target user.
+     * @param targetUserId the uid of the user who is being unfollowed by the current user.
+     */
+    override suspend fun unfollowUser(currentUserId: String, targetUserId: String){
+        withContext(iODispatcher) {
+            db.runTransaction { transaction ->
+                val currentUserPath = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+                val targetUserPath = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+
+                val currentUserDoc = transaction.get(currentUserPath)
+                val targetUserDoc = transaction.get(targetUserPath)
+
+                if (!currentUserDoc.exists()){
+                    throw NoSuchElementException("No user with username $currentUserId found")
+                }else if (!targetUserDoc.exists()){
+                    throw NoSuchElementException("No user with username $targetUserId found")
+                }
+
+                val currentUser = documentToUserProfile(currentUserDoc)
+                val targetUser = documentToUserProfile(targetUserDoc)
+
+                if (currentUser.following.contains(targetUserId) && targetUser.followers.contains(currentUserId)) {
+                    transaction.update(
+                        currentUserPath,
+                        "following",
+                        (currentUser.following - targetUserId).toList()
+                    )
+                    transaction.update(
+                        targetUserPath,
+                        "followers",
+                        (targetUser.followers - currentUserId).toList()
+                    )
+                }
+            }.await()
+        }
+    }
 }
