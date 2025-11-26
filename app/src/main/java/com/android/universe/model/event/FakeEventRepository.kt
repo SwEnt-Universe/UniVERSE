@@ -99,7 +99,7 @@ class FakeEventRepository : EventRepository {
    * 2. Persisting it in the events collection
    * 3. Returning the fully stored events (with IDs assigned)
    */
-  override suspend fun persistAIEvents (events: List<Event>): List<Event> {
+  override suspend fun persistAIEvents(events: List<Event>): List<Event> {
     return events.map { e ->
       val id = getNewID()
       val saved = e.copy(id = id)

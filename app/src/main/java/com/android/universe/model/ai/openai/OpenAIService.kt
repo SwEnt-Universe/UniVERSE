@@ -26,9 +26,7 @@ interface OpenAIService {
   // Streaming (real-time token events)
   @Streaming
   @POST("chat/completions")
-  suspend fun chatCompletionStream(
-      @Body request: ChatCompletionRequest
-  ): Response<ResponseBody>
+  suspend fun chatCompletionStream(@Body request: ChatCompletionRequest): Response<ResponseBody>
 }
 
 // ===================================================================

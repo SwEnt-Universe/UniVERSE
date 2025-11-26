@@ -1,7 +1,6 @@
 package com.android.universe.model.ai.openai
 
 import com.android.universe.BuildConfig
-import com.android.universe.model.ai.openai.AIEventGen
 import com.android.universe.model.ai.LoggingInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
