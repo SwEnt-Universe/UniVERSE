@@ -362,24 +362,21 @@ private suspend fun TomTomMap.syncEventMarkers(
     markers: List<MapMarkerUiModel>,
     markerMap: MutableMap<UniqueId, Event>
 ) {
-  val pin = ImageFactory.fromResource(R.drawable.ic_marker_icon)
   val optionsAndEvents = withContext(DefaultDP.default) {
       markers.map {
-          val eventPicture = it.event.eventPicture
-          val image = if (eventPicture != null) ImageFactory.fromBitmap(BitmapFactory.decodeByteArray(eventPicture, 0, eventPicture.size)) else ImageFactory.fromResource(it.iconResId)
-          Triple(it, image, it.event)
+          val pin = ImageFactory.fromResource(it.iconResId)
+          Triple(it, pin, it.event)
       }
   }
   this@syncEventMarkers.removeMarkers("event")
   markerMap.clear()
 
-  optionsAndEvents.forEach { (markerModel, image, event) ->
+  optionsAndEvents.forEach { (markerModel, pin, event) ->
     val markerOptions =
         MarkerOptions(
             tag = "event",
             coordinate = markerModel.position,
             pinImage = pin,
-            pinIconImage = image
             )
     val addedMarker = this@syncEventMarkers.addMarker(markerOptions)
     markerMap[addedMarker.id] = event
@@ -387,7 +384,7 @@ private suspend fun TomTomMap.syncEventMarkers(
 }
 
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
-  this.removeMarkers("selected_location")
+  this@syncSelectedLocationMarker.removeMarkers("selected_location")
   val image = withContext(DefaultDP.default) { ImageFactory.fromResource(R.drawable.ic_marker_icon)}
   location?.let { geoPoint ->
     this.addMarker(

@@ -9,6 +9,8 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
+import com.android.universe.model.tag.Tag.Category.*
+import com.android.universe.model.tag.Tag.Category
 import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
@@ -224,7 +226,19 @@ class MapViewModel(
         _eventMarkers.value = events
         val markers =
             events.map { event ->
-              MapMarkerUiModel(event, event.location.toGeoPoint(), R.drawable.ic_marker_icon)
+              val category: Category? = event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
+              val drawableBasedOnCategory = when (category) {
+                  MUSIC -> R.drawable.violet_pin
+                  SPORT -> R.drawable.sky_blue_pin
+                  FOOD  -> R.drawable.yellow_pin
+                  ART   -> R.drawable.red_pin
+                  TRAVEL -> R.drawable.brown_pin
+                  GAMES -> R.drawable.orange_pin
+                  TECHNOLOGY -> R.drawable.grey_ping
+                  TOPIC -> R.drawable.pink_pin
+                  null -> R.drawable.base_pin
+              }
+              MapMarkerUiModel(event, event.location.toGeoPoint(), drawableBasedOnCategory)
             }
         _uiState.update { it.copy(markers = markers) }
       } catch (e: Exception) {
