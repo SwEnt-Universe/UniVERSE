@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -68,6 +69,7 @@ fun ChatListScreen(
 ) {
   val chatPreviews by vm.chatPreviews.collectAsState()
   Scaffold(
+      containerColor = Color.Transparent,
       bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) },
       modifier = Modifier.testTag(NavigationTestTags.CHAT_SCREEN)) { paddingValues ->
         if (chatPreviews.isNotEmpty()) {
