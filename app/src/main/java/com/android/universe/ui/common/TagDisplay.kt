@@ -314,7 +314,7 @@ fun TagRow(
  *   [TagGroupDefaults.DefaultOuterPaddingH].
  * @param outerPaddingV Vertical padding of the outer Column. Defaults to
  *   [TagGroupDefaults.DefaultOuterPaddingV].
- * @param name Optional title displayed above the tag group. If empty or blank, no title is shown.
+ * @param title Optional title displayed above the tag group. If empty or blank, no title is shown.
  * @param tagList The list of tags to display.
  * @param selectedTags The list of tags that are currently selected.
  * @param isSelectable If true, tags can be selected/deselected; otherwise, tags are read-only.
