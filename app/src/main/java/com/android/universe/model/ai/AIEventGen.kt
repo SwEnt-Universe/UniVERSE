@@ -1,5 +1,6 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.event.Event
 
 /**

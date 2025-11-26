@@ -1,7 +1,8 @@
-package com.android.universe.model.ai
+package com.android.universe.model.ai.openai
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -27,7 +28,7 @@ interface OpenAIService {
   @POST("chat/completions")
   suspend fun chatCompletionStream(
       @Body request: ChatCompletionRequest
-  ): Response<okhttp3.ResponseBody>
+  ): Response<ResponseBody>
 }
 
 // ===================================================================

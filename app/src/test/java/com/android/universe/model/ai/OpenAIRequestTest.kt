@@ -1,6 +1,8 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.openai.OpenAIProvider
 import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.tag.Tag
@@ -59,15 +61,17 @@ class OpenAIRequestTest {
 
     // 3. Construct an event query with Task + Context
     val query =
-        EventQuery(
-            user = studentProfile,
-            task = TaskConfig(eventCount = 1),
-            context =
-                ContextConfig(
-                    location = "Lausanne",
-                    radiusKm = 5,
-                    timeFrame = "today",
-                    locationCoordinates = 46.5191 to 6.5668))
+      EventQuery(
+        user = studentProfile,
+        task = TaskConfig(eventCount = 1),
+        context =
+          ContextConfig(
+            location = "Lausanne",
+            radiusKm = 5,
+            timeFrame = "today",
+            locationCoordinates = 46.5191 to 6.5668
+          )
+      )
 
     // 4. Run actual OpenAI query
     val events: List<Event> = eventGen.generateEvents(query)

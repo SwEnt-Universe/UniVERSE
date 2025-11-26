@@ -1,4 +1,4 @@
-package com.android.universe.model.ai
+package com.android.universe.model.ai.openai
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.ResponseBody
