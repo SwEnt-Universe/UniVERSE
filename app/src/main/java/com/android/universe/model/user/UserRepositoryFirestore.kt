@@ -43,7 +43,9 @@ fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
             (doc.get("tags").safeCastList<Number>())
                 .map { ordinal -> Tag.entries[ordinal.toInt()] }
                 .toSet(),
-        profilePicture = doc.getBlob("profilePicture")?.toBytes())
+        profilePicture = doc.getBlob("profilePicture")?.toBytes(),
+        followers = doc.get("followers").safeCastList<String>().toSet(),
+        following = doc.get("following").safeCastList<String>().toSet())
   } catch (e: DateTimeParseException) {
     Log.e(
         "UserRepositoryFirestore.documentToUserProfile",
@@ -91,7 +93,9 @@ class UserRepositoryFirestore(
               Blob.fromBytes(user.profilePicture)
             } else {
               null
-            }))
+            }),
+        "followers" to user.followers.toList(),
+        "following" to user.following.toList())
   }
 
   /**

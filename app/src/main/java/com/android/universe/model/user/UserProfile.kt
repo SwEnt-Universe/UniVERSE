@@ -49,7 +49,6 @@ data class UserProfile(
     if (followers != other.followers) return false
     if (following != other.following) return false
 
-
     return true
   }
 

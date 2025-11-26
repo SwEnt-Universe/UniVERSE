@@ -42,7 +42,9 @@ object UserTestData {
       BaseUser.copy(
           username = "Bob",
           dateOfBirth = LocalDate.of(1990, 1, 1),
-          tags = setOf(Tag.MUSIC, Tag.METAL))
+          tags = setOf(Tag.MUSIC, Tag.METAL),
+          followers = setOf("1"),
+          following = setOf("1"))
   const val bobEmail = "fakebob@epfl.ch"
   const val bobPassword = "fake-pass123"
 
