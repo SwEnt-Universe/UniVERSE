@@ -35,6 +35,7 @@ object ResponseParser {
 
     // Convert to domain objects
     return dtos.map { dto ->
+      validate(dto)
       Event(
           id = dto.id,
           title = dto.title,
@@ -50,4 +51,18 @@ object ResponseParser {
 
   private fun cleanJson(raw: String): String =
       raw.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+
+  private fun validate(dto: EventDTO) {
+    require(dto.id.isNotBlank()) { "Event id missing or blank" }
+    require(dto.title.isNotBlank()) { "Title cannot be empty" }
+    require(dto.description.isNotBlank()) { "Description cannot be empty" }
+
+    requireNotNull(dto.location) { "Location missing" }
+    require(dto.location.latitude in -90.0..90.0) { "Invalid latitude" }
+    require(dto.location.longitude in -180.0..180.0) { "Invalid longitude" }
+
+    // Optional: validate date
+    runCatching { LocalDateTime.parse(dto.date) }
+      .onFailure { throw IllegalArgumentException("Invalid date format: ${dto.date}") }
+  }
 }

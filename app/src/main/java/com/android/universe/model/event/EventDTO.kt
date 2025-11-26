@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 data class EventDTO(
     val id: String,
     val title: String,
-    val description: String? = null,
+    val description: String,
     val date: String, // "2025-04-12T20:00"
     val tags: List<String>,
     val location: LocationDTO,
