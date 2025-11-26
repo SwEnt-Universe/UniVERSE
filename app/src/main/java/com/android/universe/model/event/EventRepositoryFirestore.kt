@@ -170,6 +170,33 @@ class EventRepositoryFirestore(
   }
 
   /**
+   * Retrieves all events where the specific user is either the creator or a participant.
+   *
+   * This executes two Firestore queries in parallel:
+   * 1. Events where the user is the 'creator'.
+   * 2. Events where the 'participants' array contains the user. The results are merged and
+   *    duplicates are removed.
+   *
+   * @param userId the unique ID of the user.
+   * @return a list of [Event] objects associated with the user.
+   */
+  override suspend fun getUserInvolvedEvents(userId: String): List<Event> {
+    return withContext(ioDispatcher) {
+      val createdTask = db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("creator", userId).get()
+
+      val participatingTask =
+          db.collection(EVENTS_COLLECTION_PATH).whereArrayContains("participants", userId).get()
+
+      val createdSnapshot = createdTask.await()
+      val participatingSnapshot = participatingTask.await()
+
+      (createdSnapshot.documents + participatingSnapshot.documents)
+          .distinctBy { it.id }
+          .map { documentToEvent(it) }
+    }
+  }
+
+  /**
    * Adds a new event to the repository.
    *
    * @param event the [Event] to add.

@@ -74,7 +74,7 @@ fun EventContentLayout(
       Box(
           modifier =
               Modifier.fillMaxWidth(2f / 3f)
-                  .height(Dimensions.EventCardImageHeight)
+                  .height(Dimensions.CardImageHeight)
                   .align(Alignment.TopStart)
                   .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
                   .testTag("${EventContentTestTags.EVENT_IMAGE_CONTAINER}_$eventId")) {
@@ -164,8 +164,8 @@ fun EventContentLayout(
                 .padding(start = Dimensions.PaddingMedium, end = Dimensions.PaddingMedium)) {
           LiquidButton(
               onClick = onChatClick,
-              height = Dimensions.EventCardButtonHeight,
-              width = Dimensions.EventCardButtonWidth,
+              height = Dimensions.CardButtonHeight,
+              width = Dimensions.CardButtonWidth,
               modifier = Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
@@ -192,8 +192,8 @@ fun EventContentLayout(
 
           LiquidButton(
               onClick = onToggleEventParticipation,
-              height = Dimensions.EventCardButtonHeight,
-              width = Dimensions.EventCardButtonWidth,
+              height = Dimensions.CardButtonHeight,
+              width = Dimensions.CardButtonWidth,
               modifier =
                   Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

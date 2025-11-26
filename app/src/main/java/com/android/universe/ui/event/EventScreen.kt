@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -70,6 +71,7 @@ fun EventScreen(
   val focusManager = LocalFocusManager.current
 
   Scaffold(
+      containerColor = Color.Transparent,
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
       contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
       bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { _ ->

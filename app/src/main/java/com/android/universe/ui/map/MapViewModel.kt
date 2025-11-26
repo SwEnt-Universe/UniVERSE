@@ -1,10 +1,13 @@
 package com.android.universe.ui.map
 
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import androidx.core.content.edit
+import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.R
+import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
@@ -19,6 +22,7 @@ import com.android.universe.model.tag.Tag.Category.TECHNOLOGY
 import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
+import com.android.universe.ui.theme.Dimensions
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import kotlinx.coroutines.CoroutineDispatcher
@@ -351,5 +355,20 @@ class MapViewModel(
    */
   fun isUserParticipant(event: Event): Boolean {
     return event.participants.contains(currentUserId)
+  }
+
+  /**
+   * Called when a snapshot is available.
+   *
+   * @param bmp The bitmap of the snapshot.
+   */
+  fun onSnapshotAvailable(bmp: Bitmap) {
+    viewModelScope.launch {
+      val scaled =
+          bmp.scale(
+              (bmp.width * Dimensions.ImageScale).toInt(),
+              (bmp.height * Dimensions.ImageScale).toInt())
+      BackgroundSnapshotRepository.updateSnapshot(scaled)
+    }
   }
 }

@@ -98,6 +98,45 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   }
 
   @Test
+  fun getEventsForUser_returnsEventsWhereUserInvolvedEventsIsParticipantOrCreator() = runTest {
+    val userId = "user-123"
+    val otherUser = "user-456"
+
+    val createdEvent =
+        event1.copy(id = "created-event", creator = userId, participants = emptySet())
+    val participatingEvent =
+        event2.copy(id = "part-event", creator = otherUser, participants = setOf(userId))
+    val unrelatedEvent =
+        event3.copy(id = "unrelated-event", creator = otherUser, participants = emptySet())
+
+    eventRepository.addEvent(createdEvent)
+    eventRepository.addEvent(participatingEvent)
+    eventRepository.addEvent(unrelatedEvent)
+
+    val result = eventRepository.getUserInvolvedEvents(userId)
+
+    assertEquals(2, result.size)
+    assertTrue("Should contain event created by user", result.contains(createdEvent))
+    assertTrue(
+        "Should contain event where user is participant", result.contains(participatingEvent))
+    assertFalse("Should not contain unrelated event", result.contains(unrelatedEvent))
+  }
+
+  @Test
+  fun getEventsForUser_returnsEmptyList_whenUserHasNoAssociatedEventsInvolvedEvents() = runTest {
+    val userId = "lonely-user"
+    val otherUser = "popular-user"
+
+    val event = event1.copy(creator = otherUser, participants = setOf(otherUser))
+
+    eventRepository.addEvent(event)
+
+    val result = eventRepository.getUserInvolvedEvents(userId)
+
+    assertTrue(result.isEmpty())
+  }
+
+  @Test
   fun updateEventReplacesExistingEventCompletely() = runTest {
     eventRepository.addEvent(event1)
     eventRepository.updateEvent(event1.id, event2)

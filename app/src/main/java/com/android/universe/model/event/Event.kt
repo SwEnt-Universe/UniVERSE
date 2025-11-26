@@ -12,9 +12,10 @@ import java.time.LocalDateTime
  * @property description optional detailed information about the event.
  * @property date date and time when the event is scheduled to occur.
  * @property tags set of tags associated with the event for categorization.
- * @property creator user profile of the event creator.
- * @property participants set of user profiles participating in the event.
+ * @property creator unique identifier (UID) of the user who created the event.
+ * @property participants set of unique identifiers (UIDs) of the users participating in the event.
  * @property location where the event will take place.
+ * @property eventPicture optional byte array representing the event's picture.
  */
 data class Event(
     val id: String,
