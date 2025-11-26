@@ -16,7 +16,7 @@ import retrofit2.Retrofit
  * - Create and configure a shared OkHttpClient with authentication and logging
  * - Build a Retrofit instance with JSON serialization support
  * - Expose a lazily initialized [OpenAIService] Retrofit API interface
- * - Expose a lazily initialized [EventGen] implementation (dependency injection style singleton)
+ * - Expose a lazily initialized [AIEventGen] implementation (dependency injection style singleton)
  *
  * Intended to be the entry point for accessing OpenAI functionality inside the app.
  */
@@ -64,5 +64,5 @@ object OpenAIProvider {
   // Public access point
   val api: OpenAIService by lazy { retrofit.create(OpenAIService::class.java) }
 
-  val eventGen: EventGen by lazy { OpenAIEventGen(api) }
+  val eventGen: AIEventGen by lazy { OpenAIEventGen(api) }
 }

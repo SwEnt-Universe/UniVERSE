@@ -10,8 +10,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Ignore
 import org.junit.Test
 
-@Ignore("OpenAI query. Run manually only")
-class OpenAIEventGenTest {
+@Ignore("OpenAI request. Run manually only")
+class OpenAIRequestTest {
 
   @Test
   fun testOpenAIEventGenWithDummyData() = runBlocking {
