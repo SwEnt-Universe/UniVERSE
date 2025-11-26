@@ -91,7 +91,17 @@ fun SelectTagScreen(
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
         TagGroup(
-            name = category.displayName,
+            name =
+                when (category) {
+                  Tag.Category.MUSIC -> "What kind of music are you into ?"
+                  Tag.Category.SPORT -> "Which sports catch your interest ?"
+                  Tag.Category.FOOD -> "What types of food do you enjoy ?"
+                  Tag.Category.ART -> "Which art styles inspire you ?"
+                  Tag.Category.TRAVEL -> "What travel styles appeal to you the most ?"
+                  Tag.Category.GAMES -> "What kinds of games do you like to play ?"
+                  Tag.Category.TECHNOLOGY -> "Which technology topics are you curious about ?"
+                  Tag.Category.TOPIC -> "Which topics are you interested in ?"
+                },
             tagList = Tag.getTagsForCategory(category),
             selectedTags = selectedTags,
             onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
