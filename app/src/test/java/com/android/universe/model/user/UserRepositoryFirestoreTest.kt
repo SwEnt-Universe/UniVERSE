@@ -118,4 +118,93 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     userRepository.addUser(userProfile1)
     assertTrue(userRepository.isUsernameUnique(userProfile2.username))
   }
+
+  @Test
+  fun checkFollowAExistingUser() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.followUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following + userProfile2.uid
+    val expectedFollowerSet = userProfile2.followers + userProfile1.uid
+
+    val currentUSer = userRepository.getUser(userProfile1.uid)
+    val targetUser = userRepository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+  @Test
+  fun checkFollowANonExistingUser() = runTest {
+    userRepository.addUser(userProfile1)
+    try {
+      userRepository.followUser(userProfile1.uid, userProfile2.uid)
+      assertTrue(false)
+    } catch (e: Exception) {
+      assertTrue(true)
+    }
+  }
+
+  @Test
+  fun checkFollowAlreadyFollowUser() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.followUser(userProfile1.uid, userProfile2.uid)
+    userRepository.followUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following + userProfile2.uid
+    val expectedFollowerSet = userProfile2.followers + userProfile1.uid
+
+    val currentUSer = userRepository.getUser(userProfile1.uid)
+    val targetUser = userRepository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+
+  @Test
+  fun checkUnfollowAExistingUser() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.followUser(userProfile1.uid, userProfile2.uid)
+    userRepository.unfollowUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following
+    val expectedFollowerSet = userProfile2.followers
+
+    val currentUSer = userRepository.getUser(userProfile1.uid)
+    val targetUser = userRepository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+  @Test
+  fun checkUnfollowANonExistingUser() = runTest {
+    userRepository.addUser(userProfile1)
+    try {
+      userRepository.unfollowUser(userProfile1.uid, userProfile2.uid)
+      assertTrue(false)
+    } catch (e: Exception) {
+      assertTrue(true)
+    }
+  }
+
+  @Test
+  fun checkUnfollowNonFollowUser() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.unfollowUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following
+    val expectedFollowerSet = userProfile2.followers
+
+    val currentUSer = userRepository.getUser(userProfile1.uid)
+    val targetUser = userRepository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
 }

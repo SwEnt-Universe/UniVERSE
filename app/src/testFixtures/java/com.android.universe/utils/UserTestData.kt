@@ -43,8 +43,8 @@ object UserTestData {
           username = "Bob",
           dateOfBirth = LocalDate.of(1990, 1, 1),
           tags = setOf(Tag.MUSIC, Tag.METAL),
-          followers = setOf("1"),
-          following = setOf("1"))
+          followers = setOf("3"),
+          following = setOf("3"))
   const val bobEmail = "fakebob@epfl.ch"
   const val bobPassword = "fake-pass123"
 
