@@ -3,12 +3,22 @@ package com.android.universe.ui.map
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.PixelCopy
+import android.view.Surface
+import android.view.TextureView
+import android.view.View
+import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,6 +40,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
+import androidx.core.view.drawToBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -93,7 +105,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   val layerBackdrop = LocalLayerBackdrop.current
-
+  var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
 
   // Local cache for marker click handling (ID -> Event)
@@ -159,8 +171,24 @@ fun MapScreen(
   // --- 3. UI Structure ---
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
-          padding ->
+      bottomBar = {
+        NavigationBottomMenu(
+            selectedTab = Tab.Map,
+            onTabSelected = { tab ->
+              val view = mapViewInstance
+              if (!uiState.isLoading &&
+                  uiState.isMapInteractive &&
+                  view != null &&
+                  tab != Tab.Map) {
+                view.takeSnapshot { bmp ->
+                  if (bmp != null) {
+                    viewModel.onSnapshotAvailable(bmp)
+                  }
+                }
+              }
+              onTabSelected(tab)
+            })
+      }) { padding ->
         Box(
             modifier =
                 Modifier.fillMaxSize()
@@ -170,11 +198,11 @@ fun MapScreen(
                         else Modifier)) {
               TomTomMapComposable(
                   modifier = Modifier.fillMaxSize().layerBackdrop(layerBackdrop),
+                  onMapViewReady = { mapViewInstance = it },
                   onMapReady = { map ->
                     tomTomMap = map
 
                     // --- 4. Map Initialization Sequence ---
-
                     map.initLocationProvider(viewModel.locationProvider)
 
                     map.setUpMapListeners(
@@ -200,6 +228,14 @@ fun MapScreen(
                     contentAlignment = Alignment.BottomCenter) {
                       LiquidButton(
                           onClick = {
+                            val view = mapViewInstance
+                            if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
+                              view.takeSnapshot { bmp ->
+                                if (bmp != null) {
+                                  viewModel.onSnapshotAvailable(bmp)
+                                }
+                              }
+                            }
                             createEvent(
                                 uiState.selectedLocation!!.latitude,
                                 uiState.selectedLocation!!.longitude)
@@ -242,12 +278,17 @@ fun MapScreen(
 // --- HELPER COMPOSABLES & EXTENSIONS ---
 
 @Composable
-fun TomTomMapComposable(modifier: Modifier = Modifier, onMapReady: (TomTomMap) -> Unit) {
+fun TomTomMapComposable(
+    modifier: Modifier = Modifier,
+    onMapViewReady: (MapView) -> Unit,
+    onMapReady: (TomTomMap) -> Unit
+) {
   val mapView = rememberMapViewWithLifecycle(onMapReady)
 
   AndroidView(
       factory = { mapView.apply { configureUiSettings() } },
-      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
+      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
+      update = { onMapViewReady(mapView) })
 }
 
 @Composable
@@ -360,6 +401,84 @@ private fun TomTomMap.executeMapAction(action: MapAction) {
       val newZoom = (this.cameraPosition.zoom + 1.0).coerceAtMost(22.0)
       this.animateCamera(CameraOptions(zoom = newZoom))
     }
+  }
+}
+
+/**
+ * Recursively searches this view hierarchy for the TextureView used to render the TomTom map.
+ *
+ * TomTom's MapView internally contains multiple nested views. Depending on configuration (e.g.,
+ * `renderToTexture = true`), the actual rendered map surface may be hosted inside a `TextureView`.
+ * This method walks the view tree in depth-first order and returns the first `TextureView`
+ * encountered.
+ *
+ * @return The first discovered [TextureView] instance, or `null` if none exists.
+ */
+fun View.findRenderingView(): View? {
+  if (this is TextureView) return this
+
+  if (this is ViewGroup) {
+    for (child in children) {
+      val result = child.findRenderingView()
+      if (result != null) return result
+    }
+  }
+  return null
+}
+
+/**
+ * Retrieves the internal rendering view used by this [MapView].
+ *
+ * This is a convenience wrapper around [findRenderingView], which performs a recursive traversal of
+ * the MapView's internal view hierarchy to locate the map rendering surface (normally a
+ * [TextureView] when `renderToTexture = true`).
+ *
+ * @return The underlying rendering view, or `null` if none is found.
+ */
+fun MapView.getRendererView(): View? {
+  return this.findRenderingView()
+}
+
+/**
+ * Captures a bitmap snapshot of the visible contents rendered by this [MapView].
+ *
+ * The function attempts to locate the internal rendering surface (usually a [TextureView]) via
+ * [getRendererView]. If successful, a bitmap of equal size is created and populated using
+ * [PixelCopy]. PixelCopy ensures accurate, GPU-correct rendering even when the map is drawn on a
+ * separate hardware layer.
+ *
+ * Because snapshotting is asynchronous, the result is delivered via a callback. If the rendering
+ * view cannot be found, has invalid size, or PixelCopy fails, the callback receives `null`.
+ *
+ * @param onResult Callback invoked with the resulting [Bitmap], or `null` if snapshot acquisition
+ *   failed.
+ */
+fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
+
+  val renderer = getRendererView() ?: return onResult(null)
+
+  val width = renderer.width
+  val height = renderer.height
+
+  if (width == 0 || height == 0) {
+    onResult(null)
+    return
+  }
+
+  val bitmap = renderer.drawToBitmap()
+  val handler = Handler(Looper.getMainLooper())
+
+  when (renderer) {
+    is TextureView -> {
+      val surface = Surface(renderer.surfaceTexture)
+      PixelCopy.request(
+          surface,
+          bitmap,
+          { result -> onResult(if (result == PixelCopy.SUCCESS) bitmap else null) },
+          handler)
+    }
+
+    else -> onResult(null)
   }
 }
 

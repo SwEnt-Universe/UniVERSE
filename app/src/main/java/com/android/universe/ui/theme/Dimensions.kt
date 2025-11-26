@@ -83,4 +83,7 @@ object Dimensions {
   val WidthMaximumTags = 100.dp
   val VerticalPaddingTagsText = 6.dp
   val HorizontalPaddingTagsText = 12.dp
+
+  // Image scale
+  val ImageScale = 0.4f
 }
