@@ -1,6 +1,7 @@
 package com.android.universe.ui.selectTag
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
+import com.android.universe.ui.theme.Dimensions
 
 object SelectTagsScreenTestTags {
   const val MUSIC_TAGS = "MusicTags"
@@ -55,10 +56,7 @@ object SelectTagsScreenTestTags {
 /** Composable that displays a horizontal line to visually divide sections on the tag screen. */
 @Composable
 fun SectionDivider() {
-  HorizontalDivider(
-      modifier = Modifier.testTag(SelectTagsScreenTestTags.DIVIDER).padding(vertical = 8.dp),
-      thickness = 1.dp,
-      color = Color.Black)
+  Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
 }
 
 /**
@@ -88,6 +86,7 @@ fun SelectTagScreen(
   }
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+    Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
         TagGroup(
