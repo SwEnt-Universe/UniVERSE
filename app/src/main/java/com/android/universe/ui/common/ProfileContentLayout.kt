@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.components.LiquidButton
@@ -50,6 +51,8 @@ object ProfileContentTestTags {
  *   not created yet).
  * @param following Number of users the user is following (Implemented as optional because the logic
  *   is not created yet).
+ * @param heightTagList Height of the tag list/row.
+ * @param actionRowEnabled Whether to show the action row (chat, follow buttons) or not.
  * @param onChatClick Callback for chat button.
  * @param onAddClick Callback for add/follow button.
  * @param onSettingsClick Optional callback for settings button. If null, settings button is not
@@ -62,6 +65,8 @@ fun ProfileContentLayout(
     userProfileImage: ImageBitmap,
     followers: Int? = 0,
     following: Int? = 0,
+    heightTagList: Dp = 260.dp,
+    actionRowEnabled: Boolean = true,
     onChatClick: () -> Unit,
     onAddClick: () -> Unit,
     onSettingsClick: (() -> Unit)? = null
@@ -86,9 +91,9 @@ fun ProfileContentLayout(
             isSelectable = false,
             isSelected = { false },
             background = true,
-            heightList = if (onSettingsClick != null) Dimensions.CardImageHeight else 280.dp,
+            heightList = heightTagList,
             modifierBox =
-                Modifier.testTag(ProfileContentTestTags.TAGS_COLUMN)
+                Modifier.testTag("${ProfileContentTestTags.TAGS_COLUMN}_${userProfile.uid}")
                     .padding(start = Dimensions.PaddingLarge))
 
         if (onSettingsClick != null) {
@@ -98,8 +103,10 @@ fun ProfileContentLayout(
               onClick = onSettingsClick,
               height = Dimensions.CardButtonHeight,
               width = Dimensions.CardButtonWidth,
-              contentPadding = 8.dp,
-              modifier = Modifier.testTag(ProfileContentTestTags.SETTINGS_BUTTON)) {
+              contentPadding = Dimensions.PaddingMedium,
+              modifier =
+                  Modifier.testTag(
+                      "${ProfileContentTestTags.SETTINGS_BUTTON}_${userProfile.uid}")) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
                       imageVector = Icons.Outlined.Settings,
@@ -121,17 +128,19 @@ fun ProfileContentLayout(
         color = MaterialTheme.colorScheme.onSurface,
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.fillMaxWidth().testTag(ProfileContentTestTags.DESCRIPTION))
+        modifier =
+            Modifier.fillMaxWidth()
+                .testTag("${ProfileContentTestTags.DESCRIPTION}_${userProfile.uid}"))
 
-    if (onSettingsClick == null) {
+    if (actionRowEnabled) {
       Spacer(Modifier.height(Dimensions.SpacerMedium))
 
       ProfileCardActionsRow(
           userProfile = userProfile,
           followers = followers ?: 0,
           following = following ?: 0,
-          onChatClick = { onChatClick() },
-          onAddClick = { onAddClick() },
+          onChatClick = onChatClick,
+          onAddClick = onAddClick,
           modifier = Modifier.fillMaxWidth())
     }
   }

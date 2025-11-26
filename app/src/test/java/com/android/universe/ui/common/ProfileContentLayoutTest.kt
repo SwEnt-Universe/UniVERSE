@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.UserTestData
@@ -30,6 +31,7 @@ class ProfileContentLayoutTest {
       onChatClick: () -> Unit = {},
       onAddClick: () -> Unit = {},
       onSettingsClick: (() -> Unit)? = null,
+      actionRowEnabled: Boolean = true,
       followers: Int? = 0,
       following: Int? = 0
   ) {
@@ -40,6 +42,8 @@ class ProfileContentLayoutTest {
           userProfileImage = testImage,
           followers = followers,
           following = following,
+          heightTagList = 260.dp,
+          actionRowEnabled = actionRowEnabled,
           onChatClick = onChatClick,
           onAddClick = onAddClick,
           onSettingsClick = onSettingsClick)
@@ -56,7 +60,7 @@ class ProfileContentLayoutTest {
         .assertTextEquals("${testUserProfile.firstName} ${testUserProfile.lastName}")
 
     composeTestRule
-        .onNodeWithTag(ProfileContentTestTags.DESCRIPTION)
+        .onNodeWithTag("${ProfileContentTestTags.DESCRIPTION}_${testUserProfile.uid}")
         .assertExists()
         .assertTextEquals(testUserProfile.description ?: "No description available")
 
@@ -72,7 +76,7 @@ class ProfileContentLayoutTest {
     setProfileContent(onSettingsClick = { settingsClicked.value = true })
 
     composeTestRule
-        .onNodeWithTag(ProfileContentTestTags.SETTINGS_BUTTON)
+        .onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_${testUserProfile.uid}")
         .assertExists()
         .performClick()
 
@@ -83,12 +87,14 @@ class ProfileContentLayoutTest {
   fun profileContent_settingsButton_isNotDisplayed_whenOnSettingsIsNull() {
     setProfileContent(onSettingsClick = null)
 
-    composeTestRule.onNodeWithTag(ProfileContentTestTags.SETTINGS_BUTTON).assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_${testUserProfile.uid}")
+        .assertDoesNotExist()
   }
 
   @Test
-  fun profileContent_actionsRow_isNotDisplayed_whenSettingsProvided() {
-    setProfileContent(onSettingsClick = {})
+  fun profileContent_actionsRow_isNotDisplayed_whenActionRowEnabledFalse() {
+    setProfileContent(actionRowEnabled = false)
 
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.CHAT_BUTTON}_${testUserProfile.uid}")
@@ -100,7 +106,7 @@ class ProfileContentLayoutTest {
   }
 
   @Test
-  fun profileContent_actionsRow_isDisplayed_whenSettingsIsNull() {
+  fun profileContent_actionsRow_isDisplayed_whenActionRowEnabledTrue() {
     var chatClicked = false
     var addClicked = false
 
@@ -121,7 +127,9 @@ class ProfileContentLayoutTest {
   fun profileContent_tagsAreDisplayed() {
     setProfileContent()
 
-    composeTestRule.onNodeWithTag(ProfileContentTestTags.TAGS_COLUMN).assertExists()
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.TAGS_COLUMN}_${testUserProfile.uid}")
+        .assertExists()
   }
 
   @Test

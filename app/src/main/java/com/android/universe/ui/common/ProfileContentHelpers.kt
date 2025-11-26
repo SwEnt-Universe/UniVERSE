@@ -31,7 +31,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.user.UserProfile
-import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 import java.time.format.DateTimeFormatter
@@ -45,7 +44,7 @@ import java.time.format.DateTimeFormatter
 fun UserInfoColumn(userProfile: UserProfile) {
   Column {
     Text(
-        userProfile.firstName + " " + userProfile.lastName,
+        text = "${userProfile.firstName} ${userProfile.lastName}",
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onSurface,
         maxLines = 1,
@@ -151,80 +150,79 @@ fun ProfileCardActionsRow(
     onAddClick: () -> Unit,
     modifier: Modifier
 ) {
-  Row(
-      modifier = modifier.fillMaxWidth().padding(horizontal = Dimensions.SpacerSmall),
-      horizontalArrangement = Arrangement.SpaceEvenly,
-      verticalAlignment = Alignment.CenterVertically) {
-        LiquidButton(
-            onClick = onChatClick,
-            height = Dimensions.CardButtonHeight,
-            width = Dimensions.CardButtonWidth,
-            modifier =
-                Modifier.testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Chat,
-                    contentDescription = "Chat",
-                    modifier = Modifier.size(Dimensions.IconSizeMedium))
-                Spacer(Modifier.width(Dimensions.SpacerSmall))
-                Text(text = "Chat", style = MaterialTheme.typography.labelLarge)
+  Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+    LiquidButton(
+        onClick = onChatClick,
+        height = Dimensions.CardButtonHeight,
+        width = Dimensions.CardButtonWidth,
+        modifier = Modifier.testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.Chat,
+                contentDescription = "Chat",
+                modifier = Modifier.size(Dimensions.IconSizeMedium))
+            Spacer(Modifier.width(Dimensions.SpacerSmall))
+            Text(text = "Chat", style = MaterialTheme.typography.labelLarge)
+          }
+        }
+
+    Spacer(Modifier.width(Dimensions.SpacerSmall))
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            Modifier.testTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${userProfile.uid}")) {
+          LiquidButton(
+              modifier = Modifier.size(35.dp).clip(CircleShape),
+              enabled = false,
+              isInteractive = false,
+              onClick = {},
+              contentPadding = Dimensions.PaddingSmall) {
+                Text(
+                    text = "$followers",
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis)
               }
-            }
+          Text(text = "followers", style = MaterialTheme.typography.labelSmall)
+        }
 
-        Spacer(Modifier.width(Dimensions.SpacerSmall))
+    Spacer(Modifier.width(Dimensions.SpacerSmall))
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier.testTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${userProfile.uid}")) {
-              LiquidBox(
-                  modifier = Modifier.size(40.dp).clip(CircleShape),
-                  contentAlignment = Alignment.Center) {
-                    Text(
-                        text = (followers).toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis)
-                  }
-              Spacer(Modifier.height(2.dp))
-              Text(text = "followers", style = MaterialTheme.typography.labelSmall)
-            }
-
-        Spacer(Modifier.width(Dimensions.SpacerSmall))
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier.testTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${userProfile.uid}")) {
-              LiquidBox(
-                  modifier = Modifier.size(40.dp).clip(CircleShape),
-                  contentAlignment = Alignment.Center) {
-                    Text(
-                        text = (following).toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis)
-                  }
-              Spacer(Modifier.height(2.dp))
-              Text(text = "following", style = MaterialTheme.typography.labelSmall)
-            }
-
-        Spacer(Modifier.width(Dimensions.SpacerSmall))
-
-        LiquidButton(
-            onClick = onAddClick,
-            height = Dimensions.CardButtonHeight,
-            width = Dimensions.CardButtonWidth,
-            modifier =
-                Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.PersonAdd,
-                    contentDescription = "Add",
-                    modifier = Modifier.size(Dimensions.IconSizeMedium))
-                Spacer(Modifier.width(Dimensions.SpacerSmall))
-                Text(text = "Add", style = MaterialTheme.typography.labelLarge)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            Modifier.testTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${userProfile.uid}")) {
+          LiquidButton(
+              modifier = Modifier.size(35.dp).clip(CircleShape),
+              enabled = false,
+              isInteractive = false,
+              onClick = {},
+              contentPadding = Dimensions.PaddingSmall) {
+                Text(
+                    text = "$following",
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis)
               }
-            }
-      }
+          Text(text = "following", style = MaterialTheme.typography.labelSmall)
+        }
+
+    Spacer(Modifier.width(Dimensions.SpacerSmall))
+
+    LiquidButton(
+        onClick = onAddClick,
+        height = Dimensions.CardButtonHeight,
+        width = Dimensions.CardButtonWidth,
+        modifier = Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Outlined.PersonAdd,
+                contentDescription = "Add",
+                modifier = Modifier.size(Dimensions.IconSizeMedium))
+            Spacer(Modifier.width(Dimensions.SpacerSmall))
+            Text(text = "Add", style = MaterialTheme.typography.labelLarge)
+          }
+        }
+  }
 }
