@@ -172,6 +172,7 @@ fun EventCreationScreen(
       else eventCreationViewModel.formatTime(uiState.value.time)
   val showTime = remember { mutableStateOf(false) }
   Scaffold(
+      containerColor = Color.Transparent,
       content = { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
           val context = LocalContext.current
