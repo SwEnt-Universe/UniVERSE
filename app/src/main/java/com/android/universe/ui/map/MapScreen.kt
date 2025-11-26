@@ -16,9 +16,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -478,7 +476,7 @@ fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
   }
 }
 
-private fun TomTomMap.syncEventMarkers(
+private suspend fun TomTomMap.syncEventMarkers(
     markers: List<MapMarkerUiModel>,
     markerMap: MutableMap<UniqueId, Event>
 ) {
