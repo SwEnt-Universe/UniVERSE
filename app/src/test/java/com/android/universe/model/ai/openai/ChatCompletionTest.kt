@@ -15,13 +15,12 @@ class ChatCompletionTest {
   @Test
   fun request_serializes_with_all_fields() {
     val req =
-      ChatCompletionRequest(
-        model = "gpt-xxx",
-        messages = listOf(Message("user", "Hello")),
-        temperature = 0.5,
-        max_completion_tokens = 20,
-        response_format = ResponseFormat("json_schema", null)
-      )
+        ChatCompletionRequest(
+            model = "gpt-xxx",
+            messages = listOf(Message("user", "Hello")),
+            temperature = 0.5,
+            max_completion_tokens = 20,
+            response_format = ResponseFormat("json_schema", null))
 
     val encoded = json.encodeToString(req)
     Assert.assertTrue(encoded.contains("\"model\":\"gpt-xxx\""))
@@ -43,7 +42,7 @@ class ChatCompletionTest {
   @Test
   fun response_deserializes_with_usage() {
     val raw =
-      """
+        """
         {
           "id": "1",
           "created": 123,
@@ -62,7 +61,7 @@ class ChatCompletionTest {
           }
         }
         """
-        .trimIndent()
+            .trimIndent()
 
     val resp = json.decodeFromString<ChatCompletionResponse>(raw)
 
@@ -75,7 +74,7 @@ class ChatCompletionTest {
   @Test
   fun response_deserializes_without_usage() {
     val raw =
-      """
+        """
         {
           "id": "1",
           "created": 12,
@@ -88,7 +87,7 @@ class ChatCompletionTest {
           ]
         }
         """
-        .trimIndent()
+            .trimIndent()
 
     val resp = json.decodeFromString<ChatCompletionResponse>(raw)
 
@@ -98,7 +97,7 @@ class ChatCompletionTest {
   @Test
   fun empty_choices_is_valid_but_edge_case() {
     val raw =
-      """
+        """
         {
           "id": "1",
           "created": 1,
@@ -106,7 +105,7 @@ class ChatCompletionTest {
           "choices": []
         }
         """
-        .trimIndent()
+            .trimIndent()
 
     val resp = json.decodeFromString<ChatCompletionResponse>(raw)
     Assert.assertTrue(resp.choices.isEmpty())
@@ -121,7 +120,8 @@ class ChatCompletionTest {
 
   @Test
   fun response_deserializes_choice_with_null_finish_reason() {
-    val raw = """
+    val raw =
+        """
         {
           "id": "2",
           "created": 50,
@@ -134,7 +134,8 @@ class ChatCompletionTest {
             }
           ]
         }
-    """.trimIndent()
+        """
+            .trimIndent()
 
     val resp = json.decodeFromString<ChatCompletionResponse>(raw)
 
@@ -144,12 +145,14 @@ class ChatCompletionTest {
 
   @Test
   fun responseFormat_deserializes_with_schema() {
-    val raw = """
+    val raw =
+        """
         {
           "type": "json_schema",
           "json_schema": { "foo": "bar" }
         }
-    """.trimIndent()
+        """
+            .trimIndent()
 
     val resp = json.decodeFromString<ResponseFormat>(raw)
 
@@ -159,11 +162,7 @@ class ChatCompletionTest {
 
   @Test
   fun message_roles_are_serialized_and_deserialized() {
-    val msgs = listOf(
-      Message("system", "sys"),
-      Message("user", "u"),
-      Message("assistant", "a")
-    )
+    val msgs = listOf(Message("system", "sys"), Message("user", "u"), Message("assistant", "a"))
 
     val encoded = json.encodeToString(msgs)
     val decoded = json.decodeFromString<List<Message>>(encoded)

@@ -6,9 +6,9 @@ import com.android.universe.model.event.Event
 /**
  * Defines the contract for components capable of generating event suggestions.
  *
- * Implementations of this interface take an [EventQuery]—which describes the user,
- * the task, and any contextual preferences—and return a list of domain-level [Event]
- * objects produced by an AI model or another generation mechanism.
+ * Implementations of this interface take an [EventQuery]—which describes the user, the task, and
+ * any contextual preferences—and return a list of domain-level [Event] objects produced by an AI
+ * model or another generation mechanism.
  *
  * Example usage:
  * ```
