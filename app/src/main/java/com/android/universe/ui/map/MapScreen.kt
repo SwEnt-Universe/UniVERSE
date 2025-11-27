@@ -50,6 +50,7 @@ import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.components.LiquidButton
@@ -83,11 +84,33 @@ object MapScreenTestTags {
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
+/**
+ * The main screen composable for displaying a map with event markers.
+ *
+ * This screen handles location permissions, initializes the map, displays event markers, and
+ * manages user interactions such as selecting events and creating new ones.
+ *
+ * @param uid The unique identifier for the current user.
+ * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
+ *   selected.
+ * @param context The Android context, defaulting to the current LocalContext.
+ * @param preselectedEventId An optional event ID to preselect and focus on when the map loads.
+ * @param preselectedLocation An optional location to preselect and focus on when the map loads.
+ * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
+ *   title as parameters.
+ * @param createEvent A callback function invoked when creating a new event at specified latitude
+ *   and longitude.
+ * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
+ *   ViewModel instance initialized with necessary repositories.
+ */
 @Composable
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
+    preselectedEventId: String? = null,
+    preselectedLocation: Location? = null,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
@@ -162,6 +185,24 @@ fun MapScreen(
   // Sync Camera Actions
   LaunchedEffect(viewModel) {
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
+  }
+
+  // Handle direct event link: auto-focus and open popup
+  LaunchedEffect(preselectedEventId, preselectedLocation, tomTomMap) {
+    val map = tomTomMap ?: return@LaunchedEffect
+
+    if (preselectedEventId != null && preselectedLocation != null) {
+
+      // --- Move camera using executeMapAction ---
+      val targetGeoPoint = GeoPoint(preselectedLocation.latitude, preselectedLocation.longitude)
+      map.executeMapAction(MapAction.MoveCamera(targetGeoPoint, map.cameraPosition.zoom))
+
+      // --- Select event to show popup ---
+      val matched = uiState.markers.firstOrNull { it.event.id == preselectedEventId }?.event
+      if (matched != null) {
+        viewModel.selectEvent(matched)
+      }
+    }
   }
 
   // --- 3. UI Structure ---
@@ -267,6 +308,7 @@ fun MapScreen(
                     event = event,
                     isUserParticipant = viewModel.isUserParticipant(event),
                     onDismiss = { viewModel.selectEvent(null) },
+                    onChatNavigate = onChatNavigate,
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
               }
             }

@@ -1,7 +1,5 @@
 package com.android.universe.ui.common
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
@@ -31,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
@@ -52,7 +47,6 @@ import java.time.format.DateTimeFormatter
  * @param isUserParticipant Whether the user is part of the event.
  * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
  * @param onChatClick Callback for chat button.
- * @param onLocationClick Optional callback for location button.
  */
 @Composable
 fun EventContentLayout(
@@ -66,8 +60,7 @@ fun EventContentLayout(
     imageContent: @Composable () -> Unit,
     isUserParticipant: Boolean,
     onToggleEventParticipation: () -> Unit,
-    onChatClick: () -> Unit,
-    onLocationClick: (() -> Unit)? = null
+    onChatClick: () -> Unit
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -79,26 +72,6 @@ fun EventContentLayout(
                   .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
                   .testTag("${EventContentTestTags.EVENT_IMAGE_CONTAINER}_$eventId")) {
             imageContent()
-
-            // Only show location button if callback is provided
-            if (onLocationClick != null) {
-              Box(
-                  modifier =
-                      Modifier.align(Alignment.TopEnd)
-                          .padding(Dimensions.PaddingLarge)
-                          .size(70.dp)
-                          .clip(CircleShape)
-                          .background(Color.White.copy(alpha = 0.4f))
-                          .clickable { onLocationClick() }
-                          .testTag("${EventContentTestTags.EVENT_LOCATION_BUTTON}_$eventId"),
-                  contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Filled.LocationOn,
-                        contentDescription = "Location",
-                        modifier = Modifier.size(50.dp),
-                        tint = Color.White)
-                  }
-            }
 
             Box(
                 modifier =
@@ -162,20 +135,22 @@ fun EventContentLayout(
         modifier =
             Modifier.fillMaxWidth()
                 .padding(start = Dimensions.PaddingMedium, end = Dimensions.PaddingMedium)) {
-          LiquidButton(
-              onClick = onChatClick,
-              height = Dimensions.CardButtonHeight,
-              width = Dimensions.CardButtonWidth,
-              modifier = Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Icon(
-                      imageVector = Icons.AutoMirrored.Filled.Chat,
-                      contentDescription = "Chat",
-                      modifier = Modifier.size(Dimensions.IconSizeMedium))
-                  Spacer(Modifier.width(Dimensions.SpacerSmall))
-                  Text("Chat", style = MaterialTheme.typography.labelLarge)
+          if (isUserParticipant) {
+            LiquidButton(
+                onClick = onChatClick,
+                height = Dimensions.CardButtonHeight,
+                width = Dimensions.CardButtonWidth,
+                modifier = Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = "Chat",
+                        modifier = Modifier.size(Dimensions.IconSizeMedium))
+                    Spacer(Modifier.width(Dimensions.SpacerSmall))
+                    Text("Chat", style = MaterialTheme.typography.labelLarge)
+                  }
                 }
-              }
+          }
 
           Row(
               verticalAlignment = Alignment.CenterVertically,

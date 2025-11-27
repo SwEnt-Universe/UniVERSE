@@ -216,8 +216,44 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
+              onChatNavigate = { chatID, chatName ->
+                navController.navigate(
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName)
+                            .replace("{userID}", authInstance.currentUser!!.uid))
+              },
               createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
         }
+
+        composable(
+            route = NavigationScreens.MapInstance.route,
+            arguments =
+                listOf(
+                    navArgument("eventId") { type = NavType.StringType },
+                    navArgument("latitude") { type = NavType.FloatType },
+                    navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+              val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+              val lat = backStackEntry.arguments?.getFloat("latitude")?.toDouble() ?: 0.0
+              val lng = backStackEntry.arguments?.getFloat("longitude")?.toDouble() ?: 0.0
+
+              MapScreen(
+                  uid = authInstance.currentUser!!.uid,
+                  onTabSelected = onTabSelected,
+                  preselectedEventId = eventId,
+                  preselectedLocation = Location(lat, lng),
+                  onChatNavigate = { chatID, chatName ->
+                    navController.navigate(
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName)
+                            .replace("{userID}", authInstance.currentUser!!.uid))
+                  },
+                  createEvent = { lat2, lng2 ->
+                    navController.navigate("eventCreation/$lat2/$lng2")
+                  })
+            }
       }
 
       navigation(
@@ -226,7 +262,24 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.Event.route) {
           UniverseBackgroundContainer(bitmap) {
-            EventScreen(onTabSelected, uid = authInstance.currentUser!!.uid)
+            EventScreen(
+                onTabSelected,
+                uid = authInstance.currentUser!!.uid,
+                onChatNavigate = { chatID, chatName ->
+                  navController.navigate(
+                      route =
+                          NavigationScreens.ChatInstance.route
+                              .replace("{chatID}", chatID)
+                              .replace("{chatName}", chatName)
+                              .replace("{userID}", authInstance.currentUser!!.uid))
+                },
+                onCardClick = { eventId: String, eventLocation: Location ->
+                  navController.navigate(
+                      NavigationScreens.MapInstance.route
+                          .replace("{eventId}", eventId)
+                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
+                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
+                })
           }
         }
       }
