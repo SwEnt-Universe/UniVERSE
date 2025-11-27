@@ -65,7 +65,6 @@ import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.camera.CameraOptions
-import com.tomtom.sdk.map.display.image.ImageFactory
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
@@ -500,8 +499,7 @@ private suspend fun TomTomMap.syncEventMarkers(
 
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
   this@syncSelectedLocationMarker.removeMarkers("selected_location")
-  val image =
-      withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
+  val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
   location?.let { geoPoint ->
     this.addMarker(
         MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
