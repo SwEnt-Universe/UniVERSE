@@ -1,9 +1,11 @@
 package com.android.universe.ui.event
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import com.android.universe.model.location.Location
 import com.android.universe.ui.common.EventContentLayout
 import com.android.universe.ui.common.EventImageHelper
 import com.android.universe.ui.components.LiquidBox
@@ -20,14 +22,24 @@ object EventCardTestTags {
  * @param event The [EventUIState] object containing event details to be displayed.
  * @param viewModel The [EventViewModel] used to handle user interactions such as joining or leaving
  *   the event.
+ * @param onChatNavigate Callback function invoked when the chat button is clicked, with event ID
+ *   and title as parameters.
+ * @param onCardClick Callback function invoked when the card is clicked, with event ID and location
+ *   as parameters.
  */
 @Composable
-fun EventCard(event: EventUIState, viewModel: EventViewModel) {
+fun EventCard(
+    event: EventUIState,
+    viewModel: EventViewModel,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit
+) {
   LiquidBox(
       shape = CardShape,
       modifier =
           Modifier.padding(Dimensions.PaddingMedium)
-              .testTag("${EventCardTestTags.EVENT_CARD}_${event.index}")) {
+              .testTag("${EventCardTestTags.EVENT_CARD}_${event.index}")
+              .clickable { onCardClick(event.id, event.location) }) {
         EventContentLayout(
             eventId = event.index.toString(),
             title = event.title,
@@ -41,8 +53,7 @@ fun EventCard(event: EventUIState, viewModel: EventViewModel) {
             },
             isUserParticipant = event.joined,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
-            onChatClick = { /* TODO: Implement chat navigation */ },
-            onLocationClick = { /* TODO: Implement map navigation */ },
+            onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge))
       }
 }

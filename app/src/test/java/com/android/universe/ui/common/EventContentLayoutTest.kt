@@ -34,7 +34,7 @@ class EventContentLayoutTest {
       eventId: String = defaultEventId,
       title: String = defaultTitle,
       description: String? = defaultDescription,
-      isUserParticipant: Boolean = false,
+      isUserParticipant: Boolean = true,
       onLocationClick: (() -> Unit)? = null
   ) {
     composeTestRule.setContentWithStubBackdrop {
@@ -48,8 +48,7 @@ class EventContentLayoutTest {
           imageContent = { Box(Modifier.testTag("FAKE_IMAGE")) },
           isUserParticipant = isUserParticipant,
           onToggleEventParticipation = { participationClicked = true },
-          onChatClick = { chatClicked = true },
-          onLocationClick = onLocationClick)
+          onChatClick = { chatClicked = true })
     }
   }
 
@@ -94,32 +93,12 @@ class EventContentLayoutTest {
   }
 
   @Test
-  fun locationButtonShown_whenCallbackProvided() {
-    setContentForTest(onLocationClick = { locationClicked = true })
+  fun chatButtonNotShown_whenUserIsNotParticipant() {
+    setContentForTest(isUserParticipant = false)
 
     composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_LOCATION_BUTTON}_$defaultEventId")
-        .assertExists()
-  }
-
-  @Test
-  fun locationButtonNotShown_whenCallbackIsNull() {
-    setContentForTest(onLocationClick = null)
-
-    composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_LOCATION_BUTTON}_$defaultEventId")
+        .onNodeWithTag("${EventContentTestTags.CHAT_BUTTON}_$defaultEventId")
         .assertDoesNotExist()
-  }
-
-  @Test
-  fun clickingLocationButtonTriggersCallback() {
-    setContentForTest(onLocationClick = { locationClicked = true })
-
-    composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_LOCATION_BUTTON}_$defaultEventId")
-        .performClick()
-
-    assert(locationClicked)
   }
 
   @Test
