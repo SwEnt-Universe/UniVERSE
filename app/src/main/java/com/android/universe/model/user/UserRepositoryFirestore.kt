@@ -228,9 +228,6 @@ class UserRepositoryFirestore(
               throw NoSuchElementException("No user with username $targetUserId found")
             }
 
-            val currentUser = documentToUserProfile(currentUserDoc)
-            val targetUser = documentToUserProfile(targetUserDoc)
-
             if (follow) {
               transaction.update(currentUserPath, "following", FieldValue.arrayUnion(targetUserId))
               transaction.update(targetUserPath, "followers", FieldValue.arrayUnion(currentUserId))
