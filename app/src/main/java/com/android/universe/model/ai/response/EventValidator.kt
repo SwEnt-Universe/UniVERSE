@@ -41,7 +41,28 @@ object EventValidator {
     }
 
     // Validate date format
-    runCatching { LocalDateTime.parse(dto.date) }
+    val dateTime =
+      runCatching { LocalDateTime.parse(dto.date) }
         .getOrElse { throw IllegalArgumentException("Invalid date format: ${dto.date}") }
+
+    // Ensure future event
+    require(dateTime.isAfter(LocalDateTime.now())) {
+      "Event date must be in the future: ${dto.date}"
+    }
+  }
+
+  /**
+   * Returns true if the event date/time is strictly in the future compared to now.
+   *
+   * This is used to reject AI-generated events that are already in the past, which can occur if the
+   * model generates outdated timestamps.
+   *
+   * @param dto The incoming event data.
+   * @return true if the event occurs after the current system time.
+   * @throws IllegalArgumentException if the date field is not a valid ISO-8601 string.
+   */
+  fun isInFuture(dto: EventDTO): Boolean {
+    val eventDateTime = LocalDateTime.parse(dto.date)
+    return eventDateTime.isAfter(LocalDateTime.now())
   }
 }

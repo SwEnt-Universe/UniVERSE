@@ -50,4 +50,13 @@ class EventValidatorTest {
     val dto = validDto().copy(date = "not-a-date")
     Assert.assertThrows(IllegalArgumentException::class.java) { EventValidator.validate(dto) }
   }
+
+  @Test
+  fun `validate fails when event date is in the past`() {
+    val dto = validDto().copy(date = "2000-01-01T00:00")
+
+    Assert.assertThrows(IllegalArgumentException::class.java) {
+      EventValidator.validate(dto)
+    }
+  }
 }
