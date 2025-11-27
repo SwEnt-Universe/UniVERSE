@@ -72,13 +72,18 @@ object UserProfileScreenTestTags {
     return "userProfileTag$index"
   }
 }
+
 /**
- * Composable for displaying a user's profile.
+ * The main screen composable for displaying a User's Profile.
  *
- * @param uid The uid of the user to display.
- * @param onTabSelected Callback invoked when a tab is selected to switch between screens
- * @param onEditProfileClick Callback when the edit profile button is clicked.
- * @param userProfileViewModel The ViewModel responsible for managing user profile data.
+ * This component acts as the controller for the profile UI. It implements a complex "Collapsing Toolbar"
+ * pattern with Sticky Headers using a custom implementation rather than standard NestedScrollConnection.
+ *
+ * @param uid The unique identifier of the user to display.
+ * @param onTabSelected Callback invoked when a bottom navigation tab is selected.
+ * @param onEditProfileClick Callback invoked when the user clicks the "Edit Profile" button.
+ * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
+ * @param eventViewModel The ViewModel managing event data (History/Incoming).
  */
 @Composable
 fun UserProfileScreen(
@@ -169,6 +174,21 @@ fun UserProfileScreen(
     }
 }
 
+/**
+ * Manages the horizontal paging between the different event lists (History vs Incoming).
+ *
+ * This composable determines which list state and data source to use based on the current
+ * page index and delegates the rendering to [ProfileEventList].
+ *
+ * @param pagerState The state object for the [HorizontalPager].
+ * @param historyListState The scroll state for the History list.
+ * @param incomingListState The scroll state for the Incoming list.
+ * @param historyEvents The list of past events.
+ * @param incomingEvents The list of upcoming events.
+ * @param eventViewModel The view model used by event cards.
+ * @param spacerHeightDp The height of the transparent spacer at the top of the list (Profile Height + Gap).
+ * @param clipPaddingDp The top padding applied to the list container to clip content behind the sticky tabs.
+ */
 @Composable
 fun ProfileContentPager(
     pagerState: PagerState,
@@ -199,6 +219,15 @@ fun ProfileContentPager(
     }
 }
 
+/**
+ * Renders a specific list of events (e.g., History or Incoming) within a [LazyColumn].
+ *
+ * @param listState The scroll state for this specific list.
+ * @param events The list of [Event] objects to display.
+ * @param eventViewModel The view model for event interactions.
+ * @param headerSpacerHeight The height of the invisible spacer (Index 0).
+ * @param topClipPadding The top padding used to clip the scrolling content.
+ */
 @Composable
 fun ProfileEventList(
     listState: LazyListState,
@@ -246,6 +275,22 @@ fun ProfileEventList(
     }
 }
 
+/**
+ * The floating overlay component containing the User Profile Info and the Sticky Tabs.
+ *
+ * This component sits on top of the list (Z-axis). It moves vertically based on the `headerOffsetPx`.
+ * It creates the "Sticky" effect by stopping its movement once the Profile Info is scrolled away,
+ * leaving only the Tabs visible.
+ *
+ * @param headerOffsetPx The current vertical offset (in pixels) calculated by the parent controller.
+ * @param userProfile The user data model.
+ * @param userImage The bitmap of the user's profile picture.
+ * @param pagerState The state of the pager (passed to the tabs).
+ * @param gapHeightDp The spacing between the profile info and the tabs.
+ * @param onProfileHeightMeasured Callback to report the height of the profile info block to the parent.
+ * @param onTabHeightMeasured Callback to report the height of the tab row to the parent.
+ * @param onEditProfileClick Action to perform when settings/edit is clicked.
+ */
 @Composable
 fun ProfileHeaderOverlay(
     headerOffsetPx: Float,
@@ -303,6 +348,16 @@ fun ProfileHeaderOverlay(
     }
 }
 
+/**
+ * A helper composable that converts a ByteArray into an [ImageBitmap].
+ *
+ * It handles the asynchronous loading state and provides a default image if the byte array
+ * is null or invalid.
+ *
+ * @param bytes The raw image data.
+ * @param defaultImageId The resource ID of the drawable to use as a fallback.
+ * @return The loaded [ImageBitmap] or the default image.
+ */
 @Composable
 fun rememberImageBitmap(
     bytes: ByteArray?,
@@ -321,6 +376,14 @@ fun rememberImageBitmap(
     return imageBitmapState.value ?: defaultBitmap
 }
 
+/**
+ * A wrapper around Material 3's [PrimaryTabRow] customized for the Profile Screen.
+ *
+ * It sets up the tabs (History/Incoming) and handles the click animations to switch pages.
+ *
+ * @param pagerState The state of the horizontal pager to synchronize tab selection.
+ * @param titles The list of titles to display in the tabs.
+ */
 @Composable
 fun ProfileTabRow(
     pagerState: PagerState,
