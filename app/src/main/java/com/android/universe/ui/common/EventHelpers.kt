@@ -41,7 +41,7 @@ fun EventImageHelper(eventImage: ByteArray?, modifier: Modifier = Modifier) {
       produceState<Bitmap?>(initialValue = null, eventImage) {
             value =
                 if (eventImage != null) {
-                  withContext(DefaultDP.io) {
+                  withContext(DefaultDP.default) {
                     BitmapFactory.decodeByteArray(eventImage, 0, eventImage.size)
                   }
                 } else {
