@@ -34,6 +34,10 @@ class UserRepositoryProviderTest {
           override suspend fun deleteUser(uid: String) {}
 
           override suspend fun isUsernameUnique(username: String) = true
+
+          override suspend fun followUser(currentUserId: String, targetUserId: String) {}
+
+          override suspend fun unfollowUser(currentUserId: String, targetUserId: String) {}
         }
 
     // Swap repository

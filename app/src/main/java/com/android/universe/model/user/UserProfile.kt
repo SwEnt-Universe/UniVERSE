@@ -15,6 +15,8 @@ import java.time.LocalDate
  * @property dateOfBirth The user's date of birth.
  * @property tags A set of [Tag]s representing the user's interests.
  * @property profilePicture the profile picture of the user.
+ * @property followers the set of userId that follow the user.
+ * @property following the set of userId that the user follow.
  */
 data class UserProfile(
     val uid: String,
@@ -25,7 +27,9 @@ data class UserProfile(
     val description: String? = null,
     val dateOfBirth: LocalDate,
     val tags: Set<Tag>,
-    val profilePicture: ByteArray? = null
+    val profilePicture: ByteArray? = null,
+    val followers: Set<String> = emptySet(),
+    val following: Set<String> = emptySet()
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -44,6 +48,8 @@ data class UserProfile(
     if ((profilePicture != null || other.profilePicture != null) &&
         (!profilePicture.contentEquals(other.profilePicture)))
         return false
+    if (followers != other.followers) return false
+    if (following != other.following) return false
 
     return true
   }
@@ -58,6 +64,8 @@ data class UserProfile(
     result = 31 * result + dateOfBirth.hashCode()
     result = 31 * result + tags.hashCode()
     result = 31 * result + (profilePicture?.contentHashCode() ?: 0)
+    result = 31 * result + followers.hashCode()
+    result = 31 * result + following.hashCode()
     return result
   }
 }
