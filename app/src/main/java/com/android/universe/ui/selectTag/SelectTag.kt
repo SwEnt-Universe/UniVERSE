@@ -92,14 +92,14 @@ fun SelectTagScreen(
         TagGroup(
             title =
                 when (category) {
-                  Tag.Category.MUSIC -> "Select your favorite music genres"
-                  Tag.Category.SPORT -> "Pick the sports you enjoy"
-                  Tag.Category.FOOD -> "Choose your preferred types of food"
-                  Tag.Category.ART -> "Select the art styles you like"
-                  Tag.Category.TRAVEL -> "Pick the travel styles you prefer"
-                  Tag.Category.GAMES -> "Choose the kinds of games you play"
-                  Tag.Category.TECHNOLOGY -> "Select the technology topics you're curious about"
-                  Tag.Category.TOPIC -> "Pick the topics that interest you"
+                  Tag.Category.MUSIC -> "Select the music genres and the events you enjoy."
+                  Tag.Category.SPORT -> "Choose the sports you're into."
+                  Tag.Category.FOOD -> "Select the food and drink experiences you love."
+                  Tag.Category.ART -> "Pick the types of art you connect with."
+                  Tag.Category.TRAVEL -> "Choose the travel styles you’re interested in."
+                  Tag.Category.GAMES -> "Select the games you like to play."
+                  Tag.Category.TECHNOLOGY -> "Choose the tech topics you’re interested in."
+                  Tag.Category.TOPIC -> "Pick the topics that interest you."
                 },
             tagList = Tag.getTagsForCategory(category),
             selectedTags = selectedTags,
