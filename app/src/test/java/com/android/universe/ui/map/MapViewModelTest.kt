@@ -19,6 +19,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -39,7 +40,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -213,19 +213,16 @@ class MapViewModelTest {
     val sportTag = mockTag(Tag.Category.SPORT)
     val sportTagTwo = mockTag(Tag.Category.SPORT)
 
-
     // 2. Create Events with complex tag situations
-    val mixedEvent = EventTestData.dummyEvent1.copy(
-        id = "1",
-        tags = setOf(musicTag, foodTag))
+    val mixedEvent = EventTestData.dummyEvent1.copy(id = "1", tags = setOf(musicTag, foodTag))
 
     val emptyTagEvent = EventTestData.NoTagsEvent
 
-    val concurrentEvent = EventTestData.dummyEvent1.copy(
-        id = "2",
-        tags = setOf(sportTag, musicTag, sportTagTwo, musicTagTwo, foodTag)
-    )
-    coEvery { eventRepository.getAllEvents() } returns listOf(mixedEvent, emptyTagEvent, concurrentEvent)
+    val concurrentEvent =
+        EventTestData.dummyEvent1.copy(
+            id = "2", tags = setOf(sportTag, musicTag, sportTagTwo, musicTagTwo, foodTag))
+    coEvery { eventRepository.getAllEvents() } returns
+        listOf(mixedEvent, emptyTagEvent, concurrentEvent)
 
     viewModel.loadAllEvents()
     advanceUntilIdle()
@@ -248,8 +245,7 @@ class MapViewModelTest {
     assertEquals(
         "Events with concurrent tags should use the first dominant category in enum order",
         R.drawable.sky_blue_pin,
-        concurrentMarker?.iconResId
-    )
+        concurrentMarker?.iconResId)
   }
 
   @Test
