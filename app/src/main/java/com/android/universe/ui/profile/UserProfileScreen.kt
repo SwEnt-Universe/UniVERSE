@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
@@ -76,6 +77,7 @@ object UserProfileScreenTestTags {
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
  */
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UserProfileScreen(
     uid: String,
@@ -104,7 +106,7 @@ fun UserProfileScreen(
   var profileContentHeightPx by remember { mutableFloatStateOf(0f) }
   var tabRowHeightPx by remember { mutableFloatStateOf(0f) }
 
-  val elementSpacingDp = 8.dp
+  val elementSpacingDp = Dimensions.PaddingMedium
   val elementSpacingPx = with(density) { elementSpacingDp.toPx() }
 
   val profileContentHeightDp = with(density) { profileContentHeightPx.toDp() }
@@ -131,8 +133,8 @@ fun UserProfileScreen(
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
       contentWindowInsets = WindowInsets(0, 0, 0, 0),
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { _ ->
-        LiquidBox(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(32.dp)) {
-          Box(modifier = Modifier.fillMaxSize().padding(top = 24.dp)) {
+        LiquidBox(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
+          Box(modifier = Modifier.fillMaxSize().padding(top = Dimensions.PaddingExtraLarge)) {
             ProfileContentPager(
                 pagerState = pagerState,
                 historyListState = historyListState,
@@ -254,7 +256,7 @@ fun ProfileEventList(
                   joined = true,
                   eventPicture = event.eventPicture)
 
-          Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = 4.dp)) {
+          Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
             EventCard(
                 event = eventUIState,
                 onChatNavigate = onChatNavigate,
@@ -374,7 +376,7 @@ fun ProfileTabRow(pagerState: PagerState, titles: List<String>) {
       indicator = {
         TabRowDefaults.SecondaryIndicator(
             modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
-            height = 3.dp,
+            height = Dimensions.PaddingSmall,
             color = MaterialTheme.colorScheme.onSurface)
       }) {
         titles.forEachIndexed { index, title ->
