@@ -2,12 +2,14 @@ package com.android.universe.ui.profile
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -34,10 +36,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
+import com.android.universe.model.event.Event
+import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.common.ProfileContentLayout
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.event.EventCard
@@ -75,7 +80,6 @@ object UserProfileScreenTestTags {
  * @param onEditProfileClick Callback when the edit profile button is clicked.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
     uid: String,
@@ -92,27 +96,33 @@ fun UserProfileScreen(
         defaultImageId = R.drawable.default_profile_img
     )
 
+    // State Initialization
     val density = LocalDensity.current
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val historyListState = rememberLazyListState()
+    val incomingListState = rememberLazyListState()
 
+    // Layout Measurements
     var profileContentHeightPx by remember { mutableFloatStateOf(0f) }
     var tabRowHeightPx by remember { mutableFloatStateOf(0f) }
 
-    val headerHeightPx = profileContentHeightPx + tabRowHeightPx
-    val headerHeightDp = with(density) { headerHeightPx.toDp() }
+    val elementSpacingDp = 8.dp
+    val elementSpacingPx = with(density) { elementSpacingDp.toPx() }
 
-    val historyListState = rememberLazyListState()
-    val incomingListState = rememberLazyListState()
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val profileContentHeightDp = with(density) { profileContentHeightPx.toDp() }
+    val tabRowHeightDp = with(density) { tabRowHeightPx.toDp() }
 
+    // Synchronization Logic
     val headerOffsetPx by remember {
         derivedStateOf {
             val currentListState = if (pagerState.currentPage == 0) historyListState else incomingListState
+            val totalCollapsibleHeightPx = profileContentHeightPx + elementSpacingPx
 
-            if (profileContentHeightPx == 0f || currentListState.firstVisibleItemIndex > 0) {
-                -profileContentHeightPx
-            } else {
+            if (currentListState.firstVisibleItemIndex == 0) {
                 val scrollOffset = currentListState.firstVisibleItemScrollOffset.toFloat()
-                -scrollOffset.coerceIn(0f, profileContentHeightPx)
+                -scrollOffset.coerceIn(0f, totalCollapsibleHeightPx)
+            } else {
+                -totalCollapsibleHeightPx
             }
         }
     }
@@ -125,92 +135,170 @@ fun UserProfileScreen(
     ) { _ ->
 
         LiquidBox(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             shape = RoundedCornerShape(32.dp)
         ) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp)
             ) {
+                ProfileContentPager(
+                    pagerState = pagerState,
+                    historyListState = historyListState,
+                    incomingListState = incomingListState,
+                    historyEvents = userUIState.historyEvents,
+                    incomingEvents = userUIState.incomingEvents,
+                    eventViewModel = eventViewModel,
+                    spacerHeightDp = profileContentHeightDp + elementSpacingDp,
+                    clipPaddingDp = tabRowHeightDp
+                )
 
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.Top
-                ) { page ->
-                    val events = if (page == 0) userUIState.historyEvents else userUIState.incomingEvents
-
-                    val listState = if (page == 0) historyListState else incomingListState
-
-                    LazyColumn(
-                        state = listState,
-                        contentPadding = PaddingValues(top = headerHeightDp, bottom = 80.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(events, key = { it.id }) { event ->
-                            val eventUIState = EventUIState(
-                                title = event.title,
-                                description = event.description ?: "",
-                                date = event.date,
-                                tags = event.tags.map { it.displayName },
-                                creator = event.creator,
-                                participants = event.participants.size,
-                                index = event.id.hashCode(),
-                                joined = true,
-                                eventPicture = event.eventPicture
-                            )
-
-                            Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = 4.dp)) {
-                                EventCard(
-                                    event = eventUIState,
-                                    viewModel = eventViewModel
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }
-                        .draggable(
-                            orientation = Orientation.Horizontal,
-                            state = rememberDraggableState { }
-                        )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coordinates ->
-                                profileContentHeightPx = coordinates.size.height.toFloat()
-                            }
-                    ) {
-                        ProfileContentLayout(
-                            modifier = Modifier,
-                            userProfile = userUIState.userProfile,
-                            userProfileImage = imageToDisplay,
-                            followers = 0,
-                            following = 0,
-                            onChatClick = { },
-                            onAddClick = { },
-                            onSettingsClick = { onEditProfileClick(uid) }
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onGloballyPositioned { coordinates ->
-                                tabRowHeightPx = coordinates.size.height.toFloat()
-                            }
-                    ) {
-                        ProfileTabRow(
-                            pagerState = pagerState,
-                            titles = listOf("History", "Incoming")
-                        )
-                    }
-                }
+                ProfileHeaderOverlay(
+                    headerOffsetPx = headerOffsetPx,
+                    userProfile = userUIState.userProfile,
+                    userImage = imageToDisplay,
+                    pagerState = pagerState,
+                    gapHeightDp = elementSpacingDp,
+                    onProfileHeightMeasured = { profileContentHeightPx = it },
+                    onTabHeightMeasured = { tabRowHeightPx = it },
+                    onEditProfileClick = { onEditProfileClick(uid) }
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun ProfileContentPager(
+    pagerState: PagerState,
+    historyListState: LazyListState,
+    incomingListState: LazyListState,
+    historyEvents: List<Event>,
+    incomingEvents: List<Event>,
+    eventViewModel: EventViewModel,
+    spacerHeightDp: Dp,
+    clipPaddingDp: Dp
+) {
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.Top
+    ) { page ->
+        val isHistoryPage = page == 0
+        val listState = if (isHistoryPage) historyListState else incomingListState
+        val events = if (isHistoryPage) historyEvents else incomingEvents
+
+        ProfileEventList(
+            listState = listState,
+            events = events,
+            eventViewModel = eventViewModel,
+            headerSpacerHeight = spacerHeightDp,
+            topClipPadding = clipPaddingDp
+        )
+    }
+}
+
+@Composable
+fun ProfileEventList(
+    listState: LazyListState,
+    events: List<Event>,
+    eventViewModel: EventViewModel,
+    headerSpacerHeight: Dp,
+    topClipPadding: Dp
+) {
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(bottom = 80.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = topClipPadding)
+    ) {
+        item(key = "header_spacer") {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(headerSpacerHeight)
+                    .background(Color.Transparent)
+            )
+        }
+
+        items(events, key = { it.id }) { event ->
+            val eventUIState = EventUIState(
+                title = event.title,
+                description = event.description ?: "",
+                date = event.date,
+                tags = event.tags.map { it.displayName },
+                creator = event.creator,
+                participants = event.participants.size,
+                index = event.id.hashCode(),
+                joined = true,
+                eventPicture = event.eventPicture
+            )
+
+            Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = 4.dp)) {
+                EventCard(
+                    event = eventUIState,
+                    viewModel = eventViewModel
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileHeaderOverlay(
+    headerOffsetPx: Float,
+    userProfile: UserProfile,
+    userImage: ImageBitmap,
+    pagerState: PagerState,
+    gapHeightDp: Dp,
+    onProfileHeightMeasured: (Float) -> Unit,
+    onTabHeightMeasured: (Float) -> Unit,
+    onEditProfileClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }
+            .draggable(
+                orientation = Orientation.Horizontal,
+                state = rememberDraggableState { }
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    onProfileHeightMeasured(coordinates.size.height.toFloat())
+                }
+        ) {
+            ProfileContentLayout(
+                modifier = Modifier,
+                userProfile = userProfile,
+                userProfileImage = userImage,
+                followers = 0,
+                following = 0,
+                heightTagList = 200.dp,
+                onChatClick = { },
+                onAddClick = { },
+                onSettingsClick = onEditProfileClick
+            )
+        }
+
+        Spacer(modifier = Modifier.height(gapHeightDp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    onTabHeightMeasured(coordinates.size.height.toFloat())
+                }
+        ) {
+            ProfileTabRow(
+                pagerState = pagerState,
+                titles = listOf("History", "Incoming")
+            )
         }
     }
 }
@@ -273,4 +361,3 @@ fun ProfileTabRow(
         }
     }
 }
-
