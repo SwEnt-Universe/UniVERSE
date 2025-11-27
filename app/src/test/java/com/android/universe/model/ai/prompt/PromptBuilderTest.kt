@@ -2,8 +2,8 @@ package com.android.universe.model.ai.prompt
 
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
-import org.junit.Test
 import java.time.LocalDate
+import org.junit.Test
 
 class PromptBuilderTest {
 
@@ -11,20 +11,20 @@ class PromptBuilderTest {
   private val DummyDate = LocalDate.of(2000, 8, 11)
 
   private val allTags =
-      (Tag.Companion.getTagsForCategory(Tag.Category.TOPIC) + Tag.Companion.getTagsForCategory(Tag.Category.FOOD))
+      (Tag.Companion.getTagsForCategory(Tag.Category.TOPIC) +
+              Tag.Companion.getTagsForCategory(Tag.Category.FOOD))
           .toSet()
 
   private val user =
-		UserProfile(
-			uid = "69",
-			username = "ai_69",
-			firstName = "AI",
-			lastName = "Base",
-			country = "CH",
-			description = "Has all tags, country = Switzerland",
-			dateOfBirth = DummyDate,
-			tags = allTags
-		)
+      UserProfile(
+          uid = "69",
+          username = "ai_69",
+          firstName = "AI",
+          lastName = "Base",
+          country = "CH",
+          description = "Has all tags, country = Switzerland",
+          dateOfBirth = DummyDate,
+          tags = allTags)
 
   @Test
   fun printPrompt() {
