@@ -5,6 +5,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.tag.Tag
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
@@ -231,21 +232,11 @@ class UserRepositoryFirestore(
             val targetUser = documentToUserProfile(targetUserDoc)
 
             if (follow) {
-              if (!currentUser.following.contains(targetUserId) &&
-                  !targetUser.followers.contains(currentUserId)) {
-                transaction.update(
-                    currentUserPath, "following", (currentUser.following + targetUserId).toList())
-                transaction.update(
-                    targetUserPath, "followers", (targetUser.followers + currentUserId).toList())
-              }
+              transaction.update(currentUserPath, "following", FieldValue.arrayUnion(targetUserId))
+              transaction.update(targetUserPath, "followers", FieldValue.arrayUnion(currentUserId))
             } else {
-              if (currentUser.following.contains(targetUserId) &&
-                  targetUser.followers.contains(currentUserId)) {
-                transaction.update(
-                    currentUserPath, "following", (currentUser.following - targetUserId).toList())
-                transaction.update(
-                    targetUserPath, "followers", (targetUser.followers - currentUserId).toList())
-              }
+              transaction.update(currentUserPath, "following", FieldValue.arrayRemove(targetUserId))
+              transaction.update(targetUserPath, "followers", FieldValue.arrayRemove(currentUserId))
             }
           }
           .await()
