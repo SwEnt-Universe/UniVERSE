@@ -210,23 +210,15 @@ class UserRepositoryFirestore(
    */
   override suspend fun followUser(currentUserId: String, targetUserId: String) {
     withContext(iODispatcher) {
-      db.runTransaction { transaction ->
-            val currentUserPath = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
-            val targetUserPath = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+      val currentUserRef = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+      val targetUserRef = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
 
-            val currentUserDoc = transaction.get(currentUserPath)
-            val targetUserDoc = transaction.get(targetUserPath)
+      val batch = db.batch()
 
-            if (!currentUserDoc.exists()) {
-              throw NoSuchElementException("No user with current UID $currentUserId found")
-            } else if (!targetUserDoc.exists()) {
-              throw NoSuchElementException("No user with target UID $targetUserId found")
-            }
+      batch.update(currentUserRef, "following", FieldValue.arrayUnion(targetUserId))
 
-            transaction.update(currentUserPath, "following", FieldValue.arrayUnion(targetUserId))
-            transaction.update(targetUserPath, "followers", FieldValue.arrayUnion(currentUserId))
-          }
-          .await()
+      batch.update(targetUserRef, "followers", FieldValue.arrayUnion(currentUserId))
+      batch.commit().await()
     }
   }
 
@@ -239,23 +231,15 @@ class UserRepositoryFirestore(
    */
   override suspend fun unfollowUser(currentUserId: String, targetUserId: String) {
     withContext(iODispatcher) {
-      db.runTransaction { transaction ->
-            val currentUserPath = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
-            val targetUserPath = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+      val currentUserRef = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+      val targetUserRef = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
 
-            val currentUserDoc = transaction.get(currentUserPath)
-            val targetUserDoc = transaction.get(targetUserPath)
+      val batch = db.batch()
 
-            if (!currentUserDoc.exists()) {
-              throw NoSuchElementException("No user with current UID $currentUserId found")
-            } else if (!targetUserDoc.exists()) {
-              throw NoSuchElementException("No user with target UID $targetUserId found")
-            }
+      batch.update(currentUserRef, "following", FieldValue.arrayRemove(targetUserId))
 
-            transaction.update(currentUserPath, "following", FieldValue.arrayRemove(targetUserId))
-            transaction.update(targetUserPath, "followers", FieldValue.arrayRemove(currentUserId))
-          }
-          .await()
+      batch.update(targetUserRef, "followers", FieldValue.arrayRemove(currentUserId))
+      batch.commit().await()
     }
   }
 }
