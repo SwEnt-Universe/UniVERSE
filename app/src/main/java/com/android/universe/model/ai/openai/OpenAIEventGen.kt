@@ -15,12 +15,12 @@ private const val MODEL = "gpt-4o-mini"
  * Generates events using the OpenAI Chat Completions API.
  *
  * The generation pipeline proceeds in five stages:
- *
  * 1. **Prompt construction** — build system & user messages from the [EventQuery].
  * 2. **Response specification** — attach [EventSchema] as a strict JSON output contract.
  * 3. **API invocation** — send the request via [OpenAIService] and validate the HTTP result.
  * 4. **Model output validation** — ensure the completion contains usable JSON content.
- * 5. **Parsing & conversion** — parse JSON using [ResponseParser] and return domain [Event] objects.
+ * 5. **Parsing & conversion** — parse JSON using [ResponseParser] and return domain [Event]
+ *    objects.
  *
  * @property service Retrofit-backed OpenAI API client.
  */
@@ -29,7 +29,8 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
   /**
    * Executes the full OpenAI -> JSON -> Event pipeline.
    *
-   * @param query High-level request describing who is asking, what to generate, and in which context.
+   * @param query High-level request describing who is asking, what to generate, and in which
+   *   context.
    * @return A list of strongly-typed domain [Event] objects.
    * @throws IllegalStateException if the model returns invalid, empty, or unparsable output.
    */
