@@ -223,9 +223,9 @@ class UserRepositoryFirestore(
             val targetUserDoc = transaction.get(targetUserPath)
 
             if (!currentUserDoc.exists()) {
-              throw NoSuchElementException("No user with username $currentUserId found")
+              throw NoSuchElementException("No user with current UID $currentUserId found")
             } else if (!targetUserDoc.exists()) {
-              throw NoSuchElementException("No user with username $targetUserId found")
+              throw NoSuchElementException("No user with target UID $targetUserId found")
             }
 
             if (follow) {
