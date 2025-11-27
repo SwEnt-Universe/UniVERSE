@@ -1,5 +1,6 @@
 package com.android.universe.model.ai
 
+import com.android.universe.model.ai.response.ResponseParser
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import java.time.LocalDateTime

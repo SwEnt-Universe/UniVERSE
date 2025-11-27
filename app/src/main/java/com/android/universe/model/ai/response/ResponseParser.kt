@@ -1,4 +1,4 @@
-package com.android.universe.model.ai
+package com.android.universe.model.ai.response
 
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventDTO

@@ -1,4 +1,4 @@
-package com.android.universe.model.ai
+package com.android.universe.model.ai.openai
 
 import okhttp3.Interceptor
 import okhttp3.Response
