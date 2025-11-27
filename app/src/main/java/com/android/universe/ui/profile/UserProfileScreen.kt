@@ -2,71 +2,42 @@ package com.android.universe.ui.profile
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.widget.Toast
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
-import com.android.universe.model.event.Event
-import com.android.universe.model.isoToCountryName
 import com.android.universe.ui.common.ProfileContentLayout
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.event.EventCard
@@ -75,14 +46,9 @@ import com.android.universe.ui.event.EventViewModel
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.theme.DecorationBackground
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.Dimensions.PaddingLarge
-import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.toImageBitmap
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
@@ -160,8 +126,7 @@ fun UserProfileScreen(
 
         LiquidBox(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(Dimensions.PaddingMedium),
+                .fillMaxSize(),
             shape = RoundedCornerShape(32.dp)
         ) {
             Box(
@@ -275,14 +240,14 @@ fun ProfileTabRow(
 ) {
     val scope = rememberCoroutineScope()
 
-    TabRow(
+    PrimaryTabRow(
         selectedTabIndex = pagerState.currentPage,
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
         divider = {},
         indicator = {
             TabRowDefaults.SecondaryIndicator(
-                Modifier.tabIndicatorOffset(it[pagerState.currentPage]),
+                modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
                 height = 3.dp,
                 color = MaterialTheme.colorScheme.onSurface
             )
