@@ -2,9 +2,9 @@ package com.android.universe.model.ai.response
 
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
+import java.time.LocalDateTime
 import org.junit.Assert
 import org.junit.Test
-import java.time.LocalDateTime
 
 class ResponseParserTest {
 
@@ -28,21 +28,21 @@ class ResponseParserTest {
 
     val events = ResponseParser.parseEvents(raw)
 
-		Assert.assertEquals(1, events.size)
+    Assert.assertEquals(1, events.size)
     val e = events.first()
 
-		Assert.assertEquals("Physics Meetup", e.title)
-		Assert.assertEquals("Quantum discussion", e.description)
-		Assert.assertEquals(LocalDateTime.parse("2025-04-12T20:00"), e.date)
+    Assert.assertEquals("Physics Meetup", e.title)
+    Assert.assertEquals("Quantum discussion", e.description)
+    Assert.assertEquals(LocalDateTime.parse("2025-04-12T20:00"), e.date)
 
-		Assert.assertTrue(e.tags.contains(Tag.PHYSICS))
-		Assert.assertTrue(e.tags.contains(Tag.MATHEMATICS))
+    Assert.assertTrue(e.tags.contains(Tag.PHYSICS))
+    Assert.assertTrue(e.tags.contains(Tag.MATHEMATICS))
 
-		Assert.assertEquals(Location(46.52, 6.63), e.location)
+    Assert.assertEquals(Location(46.52, 6.63), e.location)
 
-		Assert.assertEquals("OpenAI", e.creator)
-		Assert.assertTrue(e.participants.isEmpty())
-		Assert.assertEquals("", e.id) // parser sets id = ""
+    Assert.assertEquals("OpenAI", e.creator)
+    Assert.assertTrue(e.participants.isEmpty())
+    Assert.assertEquals("", e.id) // parser sets id = ""
   }
 
   @Test
@@ -72,9 +72,9 @@ class ResponseParserTest {
 
     val events = ResponseParser.parseEvents(raw)
 
-		Assert.assertEquals(2, events.size)
-		Assert.assertEquals("Event A", events[0].title)
-		Assert.assertEquals("Event B", events[1].title)
+    Assert.assertEquals(2, events.size)
+    Assert.assertEquals("Event A", events[0].title)
+    Assert.assertEquals("Event B", events[1].title)
   }
 
   @Test(expected = IllegalStateException::class)
@@ -97,7 +97,7 @@ class ResponseParserTest {
 
     val cleaned = ResponseParser.parseEvents(raw) // calling parse indirectly tests cleanJson
 
-		Assert.assertTrue(cleaned.isEmpty())
+    Assert.assertTrue(cleaned.isEmpty())
   }
 
   @Test
@@ -110,9 +110,8 @@ class ResponseParserTest {
         """
 
     val cleaned = ResponseParser.parseEvents(raw)
-		Assert.assertTrue(cleaned.isEmpty())
+    Assert.assertTrue(cleaned.isEmpty())
   }
 
-  @Test
-	fun `parseEvents ignores extra fields`() {}
+  @Test fun `parseEvents ignores extra fields`() {}
 }

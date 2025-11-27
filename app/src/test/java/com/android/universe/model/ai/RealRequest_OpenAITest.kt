@@ -23,7 +23,7 @@ import org.junit.Test
  * - Are excluded from CI builds
  */
 @Ignore("OpenAI requests. Run manually only")
-class OpenAITest {
+class RealRequest_OpenAITest {
 
   // ------------------------------------------------------------------------
   // Helper: Construct a dummy query for OpenAI

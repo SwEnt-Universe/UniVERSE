@@ -2,7 +2,6 @@ package com.android.universe.model.ai.openai
 
 import com.android.universe.BuildConfig
 import com.android.universe.model.ai.AIEventGen
-import com.android.universe.model.ai.openai.LoggingInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 import kotlin.jvm.java
@@ -51,9 +50,8 @@ object OpenAIProvider {
   /**
    * Defines a reusable JSON configuration for all OpenAI serialization.
    *
-   * Ensures consistent decoding behavior across the app and avoids repeatedly creating
-   * `Json` instances, which are relatively costly to allocate.
-   *
+   * Ensures consistent decoding behavior across the app and avoids repeatedly creating `Json`
+   * instances, which are relatively costly to allocate.
    * - `ignoreUnknownKeys` prevents crashes if OpenAI adds new response fields
    * - `coerceInputValues` tolerates minor type mismatches (e.g., "46.5" → 46.5)
    * - `encodeDefaults` includes default values when encoding outbound JSON
@@ -71,22 +69,19 @@ object OpenAIProvider {
    * - the shared `okHttpClient` for authentication, logging, and timeouts
    * - the shared `json` instance for consistent serialization behavior
    *
-   * Declared `lazy` to delay construction until first use, reducing startup cost
-   * and guaranteeing a single, thread-safe instance.
+   * Declared `lazy` to delay construction until first use, reducing startup cost and guaranteeing a
+   * single, thread-safe instance.
    */
   private val retrofit: Retrofit by lazy {
     Retrofit.Builder()
-      .baseUrl(BASE_URL)
-      .client(okHttpClient)
-      .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-      .build()
+        .baseUrl(BASE_URL)
+        .client(okHttpClient)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
   }
 
-  /**
-   * OpenAI API access point, interacts with OpenAI at the networking layer.
-   */
+  /** OpenAI API access point, interacts with OpenAI at the networking layer. */
   private val api: OpenAIService by lazy { retrofit.create(OpenAIService::class.java) }
-
 
   /**
    * Entry point for anything in the app that wants AI-generated events.
@@ -99,12 +94,11 @@ object OpenAIProvider {
   /**
    * Internal accessor for the underlying [OkHttpClient].
    *
-   * This exists exclusively for unit testing purposes
-   * to allow assertions on:
-   *  - auth headers
-   *  - interceptors
-   *  - timeouts
-   *  - request/response behavior
+   * This exists exclusively for unit testing purposes to allow assertions on:
+   * - auth headers
+   * - interceptors
+   * - timeouts
+   * - request/response behavior
    *
    * Should never be used in production code.
    */
