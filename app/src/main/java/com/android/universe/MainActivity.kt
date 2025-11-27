@@ -331,6 +331,21 @@ fun UniverseApp(
                 onTabSelected = onTabSelected,
                 onEditProfileClick = { uid ->
                   navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
+                },
+                onChatNavigate = { chatID, chatName ->
+                  navController.navigate(
+                      route =
+                          NavigationScreens.ChatInstance.route
+                              .replace("{chatID}", chatID)
+                              .replace("{chatName}", chatName)
+                              .replace("{userID}", authInstance.currentUser!!.uid))
+                },
+                onCardClick = { eventId: String, eventLocation: Location ->
+                  navController.navigate(
+                      NavigationScreens.MapInstance.route
+                          .replace("{eventId}", eventId)
+                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
+                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
                 })
           }
         }

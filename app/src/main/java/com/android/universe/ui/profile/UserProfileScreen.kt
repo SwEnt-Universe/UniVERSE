@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
 import com.android.universe.model.event.Event
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.common.ProfileContentLayout
 import com.android.universe.ui.components.LiquidBox
@@ -55,12 +56,6 @@ import kotlinx.coroutines.launch
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
-  const val FIRSTNAME = "userProfileFirstName"
-  const val LASTNAME = "userProfileLastName"
-  const val AGE = "userProfileAge"
-  const val COUNTRY = "userProfileCountry"
-  const val DESCRIPTION = "userProfileDescription"
-  const val EDIT_BUTTON = "userProfileEditButton"
   const val PROFILE_EVENT_LIST = "profileEventList"
 
   fun getTabTestTag(index: Int): String {
@@ -86,6 +81,8 @@ fun UserProfileScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit = {},
     onEditProfileClick: (String) -> Unit = {},
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     userProfileViewModel: UserProfileViewModel = viewModel(),
     eventViewModel: EventViewModel = viewModel()
 ) {
@@ -144,7 +141,9 @@ fun UserProfileScreen(
                 incomingEvents = userUIState.incomingEvents,
                 eventViewModel = eventViewModel,
                 spacerHeightDp = profileContentHeightDp + elementSpacingDp,
-                clipPaddingDp = tabRowHeightDp)
+                clipPaddingDp = tabRowHeightDp,
+                onChatNavigate = onChatNavigate,
+                onCardClick = onCardClick)
 
             ProfileHeaderOverlay(
                 headerOffsetPx = headerOffsetPx,
@@ -186,7 +185,9 @@ fun ProfileContentPager(
     incomingEvents: List<Event>,
     eventViewModel: EventViewModel,
     spacerHeightDp: Dp,
-    clipPaddingDp: Dp
+    clipPaddingDp: Dp,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
   HorizontalPager(
       state = pagerState, modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) {
@@ -200,7 +201,9 @@ fun ProfileContentPager(
             events = events,
             eventViewModel = eventViewModel,
             headerSpacerHeight = spacerHeightDp,
-            topClipPadding = clipPaddingDp)
+            topClipPadding = clipPaddingDp,
+            onChatNavigate = onChatNavigate,
+            onCardClick = onCardClick)
       }
 }
 
@@ -219,7 +222,9 @@ fun ProfileEventList(
     events: List<Event>,
     eventViewModel: EventViewModel,
     headerSpacerHeight: Dp,
-    topClipPadding: Dp
+    topClipPadding: Dp,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
   LazyColumn(
       state = listState,
@@ -235,9 +240,9 @@ fun ProfileEventList(
         }
 
         items(events, key = { it.id }) { event ->
-          // Index is used here as the ID for the card's test tag in EventContentLayout.
           val eventUIState =
               EventUIState(
+                  id = event.id,
                   title = event.title,
                   description = event.description ?: "",
                   date = event.date,
@@ -245,11 +250,16 @@ fun ProfileEventList(
                   creator = event.creator,
                   participants = event.participants.size,
                   index = event.id.hashCode(),
+                  location = event.location,
                   joined = true,
                   eventPicture = event.eventPicture)
 
           Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = 4.dp)) {
-            EventCard(event = eventUIState, viewModel = eventViewModel)
+            EventCard(
+                event = eventUIState,
+                onChatNavigate = onChatNavigate,
+                onCardClick = onCardClick,
+                viewModel = eventViewModel)
           }
         }
       }
