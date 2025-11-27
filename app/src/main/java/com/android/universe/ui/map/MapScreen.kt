@@ -491,11 +491,11 @@ private suspend fun TomTomMap.syncEventMarkers(
 
   this@syncEventMarkers.removeMarkers("event")
   markerMap.clear()
-    withContext(DefaultDP.default) {
-        val (options, events) = optionsAndEvents.unzip()
-        val addedMarkers = addMarkers(options)
-        addedMarkers.forEachIndexed { index, marker -> markerMap[marker.id] = events[index] }
-    }
+  withContext(DefaultDP.default) {
+    val (options, events) = optionsAndEvents.unzip()
+    val addedMarkers = addMarkers(options)
+    addedMarkers.forEachIndexed { index, marker -> markerMap[marker.id] = events[index] }
+  }
 }
 
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
