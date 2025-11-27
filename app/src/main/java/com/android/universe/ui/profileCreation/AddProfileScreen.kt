@@ -1,18 +1,26 @@
 package com.android.universe.ui.profileCreation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.EditCalendar
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -29,11 +37,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -42,11 +52,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.CountryData.allCountries
+import com.android.universe.ui.common.UniversalDatePickerDialog
+import com.android.universe.ui.components.CustomTextField
+import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingLarge
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
-import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import java.time.LocalDate
 
 /**
  * Defines constants for use in UI tests to identify specific composables within the
@@ -129,6 +146,83 @@ private data class ProfileInputConfig(
     val showErrorOnTouchOnly: Boolean = true,
     val maxLines: Int = 1
 )
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddProfile(uid: String, navigateOnSave: () -> Unit = {}, onBack: () -> Unit = {}) {
+  var showDatePicker by remember { mutableStateOf(false) }
+  var birthDate by remember { mutableStateOf<LocalDate?>(null) }
+  Scaffold(
+      modifier = Modifier.fillMaxSize(),
+      bottomBar = { FlowBottomMenu(onBackClicked = onBack, onContinueClicked = navigateOnSave) },
+      containerColor = Color.Transparent) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+          LiquidImagePicker(
+              modifier =
+                  Modifier.padding(top = paddingValues.calculateTopPadding())
+                      .align(Alignment.TopCenter)
+                      .width(200.dp)
+                      .height(140.dp),
+              imageBytes = null,
+              onPickImage = {})
+        }
+        LiquidBox(
+            modifier =
+                Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding() + 210.dp),
+            shape = BottomSheetDefaults.ExpandedShape) {
+              Column(
+                  modifier =
+                      Modifier.matchParentSize()
+                          .padding(paddingValues)
+                          .padding(horizontal = 16.dp)
+                          .verticalScroll(rememberScrollState()),
+                  verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    CustomTextField(
+                        label = "Username",
+                        leadingIcon = Icons.Default.AccountCircle,
+                        placeholder = "Username",
+                        value = "test",
+                        onValueChange = {})
+                    CustomTextField(
+                        label = "First Name",
+                        leadingIcon = Icons.Default.AccountCircle,
+                        placeholder = "First Name",
+                        value = "test",
+                        onValueChange = {})
+                    CustomTextField(
+                        label = "Last Name",
+                        leadingIcon = Icons.Default.AccountCircle,
+                        placeholder = "Last Name",
+                        value = "test",
+                        onValueChange = {})
+                    CustomTextField(
+                        label = "Bio",
+                        placeholder = "Bio",
+                        leadingIcon = Icons.Default.AccountCircle,
+                        value = "test",
+                        onValueChange = {})
+                    Box {
+                      CustomTextField(
+                          label = "Date of Birth",
+                          placeholder = "Date of Birth",
+                          leadingIcon = Icons.Default.EditCalendar,
+                          value = birthDate.toString(),
+                          onValueChange = {})
+                      Box(modifier = Modifier.matchParentSize().clickable { showDatePicker = true })
+                    }
+                    UniversalDatePickerDialog(
+                        visible = showDatePicker,
+                        initialDate = LocalDate.now(),
+                        yearRange = IntRange(LocalDate.now().year - 100, LocalDate.now().year),
+                        onConfirm = {
+                          birthDate = it
+                          showDatePicker = false
+                        },
+                        onDismiss = { showDatePicker = false })
+                  }
+            }
+      }
+}
 
 /**
  * Composable screen that allows a user to create a new Profile.
@@ -485,14 +579,12 @@ private fun DateOfBirthFields(uiState: AddProfileUIState, viewModel: AddProfileV
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun AddProfileScreenPreview() {
-  UniverseTheme {
-    // A no-op fake ViewModel substitute
-    val dummyViewModel = object : AddProfileViewModel() {}
+  // Just render the UI (no real logic, safe for preview)
+  val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
 
-    // Just render the UI (no real logic, safe for preview)
-    AddProfileScreen(
+  CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) {
+    AddProfile(
         uid = "preview_user_001",
-        addProfileViewModel = dummyViewModel,
         navigateOnSave = {},
     )
   }

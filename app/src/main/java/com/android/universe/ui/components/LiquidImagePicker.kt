@@ -79,7 +79,7 @@ fun LiquidImagePicker(
           width = 32f,
           height = 32f,
           contentPadding = Dimensions.PaddingSmall,
-          modifier = Modifier.align(Alignment.BottomEnd).padding(Dimensions.PaddingExtraLarge)) {
+          modifier = Modifier.align(Alignment.BottomEnd).padding(Dimensions.PaddingMedium)) {
             Icon(
                 imageVector = if (imageBitmap != null) Icons.Default.Edit else Icons.Default.Add,
                 contentDescription = if (imageBitmap != null) "Edit Image" else "Add Image",
