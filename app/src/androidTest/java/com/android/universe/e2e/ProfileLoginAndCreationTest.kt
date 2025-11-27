@@ -20,6 +20,7 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.map.MapScreenTestTags
+import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.profileCreation.AddProfileScreenTestTags
@@ -214,19 +215,44 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
   private fun loginAndWait() {
     composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(FormTestTags.EMAIL_FIELD).isDisplayed()
+      composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
+
+    composeTestRule
+        .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FormTestTags.EMAIL_FIELD)
+        .assertIsDisplayed()
         .performClick()
         .performTextInput(FAKE_EMAIL)
 
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule.waitUntil(60_000L) {
+      composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.PASSWORD_BUTTON).isDisplayed()
+    }
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.PASSWORD_BUTTON).performClick()
+
+    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FormTestTags.PASSWORD_FIELD)
+        .assertIsDisplayed()
         .performClick()
         .performTextInput(FAKE_PASSWORD)
 
-    composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
 
     // Wait max 30 second for the email validation to occur, we should arrive on the
     // AddProfileScreen

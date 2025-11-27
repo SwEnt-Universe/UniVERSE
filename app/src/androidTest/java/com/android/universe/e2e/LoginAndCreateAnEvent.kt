@@ -20,6 +20,7 @@ import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapScreenTestTags
+import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
@@ -81,7 +82,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Test
   fun `Login and Create an Event`() {
     composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).isDisplayed()
+      composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
     loginAndWait()
     clickOnMapAndCreateEvent()
@@ -90,16 +91,33 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   private fun loginAndWait() {
     composeTestRule
+        .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule.waitForIdle()
+    composeTestRule
         .onNodeWithTag(FormTestTags.EMAIL_FIELD)
         .performClick()
         .performTextInput(FAKE_EMAIL)
+
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule.waitUntil(60_000L) {
+      composeTestRule.onNodeWithTag(SignInScreenTestTags.PASSWORD_BOX).isDisplayed()
+    }
 
     composeTestRule
         .onNodeWithTag(FormTestTags.PASSWORD_FIELD)
         .performClick()
         .performTextInput(FAKE_PASS)
 
-    composeTestRule.onNodeWithTag(SignInScreenTestTags.EMAIL_SIGN_IN_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 
     // Wait max 30 seconds, we should arrive on the MapScreen
     composeTestRule.waitUntil(30_000L) {
