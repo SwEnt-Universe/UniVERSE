@@ -71,10 +71,35 @@ data class ChatCompletionResponse(
     val usage: Usage? = null
 )
 
-/** Each "completion" alternative returned. */
+/**
+ * Represents a single model-generated alternative within a chat completion response.
+ *
+ * OpenAI may return multiple "choices" for a single request, each containing:
+ * - **index** — The position of this choice in the returned list.
+ * - **message** — The assistant's generated message content (role + text).
+ * - **finish_reason** — Why the model stopped generating:
+ *     - `"stop"`: natural stopping (e.g., end of message)
+ *     - `"length"`: hit max token limit
+ *     - `"content_filter"`: blocked due to safety filter
+ *     - `"error"`: generation interrupted
+ *     - `null`: provider omitted the field
+ *
+ * Our case this is almost always a single result (index `0`) because we request deterministic JSON
+ * output for event generation, but the model still formally returns a list.
+ */
 @Serializable
 data class Choice(val index: Int, val message: Message, val finish_reason: String? = null)
 
-/** Token accounting for pricing. */
+/**
+ * Token usage metadata returned by OpenAI for billing and diagnostics.
+ *
+ * Contains counts for:
+ * - **prompt_tokens** — Tokens consumed by the input (system + user messages).
+ * - **completion_tokens** — Tokens produced by the model.
+ * - **total_tokens** — Sum of prompt + completion tokens.
+ *
+ * OpenAI may omit this object for streaming responses, in which case `usage` on the parent
+ * [ChatCompletionResponse] will be `null`.
+ */
 @Serializable
 data class Usage(val prompt_tokens: Int, val completion_tokens: Int, val total_tokens: Int)
