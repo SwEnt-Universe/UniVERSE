@@ -58,18 +58,16 @@ sealed class FlowTab(
    * @param onClick The lambda function to be executed when the back tab is clicked.
    */
   class Back(onClick: () -> Unit) :
-    FlowTab(
-      icon = {
-        Icon(
-          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-          contentDescription = "Back",
-          modifier = Modifier.size(Dimensions.IconSizeLarge)
-        )
-      },
-      label = "Back",
-      testTag = FlowBottomMenuTestTags.BACK_BUTTON,
-      onClick = onClick
-    )
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Back",
+          testTag = FlowBottomMenuTestTags.BACK_BUTTON,
+          onClick = onClick)
 
   /**
    * Represents the "Confirm" action tab. This tab displays a checkmark icon. Its appearance changes
@@ -80,21 +78,19 @@ sealed class FlowTab(
    *   is dimmed.
    */
   class Confirm(onClick: () -> Unit, enabled: Boolean) :
-    FlowTab(
-      icon = {
-        Icon(
-          imageVector = Icons.Filled.Check,
-          contentDescription = "Confirm",
-          modifier = Modifier.size(Dimensions.IconSizeLarge),
-          tint =
-            if (enabled) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        )
-      },
-      label = "Confirm",
-      testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
-      onClick = onClick
-    )
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = "Confirm",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint =
+                    if (enabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+          },
+          label = "Confirm",
+          testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
+          onClick = onClick)
 
   /**
    * Represents the "Google" authentication tab. This tab displays the Google logo and is used to
@@ -103,18 +99,16 @@ sealed class FlowTab(
    * @param onClick The lambda function to be executed when the Google tab is clicked.
    */
   class Google(onClick: () -> Unit) :
-    FlowTab(
-      icon = {
-        Image(
-          painter = painterResource(id = R.drawable.google_logo),
-          contentDescription = "Google",
-          modifier = Modifier.size(Dimensions.IconSizeLarge)
-        )
-      },
-      label = "Google",
-      testTag = FlowBottomMenuTestTags.GOOGLE_BUTTON,
-      onClick = onClick
-    )
+      FlowTab(
+          icon = {
+            Image(
+                painter = painterResource(id = R.drawable.google_logo),
+                contentDescription = "Google",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Google",
+          testTag = FlowBottomMenuTestTags.GOOGLE_BUTTON,
+          onClick = onClick)
 
   /**
    * Represents the "Password" authentication tab. This tab displays a lock icon and is used to
@@ -123,19 +117,16 @@ sealed class FlowTab(
    * @param onClick The lambda function to be executed when the password tab is clicked.
    */
   class Password(onClick: () -> Unit) :
-    FlowTab(
-      icon = {
-        Icon(
-          imageVector = Icons.Filled.Lock,
-          contentDescription = "Password",
-          modifier = Modifier.size(Dimensions.IconSizeLarge)
-        )
-      },
-      label = "Password",
-      testTag = FlowBottomMenuTestTags.PASSWORD_BUTTON,
-      onClick = onClick
-    )
-
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = "Password",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Password",
+          testTag = FlowBottomMenuTestTags.PASSWORD_BUTTON,
+          onClick = onClick)
 
   /**
    * Represents the "Resend Email" action tab. This tab displays an unread email icon and is
@@ -143,25 +134,23 @@ sealed class FlowTab(
    * appearance changes based on the `enabled` state.
    *
    * @param onClick The lambda function to be executed when the email tab is clicked.
-   * @param enabled A boolean indicating whether the resend action is enabled. If false, the icon
-   *   is dimmed.
+   * @param enabled A boolean indicating whether the resend action is enabled. If false, the icon is
+   *   dimmed.
    */
   class Email(onClick: () -> Unit, enabled: Boolean) :
-    FlowTab(
-      icon = {
-        Icon(
-          imageVector = Icons.Filled.MarkEmailUnread,
-          contentDescription = "Email",
-          modifier = Modifier.size(Dimensions.IconSizeLarge),
-          tint =
-            if (enabled) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        )
-      },
-      label = "Resend Email",
-      testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
-      onClick = onClick
-    )
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.MarkEmailUnread,
+                contentDescription = "Email",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint =
+                    if (enabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+          },
+          label = "Resend Email",
+          testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
+          onClick = onClick)
 }
 
 /**
