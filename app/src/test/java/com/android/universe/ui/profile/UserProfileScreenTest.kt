@@ -151,7 +151,7 @@ class UserProfileScreenTest {
     assertEquals(testUser.uid, capturedUid)
   }
 
-  private suspend fun TestScope.setupScreen() {
+  private fun TestScope.setupScreen() {
     composeTestRule.setContentWithStubBackdrop {
       UserProfileScreen(
           uid = testUser.uid,
@@ -168,7 +168,7 @@ class UserProfileScreenTest {
     val eventTag = "${EventContentTestTags.EVENT_TITLE}_${eventId.hashCode()}"
 
     composeTestRule
-        .onNodeWithTag(eventTag)
+        .onNodeWithTag(eventTag, useUnmergedTree = true)
         .performScrollTo()
         .assertIsDisplayed()
         .assertTextEquals(eventTitle)
