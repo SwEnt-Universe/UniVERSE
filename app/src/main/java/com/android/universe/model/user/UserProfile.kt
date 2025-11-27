@@ -15,6 +15,8 @@ import java.time.LocalDate
  * @property dateOfBirth The user's date of birth.
  * @property tags A set of [Tag]s representing the user's interests.
  * @property profilePicture the profile picture of the user.
+ * @property followers the set of userId that follow the user.
+ * @property following the set of userId that the user follow.
  */
 data class UserProfile(
     val uid: String,
