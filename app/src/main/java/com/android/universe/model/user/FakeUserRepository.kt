@@ -79,4 +79,40 @@ class FakeUserRepository : UserRepository {
   override suspend fun isUsernameUnique(username: String): Boolean {
     return users.none { it.username == username }
   }
+
+  /**
+   * Add the targetUserId to the currentUser following list. Add the currentUserId to the targetUser
+   * follower list.
+   *
+   * @param currentUserId the uid of the user who wants to follow the target user.
+   * @param targetUserId the uid of the user who is being followed by the current user.
+   */
+  override suspend fun followUser(currentUserId: String, targetUserId: String) {
+    val currentUser = getUser(currentUserId)
+    val targetUser = getUser(targetUserId)
+
+    if (!currentUser.following.contains(targetUserId) &&
+        !targetUser.followers.contains(currentUserId)) {
+      updateUser(currentUserId, currentUser.copy(following = currentUser.following + targetUserId))
+      updateUser(targetUserId, targetUser.copy(followers = targetUser.followers + currentUserId))
+    }
+  }
+
+  /**
+   * Remove the targetUserId to the currentUser following list. Remove the currentUserId to the
+   * targetUser follower list.
+   *
+   * @param currentUserId the uid of the user who wants to unfollow the target user.
+   * @param targetUserId the uid of the user who is being unfollowed by the current user.
+   */
+  override suspend fun unfollowUser(currentUserId: String, targetUserId: String) {
+    val currentUser = getUser(currentUserId)
+    val targetUser = getUser(targetUserId)
+
+    if (currentUser.following.contains(targetUserId) &&
+        targetUser.followers.contains(currentUserId)) {
+      updateUser(currentUserId, currentUser.copy(following = currentUser.following - targetUserId))
+      updateUser(targetUserId, targetUser.copy(followers = targetUser.followers - currentUserId))
+    }
+  }
 }
