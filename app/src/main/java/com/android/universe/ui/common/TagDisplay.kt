@@ -75,6 +75,7 @@ object TagGroupDefaults {
   val CornerShapeDp = 16.dp
   val titleFontSize = 28.sp
   val textSectionSize = 72.dp
+  val titleDefaultLineSize = 32.sp
 }
 
 /**
@@ -359,7 +360,7 @@ fun TagGroup(
                         .height(TagGroupDefaults.textSectionSize)
                         .padding(vertical = Dimensions.PaddingSmall),
                 fontSize = TagGroupDefaults.titleFontSize,
-                lineHeight = 32.sp,
+                lineHeight = TagGroupDefaults.titleDefaultLineSize,
                 textAlign = TextAlign.Center)
           }
           FlowRow(
