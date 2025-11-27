@@ -128,7 +128,7 @@ fun MapScreen(
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
 
   // Local cache for marker click handling (ID -> Event)
-  val markerToEvent = remember { mutableMapOf<Marker, Event>() }
+  val markerToEvent = remember { mutableMapOf<String, Event>() }
 
   // --- 1. Permissions & Initialization ---
 
@@ -250,7 +250,7 @@ fun MapScreen(
                           viewModel.onMapLongClick(pos.latitude, pos.longitude)
                         },
                         onMarkerClick = { marker ->
-                          markerToEvent[marker]?.let { event ->
+                          markerToEvent[marker.tag]?.let { event ->
                             viewModel.onMarkerClick(event)
                             true
                           } ?: false
@@ -526,28 +526,27 @@ private fun TomTomMap.setMarkerSettings() {
 
 private suspend fun TomTomMap.syncEventMarkers(
     markers: List<MapMarkerUiModel>,
-    markerMap: MutableMap<Marker, Event>
+    markerMap: MutableMap<String, Event>
 ) {
   val (optionsToAdd, markersToRemove, eventForNewMarkers) =
       withContext(DefaultDP.io) { markerLogic(markerMap, markers) }
 
   if (markersToRemove.isNotEmpty()) {
-    markersToRemove.forEach {
-      it.remove()
-      markerMap.remove(it)
-    }
+    markersToRemove.forEach { markerMap.remove(it) }
   }
   if (optionsToAdd.isNotEmpty()) {
     val addedMarkers = this@syncEventMarkers.addMarkers(optionsToAdd)
-    addedMarkers.forEachIndexed { index, marker -> markerMap[marker] = eventForNewMarkers[index] }
+    addedMarkers.forEachIndexed { index, marker ->
+      markerMap[marker.tag!!] = eventForNewMarkers[index]
+    }
   }
 }
 
 @VisibleForTesting
 internal suspend fun markerLogic(
-    markerMap: MutableMap<Marker, Event>,
+    markerMap: MutableMap<String, Event>,
     markers: List<MapMarkerUiModel>
-): Triple<List<MarkerOptions>, Set<Marker>, List<Event>> {
+): Triple<List<MarkerOptions>, Set<String>, List<Event>> {
   val previousEvents = markerMap.values.toSet()
   val currentEvents = markers.map { it.event }.toSet()
   val toAdd = markers.filter { it.event !in previousEvents }
@@ -556,7 +555,7 @@ internal suspend fun markerLogic(
   val optionsToAdd =
       toAdd.map {
         val pin = MarkerImageCache.get(it.iconResId)
-        MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
+        MarkerOptions(tag = it.event.id, coordinate = it.position, pinImage = pin)
       }
   return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
 }
