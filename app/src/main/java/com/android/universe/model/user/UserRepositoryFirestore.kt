@@ -16,13 +16,6 @@ import kotlinx.coroutines.withContext
 // Firestore collection path for user profiles.
 const val USERS_COLLECTION_PATH = "users"
 
-/** Check if a List is of type T and safely casts it, returning an empty list if not. */
-private inline fun <reified T> Any?.safeCastList(): List<T> {
-  return if (this is List<*>) {
-    this.filterIsInstance<T>()
-  } else emptyList()
-}
-
 /**
  * Converts a Firestore DocumentSnapshot to a UserProfile object.
  *
@@ -41,12 +34,15 @@ fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
         description = doc.getString("description"),
         dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
         tags =
-            (doc.get("tags").safeCastList<Number>())
-                .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                .toSet(),
+            (doc.get("tags") as? List<*>)
+                ?.filterIsInstance<Number>()
+                ?.mapNotNull { ordinal -> Tag.entries.getOrNull(ordinal.toInt()) }
+                ?.toSet() ?: emptySet(),
         profilePicture = doc.getBlob("profilePicture")?.toBytes(),
-        followers = doc.get("followers").safeCastList<String>().toSet(),
-        following = doc.get("following").safeCastList<String>().toSet())
+        followers =
+            (doc.get("followers") as? List<*>)?.filterIsInstance<String>()?.toSet() ?: emptySet(),
+        following =
+            (doc.get("following") as? List<*>)?.filterIsInstance<String>()?.toSet() ?: emptySet())
   } catch (e: DateTimeParseException) {
     Log.e(
         "UserRepositoryFirestore.documentToUserProfile",
