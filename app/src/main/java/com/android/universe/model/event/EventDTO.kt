@@ -3,13 +3,20 @@ package com.android.universe.model.event
 import kotlinx.serialization.Serializable
 
 /**
- * Contract for incoming API data
+ * Data Transfer Object (DTO) for events returned by the OpenAI API.
  *
- * Notice that the event DTO is **not** identical to the Event object. It does not define:
- * - ID
- * - creator
- * - participants
- * - eventPicture
+ * This type represents only the raw AI-generated event data.
+ * It is intentionally smaller than the app's internal `Event` model.
+ *
+ * The fields `id`, `creator`, `participants`, and `eventPicture`
+ * are not included here because they are assigned later by the app
+ * during parsing and conversion.
+ *
+ * @property title name of the event.
+ * @property description optional detailed information about the event.
+ * @property date date and time when the event is scheduled to occur.
+ * @property tags set of tags associated with the event for categorization.
+ * @property location where the event will take place.
  */
 @Serializable
 data class EventDTO(
