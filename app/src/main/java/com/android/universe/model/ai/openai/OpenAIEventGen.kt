@@ -89,10 +89,7 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
     // ========================================================================
     // 5: PARSING & CONVERSION
     // ========================================================================
-    return try {
-      ResponseParser.parseEvents(raw)
-    } catch (e: Exception) {
-      throw IllegalStateException("Failed to parse model output: ${e.message}\nInput was:\n$raw")
-    }
+    val outcome = ResponseParser.parseEvents(raw)
+    return outcome.events
   }
 }

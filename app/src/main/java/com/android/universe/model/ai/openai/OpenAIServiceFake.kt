@@ -33,7 +33,7 @@ class OpenAIServiceFake : OpenAIService {
             {
               "title": "Fake Rock Concert",
               "description": "A generated test event",
-              "date": "2025-03-21T20:00",
+              "date": "2069-03-21T20:00",
               "tags": ["Rock", "Music"],
               "location": { "latitude": 46.52, "longitude": 6.63 }
             }

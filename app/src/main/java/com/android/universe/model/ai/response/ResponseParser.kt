@@ -5,8 +5,6 @@ import com.android.universe.model.event.EventDTO
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import java.time.LocalDateTime
-import kotlin.String
-import kotlin.collections.map
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -14,14 +12,9 @@ import kotlinx.serialization.json.jsonObject
 /**
  * Parses JSON returned by the OpenAI event-generation API into domain-level [Event] objects.
  *
- * The parser handles:
- * - Stripping optional Markdown code fences
- * - Extracting the `"events"` array from the response
- * - Deserializing into [EventDTO] objects using Kotlinx Serialization
- * - Validating each DTO using [EventValidator]
- * - Converting DTOs into fully formed [Event] instances
+ * Returns all valid events while collecting per-item validation failures.
  *
- * This object forms the bridge between raw AI output and the app's internal event model.
+ * This parser is the bridge between raw AI output and the app's validated internal [Event] model.
  */
 object ResponseParser {
 
@@ -32,34 +25,37 @@ object ResponseParser {
     coerceInputValues = true
   }
 
+  /** Represents the per-item result of attempting to parse and validate an [EventDTO]. */
+  sealed class EventParseResult {
+    data class Success(val event: Event) : EventParseResult()
+
+    data class Failure(val dto: EventDTO, val error: IllegalArgumentException) : EventParseResult()
+  }
+
   /**
-   * Converts raw OpenAI JSON into a list of validated domain-level [Event] objects.
-   *
-   * Workflow:
-   * - Cleans the input by removing optional json fences.
-   * - Parses the cleaned JSON into a root object.
-   * - Extracts the `"events"` field, throwing an exception if missing.
-   * - Deserializes the array into [EventDTO] instances.
-   * - Validates each DTO via [EventValidator].
-   * - Maps DTOs into fully initialized [Event] objects.
-   *
-   * Notes:
-   * - Unknown fields are ignored.
-   * - Values may be coerced when types differ slightly.
-   * - Tag strings are converted to [Tag] objects; unknown tags are discarded.
-   *
-   * @param rawJson The raw JSON string from OpenAI (may include Markdown code fences).
-   * @return A list of validated [Event] objects ready for UI rendering or storage.
-   * @throws IllegalStateException if the `"events"` field is missing.
-   * @throws IllegalArgumentException if any DTO fails validation.
+   * Returned by parsing. Contains both the successfully parsed events and all validation failures
+   * encountered.
    */
-  fun parseEvents(rawJson: String): List<Event> {
+  data class ParseOutcome(val events: List<Event>, val failures: List<EventParseResult.Failure>)
+
+  /**
+   * Lenient parsing:
+   * - Keeps all valid events
+   * - Discards invalid DTOs
+   * - Collects validation failures for logging/telemetry
+   *
+   * Never throws for individual event validation errors.
+   *
+   * @return [ParseOutcome] containing both valid events and detailed failures.
+   * @throws IllegalStateException If the "events" field is missing.
+   */
+  fun parseEvents(rawJson: String): ParseOutcome {
     val cleaned = cleanJson(rawJson)
 
-    // Parse root object
+    // Root object
     val root = json.parseToJsonElement(cleaned).jsonObject
 
-    // Extract events array
+    // Extract array
     val eventsJson =
         root["events"] ?: throw IllegalStateException("Missing 'events' field in OpenAI response")
 
@@ -68,20 +64,43 @@ object ResponseParser {
         json.decodeFromJsonElement(
             deserializer = ListSerializer(EventDTO.serializer()), element = eventsJson)
 
-    // Convert to domain objects
-    return dtos.map { dto ->
+    // Parse each DTO independently
+    val results = dtos.map(::parseEvent)
+
+    val successes = results.filterIsInstance<EventParseResult.Success>().map { it.event }
+    val failures = results.filterIsInstance<EventParseResult.Failure>()
+
+    return ParseOutcome(successes, failures)
+  }
+
+  // -------------------------------------------------------------------------
+  // Internal helpers
+  // -------------------------------------------------------------------------
+
+  /**
+   * Parses a single DTO in lenient fashion:
+   * - Valid DTO -> Success(Event)
+   * - Invalid DTO -> Failure(dto, error)
+   */
+  private fun parseEvent(dto: EventDTO): EventParseResult {
+    return try {
       EventValidator.validate(dto)
 
-      Event(
-          id = "",
-          title = dto.title,
-          description = dto.description,
-          date = LocalDateTime.parse(dto.date),
-          tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
-          creator = CREATOR,
-          participants = emptySet(),
-          location = Location(dto.location.latitude, dto.location.longitude),
-      )
+      val event =
+          Event(
+              id = "",
+              title = dto.title,
+              description = dto.description,
+              date = LocalDateTime.parse(dto.date),
+              tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
+              creator = CREATOR,
+              participants = emptySet(),
+              location = Location(dto.location.latitude, dto.location.longitude),
+          )
+
+      EventParseResult.Success(event)
+    } catch (e: IllegalArgumentException) {
+      EventParseResult.Failure(dto, e)
     }
   }
 

@@ -93,7 +93,7 @@ class AIEventGenTest {
     assertEquals(setOf("Rock", "Music"), tagNames)
 
     assertEquals("OpenAI", event.creator)
-    assertEquals("2025-03-21T20:00", event.date.toString())
+    assertEquals("2069-03-21T20:00", event.date.toString())
   }
 
   // --------------------------------------------------------------

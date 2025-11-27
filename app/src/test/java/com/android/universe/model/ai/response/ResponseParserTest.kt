@@ -17,7 +17,7 @@ class ResponseParserTest {
             {
               "title": "Physics Meetup",
               "description": "Quantum discussion",
-              "date": "2025-04-12T20:00",
+              "date": "2069-04-12T20:00",
               "tags": ["Physics", "Mathematics"],
               "location": { "latitude": 46.52, "longitude": 6.63 }
             }
@@ -26,14 +26,16 @@ class ResponseParserTest {
         """
             .trimIndent()
 
-    val events = ResponseParser.parseEvents(raw)
+    val outcome = ResponseParser.parseEvents(raw)
 
-    Assert.assertEquals(1, events.size)
-    val e = events.first()
+    Assert.assertEquals(1, outcome.events.size)
+    Assert.assertEquals(0, outcome.failures.size)
+
+    val e = outcome.events.first()
 
     Assert.assertEquals("Physics Meetup", e.title)
     Assert.assertEquals("Quantum discussion", e.description)
-    Assert.assertEquals(LocalDateTime.parse("2025-04-12T20:00"), e.date)
+    Assert.assertEquals(LocalDateTime.parse("2069-04-12T20:00"), e.date)
 
     Assert.assertTrue(e.tags.contains(Tag.PHYSICS))
     Assert.assertTrue(e.tags.contains(Tag.MATHEMATICS))
@@ -70,21 +72,23 @@ class ResponseParserTest {
         """
             .trimIndent()
 
-    val events = ResponseParser.parseEvents(raw)
+    val outcome = ResponseParser.parseEvents(raw)
 
-    Assert.assertEquals(2, events.size)
-    Assert.assertEquals("Event A", events[0].title)
-    Assert.assertEquals("Event B", events[1].title)
+    Assert.assertEquals(2, outcome.events.size)
+    Assert.assertEquals(0, outcome.failures.size)
+
+    Assert.assertEquals("Event A", outcome.events[0].title)
+    Assert.assertEquals("Event B", outcome.events[1].title)
   }
 
   @Test(expected = IllegalStateException::class)
   fun `parseEvents throws when events field is missing`() {
     val raw = """{"foo": "bar"}"""
-    ResponseParser.parseEvents(raw)
+    ResponseParser.parseEvents(raw) // still throws for missing "events"
   }
 
   @Test
-  fun `cleanJson removes code fences`() {
+  fun `cleanJson removes json code fences`() {
     val raw =
         """
         ```json
@@ -95,23 +99,52 @@ class ResponseParserTest {
         """
             .trimIndent()
 
-    val cleaned = ResponseParser.parseEvents(raw) // calling parse indirectly tests cleanJson
+    val outcome = ResponseParser.parseEvents(raw)
 
-    Assert.assertTrue(cleaned.isEmpty())
+    Assert.assertTrue(outcome.events.isEmpty())
+    Assert.assertEquals(0, outcome.failures.size)
   }
 
   @Test
-  fun `cleanJson removes backticks only`() {
+  fun `cleanJson removes backticks`() {
     val raw =
         """
-            ```json
-            {"events": []}
-            ```
+        ```
+        {"events": []}
+        ```
         """
+            .trimIndent()
 
-    val cleaned = ResponseParser.parseEvents(raw)
-    Assert.assertTrue(cleaned.isEmpty())
+    val outcome = ResponseParser.parseEvents(raw)
+
+    Assert.assertTrue(outcome.events.isEmpty())
+    Assert.assertEquals(0, outcome.failures.size)
   }
 
-  @Test fun `parseEvents ignores extra fields`() {}
+  @Test
+  fun `parseEvents ignores extra unknown fields`() {
+    val raw =
+        """
+        {
+          "events": [
+            {
+              "title": "Valid Event",
+              "description": "Good",
+              "date": "2030-01-01T10:00",
+              "tags": ["Physics"],
+              "location": { "latitude": 0.0, "longitude": 0.0 },
+              "unexpected_field": "ignored",
+              "extra": { "nested": "ignored" }
+            }
+          ]
+        }
+        """
+            .trimIndent()
+
+    val outcome = ResponseParser.parseEvents(raw)
+
+    Assert.assertEquals(1, outcome.events.size)
+    Assert.assertEquals("Valid Event", outcome.events.first().title)
+    Assert.assertEquals(0, outcome.failures.size)
+  }
 }

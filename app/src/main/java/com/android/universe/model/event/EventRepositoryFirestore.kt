@@ -300,8 +300,8 @@ class EventRepositoryFirestore(
    * 3. Reconstructs and returns the fully persisted events, including their assigned IDs.
    *
    * @param events list of AI-generated events that have not yet been stored.
-   * @return a new list of events identical to the input but with Firestore IDs assigned
-   *         and guaranteed to be persisted in storage.
+   * @return a new list of events identical to the input but with Firestore IDs assigned and
+   *   guaranteed to be persisted in storage.
    */
   override suspend fun persistAIEvents(events: List<Event>): List<Event> {
     return events.map { e ->

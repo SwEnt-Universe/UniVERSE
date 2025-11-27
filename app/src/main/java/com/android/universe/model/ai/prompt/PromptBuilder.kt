@@ -31,7 +31,8 @@ object PromptBuilder {
         add("No markdown, no commentary, no prose.")
         add("Output must strictly follow the provided schema.")
         add("Do not include any fields not defined in the schema.")
-        add("All generated event dates must be strictly in the future relative to the current date.")
+        add(
+            "All generated event dates must be strictly in the future relative to the current date.")
       }
     }
 

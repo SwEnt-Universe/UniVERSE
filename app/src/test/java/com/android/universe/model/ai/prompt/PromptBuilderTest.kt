@@ -2,12 +2,12 @@ package com.android.universe.model.ai.prompt
 
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
+import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
-import java.time.LocalDate
 import org.junit.Test
 
 class PromptBuilderTest {
@@ -50,16 +50,15 @@ class PromptBuilderTest {
   }
 
   private fun dummyProfile() =
-    UserProfile(
-      uid = "u1",
-      username = "johnny",
-      firstName = "John",
-      lastName = "Doe",
-      country = "CH",
-      description = "Example description",
-      dateOfBirth = LocalDate.of(2000, 1, 1),
-      tags = setOf(Tag.ROCK, Tag.MUSIC))
-
+      UserProfile(
+          uid = "u1",
+          username = "johnny",
+          firstName = "John",
+          lastName = "Doe",
+          country = "CH",
+          description = "Example description",
+          dateOfBirth = LocalDate.of(2000, 1, 1),
+          tags = setOf(Tag.ROCK, Tag.MUSIC))
 
   @Test
   fun promptBuilder_systemMessage_isValidStrictJson() {
@@ -76,11 +75,11 @@ class PromptBuilderTest {
     val profile = dummyProfile()
     val task = TaskConfig(eventCount = 3, requireRelevantTags = true)
     val ctx =
-      ContextConfig(
-        location = "Geneva",
-        locationCoordinates = 47.0 to 8.0,
-        radiusKm = 15,
-        timeFrame = "this-week")
+        ContextConfig(
+            location = "Geneva",
+            locationCoordinates = 47.0 to 8.0,
+            radiusKm = 15,
+            timeFrame = "this-week")
 
     val txt = PromptBuilder.buildUserMessage(profile, task, ctx)
     val root = Json.parseToJsonElement(txt).jsonObject
@@ -88,8 +87,8 @@ class PromptBuilderTest {
     // --- Task ---
     val taskObj = root["task"]!!.jsonObject
     assertEquals(
-      "generate realistic public events matching the user's interests",
-      taskObj["goal"]!!.toString().trim('"'))
+        "generate realistic public events matching the user's interests",
+        taskObj["goal"]!!.toString().trim('"'))
     assertEquals(3, taskObj["eventsToGenerate"]!!.toString().toInt())
     assertEquals(true, taskObj["requireRelevantTags"]!!.toString().toBoolean())
 
