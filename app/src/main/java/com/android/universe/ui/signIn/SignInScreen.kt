@@ -33,6 +33,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -236,6 +239,28 @@ fun PasswordTextField(
 }
 
 /**
+ * A composable that displays the application's logo. The logo is presented within a clipped box and
+ * scaled to fit.
+ */
+@Composable
+fun UniverseIcon() {
+  Box(
+      modifier =
+          Modifier.size(Dimensions.IconSizeLarge)
+              .clip(RoundedCornerShape(Dimensions.RoundedCorner))) {
+        Image(
+            painter = painterResource(id = R.drawable.color_white_universe_logo),
+            contentDescription = "Logo",
+            modifier =
+                Modifier.fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = 1.5f, scaleY = 1.5f, translationX = 0f, translationY = 0f),
+            contentScale = ContentScale.Crop,
+            alignment = Alignment.Center)
+      }
+}
+
+/**
  * A composable that displays the welcome screen of the application. It shows the application's
  * logo, name, and a tagline. It provides a button to proceed to the next step of the
  * onboarding/sign-in process.
@@ -259,10 +284,7 @@ fun WelcomeBox(onClick: () -> Unit = {}) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(text = "UniVERSE", style = MaterialTheme.typography.headlineLarge)
           Spacer(modifier = Modifier.width(Dimensions.SpacerLarge))
-          Image(
-              painter = painterResource(id = R.drawable.color_white_universe_logo),
-              contentDescription = "Logo",
-              modifier = Modifier.size(Dimensions.IconSizeLarge))
+          UniverseIcon()
         }
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         Text(
