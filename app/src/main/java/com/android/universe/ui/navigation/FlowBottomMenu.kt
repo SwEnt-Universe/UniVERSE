@@ -16,7 +16,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import com.android.universe.R
@@ -34,10 +33,15 @@ object FlowBottomMenuTestTags {
 }
 
 /**
- * Represents an action tab in the flow bottom bar.
+ * Represents the different types of tabs that can be displayed in the [FlowBottomMenu].
  *
- * @property icon the [ImageVector] to display.
- * @property label the label to display.
+ * This sealed class defines the common properties for a tab, such as its icon, label, test tag, and
+ * click action. Each specific tab type is implemented as a nested class.
+ *
+ * @param icon A composable lambda that renders the icon for the tab.
+ * @param label The text label displayed below the icon.
+ * @param testTag A unique string used to identify the tab in UI tests.
+ * @param onClick A lambda function to be executed when the tab is clicked.
  */
 sealed class FlowTab(
     val icon: @Composable () -> Unit,
@@ -45,6 +49,12 @@ sealed class FlowTab(
     val testTag: String = "",
     val onClick: () -> Unit = {}
 ) {
+  /**
+   * Represents the "Back" navigation tab. This tab displays a back arrow icon and triggers a
+   * provided `onClick` action, typically used for navigating to the previous screen.
+   *
+   * @param onClick The lambda function to be executed when the back tab is clicked.
+   */
   class Back(onClick: () -> Unit) :
       FlowTab(
           icon = {
@@ -57,6 +67,14 @@ sealed class FlowTab(
           testTag = FlowBottomMenuTestTags.BACK_BUTTON,
           onClick = onClick)
 
+  /**
+   * Represents the "Confirm" action tab. This tab displays a checkmark icon. Its appearance changes
+   * based on the `enabled` state. It's typically used to finalize a user action or flow.
+   *
+   * @param onClick The lambda function to be executed when the confirm tab is clicked.
+   * @param enabled A boolean indicating whether the confirm action is enabled. If false, the icon
+   *   is dimmed.
+   */
   class Confirm(onClick: () -> Unit, enabled: Boolean) :
       FlowTab(
           icon = {
@@ -72,6 +90,12 @@ sealed class FlowTab(
           testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
           onClick = onClick)
 
+  /**
+   * Represents the "Google" authentication tab. This tab displays the Google logo and is used to
+   * initiate a Google sign-in or related flow.
+   *
+   * @param onClick The lambda function to be executed when the Google tab is clicked.
+   */
   class Google(onClick: () -> Unit) :
       FlowTab(
           icon = {
@@ -84,6 +108,12 @@ sealed class FlowTab(
           testTag = FlowBottomMenuTestTags.GOOGLE_BUTTON,
           onClick = onClick)
 
+  /**
+   * Represents the "Password" authentication tab. This tab displays a lock icon and is used to
+   * initiate a password-based authentication flow.
+   *
+   * @param onClick The lambda function to be executed when the password tab is clicked.
+   */
   class Password(onClick: () -> Unit) :
       FlowTab(
           icon = {
@@ -97,6 +127,16 @@ sealed class FlowTab(
           onClick = onClick)
 }
 
+/**
+ * A composable that displays a bottom navigation menu with a liquid-style animation. This menu is
+ * designed for navigation flows, presenting a list of actions as tabs.
+ *
+ * It utilizes [LiquidBottomTabs] to create an interactive and visually appealing navigation bar.
+ * Each tab is represented by a [FlowTab] object, which defines its icon, label, and click action.
+ *
+ * @param flowTabs A list of [FlowTab] objects that define the items to be displayed in the bottom
+ *   menu. Each tab has an associated icon, label, test tag, and onClick action.
+ */
 @Composable
 fun FlowBottomMenu(flowTabs: List<FlowTab>) {
   val selectedTabIndex = remember { mutableIntStateOf(-1) }
