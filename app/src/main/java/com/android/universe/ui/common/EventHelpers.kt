@@ -19,7 +19,6 @@ object EventContentTestTags {
   const val EVENT_IMAGE_CONTAINER = "event_image_container"
   const val DEFAULT_EVENT_IMAGE = "default_event_image"
   const val EVENT_IMAGE = "event_image"
-  const val EVENT_LOCATION_BUTTON = "event_location_button"
   const val EVENT_TITLE = "event_title"
   const val EVENT_DATE = "event_date"
   const val EVENT_TIME = "event_time"
@@ -42,7 +41,7 @@ fun EventImageHelper(eventImage: ByteArray?, modifier: Modifier = Modifier) {
       produceState<Bitmap?>(initialValue = null, eventImage) {
             value =
                 if (eventImage != null) {
-                  withContext(DefaultDP.io) {
+                  withContext(DefaultDP.default) {
                     BitmapFactory.decodeByteArray(eventImage, 0, eventImage.size)
                   }
                 } else {

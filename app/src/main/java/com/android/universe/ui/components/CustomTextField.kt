@@ -52,6 +52,7 @@ private val IconBoxSize = 32.dp
  * composable provides the `value` and listens for `onValueChange`. It is unstyled (transparent) and
  * meant to be placed on any background, like a `LiquidBox`.
  *
+ * @param modifier The modifier to apply to the layout.
  * @param label The text displayed floating above the input field.
  * @param placeholder The hint text displayed inside the field when `value` is empty.
  * @param value The current text value (hoisted state from the parent).
@@ -67,9 +68,12 @@ private val IconBoxSize = 32.dp
  *   `keyboardType`).
  * @param keyboardActions Optional actions to run when a keyboard button (like 'Done' or 'Next') is
  *   pressed.
+ * @param enabled Controls the enabled state of the input field. When `false`, this input field will
+ *   not be clickable.
  */
 @Composable
 fun CustomTextField(
+    modifier: Modifier = Modifier,
     label: String,
     placeholder: String,
     value: String,
@@ -80,7 +84,8 @@ fun CustomTextField(
     maxLines: Int = 1,
     validationState: ValidationState = ValidationState.Neutral,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    enabled: Boolean = true
 ) {
   // Determine if the text should be visually masked (for passwords)
   val visualTransformation =
@@ -153,6 +158,7 @@ fun CustomTextField(
           BasicTextField(
               value = value,
               onValueChange = onValueChange,
+              enabled = enabled,
               visualTransformation = visualTransformation,
               singleLine = maxLines == 1,
               maxLines = maxLines,
@@ -162,7 +168,7 @@ fun CustomTextField(
                   LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground),
               cursorBrush =
                   SolidColor(MaterialTheme.colorScheme.primary), // Set the blinking cursor color
-              modifier = Modifier.weight(1f),
+              modifier = modifier.weight(1f),
               decorationBox = { innerTextField
                 -> // `decorationBox` lets us build the UI *around* the core text field
                 if (value.isEmpty()) {

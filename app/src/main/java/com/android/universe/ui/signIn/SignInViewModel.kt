@@ -35,6 +35,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+enum class OnboardingState {
+  WELCOME,
+  ENTER_EMAIL,
+  SIGN_IN_PASSWORD,
+  SIGN_IN_GOOGLE,
+  SIGN_UP
+}
+
 /**
  * Represents the UI state for the Sign In screen.
  *
@@ -49,14 +57,27 @@ data class SignInUIState(
     val user: FirebaseUser? = null,
     val signedOut: Boolean = false,
     val email: String = "",
-    val emailErrorMsg: String? = null,
+    val emailErrorMsg: ValidationState = ValidationState.Valid,
     val password: String = "",
-    val passwordErrorMsg: String? = null,
+    val passwordErrorMsg: ValidationState = ValidationState.Neutral,
+    val onboardingState: OnboardingState = OnboardingState.WELCOME,
 ) {
   val signInEnabled: Boolean
     get() =
         !isLoading &&
             validateEmail(email) is ValidationState.Valid &&
+            validatePassword(password) is ValidationState.Valid
+
+  val confirmEmailEnabled: Boolean
+    get() =
+        !isLoading &&
+            (onboardingState == OnboardingState.ENTER_EMAIL) &&
+            validateEmail(email) is ValidationState.Valid
+
+  val confirmPasswordEnabled: Boolean
+    get() =
+        !isLoading &&
+            (onboardingState == OnboardingState.SIGN_IN_PASSWORD) &&
             validatePassword(password) is ValidationState.Valid
 }
 
@@ -215,16 +236,7 @@ class SignInViewModel(
    */
   fun setEmail(email: String) {
     if (_uiState.value.isLoading) return
-    val ValidationState = validateEmail(email)
-
-    val errorMsg =
-        when (ValidationState) {
-          is ValidationState.Valid -> null
-          is ValidationState.Neutral -> null
-          is ValidationState.Invalid -> ValidationState.errorMessage
-        }
-
-    _uiState.update { it.copy(email = email, emailErrorMsg = errorMsg) }
+    _uiState.update { it.copy(email = email, emailErrorMsg = validateEmail(email)) }
   }
 
   /**
@@ -234,16 +246,7 @@ class SignInViewModel(
    */
   fun setPassword(password: String) {
     if (_uiState.value.isLoading) return
-    val ValidationState = validatePassword(password)
-
-    val errorMsg =
-        when (ValidationState) {
-          is ValidationState.Valid -> null
-          is ValidationState.Neutral -> null
-          is ValidationState.Invalid -> ValidationState.errorMessage
-        }
-
-    _uiState.update { it.copy(password = password, passwordErrorMsg = errorMsg) }
+    _uiState.update { it.copy(password = password, passwordErrorMsg = validatePassword(password)) }
   }
 
   /**
@@ -293,7 +296,9 @@ class SignInViewModel(
         _uiState.update { it.copy(errorMsg = "Invalid password", isLoading = false) }
       }
       is InvalidEmailException -> {
-        _uiState.update { it.copy(emailErrorMsg = tr.message, isLoading = false) }
+        _uiState.update {
+          it.copy(emailErrorMsg = ValidationState.Invalid(tr.message ?: ""), isLoading = false)
+        }
       }
       is FirebaseNetworkException -> {
         _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
@@ -303,5 +308,76 @@ class SignInViewModel(
         _uiState.update { it.copy(errorMsg = SIGN_IN_FAILED_EXCEPTION_MESSAGE, isLoading = false) }
       }
     }
+  }
+
+  /**
+   * Updates the onboarding state to begin the sign-in/sign-up process. This is typically triggered
+   * when the user clicks a "Join Universe" or "Get Started" button on the initial welcome screen,
+   * transitioning the UI to the email entry step.
+   */
+  fun onJoinUniverse() {
+    _uiState.update { it.copy(onboardingState = OnboardingState.ENTER_EMAIL) }
+  }
+
+  /**
+   * Navigates the user back to the previous step in the onboarding flow.
+   *
+   * This function handles the back navigation logic within the sign-in/sign-up process. It checks
+   * the current `onboardingState` from the `uiState` and updates it to the appropriate previous
+   * state. For example, if the user is on the `ENTER_EMAIL` screen, it will navigate them back to
+   * the initial `WELCOME` screen. For other states, it navigates back to the `ENTER_EMAIL` screen.
+   */
+  fun onBack() {
+    when (_uiState.value.onboardingState) {
+      OnboardingState.ENTER_EMAIL ->
+          _uiState.update { it.copy(onboardingState = OnboardingState.WELCOME) }
+      else -> _uiState.update { it.copy(onboardingState = OnboardingState.ENTER_EMAIL) }
+    }
+  }
+
+  /**
+   * Checks the sign-in methods available for the provided email and updates the UI state
+   * accordingly.
+   *
+   * This function is typically called after the user enters their email. It queries the
+   * authentication provider (e.g., Firebase) to determine if the email is already associated with
+   * an existing account. Based on the result, it transitions the `onboardingState` to the
+   * appropriate next step:
+   * - If a Google account exists, it moves to `OnboardingState.SIGN_IN_GOOGLE`.
+   * - If an email/password account exists, it moves to `OnboardingState.SIGN_IN_PASSWORD`.
+   * - If no account exists for the email, it moves to `OnboardingState.SIGN_UP`.
+   *
+   * The function will not execute if the `confirmEmailEnabled` flag in the UI state is false.
+   */
+  fun confirmEmail() {
+    if (!_uiState.value.confirmEmailEnabled) return
+    viewModelScope.launch {
+      val queryResult = authModel.fetchSignInMethodsForEmail(_uiState.value.email)
+      val methods = queryResult.signInMethods ?: emptyList()
+      when {
+        // Existing Google account
+        "google.com" in methods -> {
+          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_GOOGLE) }
+        }
+
+        // Existing email/password account
+        "password" in methods -> {
+          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_PASSWORD) }
+        }
+
+        // Sign Up
+        else -> {
+          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_UP) }
+        }
+      }
+    }
+  }
+
+  /**
+   * Transitions the onboarding flow to the password sign-in/sign-up screen. This is typically
+   * called when the user chooses to sign up using an email and password after entering their email.
+   */
+  fun onSignUpWithPassword() {
+    _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_PASSWORD) }
   }
 }

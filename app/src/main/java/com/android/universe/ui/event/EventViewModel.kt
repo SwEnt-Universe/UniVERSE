@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
@@ -25,22 +26,26 @@ import kotlinx.coroutines.launch
 /**
  * UI state for an event item.
  *
+ * @property id The unique identifier of the event.
  * @property title The title of the event.
  * @property description A brief description of the event.
  * @property date The formatted date of the event.
  * @property tags A list of tags associated with the event.
  * @property creator The name of the event creator.
  * @property participants The number of participants in the event.
+ * @property location The location of the event.
  * @property index The index of the event in the list.
  * @property joined Whether the current user has joined the event.
  */
 data class EventUIState(
+    val id: String = "",
     val title: String = "",
     val description: String = "",
     val date: LocalDateTime = LocalDateTime.now(),
     val tags: List<String> = emptyList(),
     val creator: String = "",
     val participants: Int = 0,
+    val location: Location = Location(0.0, 0.0),
     val index: Int = 0,
     val joined: Boolean = false,
     val eventPicture: ByteArray? = null
@@ -203,12 +208,14 @@ class EventViewModel(
       joined: Boolean = false
   ): EventUIState {
     return EventUIState(
+        id = id,
         title = title,
         description = description ?: "",
         date = date,
         tags = tags.map { it.displayName }.take(3),
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
         participants = participants.size,
+        location = location,
         index = index,
         joined = joined,
         eventPicture = eventPicture)

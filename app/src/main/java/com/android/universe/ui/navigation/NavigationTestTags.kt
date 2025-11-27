@@ -10,6 +10,7 @@ object NavigationTestTags {
 
   // SCREENS
   const val MAP_SCREEN = "MapScreen"
+  const val MAP_INSTANCE_SCREEN = "MapInstanceScreen"
   const val EVENT_SCREEN = "EventsScreen"
   const val CHAT_SCREEN = "ChatScreen"
   const val CHAT_INSTANCE_SCREEN = "ChatInstanceScreen"
@@ -53,6 +54,7 @@ object NavigationTestTags {
   fun getScreenTestTag(screen: NavigationScreens): String =
       when (screen) {
         is NavigationScreens.Map -> MAP_SCREEN
+        is NavigationScreens.MapInstance -> MAP_INSTANCE_SCREEN
         is NavigationScreens.Event -> EVENT_SCREEN
         is NavigationScreens.Chat -> CHAT_SCREEN
         is NavigationScreens.Profile -> PROFILE_SCREEN
