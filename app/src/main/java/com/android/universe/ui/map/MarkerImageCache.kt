@@ -21,31 +21,34 @@ object MarkerImageCache {
   suspend fun get(resId: Int): Image {
     val localCache = _cache
     if (localCache != null) {
-      return localCache[resId] ?: ImageFactory.fromResource(resId)
+      return localCache[resId] ?: fromResourceWrapper(resId)
     }
 
     mutex.withLock {
       val doubleCheckCache = _cache
       if (doubleCheckCache != null) {
-        return doubleCheckCache[resId] ?: ImageFactory.fromResource(resId)
+        return doubleCheckCache[resId] ?: fromResourceWrapper(resId)
       }
 
       val newCache = withContext(DefaultDP.io) { loadImages() }
 
       _cache = newCache
-      return newCache[resId] ?: ImageFactory.fromResource(resId)
+      return newCache[resId] ?: fromResourceWrapper(resId)
     }
   }
 
+  /* This function is used to add a level of indirection for testing purposes */
+  private fun fromResourceWrapper(resId: Int): Image = ImageFactory.fromResource(resId)
+
   private fun loadImages() =
       mapOf(
-          R.drawable.violet_pin to ImageFactory.fromResource(R.drawable.violet_pin),
-          R.drawable.sky_blue_pin to ImageFactory.fromResource(R.drawable.sky_blue_pin),
-          R.drawable.yellow_pin to ImageFactory.fromResource(R.drawable.yellow_pin),
-          R.drawable.red_pin to ImageFactory.fromResource(R.drawable.red_pin),
-          R.drawable.brown_pin to ImageFactory.fromResource(R.drawable.brown_pin),
-          R.drawable.orange_pin to ImageFactory.fromResource(R.drawable.orange_pin),
-          R.drawable.grey_pin to ImageFactory.fromResource(R.drawable.grey_pin),
-          R.drawable.pink_pin to ImageFactory.fromResource(R.drawable.pink_pin),
-          R.drawable.base_pin to ImageFactory.fromResource(R.drawable.base_pin))
+          R.drawable.violet_pin to fromResourceWrapper(R.drawable.violet_pin),
+          R.drawable.sky_blue_pin to fromResourceWrapper(R.drawable.sky_blue_pin),
+          R.drawable.yellow_pin to fromResourceWrapper(R.drawable.yellow_pin),
+          R.drawable.red_pin to fromResourceWrapper(R.drawable.red_pin),
+          R.drawable.brown_pin to fromResourceWrapper(R.drawable.brown_pin),
+          R.drawable.orange_pin to fromResourceWrapper(R.drawable.orange_pin),
+          R.drawable.grey_pin to fromResourceWrapper(R.drawable.grey_pin),
+          R.drawable.pink_pin to fromResourceWrapper(R.drawable.pink_pin),
+          R.drawable.base_pin to fromResourceWrapper(R.drawable.base_pin))
 }

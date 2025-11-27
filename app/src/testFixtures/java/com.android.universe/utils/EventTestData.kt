@@ -93,9 +93,7 @@ object EventTestData {
           Pair(Tag.Category.ART, R.drawable.red_pin),
           Pair(Tag.Category.TRAVEL, R.drawable.brown_pin),
           Pair(Tag.Category.GAMES, R.drawable.orange_pin),
-          Pair(
-              Tag.Category.TECHNOLOGY,
-              R.drawable.grey_pin), // Note: Check typo in VM 'grey_ping' vs 'grey_pin'
+          Pair(Tag.Category.TECHNOLOGY, R.drawable.grey_pin),
           Pair(Tag.Category.TOPIC, R.drawable.pink_pin))
 
   val futureEventNoTags =
