@@ -280,11 +280,11 @@ fun TomTomMapComposable(
     onMapReady: (TomTomMap) -> Unit
 ) {
   val mapView = rememberMapViewWithLifecycle(onMapReady)
+  onMapViewReady(mapView)
 
   AndroidView(
       factory = { mapView.apply { configureUiSettings() } },
-      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW),
-      update = { onMapViewReady(mapView) })
+      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
 }
 
 @Composable
@@ -483,7 +483,7 @@ private suspend fun TomTomMap.syncEventMarkers(
   val optionsAndEvents =
       withContext(DefaultDP.default) {
         markers.map {
-          val pin = ImageFactory.fromResource(it.iconResId)
+          val pin = MarkerImageCache.get(it.iconResId)
           Triple(it, pin, it.event)
         }
       }
