@@ -7,12 +7,16 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -30,6 +34,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +64,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.model.event.Event
 import com.android.universe.model.isoToCountryName
 import com.android.universe.ui.common.ProfileContentLayout
@@ -103,7 +109,7 @@ object UserProfileScreenTestTags {
  * @param onEditProfileClick Callback when the edit profile button is clicked.
  * @param userProfileViewModel The ViewModel responsible for managing user profile data.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
     uid: String,
@@ -112,117 +118,131 @@ fun UserProfileScreen(
     userProfileViewModel: UserProfileViewModel = viewModel(),
     eventViewModel: EventViewModel = viewModel()
 ) {
-
     val userUIState by userProfileViewModel.userState.collectAsState()
-
     LaunchedEffect(uid) { userProfileViewModel.loadUser(uid) }
 
-    val defaultBitmap = remember {
-        val bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        bitmap.eraseColor(android.graphics.Color.LTGRAY)
-        bitmap.asImageBitmap()
-    }
+    val imageToDisplay = rememberImageBitmap(
+        bytes = userUIState.userProfile.profilePicture,
+        defaultImageId = R.drawable.default_profile_img
+    )
 
-    var userProfileImageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    val density = LocalDensity.current
 
-    LaunchedEffect(userUIState.userProfile.profilePicture) {
-        userUIState.userProfile.profilePicture?.let { bytes ->
-            userProfileImageBitmap = bytes.toImageBitmap()
+    var profileContentHeightPx by remember { mutableFloatStateOf(0f) }
+    var tabRowHeightPx by remember { mutableFloatStateOf(0f) }
+
+    val headerHeightPx = profileContentHeightPx + tabRowHeightPx
+    val headerHeightDp = with(density) { headerHeightPx.toDp() }
+
+    val historyListState = rememberLazyListState()
+    val incomingListState = rememberLazyListState()
+    val pagerState = rememberPagerState(pageCount = { 2 })
+
+    val headerOffsetPx by remember {
+        derivedStateOf {
+            val currentListState = if (pagerState.currentPage == 0) historyListState else incomingListState
+
+            if (profileContentHeightPx == 0f || currentListState.firstVisibleItemIndex > 0) {
+                -profileContentHeightPx
+            } else {
+                val scrollOffset = currentListState.firstVisibleItemScrollOffset.toFloat()
+                -scrollOffset.coerceIn(0f, profileContentHeightPx)
+            }
         }
     }
-
-    val imageToDisplay = userProfileImageBitmap ?: defaultBitmap
 
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }
-    ) { paddingValues ->
-        val density = LocalDensity.current
+        bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }
+    ) { _ ->
 
-        var profileHeightPx by remember { mutableFloatStateOf(0f) }
-        var tabsHeightPx by remember { mutableFloatStateOf(0f) }
-
-        val headerHeightDp = with(density) { (profileHeightPx + tabsHeightPx).toDp() }
-
-        var scrollOffsetPx by remember { mutableFloatStateOf(0f) }
-
-        val nestedScrollConnection = remember(profileHeightPx) {
-            object : NestedScrollConnection {
-                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                    val delta = available.y
-                    val newOffset = scrollOffsetPx + delta
-                    scrollOffsetPx = newOffset.coerceIn(-profileHeightPx, 0f)
-                    return Offset.Zero
-                }
-            }
-        }
-
-        Box(
+        LiquidBox(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .nestedScroll(nestedScrollConnection)
+                .padding(Dimensions.PaddingMedium),
+            shape = RoundedCornerShape(32.dp)
         ) {
-            val pagerState = rememberPagerState(pageCount = { 2 })
-
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.Top
-            ) { page ->
-                val events =
-                    if (page == 0) userUIState.historyEvents else userUIState.incomingEvents
-
-                EventListSection(
-                    events = events,
-                    topPadding = headerHeightDp,
-                    eventViewModel = eventViewModel
-                )
-            }
-
             Box(
-                modifier = Modifier
-                    .offset { IntOffset(x = 0, y = scrollOffsetPx.roundToInt()) }
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) {
-                LiquidBox(
+
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.Top
+                ) { page ->
+                    val events = if (page == 0) userUIState.historyEvents else userUIState.incomingEvents
+
+                    val listState = if (page == 0) historyListState else incomingListState
+
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(top = headerHeightDp, bottom = 80.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(events, key = { it.id }) { event ->
+                            val eventUIState = EventUIState(
+                                title = event.title,
+                                description = event.description ?: "",
+                                date = event.date,
+                                tags = event.tags.map { it.displayName },
+                                creator = event.creator,
+                                participants = event.participants.size,
+                                index = event.id.hashCode(),
+                                joined = true,
+                                eventPicture = event.eventPicture
+                            )
+
+                            Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = 4.dp)) {
+                                EventCard(
+                                    event = eventUIState,
+                                    viewModel = eventViewModel
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = Dimensions.PaddingMedium, start = Dimensions.PaddingMedium, end = Dimensions.PaddingMedium),
-                    shape = RoundedCornerShape(32.dp)
+                        .offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }
+                        .draggable(
+                            orientation = Orientation.Horizontal,
+                            state = rememberDraggableState { }
+                        )
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Box(
-                            modifier = Modifier
-                                .onGloballyPositioned { coordinates ->
-                                    profileHeightPx = coordinates.size.height.toFloat()
-                                }
-                        ) {
-                            ProfileContentLayout(
-                                modifier = Modifier,
-                                userProfile = userUIState.userProfile,
-                                userProfileImage = imageToDisplay,
-                                followers = 0,
-                                following = 0,
-                                onChatClick = { },
-                                onAddClick = { },
-                                onSettingsClick = { }
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .onGloballyPositioned { coordinates ->
-                                    tabsHeightPx = coordinates.size.height.toFloat()
-                                }
-                        ) {
-                            ProfileTabRow(
-                                pagerState = pagerState,
-                                titles = listOf("History", "Incoming")
-                            )
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onGloballyPositioned { coordinates ->
+                                profileContentHeightPx = coordinates.size.height.toFloat()
+                            }
+                    ) {
+                        ProfileContentLayout(
+                            modifier = Modifier,
+                            userProfile = userUIState.userProfile,
+                            userProfileImage = imageToDisplay,
+                            followers = 0,
+                            following = 0,
+                            onChatClick = { },
+                            onAddClick = { },
+                            onSettingsClick = { onEditProfileClick(uid) }
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onGloballyPositioned { coordinates ->
+                                tabRowHeightPx = coordinates.size.height.toFloat()
+                            }
+                    ) {
+                        ProfileTabRow(
+                            pagerState = pagerState,
+                            titles = listOf("History", "Incoming")
+                        )
                     }
                 }
             }
@@ -231,34 +251,21 @@ fun UserProfileScreen(
 }
 
 @Composable
-fun EventListSection(
-    events: List<Event>,
-    topPadding: Dp,
-    eventViewModel: EventViewModel
-) {
-    LazyColumn(
-        contentPadding = PaddingValues(top = topPadding, bottom = 16.dp), // Replace with Dimensions
-        modifier = Modifier.fillMaxSize()
-    ){
-        items(events) { event ->
-            val eventUIState = EventUIState(
-                title = event.title,
-                description = event.description ?: "",
-                date = event.date,
-                tags = event.tags.map { it.displayName },
-                creator = event.creator,
-                participants = event.participants.size,
-                index = event.id.hashCode(),
-                joined = true,
-                eventPicture = event.eventPicture
-            )
-
-            EventCard(
-                event = eventUIState,
-                viewModel = eventViewModel
-            )
-        }
+fun rememberImageBitmap(
+    bytes: ByteArray?,
+    defaultImageId: Int = R.drawable.default_profile_img
+): ImageBitmap {
+    val context = LocalContext.current
+    val defaultBitmap = remember(defaultImageId) {
+        BitmapFactory.decodeResource(context.resources, defaultImageId)?.asImageBitmap()
+            ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).apply {
+                eraseColor(android.graphics.Color.LTGRAY)
+            }.asImageBitmap()
     }
+    val imageBitmapState = produceState<ImageBitmap?>(initialValue = null, bytes) {
+        value = bytes?.toImageBitmap()
+    }
+    return imageBitmapState.value ?: defaultBitmap
 }
 
 @Composable
