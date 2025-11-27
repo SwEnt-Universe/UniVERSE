@@ -2,6 +2,7 @@ package com.android.universe.ui.map
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
+import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
@@ -114,6 +115,12 @@ class MapViewModelTest {
     Dispatchers.resetMain()
   }
 
+  private fun mockTag(cat: Tag.Category): Tag {
+    val t = mockk<Tag>()
+    every { t.category } returns cat
+    return t
+  }
+
   @Test
   fun `loadLastKnownLocation emits Success on success`() = runTest {
     val fakeLocation = Location(latitude = 46.5196, longitude = 6.5685)
@@ -162,6 +169,83 @@ class MapViewModelTest {
     assertEquals(46.6, state.userLocation?.latitude)
     assertEquals(6.6, state.userLocation?.longitude)
     assertNull(state.error)
+  }
+
+  @Test
+  fun `loadAllEvents maps all categories to correct icons`() = runTest {
+    val categoryEvents = EventTestData.categoryEvents
+
+    val testData =
+        categoryEvents.mapIndexed { index, (category, expectedIcon) ->
+          val event = EventTestData.dummyEvent3.copy(id = "$index", tags = setOf(mockTag(category)))
+          event to expectedIcon
+        }
+
+    // Extract just the events for the repository
+    val eventsList = testData.map { it.first }
+
+    coEvery { eventRepository.getAllEvents() } returns eventsList
+
+    viewModel.loadAllEvents()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+
+    assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
+
+    // Verify each event got the correct icon
+    testData.forEachIndexed { _, (event, expectedIcon) ->
+      val marker = state.markers.find { it.event.id == event.id }
+      assertNotNull("Marker for ${event.title} should exist", marker)
+      assertEquals(
+          "Incorrect icon for category ${event.tags.first().category}",
+          expectedIcon,
+          marker!!.iconResId)
+    }
+  }
+
+  @Test
+  fun `loadAllEvents determines icon based on dominant tag category`() = runTest {
+    // 1. Setup Tags
+    val musicTag = mockTag(Tag.Category.MUSIC)
+    val musicTagTwo = mockTag(Tag.Category.MUSIC)
+    val foodTag = mockTag(Tag.Category.FOOD)
+    val sportTag = mockTag(Tag.Category.SPORT)
+    val sportTagTwo = mockTag(Tag.Category.SPORT)
+
+    // 2. Create Events with complex tag situations
+    val mixedEvent = EventTestData.dummyEvent1.copy(id = "1", tags = setOf(musicTag, foodTag))
+
+    val emptyTagEvent = EventTestData.NoTagsEvent
+
+    val concurrentEvent =
+        EventTestData.dummyEvent1.copy(
+            id = "2", tags = setOf(sportTag, musicTag, sportTagTwo, musicTagTwo, foodTag))
+    coEvery { eventRepository.getAllEvents() } returns
+        listOf(mixedEvent, emptyTagEvent, concurrentEvent)
+
+    viewModel.loadAllEvents()
+    advanceUntilIdle()
+
+    val markers = viewModel.uiState.value.markers
+
+    // Assert Mixed Event (Music Dominant)
+    val mixedMarker = markers.find { it.event.id == mixedEvent.id }
+    assertEquals(
+        "Dominant category (Music) should determine icon",
+        R.drawable.violet_pin,
+        mixedMarker?.iconResId)
+
+    // Assert Empty Tags (Fallback)
+    val emptyMarker = markers.find { it.event.id == emptyTagEvent.id }
+    assertEquals(
+        "Events with no tags should use the base pin", R.drawable.base_pin, emptyMarker?.iconResId)
+
+    val concurrentMarker = markers.find { it.event.id == concurrentEvent.id }
+    assertEquals(
+        "Events with concurrent tags should use the first dominant category in enum order",
+        R.drawable.sky_blue_pin,
+        concurrentMarker?.iconResId)
   }
 
   @Test
