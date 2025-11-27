@@ -487,9 +487,7 @@ private suspend fun TomTomMap.syncEventMarkers(
     markerMap: MutableMap<Marker, Event>
 ) {
   val (optionsToAdd, markersToRemove, eventForNewMarkers) =
-      withContext(DefaultDP.io) {
-          markerLogic(markerMap, markers)
-      }
+      withContext(DefaultDP.io) { markerLogic(markerMap, markers) }
 
   if (markersToRemove.isNotEmpty()) {
     markersToRemove.forEach {
@@ -508,17 +506,17 @@ internal suspend fun markerLogic(
     markerMap: MutableMap<Marker, Event>,
     markers: List<MapMarkerUiModel>
 ): Triple<List<MarkerOptions>, Set<Marker>, List<Event>> {
-    val previousEvents = markerMap.values.toSet()
-    val currentEvents = markers.map { it.event }.toSet()
-    val toAdd = markers.filter { it.event !in previousEvents }
-    val toRemove = markerMap.filterValues { it !in currentEvents }.keys
+  val previousEvents = markerMap.values.toSet()
+  val currentEvents = markers.map { it.event }.toSet()
+  val toAdd = markers.filter { it.event !in previousEvents }
+  val toRemove = markerMap.filterValues { it !in currentEvents }.keys
 
-    val optionsToAdd =
-        toAdd.map {
-            val pin = MarkerImageCache.get(it.iconResId)
-            MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
-        }
-    return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
+  val optionsToAdd =
+      toAdd.map {
+        val pin = MarkerImageCache.get(it.iconResId)
+        MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
+      }
+  return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
 }
 
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
