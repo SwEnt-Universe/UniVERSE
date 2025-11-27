@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import java.time.LocalDate
 import org.junit.Test
 
@@ -29,6 +30,7 @@ class PromptBuilderTest {
           dateOfBirth = DummyDate,
           tags = allTags)
 
+  @Ignore("Developer debugging tool. Used to print/inspect PromptBuilder output")
   @Test
   fun printPrompt() {
     val task = TaskConfig(eventCount = 5, requireRelevantTags = true)
