@@ -216,7 +216,7 @@ internal fun ModalContent(
                 .find { it.fieldName == uiState.currentField }
                 ?.let { category ->
                   TagGroup(
-                      name = category.displayName,
+                      title = category.displayName,
                       tagList = Tag.getTagsForCategory(category),
                       selectedTags = uiState.tempSelectedTags,
                       displayText = false,

@@ -18,8 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.TagItem
@@ -64,13 +66,16 @@ object TagGroupTestTag {
 
 /** Contain the dimensions used specially in this composable. */
 object TagGroupDefaults {
-  val DefaultHeight = 250.dp
+  val DefaultHeight = 300.dp
   val DefaultWidth = 500.dp
   val DefaultOuterPaddingH = 8.dp
   val DefaultOuterPaddingV = 12.dp
   val DefaultInterPaddingH = 8.dp
   val DefaultInterPaddingV = 4.dp
   val CornerShapeDp = 16.dp
+  val titleFontSize = 28.sp
+  val textSectionSize = 72.dp
+  val titleDefaultLineSize = 32.sp
 }
 
 /**
@@ -312,7 +317,7 @@ fun TagRow(
  *   [TagGroupDefaults.DefaultOuterPaddingH].
  * @param outerPaddingV Vertical padding of the outer Column. Defaults to
  *   [TagGroupDefaults.DefaultOuterPaddingV].
- * @param name Optional title displayed above the tag group. If empty or blank, no title is shown.
+ * @param title Optional title displayed above the tag group. If empty or blank, no title is shown.
  * @param tagList The list of tags to display.
  * @param selectedTags The list of tags that are currently selected.
  * @param isSelectable If true, tags can be selected/deselected; otherwise, tags are read-only.
@@ -321,7 +326,7 @@ fun TagRow(
  * @param displayText If true, the group name is displayed above the tags.
  * @param tagElement Optional lambda that returns a unique string for each tag, useful for testing.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TagGroup(
     modifierColumn: Modifier = Modifier,
@@ -332,7 +337,7 @@ fun TagGroup(
     interPaddingV: Dp = TagGroupDefaults.DefaultInterPaddingV,
     outerPaddingH: Dp = TagGroupDefaults.DefaultOuterPaddingH,
     outerPaddingV: Dp = TagGroupDefaults.DefaultOuterPaddingV,
-    name: String,
+    title: String,
     tagList: List<Tag>,
     selectedTags: List<Tag>,
     isSelectable: Boolean = true,
@@ -344,59 +349,42 @@ fun TagGroup(
   LiquidBox(modifier = Modifier.fillMaxWidth().height(height), shape = RoundedCornerShape(24.dp)) {
     Column(
         modifier = modifierColumn.padding(horizontal = outerPaddingH).fillMaxWidth(),
-    ) {
-      if (displayText) {
-        Text(
-            name,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(Dimensions.PaddingLarge).fillMaxWidth())
-      }
-      Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-        FlowRow(
-            modifier =
-                modifierFlowRow
-                    .padding(horizontal = interPaddingH, vertical = interPaddingV)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.Center) {
-              tagList.forEach { tag ->
-                TagItem(
-                    tag = tag,
-                    heightTag = heightTag,
-                    isSelectable = isSelectable,
-                    isSelected = selectedTags.contains(tag),
-                    onSelect = { tag -> onTagSelect(tag) },
-                    onDeSelect = { tag -> onTagReSelect(tag) },
-                    modifier =
-                        Modifier.padding(Dimensions.PaddingMedium)
-                            .then(
-                                if (tagElement != null) Modifier.testTag(tagElement(tag))
-                                else Modifier))
+        horizontalAlignment = Alignment.CenterHorizontally) {
+          if (displayText) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier =
+                    Modifier.padding(Dimensions.PaddingLarge)
+                        .fillMaxWidth()
+                        .height(TagGroupDefaults.textSectionSize)
+                        .padding(vertical = Dimensions.PaddingSmall),
+                fontSize = TagGroupDefaults.titleFontSize,
+                lineHeight = TagGroupDefaults.titleDefaultLineSize,
+                textAlign = TextAlign.Center)
+          }
+          FlowRow(
+              modifier =
+                  modifierFlowRow
+                      .padding(horizontal = interPaddingH, vertical = interPaddingV)
+                      .fillMaxWidth()
+                      .verticalScroll(rememberScrollState()),
+              horizontalArrangement = Arrangement.Center) {
+                tagList.forEach { tag ->
+                  TagItem(
+                      tag = tag,
+                      heightTag = heightTag,
+                      isSelectable = isSelectable,
+                      isSelected = selectedTags.contains(tag),
+                      onSelect = { tag -> onTagSelect(tag) },
+                      onDeSelect = { tag -> onTagReSelect(tag) },
+                      modifier =
+                          Modifier.padding(Dimensions.PaddingMedium)
+                              .then(
+                                  if (tagElement != null) Modifier.testTag(tagElement(tag))
+                                  else Modifier))
+                }
               }
-            }
-        // Top fade
-        Box(
-            modifier =
-                Modifier.testTag(TagGroupTestTag.tagTopFade(tagList))
-                    .fillMaxWidth()
-                    .height(height * 0.1f)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent)),
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)))
-
-        // Bottom fade
-        Box(
-            modifier =
-                Modifier.testTag(TagGroupTestTag.tagBottomFade(tagList))
-                    .fillMaxWidth()
-                    .height(height * 0.1f)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f))),
-                        shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)))
-      }
-    }
+        }
   }
 }

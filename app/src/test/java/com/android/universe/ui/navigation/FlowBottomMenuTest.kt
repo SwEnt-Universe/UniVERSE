@@ -19,12 +19,13 @@ class FlowBottomMenuTest {
   @Test
   fun flowBottomMenu_displaysAllButtons() {
     composeTestRule.setContentWithStubBackdrop {
-      FlowBottomMenu(onBackClicked = {}, onContinueClicked = {})
+      FlowBottomMenu(
+          listOf(FlowTab.Back(onClick = {}), FlowTab.Confirm(onClick = {}, enabled = true)))
     }
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.MENU).assertIsDisplayed()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONTINUE_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -34,13 +35,15 @@ class FlowBottomMenuTest {
 
     composeTestRule.setContentWithStubBackdrop {
       FlowBottomMenu(
-          onBackClicked = { backClicked = true }, onContinueClicked = { continueClicked = true })
+          listOf(
+              FlowTab.Back(onClick = { backClicked = true }),
+              FlowTab.Confirm(onClick = { continueClicked = true }, enabled = true)))
     }
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
     assertTrue("Back callback should be invoked", backClicked)
 
-    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONTINUE_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     assertTrue("Continue callback should be invoked", continueClicked)
   }
 }

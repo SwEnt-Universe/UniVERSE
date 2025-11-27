@@ -2,6 +2,7 @@ package com.android.universe.model.authentication
 
 import androidx.credentials.Credential
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.SignInMethodQueryResult
 
 /** Handles authentication-related operations. */
 interface AuthModel {
@@ -36,4 +37,12 @@ interface AuthModel {
    * @param onFailure Callback invoked when the sign-out fails, providing the exception.
    */
   suspend fun signOut(onSuccess: () -> Unit, onFailure: (Exception) -> Unit)
+
+  /**
+   * Fetches the sign-in methods available for a given email address. This is useful for checking if
+   * an account already exists before attempting to create a new one.
+   *
+   * @param email The email address to check.
+   */
+  suspend fun fetchSignInMethodsForEmail(email: String): SignInMethodQueryResult
 }
