@@ -56,7 +56,6 @@ object ResponseParser {
 
   /**
    * Parses OpenAI JSON output in:
-   *
    * - Keeps all valid events.
    * - Discards invalid ones.
    * - Records per-item validation failures.
@@ -65,7 +64,6 @@ object ResponseParser {
    *
    * @param rawJson Raw JSON returned by the AI model (may include Markdown code fences).
    * @return A [ParseOutcome] containing both valid events and detailed failure information.
-   *
    * @throws IllegalStateException If the `"events"` field is missing entirely.
    */
   fun parseEvents(rawJson: String): ParseOutcome {
@@ -98,7 +96,6 @@ object ResponseParser {
 
   /**
    * Parses and validates a single [EventDTO] in lenient fashion.
-   *
    * - If validation succeeds, returns [EventParseResult.Success].
    * - If validation fails, returns [EventParseResult.Failure] containing the DTO and error.
    *
