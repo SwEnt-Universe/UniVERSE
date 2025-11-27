@@ -11,18 +11,44 @@ private const val MAX_TOKENS = 800
 /** See [OpenAI pricing](https://platform.openai.com/docs/pricing?utm_source=chatgpt.com) */
 private const val MODEL = "gpt-4o-mini"
 
+/**
+ * Generates events using the OpenAI Chat Completions API.
+ *
+ * The generation pipeline proceeds in five stages:
+ *
+ * 1. **Prompt construction** — build system & user messages from the [EventQuery].
+ * 2. **Response specification** — attach [EventSchema] as a strict JSON output contract.
+ * 3. **API invocation** — send the request via [OpenAIService] and validate the HTTP result.
+ * 4. **Model output validation** — ensure the completion contains usable JSON content.
+ * 5. **Parsing & conversion** — parse JSON using [ResponseParser] and return domain [Event] objects.
+ *
+ * @property service Retrofit-backed OpenAI API client.
+ */
 class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
 
+  /**
+   * Executes the full OpenAI -> JSON -> Event pipeline.
+   *
+   * @param query High-level request describing who is asking, what to generate, and in which context.
+   * @return A list of strongly-typed domain [Event] objects.
+   * @throws IllegalStateException if the model returns invalid, empty, or unparsable output.
+   */
   override suspend fun generateEvents(query: EventQuery): List<Event> {
 
-    // Build prompts
+    // ========================================================================
+    // 1: PROMPT CONSTRUCTION
+    // ========================================================================
     val system = PromptBuilder.buildSystemMessage()
     val user = PromptBuilder.buildUserMessage(query.user, query.task, query.context)
 
-    // Strict JSON schema
+    // ========================================================================
+    // 2: RESPONSE SPECIFICATION
+    // ========================================================================
     val eventFormat = ResponseFormat(type = "json_schema", json_schema = EventSchema.jsonObject)
 
-    // Build request body
+    // ========================================================================
+    // 3: API INVOCATION
+    // ========================================================================
     val request =
         ChatCompletionRequest(
             model = MODEL,
@@ -41,7 +67,9 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
       throw IllegalStateException("OpenAI error: ${response.code()} ${response.message()}\n$error")
     }
 
-    // Extract completion
+    // ========================================================================
+    // 4: MODEL OUTPUT VALIDATION
+    // ========================================================================
     val body = response.body()
     val choice =
         body?.choices?.firstOrNull() ?: throw IllegalStateException("OpenAI returned no choices")
@@ -57,7 +85,9 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
               "completion_tokens=${body?.usage?.completion_tokens}")
     }
 
-    // Parse JSON → events
+    // ========================================================================
+    // 5: PARSING & CONVERSION
+    // ========================================================================
     return try {
       ResponseParser.parseEvents(raw)
     } catch (e: Exception) {
