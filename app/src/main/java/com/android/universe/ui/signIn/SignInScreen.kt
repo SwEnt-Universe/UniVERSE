@@ -47,7 +47,6 @@ import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
-import com.android.universe.ui.signIn.SignInScreenTestTags.WELCOME_BOX
 import com.android.universe.ui.theme.Dimensions
 
 object SignInScreenTestTags {
@@ -146,6 +145,15 @@ val shape =
 
 const val FRACTION = 0.4f
 
+/**
+ * A composable function that provides a common layout structure for the sign-in/sign-up screens. It
+ * places a `LiquidBox` at the bottom of the screen which contains the main content at the top and a
+ * bottom bar at the very bottom.
+ *
+ * @param modifier The modifier to be applied to the root Box.
+ * @param bottomBar A composable lambda for the content to be displayed in the bottom bar area.
+ * @param content A composable lambda for the main content to be displayed above the bottom bar.
+ */
 @Composable
 fun Layout(
     modifier: Modifier = Modifier,
@@ -170,6 +178,18 @@ fun Layout(
   }
 }
 
+/**
+ * A composable for an email input field. This is a specialized version of [CustomTextField]
+ * configured for email entry.
+ *
+ * @param value The current text to display in the text field.
+ * @param onValueChange The callback that is triggered when the input service updates the text. An
+ *   updated text comes as a parameter of the callback.
+ * @param validationState The current validation state of the field, which affects its visual
+ *   appearance (e.g., error color). Defaults to [ValidationState.Neutral].
+ * @param enabled Controls the enabled state of the text field. When `false`, the text field will be
+ *   uneditable and visually disabled.
+ */
 @Composable
 fun EmailTextField(
     value: String,
@@ -188,6 +208,16 @@ fun EmailTextField(
       enabled = enabled)
 }
 
+/**
+ * A composable that displays a custom password text field. This is a specialized version of
+ * [CustomTextField] for password input.
+ *
+ * @param value The current value of the password field.
+ * @param onValueChange The callback that is triggered when the input service updates the text. An
+ *   updated text comes as a parameter of the callback.
+ * @param validationState The current validation state of the field, which can affect its appearance
+ *   (e.g., color). Defaults to [ValidationState.Neutral].
+ */
 @Composable
 fun PasswordTextField(
     value: String,
@@ -205,6 +235,13 @@ fun PasswordTextField(
       validationState = validationState)
 }
 
+/**
+ * A composable that displays the welcome screen of the application. It shows the application's
+ * logo, name, and a tagline. It provides a button to proceed to the next step of the
+ * onboarding/sign-in process.
+ *
+ * @param onClick A callback function to be invoked when the "Join the UniVERSE" button is clicked.
+ */
 @Composable
 fun WelcomeBox(onClick: () -> Unit = {}) {
   Layout(
@@ -234,6 +271,18 @@ fun WelcomeBox(onClick: () -> Unit = {}) {
       }
 }
 
+/**
+ * A composable that prompts the user to enter their email address. It includes a text field for the
+ * email, provides validation feedback, and has navigation controls to confirm the email or go back.
+ *
+ * @param email The current value of the email input field.
+ * @param validationState The current validation state of the email input, used to show feedback
+ *   (e.g., an error).
+ * @param onEmailChange A callback function that is invoked when the user types in the email field.
+ * @param confirmEnabled A boolean that determines if the confirm button is enabled.
+ * @param onConfirm A callback function to be invoked when the user presses the confirm button.
+ * @param onBack A callback function to be invoked when the user presses the back button.
+ */
 @Composable
 fun EmailBox(
     email: String,
@@ -259,6 +308,15 @@ fun EmailBox(
       }
 }
 
+/**
+ * A composable that displays a screen prompting the user to sign in with Google. It shows the
+ * user's email in a disabled text field and provides options to either proceed with Google sign-in
+ * or go back to the previous screen.
+ *
+ * @param email The user's email address, displayed in a non-editable text field.
+ * @param onBack A callback function to be invoked when the user clicks the back button.
+ * @param onSignIn A callback function to be invoked when the user clicks the Google sign-in button.
+ */
 @Composable
 fun GoogleBox(email: String, onBack: () -> Unit, onSignIn: () -> Unit) {
   Layout(
@@ -273,6 +331,20 @@ fun GoogleBox(email: String, onBack: () -> Unit, onSignIn: () -> Unit) {
       }
 }
 
+/**
+ * A composable that displays the password entry screen for signing in. It shows the user's email
+ * (which is non-editable), a password input field, and navigation options to confirm or go back.
+ *
+ * @param email The user's email address, displayed in a disabled text field.
+ * @param password The current value of the password input field.
+ * @param validationState The validation state of the password, used to show error indicators.
+ * @param onPasswordChange A callback function invoked when the user types in the password field.
+ * @param confirmEnabled A boolean indicating whether the confirm action is enabled.
+ * @param onConfirm A callback function to be invoked when the user confirms the password to sign
+ *   in.
+ * @param onBack A callback function to be invoked when the user chooses to go back to the previous
+ *   screen.
+ */
 @Composable
 fun PasswordBox(
     email: String,
@@ -303,6 +375,18 @@ fun PasswordBox(
       }
 }
 
+/**
+ * A composable that displays the sign-up/authentication method selection screen. It shows the
+ * user's email (which is non-editable at this stage) and provides options to sign up using a
+ * password or Google, as well as an option to go back.
+ *
+ * @param email The email address of the user, displayed in a disabled text field.
+ * @param onPassword A callback function to be invoked when the user chooses to sign up with a
+ *   password.
+ * @param onGoogle A callback function to be invoked when the user chooses to sign up with Google.
+ * @param onBack A callback function to be invoked when the user chooses to go back to the previous
+ *   step.
+ */
 @Composable
 fun SignUpBox(email: String, onPassword: () -> Unit, onGoogle: () -> Unit, onBack: () -> Unit) {
   Layout(

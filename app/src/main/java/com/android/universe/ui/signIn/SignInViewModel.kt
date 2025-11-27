@@ -310,12 +310,24 @@ class SignInViewModel(
     }
   }
 
+  /**
+   * Updates the onboarding state to begin the sign-in/sign-up process. This is typically triggered
+   * when the user clicks a "Join Universe" or "Get Started" button on the initial welcome screen,
+   * transitioning the UI to the email entry step.
+   */
   fun onJoinUniverse() {
     _uiState.update { it.copy(onboardingState = OnboardingState.ENTER_EMAIL) }
   }
 
+  /**
+   * Navigates the user back to the previous step in the onboarding flow.
+   *
+   * This function handles the back navigation logic within the sign-in/sign-up process. It checks
+   * the current `onboardingState` from the `uiState` and updates it to the appropriate previous
+   * state. For example, if the user is on the `ENTER_EMAIL` screen, it will navigate them back to
+   * the initial `WELCOME` screen. For other states, it navigates back to the `ENTER_EMAIL` screen.
+   */
   fun onBack() {
-    Log.w(TAG, "onBack:")
     when (_uiState.value.onboardingState) {
       OnboardingState.ENTER_EMAIL ->
           _uiState.update { it.copy(onboardingState = OnboardingState.WELCOME) }
@@ -323,6 +335,20 @@ class SignInViewModel(
     }
   }
 
+  /**
+   * Checks the sign-in methods available for the provided email and updates the UI state
+   * accordingly.
+   *
+   * This function is typically called after the user enters their email. It queries the
+   * authentication provider (e.g., Firebase) to determine if the email is already associated with
+   * an existing account. Based on the result, it transitions the `onboardingState` to the
+   * appropriate next step:
+   * - If a Google account exists, it moves to `OnboardingState.SIGN_IN_GOOGLE`.
+   * - If an email/password account exists, it moves to `OnboardingState.SIGN_IN_PASSWORD`.
+   * - If no account exists for the email, it moves to `OnboardingState.SIGN_UP`.
+   *
+   * The function will not execute if the `confirmEmailEnabled` flag in the UI state is false.
+   */
   fun confirmEmail() {
     if (!_uiState.value.confirmEmailEnabled) return
     viewModelScope.launch {
@@ -347,6 +373,10 @@ class SignInViewModel(
     }
   }
 
+  /**
+   * Transitions the onboarding flow to the password sign-in/sign-up screen. This is typically
+   * called when the user chooses to sign up using an email and password after entering their email.
+   */
   fun onSignUpWithPassword() {
     _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_PASSWORD) }
   }
