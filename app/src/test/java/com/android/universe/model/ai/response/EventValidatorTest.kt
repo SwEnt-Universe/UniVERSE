@@ -52,11 +52,14 @@ class EventValidatorTest {
   }
 
   @Test
-  fun `validate fails when event date is in the past`() {
-    val dto = validDto().copy(date = "2000-01-01T00:00")
+  fun `isInFuture returns true for a future date`() {
+    val dto = validDto().copy(date = "2100-01-01T12:00")
+    Assert.assertTrue(EventValidator.isInFuture(dto))
+  }
 
-    Assert.assertThrows(IllegalArgumentException::class.java) {
-      EventValidator.validate(dto)
-    }
+  @Test
+  fun `isInFuture returns false for a past date`() {
+    val dto = validDto().copy(date = "1999-12-31T23:59")
+    Assert.assertFalse(EventValidator.isInFuture(dto))
   }
 }
