@@ -360,52 +360,28 @@ fun TagGroup(
                 fontSize = TagGroupDefaults.titleFontSize,
                 textAlign = TextAlign.Center)
           }
-          Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-            FlowRow(
-                modifier =
-                    modifierFlowRow
-                        .padding(horizontal = interPaddingH, vertical = interPaddingV)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.Center) {
-                  tagList.forEach { tag ->
-                    TagItem(
-                        tag = tag,
-                        heightTag = heightTag,
-                        isSelectable = isSelectable,
-                        isSelected = selectedTags.contains(tag),
-                        onSelect = { tag -> onTagSelect(tag) },
-                        onDeSelect = { tag -> onTagReSelect(tag) },
-                        modifier =
-                            Modifier.padding(Dimensions.PaddingMedium)
-                                .then(
-                                    if (tagElement != null) Modifier.testTag(tagElement(tag))
-                                    else Modifier))
-                  }
+          FlowRow(
+              modifier =
+                  modifierFlowRow
+                      .padding(horizontal = interPaddingH, vertical = interPaddingV)
+                      .fillMaxWidth()
+                      .verticalScroll(rememberScrollState()),
+              horizontalArrangement = Arrangement.Center) {
+                tagList.forEach { tag ->
+                  TagItem(
+                      tag = tag,
+                      heightTag = heightTag,
+                      isSelectable = isSelectable,
+                      isSelected = selectedTags.contains(tag),
+                      onSelect = { tag -> onTagSelect(tag) },
+                      onDeSelect = { tag -> onTagReSelect(tag) },
+                      modifier =
+                          Modifier.padding(Dimensions.PaddingMedium)
+                              .then(
+                                  if (tagElement != null) Modifier.testTag(tagElement(tag))
+                                  else Modifier))
                 }
-            // Top fade
-            Box(
-                modifier =
-                    Modifier.testTag(TagGroupTestTag.tagTopFade(tagList))
-                        .fillMaxWidth()
-                        .height(height * 0.1f)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent)),
-                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)))
-
-            // Bottom fade
-            Box(
-                modifier =
-                    Modifier.testTag(TagGroupTestTag.tagBottomFade(tagList))
-                        .fillMaxWidth()
-                        .height(height * 0.1f)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f))),
-                            shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)))
-          }
+              }
         }
   }
 }
