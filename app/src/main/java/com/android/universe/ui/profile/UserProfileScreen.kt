@@ -60,16 +60,8 @@ object UserProfileScreenTestTags {
   const val AGE = "userProfileAge"
   const val COUNTRY = "userProfileCountry"
   const val DESCRIPTION = "userProfileDescription"
-  const val TAG = "userProfileTag"
   const val EDIT_BUTTON = "userProfileEditButton"
-  const val TAGLIST = "userProfileTagList"
-  const val PROFILE_PICTURE = "userProfilePicture"
-
   const val PROFILE_EVENT_LIST = "profileEventList"
-
-  fun getTagTestTag(index: Int): String {
-    return "userProfileTag$index"
-  }
 
   fun getTabTestTag(index: Int): String {
     return "profileTab$index"
