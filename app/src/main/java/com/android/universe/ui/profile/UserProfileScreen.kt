@@ -133,31 +133,33 @@ fun UserProfileScreen(
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
       contentWindowInsets = WindowInsets(0, 0, 0, 0),
       bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { _ ->
-        LiquidBox(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
-          Box(modifier = Modifier.fillMaxSize().padding(top = Dimensions.PaddingExtraLarge)) {
-            ProfileContentPager(
-                pagerState = pagerState,
-                historyListState = historyListState,
-                incomingListState = incomingListState,
-                historyEvents = userUIState.historyEvents,
-                incomingEvents = userUIState.incomingEvents,
-                eventViewModel = eventViewModel,
-                spacerHeightDp = profileContentHeightDp + elementSpacingDp,
-                clipPaddingDp = tabRowHeightDp,
-                onChatNavigate = onChatNavigate,
-                onCardClick = onCardClick)
+        LiquidBox(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
+              Box(modifier = Modifier.fillMaxSize().padding(top = Dimensions.PaddingExtraLarge)) {
+                ProfileContentPager(
+                    pagerState = pagerState,
+                    historyListState = historyListState,
+                    incomingListState = incomingListState,
+                    historyEvents = userUIState.historyEvents,
+                    incomingEvents = userUIState.incomingEvents,
+                    eventViewModel = eventViewModel,
+                    spacerHeightDp = profileContentHeightDp + elementSpacingDp,
+                    clipPaddingDp = tabRowHeightDp,
+                    onChatNavigate = onChatNavigate,
+                    onCardClick = onCardClick)
 
-            ProfileHeaderOverlay(
-                headerOffsetPx = headerOffsetPx,
-                userProfile = userUIState.userProfile,
-                userImage = imageToDisplay,
-                pagerState = pagerState,
-                gapHeightDp = elementSpacingDp,
-                onProfileHeightMeasured = { profileContentHeightPx = it },
-                onTabHeightMeasured = { tabRowHeightPx = it },
-                onEditProfileClick = { onEditProfileClick(uid) })
-          }
-        }
+                ProfileHeaderOverlay(
+                    headerOffsetPx = headerOffsetPx,
+                    userProfile = userUIState.userProfile,
+                    userImage = imageToDisplay,
+                    pagerState = pagerState,
+                    gapHeightDp = elementSpacingDp,
+                    onProfileHeightMeasured = { profileContentHeightPx = it },
+                    onTabHeightMeasured = { tabRowHeightPx = it },
+                    onEditProfileClick = { onEditProfileClick(uid) })
+              }
+            }
       }
 }
 
@@ -256,13 +258,16 @@ fun ProfileEventList(
                   joined = true,
                   eventPicture = event.eventPicture)
 
-          Box(modifier = Modifier.padding(horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
-            EventCard(
-                event = eventUIState,
-                onChatNavigate = onChatNavigate,
-                onCardClick = onCardClick,
-                viewModel = eventViewModel)
-          }
+          Box(
+              modifier =
+                  Modifier.padding(
+                      horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
+                EventCard(
+                    event = eventUIState,
+                    onChatNavigate = onChatNavigate,
+                    onCardClick = onCardClick,
+                    viewModel = eventViewModel)
+              }
         }
       }
 }
