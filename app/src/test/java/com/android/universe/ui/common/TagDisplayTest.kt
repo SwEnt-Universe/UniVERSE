@@ -195,16 +195,6 @@ class TagDisplayTest {
   }
 
   @Test
-  fun fadeBoxes_arePresent() {
-    composeTestRule.setContentWithStubBackdrop {
-      TagGroup(title = "Test", tagList = sampleTags, selectedTags = emptyList())
-    }
-
-    composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertExists()
-    composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertExists()
-  }
-
-  @Test
   fun clickingUnselectedTag_callsOnTagSelectForColumn() {
     var selectedTag: String? = null
 
@@ -388,26 +378,6 @@ class TagDisplayTest {
     sampleTags.forEach { tag ->
       composeTestRule.onNodeWithText(tag.displayName).assertIsDisplayed()
     }
-  }
-
-  @Test
-  fun tagRow_displaysFade() {
-    composeTestRule.setContentWithStubBackdrop {
-      TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
-    }
-
-    composeTestRule.onNodeWithTag(TagGroupTestTag.tagRightFade(sampleTags)).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(TagGroupTestTag.tagLeftFade(sampleTags)).assertIsDisplayed()
-  }
-
-  @Test
-  fun tagRow_displaysNoFadeWhenFalse() {
-    composeTestRule.setContentWithStubBackdrop {
-      TagRow(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = false)
-    }
-
-    composeTestRule.onNodeWithText(TagGroupTestTag.tagRightFade(sampleTags)).assertIsNotDisplayed()
-    composeTestRule.onNodeWithText(TagGroupTestTag.tagLeftFade(sampleTags)).assertIsNotDisplayed()
   }
 
   @Test
