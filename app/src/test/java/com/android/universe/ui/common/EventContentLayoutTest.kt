@@ -48,8 +48,7 @@ class EventContentLayoutTest {
           imageContent = { Box(Modifier.testTag("FAKE_IMAGE")) },
           isUserParticipant = isUserParticipant,
           onToggleEventParticipation = { participationClicked = true },
-          onChatClick = { chatClicked = true },
-          onLocationClick = onLocationClick)
+          onChatClick = { chatClicked = true })
     }
   }
 

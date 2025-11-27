@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.location.Location
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -44,6 +45,11 @@ object EventScreenTestTags {
  *   selected.
  * @param viewModel The [EventViewModel] that provides the state for the screen, including the list
  *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
+ * @param uid The unique identifier for the current user. Used to load user-specific events.
+ * @param onChatNavigate A callback function invoked when the chat button on an event card is
+ *   clicked, with the event ID and title as parameters.
+ * @param onCardClick A callback function invoked when an event card is clicked, with the event ID
+ *   and location as parameters.
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -51,7 +57,8 @@ fun EventScreen(
     onTabSelected: (Tab) -> Unit = {},
     uid: String = "",
     viewModel: EventViewModel = viewModel(),
-    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> }
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
@@ -93,7 +100,10 @@ fun EventScreen(
                   verticalArrangement = Arrangement.spacedBy(PaddingMedium)) {
                     items(events) { event ->
                       EventCard(
-                          event = event, viewModel = viewModel, onChatNavigate = onChatNavigate)
+                          event = event,
+                          viewModel = viewModel,
+                          onChatNavigate = onChatNavigate,
+                          onCardClick = onCardClick)
                     }
                   }
             }

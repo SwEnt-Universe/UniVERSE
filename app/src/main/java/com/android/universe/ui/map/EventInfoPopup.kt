@@ -69,7 +69,7 @@ fun EventInfoPopup(
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,
                         onChatClick = { onChatNavigate(event.id, event.title) },
-                        onLocationClick = null)
+                    )
                   }
             }
       }

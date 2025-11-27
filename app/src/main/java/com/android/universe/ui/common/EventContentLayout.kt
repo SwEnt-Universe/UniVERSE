@@ -47,7 +47,6 @@ import java.time.format.DateTimeFormatter
  * @param isUserParticipant Whether the user is part of the event.
  * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
  * @param onChatClick Callback for chat button.
- * @param onLocationClick Optional callback for location button.
  */
 @Composable
 fun EventContentLayout(
@@ -61,8 +60,7 @@ fun EventContentLayout(
     imageContent: @Composable () -> Unit,
     isUserParticipant: Boolean,
     onToggleEventParticipation: () -> Unit,
-    onChatClick: () -> Unit,
-    onLocationClick: (() -> Unit)? = null
+    onChatClick: () -> Unit
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
     Box(modifier = Modifier.fillMaxWidth()) {

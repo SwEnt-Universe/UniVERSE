@@ -50,6 +50,7 @@ import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.components.LiquidButton
@@ -92,6 +93,8 @@ fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
+    preselectedEventId: String? = null,
+    preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
@@ -167,6 +170,24 @@ fun MapScreen(
   // Sync Camera Actions
   LaunchedEffect(viewModel) {
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
+  }
+
+  // Handle direct event link: auto-focus and open popup
+  LaunchedEffect(preselectedEventId, preselectedLocation, tomTomMap, uiState.markers) {
+    val map = tomTomMap ?: return@LaunchedEffect
+
+    if (preselectedEventId != null && preselectedLocation != null) {
+
+      // --- Move camera using executeMapAction ---
+      val targetGeoPoint = GeoPoint(preselectedLocation.latitude, preselectedLocation.longitude)
+      map.executeMapAction(MapAction.MoveCamera(targetGeoPoint, map.cameraPosition.zoom))
+
+      // --- Select event to show popup ---
+      val matched = uiState.markers.firstOrNull { it.event.id == preselectedEventId }?.event
+      if (matched != null) {
+        viewModel.selectEvent(matched)
+      }
+    }
   }
 
   // --- 3. UI Structure ---
