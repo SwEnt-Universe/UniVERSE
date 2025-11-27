@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ object FlowBottomMenuTestTags {
   const val CONFIRM_BUTTON = "BtnConfirm"
   const val GOOGLE_BUTTON = "BtnGoogle"
   const val PASSWORD_BUTTON = "BtnPassword"
+  const val EMAIL_BUTTON = "BtnEmail"
 }
 
 /**
@@ -124,6 +126,30 @@ sealed class FlowTab(
           },
           label = "Password",
           testTag = FlowBottomMenuTestTags.PASSWORD_BUTTON,
+          onClick = onClick)
+
+  /**
+   * Represents the "Resend Email" action tab. This tab displays an unread email icon and is
+   * typically used to trigger an action to resend a verification or confirmation email. Its
+   * appearance changes based on the `enabled` state.
+   *
+   * @param onClick The lambda function to be executed when the email tab is clicked.
+   * @param enabled A boolean indicating whether the resend action is enabled. If false, the icon is
+   *   dimmed.
+   */
+  class Email(onClick: () -> Unit, enabled: Boolean) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.MarkEmailUnread,
+                contentDescription = "Email",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint =
+                    if (enabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+          },
+          label = "Resend Email",
+          testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
           onClick = onClick)
 }
 

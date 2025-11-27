@@ -5,6 +5,8 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.ui.navigation.FlowBottomMenuTestTags
+import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.every
 import io.mockk.justRun
@@ -48,7 +50,7 @@ class EmailVerificationScreenTest {
 
   @Test
   fun displaysInitialStateCorrectly() = runTest {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
@@ -81,22 +83,17 @@ class EmailVerificationScreenTest {
     assert(countdownText.contains("10")) {
       "Countdown text should contain '10', but was '$countdownText'"
     }
-
-    // Resend button is disabled
-    composeTestRule
-        .onNodeWithTag(EmailVerificationScreenTestTags.RESEND_BUTTON)
-        .assertIsNotEnabled()
   }
 
   @Test
   fun callsOnResend_whenResendButtonClicked() {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Click resend button
     uiStateFlow.value = uiStateFlow.value.copy(countDown = 0)
-    composeTestRule.onNodeWithTag(EmailVerificationScreenTestTags.RESEND_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.EMAIL_BUTTON).performClick()
 
     // Verify ViewModel's sendEmailVerification called
     verify { mockViewModel.sendEmailVerification(mockUser) }
@@ -106,7 +103,7 @@ class EmailVerificationScreenTest {
   fun navigatesOnSuccess_whenEmailVerified() = runTest {
     var successCalled = false
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       EmailVerificationScreen(
           user = mockUser, viewModel = mockViewModel, onSuccess = { successCalled = true })
     }
@@ -124,7 +121,7 @@ class EmailVerificationScreenTest {
     // Simulate failure
     uiStateFlow.value = uiStateFlow.value.copy(sendEmailFailed = true)
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
@@ -134,7 +131,7 @@ class EmailVerificationScreenTest {
 
   @Test
   fun countdownTextUpdates_whenCountdownChanges() = runTest {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
@@ -155,15 +152,18 @@ class EmailVerificationScreenTest {
 
   @Test
   fun resendButtonDisabled_whenResendNotEnabled() = runTest {
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       EmailVerificationScreen(user = mockUser, viewModel = mockViewModel)
     }
 
     // Disable resend
     uiStateFlow.value = uiStateFlow.value.copy(countDown = 1)
 
-    composeTestRule
-        .onNodeWithTag(EmailVerificationScreenTestTags.RESEND_BUTTON)
-        .assertIsNotEnabled()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.EMAIL_BUTTON).performClick()
+
+    composeTestRule.waitForIdle()
+    verify(exactly = 1) {
+      mockViewModel.sendEmailVerification(mockUser)
+    } // 1 because of initial send
   }
 }
