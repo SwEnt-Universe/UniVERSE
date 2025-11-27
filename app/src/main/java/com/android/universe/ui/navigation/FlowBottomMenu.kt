@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ object FlowBottomMenuTestTags {
   const val CONFIRM_BUTTON = "BtnConfirm"
   const val GOOGLE_BUTTON = "BtnGoogle"
   const val PASSWORD_BUTTON = "BtnPassword"
+  const val EMAIL_BUTTON = "BtnEmail"
 }
 
 /**
@@ -126,6 +128,21 @@ sealed class FlowTab(
           testTag = FlowBottomMenuTestTags.PASSWORD_BUTTON,
           onClick = onClick)
 }
+
+class Email(onClick: () -> Unit, enabled: Boolean) :
+  FlowTab(
+    icon = {
+      Icon(
+        imageVector = Icons.Filled.MarkEmailUnread,
+        contentDescription = "Email",
+        modifier = Modifier.size(Dimensions.IconSizeLarge),
+        tint =
+          if (enabled) MaterialTheme.colorScheme.primary
+          else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+    },
+    label = "Resend Email",
+    testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
+    onClick = onClick)
 
 /**
  * A composable that displays a bottom navigation menu with a liquid-style animation. This menu is
