@@ -44,6 +44,12 @@ googlePlayAuth = "21.4.0"
 # ===== MAPS =====
 tomtom = "1.26.0"
 
+# ===== NETWORKING & JSON =====
+retrofit = "2.11.0"
+okhttp = "4.12.0"
+kotlinxSerializationJson = "1.7.3"
+retrofitKotlinxSerializationConverter = "1.0.0"
+
 # ===== TESTING =====
 junit4 = "4.13.2"
 androidxTestJunit = "1.3.0"
@@ -119,6 +125,19 @@ tomtom-maps = { group = "com.tomtom.sdk.maps", name = "map-display", version.ref
 tomtom-location = { group = "com.tomtom.sdk.location", name = "provider-default", version.ref = "tomtom" }
 tomtom-search = { group = "com.tomtom.sdk.search", name = "search-online", version.ref = "tomtom" }
 tomtom-orbis = { group = "com.tomtom.sdk", name = "feature-toggle", version.ref = "tomtom"}
+
+# ==============================================================================
+# NETWORKING & JSON SERIALIZATION
+# ==============================================================================
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+
+retrofit-kotlinx-serialization-converter = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerializationConverter" }
+
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
 # ==============================================================================
 # TESTING
