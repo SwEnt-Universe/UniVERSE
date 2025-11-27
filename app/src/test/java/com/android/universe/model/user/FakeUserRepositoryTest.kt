@@ -28,7 +28,9 @@ class FakeUserRepositoryTest {
           country = "Switzerland",
           description = "Just a test user",
           dateOfBirth = java.time.LocalDate.of(1990, 1, 1),
-          tags = setOf(Tag.MUSIC, Tag.METAL))
+          tags = setOf(Tag.MUSIC, Tag.METAL),
+          followers = setOf("3"),
+      )
 
   private val userProfile2 =
       UserProfile(
@@ -336,5 +338,93 @@ class FakeUserRepositoryTest {
     assertEquals(user.description, result.description)
     assertEquals(user.dateOfBirth, result.dateOfBirth)
     assertEquals(user.tags, result.tags)
+  }
+
+  @Test
+  fun checkFollowAExistingUser() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.followUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following + userProfile2.uid
+    val expectedFollowerSet = userProfile2.followers + userProfile1.uid
+
+    val currentUSer = repository.getUser(userProfile1.uid)
+    val targetUser = repository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+  @Test
+  fun checkFollowANonExistingUser() = runTest {
+    repository.addUser(userProfile1)
+    try {
+      repository.followUser(userProfile1.uid, userProfile2.uid)
+      assertTrue(false)
+    } catch (e: Exception) {
+      assertTrue(true)
+    }
+  }
+
+  @Test
+  fun checkFollowAlreadyFollowUser() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.followUser(userProfile1.uid, userProfile2.uid)
+    repository.followUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following + userProfile2.uid
+    val expectedFollowerSet = userProfile2.followers + userProfile1.uid
+
+    val currentUSer = repository.getUser(userProfile1.uid)
+    val targetUser = repository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+  @Test
+  fun checkUnfollowAExistingUser() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.followUser(userProfile1.uid, userProfile2.uid)
+    repository.unfollowUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following
+    val expectedFollowerSet = userProfile2.followers
+
+    val currentUSer = repository.getUser(userProfile1.uid)
+    val targetUser = repository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+  @Test
+  fun checkUnfollowANonExistingUser() = runTest {
+    repository.addUser(userProfile1)
+    try {
+      repository.unfollowUser(userProfile1.uid, userProfile2.uid)
+      assertTrue(false)
+    } catch (e: Exception) {
+      assertTrue(true)
+    }
+  }
+
+  @Test
+  fun checkUnfollowNonFollowUser() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.unfollowUser(userProfile1.uid, userProfile2.uid)
+
+    val expectedFollowingSet = userProfile1.following
+    val expectedFollowerSet = userProfile2.followers
+
+    val currentUSer = repository.getUser(userProfile1.uid)
+    val targetUser = repository.getUser(userProfile2.uid)
+
+    assertEquals(expectedFollowingSet, currentUSer.following)
+    assertEquals(expectedFollowerSet, targetUser.followers)
   }
 }
