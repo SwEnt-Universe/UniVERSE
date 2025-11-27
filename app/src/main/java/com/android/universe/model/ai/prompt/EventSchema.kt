@@ -1,8 +1,19 @@
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
+/**
+ * Provides the JSON Schema definition used to enforce strict, structured output
+ * from the OpenAI API.
+ *
+ * This schema is embedded inside the `response_format` field of
+ * `ChatCompletionRequest`.
+ *
+ * The schema uses:
+ * - `"strict": true` to prevent the model from introducing extra fields.
+ * - `"additionalProperties": false` for strong structural guarantees.
+ * - regex validation for timestamp formatting.
+ */
 object EventSchema {
-
   val json =
       """
       {
