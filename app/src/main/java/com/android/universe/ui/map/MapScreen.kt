@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -487,17 +488,7 @@ private suspend fun TomTomMap.syncEventMarkers(
 ) {
   val (optionsToAdd, markersToRemove, eventForNewMarkers) =
       withContext(DefaultDP.io) {
-        val previousEvents = markerMap.values.toSet()
-        val currentEvents = markers.map { it.event }.toSet()
-        val toAdd = markers.filter { it.event !in previousEvents }
-        val toRemove = markerMap.filterValues { it !in currentEvents }.keys
-
-        val optionsToAdd =
-            toAdd.map {
-              val pin = MarkerImageCache.get(it.iconResId)
-              MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
-            }
-        Triple(optionsToAdd, toRemove, toAdd.map { it.event })
+          markerLogic(markerMap, markers)
       }
 
   if (markersToRemove.isNotEmpty()) {
@@ -512,10 +503,28 @@ private suspend fun TomTomMap.syncEventMarkers(
   }
 }
 
+@VisibleForTesting
+internal suspend fun markerLogic(
+    markerMap: MutableMap<Marker, Event>,
+    markers: List<MapMarkerUiModel>
+): Triple<List<MarkerOptions>, Set<Marker>, List<Event>> {
+    val previousEvents = markerMap.values.toSet()
+    val currentEvents = markers.map { it.event }.toSet()
+    val toAdd = markers.filter { it.event !in previousEvents }
+    val toRemove = markerMap.filterValues { it !in currentEvents }.keys
+
+    val optionsToAdd =
+        toAdd.map {
+            val pin = MarkerImageCache.get(it.iconResId)
+            MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
+        }
+    return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
+}
+
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
   this@syncSelectedLocationMarker.removeMarkers("selected_location")
-  val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
   location?.let { geoPoint ->
+    val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
     this.addMarker(
         MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
   }
