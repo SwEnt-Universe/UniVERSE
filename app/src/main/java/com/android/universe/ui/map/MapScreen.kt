@@ -501,7 +501,7 @@ private suspend fun TomTomMap.syncEventMarkers(
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
   this@syncSelectedLocationMarker.removeMarkers("selected_location")
   val image =
-      withContext(DefaultDP.default) { ImageFactory.fromResource(R.drawable.ic_marker_icon) }
+      withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
   location?.let { geoPoint ->
     this.addMarker(
         MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
