@@ -8,7 +8,7 @@ import org.junit.Assert
 import org.junit.Test
 import retrofit2.Response
 
-class ChatCompletionModelsTest {
+class ChatCompletionTest {
 
   private val json = Json { ignoreUnknownKeys = true }
 
