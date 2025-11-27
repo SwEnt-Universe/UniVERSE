@@ -5,6 +5,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.tag.Tag
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
@@ -14,13 +15,6 @@ import kotlinx.coroutines.withContext
 
 // Firestore collection path for user profiles.
 const val USERS_COLLECTION_PATH = "users"
-
-/** Check if a List is of type T and safely casts it, returning an empty list if not. */
-private inline fun <reified T> Any?.safeCastList(): List<T> {
-  return if (this is List<*>) {
-    this.filterIsInstance<T>()
-  } else emptyList()
-}
 
 /**
  * Converts a Firestore DocumentSnapshot to a UserProfile object.
@@ -40,10 +34,15 @@ fun documentToUserProfile(doc: DocumentSnapshot): UserProfile {
         description = doc.getString("description"),
         dateOfBirth = LocalDate.parse(doc.getString("dateOfBirth")),
         tags =
-            (doc.get("tags").safeCastList<Number>())
-                .map { ordinal -> Tag.entries[ordinal.toInt()] }
-                .toSet(),
-        profilePicture = doc.getBlob("profilePicture")?.toBytes())
+            (doc.get("tags") as? List<*>)
+                ?.filterIsInstance<Number>()
+                ?.mapNotNull { ordinal -> Tag.entries.getOrNull(ordinal.toInt()) }
+                ?.toSet() ?: emptySet(),
+        profilePicture = doc.getBlob("profilePicture")?.toBytes(),
+        followers =
+            (doc.get("followers") as? List<*>)?.filterIsInstance<String>()?.toSet() ?: emptySet(),
+        following =
+            (doc.get("following") as? List<*>)?.filterIsInstance<String>()?.toSet() ?: emptySet())
   } catch (e: DateTimeParseException) {
     Log.e(
         "UserRepositoryFirestore.documentToUserProfile",
@@ -91,7 +90,9 @@ class UserRepositoryFirestore(
               Blob.fromBytes(user.profilePicture)
             } else {
               null
-            }))
+            }),
+        "followers" to user.followers.toList(),
+        "following" to user.following.toList())
   }
 
   /**
@@ -198,5 +199,47 @@ class UserRepositoryFirestore(
           db.collection(USERS_COLLECTION_PATH).whereEqualTo("username", username).get().await()
         }
     return querySnapshot.isEmpty
+  }
+
+  /**
+   * Add the targetUserId to the currentUser following list. Add the currentUserId to the targetUser
+   * follower list.
+   *
+   * @param currentUserId the uid of the user who wants to follow the target user.
+   * @param targetUserId the uid of the user who is being followed by the current user.
+   */
+  override suspend fun followUser(currentUserId: String, targetUserId: String) {
+    withContext(iODispatcher) {
+      val currentUserRef = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+      val targetUserRef = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+
+      val batch = db.batch()
+
+      batch.update(currentUserRef, "following", FieldValue.arrayUnion(targetUserId))
+
+      batch.update(targetUserRef, "followers", FieldValue.arrayUnion(currentUserId))
+      batch.commit().await()
+    }
+  }
+
+  /**
+   * Remove the targetUserId to the currentUser following list. Remove the currentUserId to the
+   * targetUser follower list.
+   *
+   * @param currentUserId the uid of the user who wants to unfollow the target user.
+   * @param targetUserId the uid of the user who is being unfollowed by the current user.
+   */
+  override suspend fun unfollowUser(currentUserId: String, targetUserId: String) {
+    withContext(iODispatcher) {
+      val currentUserRef = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+      val targetUserRef = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+
+      val batch = db.batch()
+
+      batch.update(currentUserRef, "following", FieldValue.arrayRemove(targetUserId))
+
+      batch.update(targetUserRef, "followers", FieldValue.arrayRemove(currentUserId))
+      batch.commit().await()
+    }
   }
 }
