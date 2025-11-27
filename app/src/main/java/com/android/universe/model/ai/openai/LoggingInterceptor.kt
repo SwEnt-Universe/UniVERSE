@@ -6,7 +6,7 @@ import okhttp3.internal.http.promisesBody
 
 /**
  * Lightweight, test-friendly logging interceptor.
- * - Shows method, URL, headers you want, duration, status code.
+ * - Shows method, URL, relevant headers, duration, status code.
  * - Never prints Authorization headers.
  * - Body logging optional.
  */
