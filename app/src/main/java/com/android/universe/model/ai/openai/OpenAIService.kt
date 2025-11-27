@@ -38,7 +38,7 @@ interface OpenAIService {
  *
  * @param model OpenAI model id (e.g. "gpt-5-nano")
  * @param messages Conversation history (system + user messages)
- * @param temperature (optional) creativity parameter
+ * @param temperature (optional) creativity parameter (range from 0.0 to 1.0)
  * @param max_completion_tokens (optional) max generated output tokens
  * @param response_format (optional) structured output format (JSON schema)
  */
