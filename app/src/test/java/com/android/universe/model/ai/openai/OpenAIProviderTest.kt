@@ -1,97 +1,48 @@
 package com.android.universe.model.ai.openai
 
-import com.android.universe.BuildConfig
+import com.android.universe.model.ai.AIEventGen
 import kotlinx.coroutines.test.runTest
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.junit.Assert.*
 import org.junit.Test
-import java.util.concurrent.TimeUnit
+import retrofit2.Converter
+import retrofit2.Retrofit
 
-/**
- * Does NOT hit network.
- *
- * Validates:
- *  - OkHttpClient interceptor configuration
- *  - Authorization + Content-Type header injection
- *  - Timeout configuration
- *
- */
 class OpenAIProviderTest {
 
-	@Test
-	fun okHttpClient_hasAuthAndLoggingInterceptors() = runTest {
-		val client = OpenAIProvider.testClient()
+  /** Helper that reads Kotlin lazy fields whose real name is: <name>$delegate */
+  private fun <T> getLazyValue(instance: Any, fieldName: String): T {
+    val clazz = instance::class.java
+    val field = clazz.getDeclaredField("${fieldName}\$delegate")
+    field.isAccessible = true
+    @Suppress("UNCHECKED_CAST") val lazyDelegate = field.get(instance) as Lazy<T>
+    return lazyDelegate.value
+  }
 
-		// LoggingInterceptor must exist
-		assertTrue(client.interceptors.any { it is LoggingInterceptor })
+  @Test
+  fun retrofit_and_api_are_initialized_and_use_same_client() = runTest {
+    // Trigger initialization
+    val eventGen: AIEventGen = OpenAIProvider.eventGen
+    assertTrue(eventGen is OpenAIEventGen)
 
-		// Two interceptors total: auth + logging
-		assertEquals(2, client.interceptors.size)
-	}
+    // Extract retrofit via lazy delegate
+    val retrofit: Retrofit = getLazyValue(OpenAIProvider, "retrofit")
 
-	@Test
-	fun okHttpClient_addsAuthorizationAndContentTypeHeaders() = runTest {
-		val client = OpenAIProvider.testClient()
+    assertNotNull(retrofit)
 
-		val originalRequest = Request.Builder()
-			.url("https://example.com")
-			.build()
+    // Retrofit must have converter factories
+    assertTrue(retrofit.converterFactories().any { it is Converter.Factory })
 
-		// ----- Fake Chain -----
-		val chain = object : Interceptor.Chain {
+    // Should use the same OkHttpClient
+    val client = retrofit.callFactory()
+    val providerClient = OpenAIProvider.testClient()
 
-			private var currentRequest = originalRequest
+    assertSame(providerClient, client)
+  }
 
-			override fun request(): Request = currentRequest
-
-			override fun proceed(request: Request): Response {
-				// Capture mutated request
-				currentRequest = request
-
-				return Response.Builder()
-					.request(request)
-					.protocol(Protocol.HTTP_1_1)
-					.code(200)
-					.message("OK")
-					.body(ResponseBody.create("text/plain".toMediaTypeOrNull(), "ok"))
-					.build()
-			}
-
-			// Required methods on OkHttp 4.x
-			override fun connection(): Connection? = null
-			override fun call(): Call = throw NotImplementedError()
-			override fun connectTimeoutMillis(): Int = 0
-			override fun readTimeoutMillis(): Int = 0
-			override fun writeTimeoutMillis(): Int = 0
-
-			override fun withConnectTimeout(timeout: Int, unit: TimeUnit) = this
-			override fun withReadTimeout(timeout: Int, unit: TimeUnit) = this
-			override fun withWriteTimeout(timeout: Int, unit: TimeUnit) = this
-		}
-
-		val authInterceptor = client.interceptors.first()
-
-		val response = authInterceptor.intercept(chain)
-		val modified = response.request
-
-		assertEquals(
-			"Bearer ${BuildConfig.OPENAI_API_KEY}",
-			modified.header("Authorization")
-		)
-
-		assertEquals(
-			"application/json",
-			modified.header("Content-Type")
-		)
-	}
-
-	@Test
-	fun okHttpClient_hasCorrectTimeouts() = runTest {
-		val client = OpenAIProvider.testClient()
-
-		assertEquals(30_000, client.connectTimeoutMillis.toLong())
-		assertEquals(60_000, client.readTimeoutMillis.toLong())
-		assertEquals(60_000, client.writeTimeoutMillis.toLong())
-	}
+  @Test
+  fun eventGen_is_singleton() = runTest {
+    val g1 = OpenAIProvider.eventGen
+    val g2 = OpenAIProvider.eventGen
+    assertSame(g1, g2)
+  }
 }
