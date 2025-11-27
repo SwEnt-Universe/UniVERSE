@@ -1,7 +1,9 @@
 package com.android.universe.utils
 
+import com.android.universe.R
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -83,6 +85,18 @@ object EventTestData {
       )
 
   val NoImage = BaseEvent.copy(eventPicture = null)
+  val categoryEvents =
+      listOf(
+          Pair(Tag.Category.MUSIC, R.drawable.violet_pin),
+          Pair(Tag.Category.SPORT, R.drawable.sky_blue_pin),
+          Pair(Tag.Category.FOOD, R.drawable.yellow_pin),
+          Pair(Tag.Category.ART, R.drawable.red_pin),
+          Pair(Tag.Category.TRAVEL, R.drawable.brown_pin),
+          Pair(Tag.Category.GAMES, R.drawable.orange_pin),
+          Pair(
+              Tag.Category.TECHNOLOGY,
+              R.drawable.grey_pin), // Note: Check typo in VM 'grey_ping' vs 'grey_pin'
+          Pair(Tag.Category.TOPIC, R.drawable.pink_pin))
 
   val futureEventNoTags =
       NoTagsEvent.copy(

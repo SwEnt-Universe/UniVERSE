@@ -247,7 +247,7 @@ class MapViewModel(
                     ART -> R.drawable.red_pin
                     TRAVEL -> R.drawable.brown_pin
                     GAMES -> R.drawable.orange_pin
-                    TECHNOLOGY -> R.drawable.grey_ping
+                    TECHNOLOGY -> R.drawable.grey_pin
                     TOPIC -> R.drawable.pink_pin
                     null -> R.drawable.base_pin
                   }
