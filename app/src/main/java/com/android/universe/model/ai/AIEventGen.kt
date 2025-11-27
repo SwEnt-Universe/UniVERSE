@@ -4,7 +4,7 @@ import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.event.Event
 
 /**
- * Defines the contract for components capable of generating event suggestions.
+ * Defines the contract for generating an event with AI.
  *
  * Implementations of this interface take an [EventQuery]—which describes the user, the task, and
  * any contextual preferences—and return a list of domain-level [Event] objects produced by an AI
