@@ -484,22 +484,18 @@ private suspend fun TomTomMap.syncEventMarkers(
       withContext(DefaultDP.default) {
         markers.map {
           val pin = MarkerImageCache.get(it.iconResId)
-          Triple(it, pin, it.event)
+          val options = MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
+          Pair(options, it.event)
         }
       }
+
   this@syncEventMarkers.removeMarkers("event")
   markerMap.clear()
-
-  optionsAndEvents.forEach { (markerModel, pin, event) ->
-    val markerOptions =
-        MarkerOptions(
-            tag = "event",
-            coordinate = markerModel.position,
-            pinImage = pin,
-        )
-    val addedMarker = this@syncEventMarkers.addMarker(markerOptions)
-    markerMap[addedMarker.id] = event
-  }
+    withContext(DefaultDP.default) {
+        val (options, events) = optionsAndEvents.unzip()
+        val addedMarkers = addMarkers(options)
+        addedMarkers.forEachIndexed { index, marker -> markerMap[marker.id] = events[index] }
+    }
 }
 
 private suspend fun TomTomMap.syncSelectedLocationMarker(location: GeoPoint?) {
