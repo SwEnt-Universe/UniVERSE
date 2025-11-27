@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -461,5 +462,46 @@ class FakeEventRepositoryTest {
       ids.add(id)
     }
     assertEquals(100, ids.size) // Ensure all IDs are unique
+  }
+
+  @Test
+  fun persistAIEvents_assignsIds_persistsEvents_andReturnsSavedEvents() = runTest {
+    // Arrange
+    val event1 = EventTestData.dummyEvent1.copy(id = "", creator = userA.uid)
+    val event2 = EventTestData.dummyEvent2.copy(id = "", creator = userB.uid)
+
+    val input = listOf(event1, event2)
+
+    // Act
+    val saved = repository.persistAIEvents(input)
+
+    // Assert: size matches
+    assertEquals(2, saved.size)
+
+    // Assert: each event got a new ID
+    assertTrue(saved[0].id.isNotBlank())
+    assertTrue(saved[1].id.isNotBlank())
+    assertNotEquals(saved[0].id, saved[1].id)
+
+    // Assert: repository actually persisted them
+    val all = repository.getAllEvents()
+    assertEquals(2, all.size)
+
+    // Assert: stored events match what persistAIEvents returned
+    assertTrue(all.any { it.id == saved[0].id })
+    assertTrue(all.any { it.id == saved[1].id })
+
+    // Assert: original fields preserved
+    assertEquals(event1.title, saved[0].title)
+    assertEquals(event2.title, saved[1].title)
+
+    assertEquals(event1.date, saved[0].date)
+    assertEquals(event2.date, saved[1].date)
+
+    assertEquals(event1.tags, saved[0].tags)
+    assertEquals(event2.tags, saved[1].tags)
+
+    assertEquals(event1.creator, saved[0].creator)
+    assertEquals(event2.creator, saved[1].creator)
   }
 }

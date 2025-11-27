@@ -208,4 +208,33 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     }
     assertEquals(100, ids.size) // Ensure all IDs are unique
   }
+
+  @Test
+  fun persistAIEvents_persistsEventsWithNewIDsAndReturnsStoredEvents() = runTest {
+    // Given: two dummy events WITHOUT correct IDs (AI events usually come ID-less or dummy IDs)
+    val aiEvents = listOf(event1.copy(id = ""), event2.copy(id = ""))
+
+    // When: calling persistAIEvents
+    val stored = eventRepository.persistAIEvents(aiEvents)
+
+    // Then: returned list must:
+    // 1. Have same size
+    assertEquals(2, stored.size)
+
+    // 2. Have newly assigned IDs (NOT the original ones)
+    assertTrue(stored[0].id != "")
+    assertTrue(stored[1].id != "")
+
+    // 3. IDs should be non-empty + unique
+    assertTrue(stored[0].id.isNotBlank())
+    assertTrue(stored[1].id.isNotBlank())
+    assertTrue(stored[0].id != stored[1].id)
+
+    // 4. Events should be persisted in Firestore
+    val fetched1 = eventRepository.getEvent(stored[0].id)
+    val fetched2 = eventRepository.getEvent(stored[1].id)
+
+    assertEquals(stored[0], fetched1)
+    assertEquals(stored[1], fetched2)
+  }
 }
