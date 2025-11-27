@@ -202,14 +202,13 @@ class UserRepositoryFirestore(
   }
 
   /**
-   * Add the targetUserId to the currentUser following list if the follow argument is true. Add the
-   * currentUserId to the targetUser follower list otherwise.
+   * Add the targetUserId to the currentUser following list. Add the currentUserId to the targetUser
+   * follower list.
    *
    * @param currentUserId the uid of the user who wants to follow the target user.
    * @param targetUserId the uid of the user who is being followed by the current user.
-   * @param follow the boolean that determine if it's a follow action or an unfollow action.
    */
-  private suspend fun modifyFollow(currentUserId: String, targetUserId: String, follow: Boolean) {
+  override suspend fun followUser(currentUserId: String, targetUserId: String) {
     withContext(iODispatcher) {
       db.runTransaction { transaction ->
             val currentUserPath = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
@@ -224,27 +223,11 @@ class UserRepositoryFirestore(
               throw NoSuchElementException("No user with target UID $targetUserId found")
             }
 
-            if (follow) {
-              transaction.update(currentUserPath, "following", FieldValue.arrayUnion(targetUserId))
-              transaction.update(targetUserPath, "followers", FieldValue.arrayUnion(currentUserId))
-            } else {
-              transaction.update(currentUserPath, "following", FieldValue.arrayRemove(targetUserId))
-              transaction.update(targetUserPath, "followers", FieldValue.arrayRemove(currentUserId))
-            }
+            transaction.update(currentUserPath, "following", FieldValue.arrayUnion(targetUserId))
+            transaction.update(targetUserPath, "followers", FieldValue.arrayUnion(currentUserId))
           }
           .await()
     }
-  }
-
-  /**
-   * Add the targetUserId to the currentUser following list. Add the currentUserId to the targetUser
-   * follower list.
-   *
-   * @param currentUserId the uid of the user who wants to follow the target user.
-   * @param targetUserId the uid of the user who is being followed by the current user.
-   */
-  override suspend fun followUser(currentUserId: String, targetUserId: String) {
-    modifyFollow(currentUserId, targetUserId, true)
   }
 
   /**
@@ -255,6 +238,24 @@ class UserRepositoryFirestore(
    * @param targetUserId the uid of the user who is being unfollowed by the current user.
    */
   override suspend fun unfollowUser(currentUserId: String, targetUserId: String) {
-    modifyFollow(currentUserId, targetUserId, false)
+    withContext(iODispatcher) {
+      db.runTransaction { transaction ->
+            val currentUserPath = db.collection(USERS_COLLECTION_PATH).document(currentUserId)
+            val targetUserPath = db.collection(USERS_COLLECTION_PATH).document(targetUserId)
+
+            val currentUserDoc = transaction.get(currentUserPath)
+            val targetUserDoc = transaction.get(targetUserPath)
+
+            if (!currentUserDoc.exists()) {
+              throw NoSuchElementException("No user with current UID $currentUserId found")
+            } else if (!targetUserDoc.exists()) {
+              throw NoSuchElementException("No user with target UID $targetUserId found")
+            }
+
+            transaction.update(currentUserPath, "following", FieldValue.arrayRemove(targetUserId))
+            transaction.update(targetUserPath, "followers", FieldValue.arrayRemove(currentUserId))
+          }
+          .await()
+    }
   }
 }
