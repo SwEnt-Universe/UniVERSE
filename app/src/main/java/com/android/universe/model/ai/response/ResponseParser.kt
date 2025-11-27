@@ -12,9 +12,14 @@ import kotlinx.serialization.json.jsonObject
 /**
  * Parses JSON returned by the OpenAI event-generation API into domain-level [Event] objects.
  *
- * Returns all valid events while collecting per-item validation failures.
+ * The parser handles:
+ * - Stripping optional Markdown code fences
+ * - Extracting the `"events"` array from the response
+ * - Deserializing into [EventDTO] objects using Kotlinx Serialization
+ * - Validating each DTO using [EventValidator]
+ * - Converting DTOs into fully formed [Event] instances
  *
- * This parser is the bridge between raw AI output and the app's validated internal [Event] model.
+ * This object forms the bridge between raw AI output and the app's internal event model.
  */
 object ResponseParser {
 
@@ -25,7 +30,13 @@ object ResponseParser {
     coerceInputValues = true
   }
 
-  /** Represents the per-item result of attempting to parse and validate an [EventDTO]. */
+  /**
+   * Represents the result of attempting to parse and validate a single [EventDTO].
+   *
+   * A DTO may either:
+   * - Produce a fully constructed domain [Event] (`Success`), or
+   * - Fail validation and record the associated exception (`Failure`).
+   */
   sealed class EventParseResult {
     data class Success(val event: Event) : EventParseResult()
 
@@ -33,21 +44,29 @@ object ResponseParser {
   }
 
   /**
-   * Returned by parsing. Contains both the successfully parsed events and all validation failures
-   * encountered.
+   * The aggregated result of a lenient parse operation.
+   *
+   * Contains:
+   * - [events] — all successfully parsed, fully validated domain [Event] objects.
+   * - [failures] — all individual DTOs that failed validation, each with its error.
+   *
+   * This allows the caller to accept partial success while still inspecting or logging failures.
    */
   data class ParseOutcome(val events: List<Event>, val failures: List<EventParseResult.Failure>)
 
   /**
-   * Lenient parsing:
-   * - Keeps all valid events
-   * - Discards invalid DTOs
-   * - Collects validation failures for logging/telemetry
+   * Parses OpenAI JSON output in:
    *
-   * Never throws for individual event validation errors.
+   * - Keeps all valid events.
+   * - Discards invalid ones.
+   * - Records per-item validation failures.
    *
-   * @return [ParseOutcome] containing both valid events and detailed failures.
-   * @throws IllegalStateException If the "events" field is missing.
+   * Never throws for individual DTO validation errors.
+   *
+   * @param rawJson Raw JSON returned by the AI model (may include Markdown code fences).
+   * @return A [ParseOutcome] containing both valid events and detailed failure information.
+   *
+   * @throws IllegalStateException If the `"events"` field is missing entirely.
    */
   fun parseEvents(rawJson: String): ParseOutcome {
     val cleaned = cleanJson(rawJson)
@@ -78,9 +97,12 @@ object ResponseParser {
   // -------------------------------------------------------------------------
 
   /**
-   * Parses a single DTO in lenient fashion:
-   * - Valid DTO -> Success(Event)
-   * - Invalid DTO -> Failure(dto, error)
+   * Parses and validates a single [EventDTO] in lenient fashion.
+   *
+   * - If validation succeeds, returns [EventParseResult.Success].
+   * - If validation fails, returns [EventParseResult.Failure] containing the DTO and error.
+   *
+   * No exceptions propagate out of this function.
    */
   private fun parseEvent(dto: EventDTO): EventParseResult {
     return try {
