@@ -58,7 +58,6 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.tomtom.sdk.common.Bundle
-import com.tomtom.sdk.common.UniqueId
 import com.tomtom.sdk.common.Uri
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
@@ -66,6 +65,7 @@ import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
+import com.tomtom.sdk.map.display.marker.Marker
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
@@ -104,7 +104,7 @@ fun MapScreen(
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
 
   // Local cache for marker click handling (ID -> Event)
-  val markerToEvent = remember { mutableMapOf<UniqueId, Event>() }
+  val markerToEvent = remember { mutableMapOf<Marker, Event>() }
 
   // --- 1. Permissions & Initialization ---
 
@@ -200,13 +200,15 @@ fun MapScreen(
                     // --- 4. Map Initialization Sequence ---
                     map.initLocationProvider(viewModel.locationProvider)
 
+                    map.setMarkerSettings()
+
                     map.setUpMapListeners(
                         onMapClick = { viewModel.onMapClick() },
                         onMapLongClick = { pos ->
                           viewModel.onMapLongClick(pos.latitude, pos.longitude)
                         },
-                        onMarkerClick = { id ->
-                          markerToEvent[id]?.let { event ->
+                        onMarkerClick = { marker ->
+                          markerToEvent[marker]?.let { event ->
                             viewModel.onMarkerClick(event)
                             true
                           } ?: false
@@ -360,7 +362,7 @@ private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
 private fun TomTomMap.setUpMapListeners(
     onMapClick: () -> Unit,
     onMapLongClick: (GeoPoint) -> Unit,
-    onMarkerClick: (UniqueId) -> Boolean,
+    onMarkerClick: (Marker) -> Boolean,
     onCameraChange: (GeoPoint, Double) -> Unit
 ) {
 
@@ -374,7 +376,7 @@ private fun TomTomMap.setUpMapListeners(
     true
   }
 
-  this.addMarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker.id) }
+  this.addMarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker) }
 
   this.addCameraSteadyListener {
     onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
@@ -475,25 +477,38 @@ fun MapView.takeSnapshot(onResult: (Bitmap?) -> Unit) {
   }
 }
 
+private fun TomTomMap.setMarkerSettings() {
+  this.markersFadingRange = IntRange(300, 500)
+}
+
 private suspend fun TomTomMap.syncEventMarkers(
     markers: List<MapMarkerUiModel>,
-    markerMap: MutableMap<UniqueId, Event>
+    markerMap: MutableMap<Marker, Event>
 ) {
-  val optionsAndEvents =
-      withContext(DefaultDP.default) {
-        markers.map {
-          val pin = MarkerImageCache.get(it.iconResId)
-          val options = MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
-          Pair(options, it.event)
-        }
+  val (optionsToAdd, markersToRemove, eventForNewMarkers) =
+      withContext(DefaultDP.io) {
+        val previousEvents = markerMap.values.toSet()
+        val currentEvents = markers.map { it.event }.toSet()
+        val toAdd = markers.filter { it.event !in previousEvents }
+        val toRemove = markerMap.filterValues { it !in currentEvents }.keys
+
+        val optionsToAdd =
+            toAdd.map {
+              val pin = MarkerImageCache.get(it.iconResId)
+              MarkerOptions(tag = "event", coordinate = it.position, pinImage = pin)
+            }
+        Triple(optionsToAdd, toRemove, toAdd.map { it.event })
       }
 
-  this@syncEventMarkers.removeMarkers("event")
-  markerMap.clear()
-  withContext(DefaultDP.default) {
-    val (options, events) = optionsAndEvents.unzip()
-    val addedMarkers = addMarkers(options)
-    addedMarkers.forEachIndexed { index, marker -> markerMap[marker.id] = events[index] }
+  if (markersToRemove.isNotEmpty()) {
+    markersToRemove.forEach {
+      it.remove()
+      markerMap.remove(it)
+    }
+  }
+  if (optionsToAdd.isNotEmpty()) {
+    val addedMarkers = this@syncEventMarkers.addMarkers(optionsToAdd)
+    addedMarkers.forEachIndexed { index, marker -> markerMap[marker] = eventForNewMarkers[index] }
   }
 }
 
