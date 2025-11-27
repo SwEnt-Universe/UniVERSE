@@ -323,4 +323,9 @@ class EventCreationViewModel(
       }
     }
   }
+
+  /** Clear all the tags of the tagRepositoryProvider. */
+  fun clearTags() {
+    viewModelScope.launch { tagRepository.deleteAllTags() }
+  }
 }

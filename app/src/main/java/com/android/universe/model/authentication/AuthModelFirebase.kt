@@ -13,6 +13,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Co
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.SignInMethodQueryResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -137,6 +138,16 @@ class AuthModelFirebase(
       Log.e(TAG, "Logout failed: ${e.localizedMessage ?: "Unexpected error"}")
       onFailure(e)
     }
+  }
+
+  /**
+   * Fetches the sign-in methods available for a given email address. This is useful for checking if
+   * an account already exists before attempting to create a new one.
+   *
+   * @param email The email address to check.
+   */
+  override suspend fun fetchSignInMethodsForEmail(email: String): SignInMethodQueryResult {
+    return auth.fetchSignInMethodsForEmail(email).await()
   }
 }
 
