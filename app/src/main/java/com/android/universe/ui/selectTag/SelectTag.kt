@@ -1,6 +1,7 @@
 package com.android.universe.ui.selectTag
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
+import com.android.universe.ui.theme.Dimensions
 
 object SelectTagsScreenTestTags {
   const val MUSIC_TAGS = "MusicTags"
@@ -55,10 +56,7 @@ object SelectTagsScreenTestTags {
 /** Composable that displays a horizontal line to visually divide sections on the tag screen. */
 @Composable
 fun SectionDivider() {
-  HorizontalDivider(
-      modifier = Modifier.testTag(SelectTagsScreenTestTags.DIVIDER).padding(vertical = 8.dp),
-      thickness = 1.dp,
-      color = Color.Black)
+  Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
 }
 
 /**
@@ -91,7 +89,17 @@ fun SelectTagScreen(
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
         TagGroup(
-            name = category.displayName,
+            title =
+                when (category) {
+                  Tag.Category.MUSIC -> "Select the music genres and the events you enjoy..."
+                  Tag.Category.SPORT -> "Choose the sports you're into..."
+                  Tag.Category.FOOD -> "Select the food and drink experiences you love..."
+                  Tag.Category.ART -> "Pick the types of art you connect with..."
+                  Tag.Category.TRAVEL -> "Choose the travel styles you’re interested in..."
+                  Tag.Category.GAMES -> "Select the games you like to play..."
+                  Tag.Category.TECHNOLOGY -> "Choose the tech topics you’re interested in..."
+                  Tag.Category.TOPIC -> "Pick the topics that interest you..."
+                },
             tagList = Tag.getTagsForCategory(category),
             selectedTags = selectedTags,
             onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
