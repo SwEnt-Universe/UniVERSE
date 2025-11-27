@@ -292,6 +292,27 @@ class EventRepositoryFirestore(
   }
 
   /**
+   * Persists a list of newly generated AI events and returns the stored results.
+   *
+   * The method performs the following steps:
+   * 1. Assigns each event a new Firestore-generated ID.
+   * 2. Saves the event into the `events` collection.
+   * 3. Reconstructs and returns the fully persisted events, including their assigned IDs.
+   *
+   * @param events list of AI-generated events that have not yet been stored.
+   * @return a new list of events identical to the input but with Firestore IDs assigned and
+   *   guaranteed to be persisted in storage.
+   */
+  override suspend fun persistAIEvents(events: List<Event>): List<Event> {
+    return events.map { e ->
+      val id = getNewID()
+      val saved = e.copy(id = id)
+      addEvent(saved)
+      saved
+    }
+  }
+
+  /**
    * Generates a new unique ID for an event.
    *
    * @return a new unique event ID as a [String].
