@@ -21,14 +21,15 @@ import com.android.universe.ui.common.EventImageHelper
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.theme.Dimensions
 
-/*
- * A popup component that displays detailed information about an event.
- * Places an EventContentLayout inside a LiquidBottomSheet with slide-in/out animations.
+/**
+ * A popup component that displays detailed information about an event. Places an EventContentLayout
+ * inside a LiquidBottomSheet with slide-in/out animations.
  *
  * @param event The [Event] object containing event details to be displayed.
  * @param isUserParticipant Boolean indicating if the user is a participant of the event.
  * @param onDismiss Callback function invoked when the popup is dismissed.
- * @param onToggleEventParticipation Callback function invoked when the user toggles their participation status.
+ * @param onToggleEventParticipation Callback function invoked when the user toggles their
+ *   participation status.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

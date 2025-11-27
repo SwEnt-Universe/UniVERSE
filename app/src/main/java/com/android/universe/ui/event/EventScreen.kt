@@ -43,9 +43,9 @@ object EventScreenTestTags {
  *
  * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
  *   selected.
+ * @param uid The unique identifier for the current user. Used to load user-specific events.
  * @param viewModel The [EventViewModel] that provides the state for the screen, including the list
  *   of events. Defaults to a ViewModel instance provided by `viewModel()`.
- * @param uid The unique identifier for the current user. Used to load user-specific events.
  * @param onChatNavigate A callback function invoked when the chat button on an event card is
  *   clicked, with the event ID and title as parameters.
  * @param onCardClick A callback function invoked when an event card is clicked, with the event ID

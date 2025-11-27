@@ -88,6 +88,25 @@ object MapScreenTestTags {
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
+/**
+ * The main screen composable for displaying a map with event markers.
+ *
+ * This screen handles location permissions, initializes the map, displays event markers, and
+ * manages user interactions such as selecting events and creating new ones.
+ *
+ * @param uid The unique identifier for the current user.
+ * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
+ *   selected.
+ * @param context The Android context, defaulting to the current LocalContext.
+ * @param preselectedEventId An optional event ID to preselect and focus on when the map loads.
+ * @param preselectedLocation An optional location to preselect and focus on when the map loads.
+ * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
+ *   title as parameters.
+ * @param createEvent A callback function invoked when creating a new event at specified latitude
+ *   and longitude.
+ * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
+ *   ViewModel instance initialized with necessary repositories.
+ */
 @Composable
 fun MapScreen(
     uid: String,
@@ -173,7 +192,7 @@ fun MapScreen(
   }
 
   // Handle direct event link: auto-focus and open popup
-  LaunchedEffect(preselectedEventId, preselectedLocation, tomTomMap, uiState.markers) {
+  LaunchedEffect(preselectedEventId, preselectedLocation, tomTomMap) {
     val map = tomTomMap ?: return@LaunchedEffect
 
     if (preselectedEventId != null && preselectedLocation != null) {
