@@ -86,7 +86,6 @@ fun SelectTagScreen(
   }
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()
   Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-    Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
     LazyColumn(modifier = Modifier.testTag(SelectTagsScreenTestTags.LAZY_COLUMN).weight(1f)) {
       items(Tag.Category.entries) { category ->
         TagGroup(

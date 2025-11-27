@@ -66,7 +66,7 @@ object TagGroupTestTag {
 
 /** Contain the dimensions used specially in this composable. */
 object TagGroupDefaults {
-  val DefaultHeight = 278.dp
+  val DefaultHeight = 300.dp
   val DefaultWidth = 500.dp
   val DefaultOuterPaddingH = 8.dp
   val DefaultOuterPaddingV = 12.dp
@@ -74,7 +74,7 @@ object TagGroupDefaults {
   val DefaultInterPaddingV = 4.dp
   val CornerShapeDp = 16.dp
   val titleFontSize = 28.sp
-  val textSectionSize = 60.dp
+  val textSectionSize = 72.dp
 }
 
 /**
@@ -356,8 +356,10 @@ fun TagGroup(
                 modifier =
                     Modifier.padding(Dimensions.PaddingLarge)
                         .fillMaxWidth()
-                        .height(TagGroupDefaults.textSectionSize),
+                        .height(TagGroupDefaults.textSectionSize)
+                        .padding(vertical = Dimensions.PaddingSmall),
                 fontSize = TagGroupDefaults.titleFontSize,
+                lineHeight = 32.sp,
                 textAlign = TextAlign.Center)
           }
           FlowRow(
