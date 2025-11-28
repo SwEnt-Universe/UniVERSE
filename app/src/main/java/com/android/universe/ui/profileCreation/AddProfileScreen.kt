@@ -258,6 +258,6 @@ private fun AddProfileScreenPreview() {
     AddProfile(
         uid = "preview_user_001",
         navigateOnSave = {},
-        viewModel = viewModel {AddProfileViewModel(FakeUserRepository())})
+        viewModel = viewModel { AddProfileViewModel(FakeUserRepository()) })
   }
 }
