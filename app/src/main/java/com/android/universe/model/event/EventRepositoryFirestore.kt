@@ -8,6 +8,8 @@ import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.map.display.map.VisibleRegion
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
@@ -309,6 +311,15 @@ class EventRepositoryFirestore(
       val saved = e.copy(id = id)
       addEvent(saved)
       saved
+    }
+  }
+
+  override suspend fun countEventsInViewport(viewport: VisibleRegion): Int {
+    val bounds = viewport.bounds
+
+    return getAllEvents().count { event ->
+      val geo = GeoPoint(event.location.latitude, event.location.longitude)
+      bounds.contains(geo)
     }
   }
 

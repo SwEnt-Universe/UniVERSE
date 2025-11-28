@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.user.UserProfile
+import com.tomtom.sdk.map.display.map.VisibleRegion
 
 /**
  * Repository interface for accessing and managing event.
@@ -75,6 +76,8 @@ interface EventRepository {
    *   guaranteed to be persisted in storage.
    */
   suspend fun persistAIEvents(events: List<Event>): List<Event>
+
+  suspend fun countEventsInViewport(viewport: VisibleRegion): Int
 
   /**
    * Generates a new unique ID for an event.

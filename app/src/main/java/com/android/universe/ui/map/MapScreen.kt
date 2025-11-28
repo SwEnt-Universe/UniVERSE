@@ -259,6 +259,18 @@ fun MapScreen(
 
                     map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
                     viewModel.nowInteractable()
+
+                    // Used by AI to trigger passive event generation
+                    map.addCameraChangeListener {
+                      val result = map.getVisibleRegion()
+
+                      if (result.isSuccess()) {
+                        val region = result.value()
+                        if (region != null) {
+                          viewModel.onViewportChanged(region)
+                        }
+                      }
+                    }
                   })
 
               if (uiState.selectedLocation != null) {

@@ -101,7 +101,7 @@ object OpenAIProvider {
    * This wraps the OpenAI API with application-specific logic, building structured prompts and
    * applying the JSON schema.
    */
-  val eventGen: AIEventGen by lazy { OpenAIEventGen(api) }
+  val aiEventGen: AIEventGen by lazy { OpenAIEventGen(api) }
 
   /**
    * Internal accessor for the underlying [OkHttpClient].

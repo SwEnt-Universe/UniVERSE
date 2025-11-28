@@ -84,7 +84,7 @@ class RealRequest_OpenAITest {
   // ------------------------------------------------------------------------
   @Test
   fun testOpenAIRequest() = runBlocking {
-    val eventGen = OpenAIProvider.eventGen
+    val eventGen = OpenAIProvider.aiEventGen
     val query = buildDummyQuery()
 
     val events: List<Event> = eventGen.generateEvents(query)
@@ -103,7 +103,7 @@ class RealRequest_OpenAITest {
   // ------------------------------------------------------------------------
   @Test
   fun testOpenAIRequestAndPersistence() = runBlocking {
-    val generator = OpenAIProvider.eventGen
+    val generator = OpenAIProvider.aiEventGen
     val repo: EventRepository = FakeEventRepository()
     val query = buildDummyQuery()
 
