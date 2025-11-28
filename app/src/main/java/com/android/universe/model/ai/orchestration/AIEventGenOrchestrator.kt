@@ -114,7 +114,7 @@ class AIEventGenOrchestrator(
     val generated = ai.generateEvents(query)
 
     // ----------------------------------------------------
-    // 8. Persist them into Firestore (or local repo)
+    // 8. Persist events in Firestore
     // ----------------------------------------------------
     events.persistAIEvents(generated)
 
