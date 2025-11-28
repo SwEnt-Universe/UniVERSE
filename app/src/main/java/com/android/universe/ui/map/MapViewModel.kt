@@ -441,8 +441,10 @@ class MapViewModel(
             // Update last generation time
             lastAIGeneration = now
 
+            LoggerAI.d("JUST BEFORE LOAD ALL EVENTS")
             // Refresh markers to include AI-generated events
             loadAllEvents()
+            LoggerAI.d("JUST AFTER LOAD ALL EVENTS")
           } else {
             LoggerAI.d("AI generation skipped.")
           }

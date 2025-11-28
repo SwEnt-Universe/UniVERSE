@@ -1,15 +1,12 @@
 package com.android.universe.model.ai.orchestration
 
+import com.android.universe.model.ai.AIConfig.MAX_VIEWPORT_RADIUS_KM
+import com.android.universe.model.ai.AIConfig.MIN_EVENT_SPACING_KM
+import com.android.universe.model.ai.AIConfig.REQUEST_COOLDOWN
 import com.android.universe.util.GeoUtils.estimateRadiusKm
 import com.tomtom.sdk.map.display.map.VisibleRegion
 import kotlin.Int
 import kotlin.math.pow
-
-private const val REQUEST_COOLDOWN = 60_000L // x_000L = x seconds
-
-private const val MIN_EVENT_SPACING_KM = 0.15
-
-private const val MAX_VIEWPORT_RADIUS_KM = 2.5
 
 sealed interface Decision {
 
