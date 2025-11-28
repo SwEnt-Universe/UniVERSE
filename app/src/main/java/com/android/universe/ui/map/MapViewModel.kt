@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.R
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.openai.OpenAIProvider
+import com.android.universe.model.ai.orchestration.AIEventGenOrchestrator
+import com.android.universe.model.ai.orchestration.PassiveAIGenPolicy
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
@@ -88,7 +91,13 @@ class MapViewModel(
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
-    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io,
+    private val aiOrchestrator: AIEventGenOrchestrator =
+        AIEventGenOrchestrator(
+            ai = OpenAIProvider.aiEventGen, // TODO Is this correct? Do I even need this.
+            events = eventRepository,
+            users = userRepository,
+            policy = PassiveAIGenPolicy())
 ) : ViewModel() {
 
   private val _uiState =
@@ -373,24 +382,56 @@ class MapViewModel(
     }
   }
 
-  /**
-   * Represents the geographic area currently visible on the map.
-   *
-   * Used to anchor AI event output to what the user sees on the map at this moment.
-   *
-   * A TomTom [VisibleRegion] contains four corner coordinates:
-   * - `topLeft`
-   * - `topRight`
-   * - `bottomLeft`
-   * - `bottomRight`
-   *
-   * These define the exact rectangular viewport that the user is currently looking at. This region
-   * is recalculated whenever the map camera moves or zooms.
-   */
-  private val _visibleRegion = MutableStateFlow<VisibleRegion?>(null)
-  val visibleRegion: StateFlow<VisibleRegion?> = _visibleRegion.asStateFlow()
+  // ----------------------------------------------------
+  // AI related
+  // ----------------------------------------------------
+  private var lastAIGeneration: Long = 0L
+  private var aiGenerationJob: Job? = null
 
+  /**
+   * Called whenever the visible map viewport changes.
+   *
+   * This method is invoked after TomTom recalculates the current [VisibleRegion], which happens
+   * whenever the user pans, zooms, or the camera otherwise moves.
+   *
+   * The viewport represents the exact geographic rectangle the user is currently looking at,
+   * defined by four corner coordinates:
+   * - `farLeft` (top-left)
+   * - `farRight` (top-right)
+   * - `nearLeft` (bottom-left)
+   * - `nearRight` (bottom-right)
+   *
+   * The updated region is **not stored** in ViewModel state. Instead, it is used immediately to
+   * evaluate whether passive AI event generation should be triggered.
+   *
+   * @param region the newly computed visible map region
+   */
   fun onViewportChanged(region: VisibleRegion) {
-    _visibleRegion.value = region
+    tryPassiveAIGeneration(region)
+  }
+
+  private fun tryPassiveAIGeneration(region: VisibleRegion) {
+    aiGenerationJob?.cancel()
+    aiGenerationJob =
+        viewModelScope.launch {
+          delay(300L) // debounce camera movement
+
+          val now = System.currentTimeMillis()
+
+          val newEvents =
+              aiOrchestrator.maybeGenerate(
+                  currentUserId = currentUserId,
+                  viewport = region,
+                  lastGen = lastAIGeneration,
+                  now = now)
+
+          if (newEvents.isNotEmpty()) {
+            // Update last generation time
+            lastAIGeneration = now
+
+            // Refresh markers to include AI-generated events
+            loadAllEvents()
+          }
+        }
   }
 }
