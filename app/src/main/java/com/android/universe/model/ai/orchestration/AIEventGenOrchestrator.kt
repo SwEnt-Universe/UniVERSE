@@ -12,14 +12,17 @@ import com.tomtom.sdk.map.display.map.VisibleRegion
 /**
  * Coordinates passive AI-driven event generation.
  *
- * Responsibilities:
- *  - Evaluate passive generation policy (cooldown, map conditions, etc.)
- *  - Build a fully scoped [EventQuery] using user profile + viewport context
- *  - Invoke the AI backend through [AIEventGen]
- *  - Persist generated events using the [EventRepository]
+ * Pure domain logic — no Android/UI dependencies.
  *
- * This orchestrator contains **no Android/UI dependencies** and is safe to use
- * inside ViewModels, background workers, or domain services.
+ * Pipeline:
+ *   1. Count events inside viewport
+ *   2. Ask the passive policy whether we *should* generate
+ *   3. If accepted, retrieve how many events to generate
+ *   4. Build prompt context from map viewport
+ *   5. Build task config (how many events AI should produce)
+ *   6. Build EventQuery (user + task + context)
+ *   7. Call AIEventGen
+ *   8. Persist generated events
  */
 class AIEventGenOrchestrator(
   private val ai: AIEventGen,
@@ -29,57 +32,93 @@ class AIEventGenOrchestrator(
 ) {
 
   /**
-   * Attempts to generate passive AI events for the user.
+   * Tries to generate passive AI events.
    *
-   * @param currentUserId ID of the active user.
-   * @param viewport The region currently visible on the map (four corner coordinates).
-   * @param numEvents The number of existing events in the viewport.
-   * @param lastGen Timestamp of the last AI generation (ms).
-   * @param now Current timestamp (ms).
-   *
-   * @return A list of newly generated [Event], or an empty list if the policy gate rejects.
+   * Returns:
+   *  - A list of **newly generated events**
+   *  - Or an **empty list** if the policy rejects generation
    */
   suspend fun maybeGenerate(
     currentUserId: String,
     viewport: VisibleRegion?,
-    numEvents: Int,
     lastGen: Long,
     now: Long
   ): List<Event> {
 
+    // ----------------------------------------------------
+    // 0. Preconditions: we must know the map viewport
+    // ----------------------------------------------------
     if (viewport == null) {
-      // Cannot reason about passive generation without a known viewport
+      // Without viewport geometry we cannot estimate radius, density, etc.
       return emptyList()
     }
 
-    if (!policy.shouldGenerate(
-        viewport = viewport,
-        numEvents = numEvents,
-        lastGenTimestamp = lastGen,
-        now = now
-      )) {
+    // ----------------------------------------------------
+    // 1. Count current events inside the viewport
+    // ----------------------------------------------------
+    val numEvents = events.countEventsInViewport(viewport)
+
+    // ----------------------------------------------------
+    // 2. Pass everything to the policy and evaluate
+    // ----------------------------------------------------
+    val decision = policy.evaluate(
+      viewport = viewport,
+      numEvents = numEvents,
+      lastGenTimestamp = lastGen,
+      now = now
+    )
+
+    // If policy rejects, stop immediately
+    if (decision is Decision.Reject) {
       return emptyList()
     }
 
-    // Load user profile (tags, age, preferences, etc.)
+    // If we are here, policy has accepted
+    val eventsToGenerate = (decision as Decision.Accept).eventsToGenerate
+
+    // Safety: never ask for zero or negative
+    if (eventsToGenerate <= 0) return emptyList()
+
+    // ----------------------------------------------------
+    // 3. Load user profile for AI personalization
+    // ----------------------------------------------------
     val user = users.getUser(currentUserId)
 
-    // Build prompt context (center + radius derived from VisibleRegion)
+    // ----------------------------------------------------
+    // 4. Define ContextConfig using viewport
+    // ----------------------------------------------------
     val context = ContextConfig.fromVisibleRegion(viewport)
 
-    // TaskConfig can be expanded later (e.g. "generate 5 events", "tag matching")
+    // ----------------------------------------------------
+    // 5. Build the task config
+    //    - "eventCount" = how many AI should generate
+    //    - For now we always require relevant tags (maybe remove this field)
+    // ----------------------------------------------------
+    val task = TaskConfig(
+      eventCount = eventsToGenerate,
+      requireRelevantTags = true
+    )
+
+    // ----------------------------------------------------
+    // 6. Construct the final query for AIEventGen
+    // ----------------------------------------------------
     val query = EventQuery(
       user = user,
-      task = TaskConfig.Default,
+      task = task,
       context = context
     )
 
-    // Generate events via AI
+    // ----------------------------------------------------
+    // 7. Ask AI to generate the events
+    // ----------------------------------------------------
     val generated = ai.generateEvents(query)
 
-    // Store them (dedup / pollution guards added later)
-    generated.forEach { events.addEvent(it) }
+    // ----------------------------------------------------
+    // 8. Persist them into Firestore (or local repo)
+    // ----------------------------------------------------
+    events.persistAIEvents(generated)
 
+    // Return all new events to caller
     return generated
   }
 }
