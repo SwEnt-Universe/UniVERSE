@@ -30,7 +30,6 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
     ignoreUnknownKeys = true
   }
 
-
   /**
    * Executes the full OpenAI -> JSON -> Event pipeline.
    *
@@ -66,15 +65,15 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
             response_format = eventFormat)
 
     LoggerAI.d(
-      """
+        """
     ---- OPENAI REQUEST ----
     model: ${request.model}
     max_tokens: ${request.max_completion_tokens}
     system: ${system}
     user: ${user}
     schema: ${eventFormat.json_schema}
-    """.trimIndent()
-    )
+    """
+            .trimIndent())
 
     // Call OpenAI API
     val response = service.chatCompletion(request)

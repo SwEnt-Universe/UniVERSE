@@ -322,6 +322,7 @@ class EventRepositoryFirestore(
       bounds.contains(geo)
     }
   }
+
   /**
    * Generates a new unique ID for an event.
    *

@@ -34,10 +34,7 @@ object ResponseParser {
 
     LoggerAI.d("ResponseParser: Decoded ${dtoList.size} DTOs. Converting…")
 
-    val events =
-      dtoList.mapNotNull { dto ->
-        convertToEvent(dto)
-      }
+    val events = dtoList.mapNotNull { dto -> convertToEvent(dto) }
 
     LoggerAI.d("ResponseParser: Successfully parsed ${events.size} events.")
 
@@ -54,11 +51,7 @@ object ResponseParser {
   // STAGE 1 — clean markdown and whitespace
   // -------------------------------------------------------------------------
   private fun cleanJson(raw: String): String =
-    raw.trim()
-      .removePrefix("```json")
-      .removePrefix("```")
-      .removeSuffix("```")
-      .trim()
+      raw.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
 
   // -------------------------------------------------------------------------
   // STAGE 2 — parse root object safely
@@ -68,10 +61,9 @@ object ResponseParser {
       json.parseToJsonElement(cleaned).jsonObject
     } catch (e: Exception) {
       LoggerAI.e(
-        "ResponseParser: Failed at Stage 2 (parseRootObject). " +
-            "Error: ${e.message}\n" +
-            "Input snippet: ${cleaned.take(200)}"
-      )
+          "ResponseParser: Failed at Stage 2 (parseRootObject). " +
+              "Error: ${e.message}\n" +
+              "Input snippet: ${cleaned.take(200)}")
       null
     }
   }
@@ -83,10 +75,7 @@ object ResponseParser {
     return try {
       root["events"]
     } catch (e: Exception) {
-      LoggerAI.e(
-        "ResponseParser: Failed at Stage 3 (extractEventsArray). " +
-            "Error: ${e.message}"
-      )
+      LoggerAI.e("ResponseParser: Failed at Stage 3 (extractEventsArray). " + "Error: ${e.message}")
       null
     }
   }
@@ -97,15 +86,12 @@ object ResponseParser {
   private fun decodeEventDTOs(eventsElement: JsonElement): List<EventDTO>? {
     return try {
       json.decodeFromJsonElement(
-        deserializer = ListSerializer(EventDTO.serializer()),
-        element = eventsElement
-      )
+          deserializer = ListSerializer(EventDTO.serializer()), element = eventsElement)
     } catch (e: Exception) {
       LoggerAI.e(
-        "ResponseParser: Failed at Stage 4 (decodeEventDTOs). " +
-            "Error: ${e.message}\n" +
-            "Events raw: ${eventsElement.toString().take(300)}"
-      )
+          "ResponseParser: Failed at Stage 4 (decodeEventDTOs). " +
+              "Error: ${e.message}\n" +
+              "Events raw: ${eventsElement.toString().take(300)}")
       null
     }
   }
@@ -116,21 +102,20 @@ object ResponseParser {
   private fun convertToEvent(dto: EventDTO): Event? {
     return try {
       Event(
-        id = "",
-        title = dto.title,
-        description = dto.description,
-        date = LocalDateTime.parse(dto.date),
-        tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
-        creator = "OpenAI",
-        participants = emptySet(),
-        location = Location(dto.location.latitude, dto.location.longitude),
+          id = "",
+          title = dto.title,
+          description = dto.description,
+          date = LocalDateTime.parse(dto.date),
+          tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
+          creator = "OpenAI",
+          participants = emptySet(),
+          location = Location(dto.location.latitude, dto.location.longitude),
       )
     } catch (e: Exception) {
       LoggerAI.e(
-        "ResponseParser: Failed at Stage 5 (convertToEvent).\n" +
-            "DTO: $dto\n" +
-            "Error: ${e.message}"
-      )
+          "ResponseParser: Failed at Stage 5 (convertToEvent).\n" +
+              "DTO: $dto\n" +
+              "Error: ${e.message}")
       null
     }
   }

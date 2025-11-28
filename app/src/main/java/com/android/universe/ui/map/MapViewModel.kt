@@ -421,12 +421,11 @@ class MapViewModel(
 
           LoggerAI.d("Viewport changed → evaluating AI generation...")
           LoggerAI.d(
-            "Viewport corners:\n" +
-                "farLeft=${region.farLeft}\n" +
-                "farRight=${region.farRight}\n" +
-                "nearLeft=${region.nearLeft}\n" +
-                "nearRight=${region.nearRight}"
-          )
+              "Viewport corners:\n" +
+                  "farLeft=${region.farLeft}\n" +
+                  "farRight=${region.farRight}\n" +
+                  "nearLeft=${region.nearLeft}\n" +
+                  "nearRight=${region.nearRight}")
 
           val newEvents =
               aiOrchestrator.maybeGenerate(

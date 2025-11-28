@@ -13,21 +13,21 @@ package com.android.universe.model.ai
  */
 object AIConfig {
 
-	/** See [OpenAI pricing](https://platform.openai.com/docs/pricing?utm_source=chatgpt.com) */
-	const val AI_MODEL = "gpt-4o-mini"
+  /** See [OpenAI pricing](https://platform.openai.com/docs/pricing?utm_source=chatgpt.com) */
+  const val AI_MODEL = "gpt-4o-mini"
 
-	// Maximum number of tokens the model may produce
-	const val MAX_COMPLETION_TOKENS = 1500
+  // Maximum number of tokens the model may produce
+  const val MAX_COMPLETION_TOKENS = 1500
 
-	// Maximum event count per request
-	const val MAX_EVENT_PER_REQUEST = 10
+  // Maximum event count per request
+  const val MAX_EVENT_PER_REQUEST = 10
 
-	// Minimum delay between passive AI generation triggers
-	const val REQUEST_COOLDOWN: Long = 60_000L // x_000L = x seconds
+  // Minimum delay between passive AI generation triggers
+  const val REQUEST_COOLDOWN: Long = 60_000L // x_000L = x seconds
 
-	// Minimum allowed distance between two auto-generated events (km)
-	const val MIN_EVENT_SPACING_KM = 0.15
+  // Minimum allowed distance between two auto-generated events (km)
+  const val MIN_EVENT_SPACING_KM = 0.15
 
-	// Max allowed viewport radius (km) for triggering passive generation
-	const val MAX_VIEWPORT_RADIUS_KM = 2.5
+  // Max allowed viewport radius (km) for triggering passive generation
+  const val MAX_VIEWPORT_RADIUS_KM = 2.5
 }
