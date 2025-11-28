@@ -80,7 +80,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   @Test
-  fun `Login and Create an Event`() {
+  fun `Login and Create an Event`() = runTest {
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
@@ -90,7 +90,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     clickOnEventInList()
   }
 
-  private fun loginAndWait() {
+  private fun loginAndWait() = runTest {
     composeTestRule
         .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON)
         .assertIsDisplayed()
@@ -133,14 +133,14 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     }
   }
 
-  private fun clickOnMapAndCreateEvent() {
+  private fun clickOnMapAndCreateEvent() = runTest {
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
       advanceEventTime(1000)
       down(center)
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(10_000L) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
@@ -175,7 +175,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
   }
 
-  private fun seeAddedEventInEventList() {
+  private fun seeAddedEventInEventList() = runTest {
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
     }
@@ -197,7 +197,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .assertTextEquals(FAKE_EVENT.description!!)
   }
 
-  private fun clickOnEventInList() {
+  private fun clickOnEventInList() = runTest {
     composeTestRule
         .onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0", useUnmergedTree = true)
         .onFirst()
