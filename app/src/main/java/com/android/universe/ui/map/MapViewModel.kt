@@ -26,6 +26,7 @@ import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.utils.LoggerAI
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.map.VisibleRegion
@@ -418,6 +419,15 @@ class MapViewModel(
 
           val now = System.currentTimeMillis()
 
+          LoggerAI.d("Viewport changed → evaluating AI generation...")
+          LoggerAI.d(
+            "Viewport corners:\n" +
+                "farLeft=${region.farLeft}\n" +
+                "farRight=${region.farRight}\n" +
+                "nearLeft=${region.nearLeft}\n" +
+                "nearRight=${region.nearRight}"
+          )
+
           val newEvents =
               aiOrchestrator.maybeGenerate(
                   currentUserId = currentUserId,
@@ -426,11 +436,15 @@ class MapViewModel(
                   now = now)
 
           if (newEvents.isNotEmpty()) {
+            LoggerAI.i("Generated ${newEvents.size} new AI events")
+
             // Update last generation time
             lastAIGeneration = now
 
             // Refresh markers to include AI-generated events
             loadAllEvents()
+          } else {
+            LoggerAI.d("AI generation skipped.")
           }
         }
   }
