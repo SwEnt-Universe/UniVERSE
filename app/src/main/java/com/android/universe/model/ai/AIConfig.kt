@@ -16,9 +16,10 @@ object AIConfig {
 	/** See [OpenAI pricing](https://platform.openai.com/docs/pricing?utm_source=chatgpt.com) */
 	const val AI_MODEL = "gpt-4o-mini"
 
-	// Maximum number of tokens the model may produce.
+	// Maximum number of tokens the model may produce
 	const val MAX_COMPLETION_TOKENS = 1500
 
+	// Maximum event count per request
 	const val MAX_EVENT_PER_REQUEST = 10
 
 	// Minimum delay between passive AI generation triggers
