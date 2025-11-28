@@ -1,6 +1,5 @@
 package com.android.universe.ui.common
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,10 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import com.android.universe.model.tag.Tag
-import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -43,6 +37,7 @@ import java.time.format.DateTimeFormatter
  * @param date Event date and time.
  * @param tags List of event tags (currently unused in this layout).
  * @param participants Number of people attending.
+ * @param creator Event author/creator name.
  * @param imageContent Composable that renders the event image.
  * @param isUserParticipant Whether the user is part of the event.
  * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
@@ -57,6 +52,7 @@ fun EventContentLayout(
     date: LocalDateTime,
     tags: List<Tag>,
     participants: Int,
+    creator: String,
     imageContent: @Composable () -> Unit,
     isUserParticipant: Boolean,
     onToggleEventParticipation: () -> Unit,
@@ -129,60 +125,12 @@ fun EventContentLayout(
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(start = Dimensions.PaddingMedium, end = Dimensions.PaddingMedium)) {
-          if (isUserParticipant) {
-            LiquidButton(
-                onClick = onChatClick,
-                height = Dimensions.CardButtonHeight,
-                width = Dimensions.CardButtonWidth,
-                modifier = Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")) {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = "Chat",
-                        modifier = Modifier.size(Dimensions.IconSizeMedium))
-                    Spacer(Modifier.width(Dimensions.SpacerSmall))
-                    Text("Chat", style = MaterialTheme.typography.labelLarge)
-                  }
-                }
-          }
-
-          Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.testTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$eventId")) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = "Participants",
-                    modifier = Modifier.size(Dimensions.IconSizeMedium))
-                Spacer(Modifier.width(Dimensions.SpacerSmall))
-                Text(
-                    text = "$participants people going",
-                    style = MaterialTheme.typography.bodyMedium)
-              }
-
-          LiquidButton(
-              onClick = onToggleEventParticipation,
-              height = Dimensions.CardButtonHeight,
-              width = Dimensions.CardButtonWidth,
-              modifier =
-                  Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Icon(
-                      imageVector =
-                          if (isUserParticipant) Icons.Filled.Close else Icons.Filled.Check,
-                      contentDescription = "Toggle Participation",
-                      modifier = Modifier.size(Dimensions.IconSizeMedium))
-                  Spacer(Modifier.width(Dimensions.SpacerSmall))
-                  Text(
-                      text = if (isUserParticipant) "Leave" else "Join",
-                      style = MaterialTheme.typography.labelLarge)
-                }
-              }
-        }
+    EventCardActionsRow(
+        eventId = eventId,
+        participants = participants,
+        creator = creator,
+        isUserParticipant = isUserParticipant,
+        onToggleEventParticipation = onToggleEventParticipation,
+        onChatClick = onChatClick)
   }
 }

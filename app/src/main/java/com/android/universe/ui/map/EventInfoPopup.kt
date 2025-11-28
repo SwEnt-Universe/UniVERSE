@@ -66,6 +66,7 @@ fun EventInfoPopup(
                         date = event.date,
                         tags = event.tags.toList(),
                         participants = event.participants.size,
+                        creator = event.creator,
                         imageContent = { EventImageHelper(eventImage = event.eventPicture) },
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,

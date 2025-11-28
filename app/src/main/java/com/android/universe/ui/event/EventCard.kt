@@ -47,6 +47,7 @@ fun EventCard(
             date = event.date,
             tags = emptyList(),
             participants = event.participants,
+            creator = event.creator,
             imageContent = {
               EventImageHelper(
                   eventImage = event.eventPicture, modifier = Modifier.matchParentSize())
