@@ -1,47 +1,59 @@
 package com.android.universe.model.ai.orchestration
 
-import com.tomtom.sdk.location.GeoPoint
-import kotlin.math.abs
+import com.android.universe.util.GeoUtils.estimateRadiusKm
+import com.tomtom.sdk.map.display.map.VisibleRegion
 
-private const val REQUEST_COOLDOWN_MS = 60_000L // x_000L = x seconds
+private const val REQUEST_COOLDOWN_MS = 60_000L // 60 seconds
+
+private const val MAX_VIEWPORT_RADIUS_KM = 3.0
+
 
 /**
- * Simple pure-policy class that decides whether passive AI event generation should be triggered.
+ * Policy that determines whether passive AI event generation should be triggered.
  *
- * This class contains NO external dependencies and NO side effects.
+ * Pure logic only — no Android/UI/network dependencies.
+ * Ensures we generate events only when the user is:
+ *  - Looking at a meaningful area (valid viewport)
+ *  - Lacking sufficient events in that area
+ *  - Not spamming the AI (cooldown)
+ *  - Zoomed in close enough (viewport small enough)
  */
 class PassiveAIGenPolicy(
-    private val minEventThreshold: Int = 5,
-    private val minZoomLevel: Double = 13.0,
+  private val minEventThreshold: Int = 5,
 ) {
 
+  /**
+   * Returns true if AI event generation should be triggered.
+   *
+   * @param viewport The currently visible TomTom map region.
+   * @param numEvents Number of events currently visible in the viewport.
+   * @param lastGenTimestamp Timestamp of previous generation (ms).
+   * @param now Current timestamp (ms).
+   */
   fun shouldGenerate(
-      userLocation: GeoPoint?,
-      cameraCenter: GeoPoint,
-      zoom: Double,
-      numEvents: Int,
-      lastGenTimestamp: Long,
-      now: Long
+    viewport: VisibleRegion,
+    numEvents: Int,
+    lastGenTimestamp: Long,
+    now: Long
   ): Boolean {
 
-    // No user location → do nothing
-    if (userLocation == null) return false
+    // 1. Cooldown guard
+    if (now - lastGenTimestamp < REQUEST_COOLDOWN_MS) {
+      return false
+    }
 
-    // Require zoomed in enough (avoid generating across huge areas)
-    if (zoom < minZoomLevel) return false
+    // 2. If enough events already exist, do nothing
+    if (numEvents >= minEventThreshold) {
+      return false
+    }
 
-    // Avoid spamming the model
-    if (now - lastGenTimestamp < REQUEST_COOLDOWN_MS) return false
+    // 3. Estimate viewport radius (diagonal / 2)
+    val radiusKm = viewport.estimateRadiusKm()
 
-    // Require low event density
-    if (numEvents >= minEventThreshold) return false
-
-    // If camera moved far away very quickly, ignore for now
-    val distMoved =
-        abs(cameraCenter.latitude - userLocation.latitude) +
-            abs(cameraCenter.longitude - userLocation.longitude)
-
-    if (distMoved > 0.5) return false // ~rough heuristic
+    // If user is zoomed out extremely far: avoid generating
+    if (radiusKm > MAX_VIEWPORT_RADIUS_KM) {
+      return false
+    }
 
     return true
   }

@@ -7,61 +7,77 @@ import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.user.UserRepository
-import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.map.display.map.VisibleRegion
 
 /**
- * Orchestrates passive AI event generation.
+ * Coordinates passive AI-driven event generation.
  *
- * This class:
- * - Evaluates the passive generation policy
- * - Builds an EventQuery
- * - Calls AIEventGen
- * - Saves results through EventRepository
+ * Responsibilities:
+ *  - Evaluate passive generation policy (cooldown, map conditions, etc.)
+ *  - Build a fully scoped [EventQuery] using user profile + viewport context
+ *  - Invoke the AI backend through [AIEventGen]
+ *  - Persist generated events using the [EventRepository]
  *
- * It contains no Android or UI dependencies.
+ * This orchestrator contains **no Android/UI dependencies** and is safe to use
+ * inside ViewModels, background workers, or domain services.
  */
 class AIEventGenOrchestrator(
-    private val ai: AIEventGen,
-    private val events: EventRepository,
-    private val users: UserRepository,
-    private val policy: PassiveAIGenPolicy
+  private val ai: AIEventGen,
+  private val events: EventRepository,
+  private val users: UserRepository,
+  private val policy: PassiveAIGenPolicy
 ) {
 
+  /**
+   * Attempts to generate passive AI events for the user.
+   *
+   * @param currentUserId ID of the active user.
+   * @param viewport The region currently visible on the map (four corner coordinates).
+   * @param numEvents The number of existing events in the viewport.
+   * @param lastGen Timestamp of the last AI generation (ms).
+   * @param now Current timestamp (ms).
+   *
+   * @return A list of newly generated [Event], or an empty list if the policy gate rejects.
+   */
   suspend fun maybeGenerate(
-      currentUserId: String,
-      userLocation: GeoPoint?,
-      cameraCenter: GeoPoint,
-      zoom: Double,
-      numEvents: Int,
-      lastGen: Long,
-      now: Long
+    currentUserId: String,
+    viewport: VisibleRegion?,
+    numEvents: Int,
+    lastGen: Long,
+    now: Long
   ): List<Event> {
 
-    if (!policy.shouldGenerate(
-        userLocation = userLocation,
-        cameraCenter = cameraCenter,
-        zoom = zoom,
-        numEvents = numEvents,
-        lastGenTimestamp = lastGen,
-        now = now)) {
+    if (viewport == null) {
+      // Cannot reason about passive generation without a known viewport
       return emptyList()
     }
 
-    // Load user profile for context
+    if (!policy.shouldGenerate(
+        viewport = viewport,
+        numEvents = numEvents,
+        lastGenTimestamp = lastGen,
+        now = now
+      )) {
+      return emptyList()
+    }
+
+    // Load user profile (tags, age, preferences, etc.)
     val user = users.getUser(currentUserId)
 
-    // Build minimal query — refine later with context
-    val query =
-        EventQuery(
-            user = user,
-            task = TaskConfig.Default,
-            context =
-                ContextConfig.fromViewport(
-                    userLocation = userLocation, cameraCenter = cameraCenter, zoom = zoom))
+    // Build prompt context (center + radius derived from VisibleRegion)
+    val context = ContextConfig.fromVisibleRegion(viewport)
 
+    // TaskConfig can be expanded later (e.g. "generate 5 events", "tag matching")
+    val query = EventQuery(
+      user = user,
+      task = TaskConfig.Default,
+      context = context
+    )
+
+    // Generate events via AI
     val generated = ai.generateEvents(query)
 
-    // Save events (no dedup/pollution guard for now)
+    // Store them (dedup / pollution guards added later)
     generated.forEach { events.addEvent(it) }
 
     return generated

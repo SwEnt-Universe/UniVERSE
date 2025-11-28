@@ -1,5 +1,7 @@
 package com.android.universe.util
 
+import com.tomtom.sdk.map.display.map.VisibleRegion
+
 /**
  * Utility functions for geographic calculations.
  *
@@ -7,6 +9,19 @@ package com.android.universe.util
  * depending on an external GIS library.
  */
 object GeoUtils {
+
+  /**
+   * Computes a radius based on the viewport, and gives it in kilometers
+   */
+  internal fun VisibleRegion.estimateRadiusKm(): Double {
+    val diagonalMeters = distanceMeters(
+      farLeft.latitude,
+      farLeft.longitude,
+      nearRight.latitude,
+      nearRight.longitude
+    )
+    return (diagonalMeters / 2.0) / 1000.0
+  }
 
   // Radius of the Earth in meters
   private const val EARTH_RADIUS_METERS = 6371000.0
@@ -23,7 +38,7 @@ object GeoUtils {
    * @param lon2 Longitude of the second point in **degrees**.
    * @return The distance in **meters** as a double.
    */
-  fun distanceMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+  private fun distanceMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
     val dLat = Math.toRadians(lat2 - lat1)
     val dLon = Math.toRadians(lon2 - lon1)
 

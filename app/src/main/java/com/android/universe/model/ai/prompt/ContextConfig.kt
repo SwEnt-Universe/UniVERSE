@@ -36,7 +36,6 @@ data class ContextConfig(
      * without needing polygon definitions or TomTom-specific geometry.
      */
     fun fromVisibleRegion(region: VisibleRegion): ContextConfig {
-
       val farLeft = region.farLeft
       val nearRight = region.nearRight
 
