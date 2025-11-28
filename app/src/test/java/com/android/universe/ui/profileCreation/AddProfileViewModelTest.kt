@@ -1,14 +1,25 @@
 package com.android.universe.ui.profileCreation
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.utils.MainCoroutineRule
+import io.mockk.every
+import io.mockk.mockkObject
+import java.io.File
+import java.io.FileOutputStream
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -27,6 +38,9 @@ class AddProfileViewModelTest {
   fun setup() {
     repository = FakeUserRepository()
     viewModel = AddProfileViewModel(repository)
+    mockkObject(DefaultDP)
+    every { DefaultDP.io } returns UnconfinedTestDispatcher()
+    every { DefaultDP.default } returns UnconfinedTestDispatcher()
   }
 
   @Test
@@ -606,5 +620,72 @@ class AddProfileViewModelTest {
     assertEquals(5, user.dateOfBirth.monthValue)
     assertEquals(15, user.dateOfBirth.dayOfMonth)
     assertEquals("  asds  ad  ", user.description)
+  }
+
+  @Test
+  fun `setProfilePicture with null uri clears image`() = runTest {
+    // 1. Set a dummy state first (simulate an existing image)
+    // If not, we just rely on the fact that null uri -> null profilePicture
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    viewModel.setProfilePicture(context, null)
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.profilePicture)
+  }
+
+  @Test
+  fun `setProfilePicture with valid uri compresses and updates state`() = runTest {
+    // 1. Create a temporary real image file
+    // We need a real bitmap so BitmapFactory doesn't return null
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val file: File = File(context.cacheDir, "test_image.jpg")
+    val outputStream = FileOutputStream(file)
+
+    // Create a 500x500 bitmap (larger than your 256 limit to trigger resizing logic)
+    val originalBitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)
+    originalBitmap.eraseColor(android.graphics.Color.RED)
+
+    // Write it to the file
+    originalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+    outputStream.flush()
+    outputStream.close()
+
+    // 2. Create a URI pointing to this file
+    val uri = Uri.fromFile(file)
+
+    // 3. Call the function
+    viewModel.setProfilePicture(context, uri)
+    advanceUntilIdle()
+
+    // 4. Assertions
+
+    val resultBytes = viewModel.uiState.value.profilePicture
+
+    assertNotNull("Profile picture bytes should not be null", resultBytes)
+    assertTrue("Byte array should contain data", resultBytes!!.isNotEmpty())
+  }
+
+  @Test
+  fun `setProfilePicture handles massive image by downsampling`() = runTest {
+    // 1. Create a "Massive" image (e.g., 1000x1000)
+
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val file: File = File(context.cacheDir, "massive_image.jpg")
+    val stream = FileOutputStream(file)
+
+    // Create 1000x1000 bitmap
+    val largeBitmap = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888)
+    val success = largeBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+    stream.close()
+
+    assertTrue("Bitmap compression failed in test setup", success)
+    assertTrue("File should exist", file.exists())
+    assertTrue("File should have data", file.length() > 0)
+    // 2. Run logic
+    viewModel.setProfilePicture(context, Uri.fromFile(file))
+    advanceUntilIdle()
+    // 3. Verify
+    val resultBytes = viewModel.uiState.value.profilePicture
+    assertNotNull(resultBytes)
   }
 }
