@@ -15,6 +15,7 @@ plugins {
   alias(libs.plugins.ktfmt)
   alias(libs.plugins.sonarqube)
   alias(libs.plugins.google.services)
+  alias(libs.plugins.kotlin.serialization)
   jacoco
 }
 
@@ -33,7 +34,7 @@ val jacocoVer = libs.versions.jacoco.get()
 jacoco { toolVersion = jacocoVer }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Load local properties (for TomTom API key)
+// Load local properties (for API keys)
 // ─────────────────────────────────────────────────────────────────────────────
 val localPropertiesFile = rootProject.file("local.properties")
 val localProperties = Properties()
@@ -46,6 +47,11 @@ val tomtomApiKey: String =
     System.getenv("TOMTOM_API_KEY")
         ?: localProperties.getProperty("TOMTOM_API_KEY")
         ?: throw GradleException("TOMTOM_API_KEY not found in environment or local.properties")
+
+val openaiApiKey: String =
+    System.getenv("OPENAI_API_KEY")
+        ?: localProperties.getProperty("OPENAI_API_KEY")
+        ?: throw GradleException("OPENAI_API_KEY not found in environment or local.properties")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Android configuration
@@ -61,7 +67,11 @@ android {
   }
 
   // Expose TOMTOM_API_KEY as BuildConfig.TOMTOM_API_KEY
-  buildTypes.configureEach { buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"") }
+  // Expose OPENAI_API_KEY as BuildConfig.OPENAI_API_KEY
+  buildTypes.configureEach {
+    buildConfigField("String", "TOMTOM_API_KEY", "\"$tomtomApiKey\"")
+    buildConfigField("String", "OPENAI_API_KEY", "\"$openaiApiKey\"")
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Release signing configuration (for CI / manual release builds)
@@ -322,6 +332,21 @@ dependencies {
 
   // ----------------- Kaspresso (UI Automation) -----------------
   androidTestImplementation(libs.kaspresso.compose)
+
+  // ----------------- NETWORK & JSON SERIALIZATION -–---------------
+  // Retrofit + OkHttp stack for all HTTP communication (OpenAI, backend APIs, etc.)
+  implementation(libs.retrofit)
+  implementation(
+      libs.retrofit.converter.gson) // Legacy Gson support (kept only for existing endpoints)
+
+  // Primary JSON library in 2025 – type-safe, null-safe, Kotlin-first
+  implementation(libs.kotlinx.serialization.json)
+  implementation(libs.retrofit.kotlinx.serialization.converter) // Preferred converter for new APIs
+
+  // OkHttp – explicit version to guarantee logging-interceptor compatibility
+  implementation(libs.okhttp)
+  implementation(
+      libs.okhttp.logging) // Debug logging (automatically disabled in release via ProGuard/R8)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

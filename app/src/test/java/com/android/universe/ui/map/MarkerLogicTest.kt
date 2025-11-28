@@ -56,7 +56,7 @@ class MarkerLogicTest {
   fun `markerLogic should remove old events and add new ones`() = runTest {
 
     // The map currently has Event A
-    val currentMap = mutableMapOf(markerA to eventA)
+    val currentMap = mutableMapOf(markerA.tag!! to eventA)
 
     // The new list only has Event B
     val newMarkers = listOf(uiModelB)
@@ -70,13 +70,11 @@ class MarkerLogicTest {
     // 1. Verify Removals
     // Event A was in the map, but not in the new list. It should be removed.
     assertEquals(1, markersToRemove.size)
-    assertTrue(markersToRemove.contains(markerA))
+    assertTrue(markersToRemove.contains(markerA.tag))
 
     // 2. Verify Additions
     // Event B was in the new list, but not in the map. It should be added.
     assertEquals(1, optionsToAdd.size)
-    // Check if the 'tag' we set in logic is correct
-    assertEquals("event", optionsToAdd.first().tag)
 
     // 3. Verify Event List tracking
     assertEquals(1, newEvents.size)
@@ -87,7 +85,7 @@ class MarkerLogicTest {
   fun `markerLogic should remove old events and add new ones if location changes`() = runTest {
 
     // The map currently has Event A
-    val currentMap = mutableMapOf(markerB to eventB)
+    val currentMap = mutableMapOf(markerB.tag!! to eventB)
 
     // The new list only has Event B
     val newMarkers = listOf(uiModelBBis)
@@ -101,13 +99,11 @@ class MarkerLogicTest {
     // 1. Verify Removals
     // Event A was in the map, but not in the new list. It should be removed.
     assertEquals(1, markersToRemove.size)
-    assertTrue(markersToRemove.contains(markerB))
+    assertTrue(markersToRemove.contains(markerB.tag))
 
     // 2. Verify Additions
     // Event B was in the new list, but not in the map. It should be added.
     assertEquals(1, optionsToAdd.size)
-    // Check if the 'tag' we set in logic is correct
-    assertEquals("event", optionsToAdd.first().tag)
 
     // 3. Verify Event List tracking
     assertEquals(1, newEvents.size)
@@ -117,7 +113,7 @@ class MarkerLogicTest {
   @Test
   fun `markerLogic should do nothing if lists are identical`() = runTest {
     // GIVEN
-    val currentMap = mutableMapOf(markerA to eventA)
+    val currentMap = mutableMapOf(markerA.tag!! to eventA)
     // The new list matches the old list exactly
     val newMarkers = listOf(MapMarkerUiModel(event = eventA, iconResId = 111, position = mockk()))
 

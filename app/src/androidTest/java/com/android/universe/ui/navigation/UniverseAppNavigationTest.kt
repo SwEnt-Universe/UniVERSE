@@ -7,7 +7,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.model.user.UserRepository
-import com.android.universe.ui.profile.UserProfileScreenTestTags
+import com.android.universe.ui.common.ProfileContentTestTags
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirestoreUserTest
 import com.android.universe.utils.UserTestData
@@ -102,7 +102,9 @@ class UniverseAppNavigationTest : FirestoreUserTest(false) {
   fun navigation_toSettingsScreen() {
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).performClick()
+    val currentUid = emulator.auth.currentUser!!.uid
+    val settingsButtonTag = "${ProfileContentTestTags.SETTINGS_BUTTON}_$currentUid"
+    composeTestRule.onNodeWithTag(settingsButtonTag).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.SETTINGS_SCREEN).assertIsDisplayed()
   }
 }

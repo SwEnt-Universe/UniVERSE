@@ -51,7 +51,7 @@ import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.navigation.resolveUserDestinationScreen
 import com.android.universe.ui.profile.UserProfileScreen
-import com.android.universe.ui.profileCreation.AddProfileScreen
+import com.android.universe.ui.profileCreation.AddProfile
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
@@ -159,7 +159,7 @@ fun UniverseApp(
       ) {
         composable(NavigationScreens.AddProfile.route) {
           UniverseBackgroundContainer(bitmap) {
-            AddProfileScreen(
+            AddProfile(
                 uid = authInstance.currentUser!!.uid,
                 navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
                 onBack = {
@@ -331,6 +331,21 @@ fun UniverseApp(
                 onTabSelected = onTabSelected,
                 onEditProfileClick = { uid ->
                   navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
+                },
+                onChatNavigate = { chatID, chatName ->
+                  navController.navigate(
+                      route =
+                          NavigationScreens.ChatInstance.route
+                              .replace("{chatID}", chatID)
+                              .replace("{chatName}", chatName)
+                              .replace("{userID}", authInstance.currentUser!!.uid))
+                },
+                onCardClick = { eventId: String, eventLocation: Location ->
+                  navController.navigate(
+                      NavigationScreens.MapInstance.route
+                          .replace("{eventId}", eventId)
+                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
+                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
                 })
           }
         }
