@@ -15,34 +15,34 @@ import com.tomtom.sdk.map.display.map.VisibleRegion
  * Pure domain logic — no Android/UI dependencies.
  *
  * Pipeline:
- *   1. Count events inside viewport
- *   2. Ask the passive policy whether we *should* generate
- *   3. If accepted, retrieve how many events to generate
- *   4. Build prompt context from map viewport
- *   5. Build task config (how many events AI should produce)
- *   6. Build EventQuery (user + task + context)
- *   7. Call AIEventGen
- *   8. Persist generated events
+ * 1. Count events inside viewport
+ * 2. Ask the passive policy whether we *should* generate
+ * 3. If accepted, retrieve how many events to generate
+ * 4. Build prompt context from map viewport
+ * 5. Build task config (how many events AI should produce)
+ * 6. Build EventQuery (user + task + context)
+ * 7. Call AIEventGen
+ * 8. Persist generated events
  */
 class AIEventGenOrchestrator(
-  private val ai: AIEventGen,
-  private val events: EventRepository,
-  private val users: UserRepository,
-  private val policy: PassiveAIGenPolicy
+    private val ai: AIEventGen,
+    private val events: EventRepository,
+    private val users: UserRepository,
+    private val policy: PassiveAIGenPolicy
 ) {
 
   /**
    * Tries to generate passive AI events.
    *
    * Returns:
-   *  - A list of **newly generated events**
-   *  - Or an **empty list** if the policy rejects generation
+   * - A list of **newly generated events**
+   * - Or an **empty list** if the policy rejects generation
    */
   suspend fun maybeGenerate(
-    currentUserId: String,
-    viewport: VisibleRegion?,
-    lastGen: Long,
-    now: Long
+      currentUserId: String,
+      viewport: VisibleRegion?,
+      lastGen: Long,
+      now: Long
   ): List<Event> {
 
     // ----------------------------------------------------
@@ -61,12 +61,9 @@ class AIEventGenOrchestrator(
     // ----------------------------------------------------
     // 2. Pass everything to the policy and evaluate
     // ----------------------------------------------------
-    val decision = policy.evaluate(
-      viewport = viewport,
-      numEvents = numEvents,
-      lastGenTimestamp = lastGen,
-      now = now
-    )
+    val decision =
+        policy.evaluate(
+            viewport = viewport, numEvents = numEvents, lastGenTimestamp = lastGen, now = now)
 
     // If policy rejects, stop immediately
     if (decision is Decision.Reject) {
@@ -94,19 +91,12 @@ class AIEventGenOrchestrator(
     //    - "eventCount" = how many AI should generate
     //    - For now we always require relevant tags (maybe remove this field)
     // ----------------------------------------------------
-    val task = TaskConfig(
-      eventCount = eventsToGenerate,
-      requireRelevantTags = true
-    )
+    val task = TaskConfig(eventCount = eventsToGenerate, requireRelevantTags = true)
 
     // ----------------------------------------------------
     // 6. Construct the final query for AIEventGen
     // ----------------------------------------------------
-    val query = EventQuery(
-      user = user,
-      task = task,
-      context = context
-    )
+    val query = EventQuery(user = user, task = task, context = context)
 
     // ----------------------------------------------------
     // 7. Ask AI to generate the events

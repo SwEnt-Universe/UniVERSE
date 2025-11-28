@@ -10,16 +10,10 @@ import com.tomtom.sdk.map.display.map.VisibleRegion
  */
 object GeoUtils {
 
-  /**
-   * Computes a radius based on the viewport, and gives it in kilometers
-   */
+  /** Computes a radius based on the viewport, and gives it in kilometers */
   internal fun VisibleRegion.estimateRadiusKm(): Double {
-    val diagonalMeters = distanceMeters(
-      farLeft.latitude,
-      farLeft.longitude,
-      nearRight.latitude,
-      nearRight.longitude
-    )
+    val diagonalMeters =
+        distanceMeters(farLeft.latitude, farLeft.longitude, nearRight.latitude, nearRight.longitude)
     return (diagonalMeters / 2.0) / 1000.0
   }
 

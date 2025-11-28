@@ -8,13 +8,13 @@ import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.map.VisibleRegion
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import com.tomtom.sdk.location.GeoPoint
 
 // Firestore collection path for events.
 const val EVENTS_COLLECTION_PATH = "events"
@@ -314,9 +314,7 @@ class EventRepositoryFirestore(
     }
   }
 
-  suspend fun EventRepository.countEventsInViewport(
-    viewport: VisibleRegion
-  ): Int {
+  suspend fun EventRepository.countEventsInViewport(viewport: VisibleRegion): Int {
     val bounds = viewport.bounds
 
     return getAllEvents().count { event ->
