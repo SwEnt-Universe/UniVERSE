@@ -297,9 +297,9 @@ fun validateYear(year: String): ValidationState {
  * @param year The year.
  * @return [ValidationState.Valid] if the date is valid, otherwise [ValidationState.Invalid].
  */
-fun validateBirthDate(day: Int, month: Int, year: Int): ValidationState {
+fun validateBirthDate(day: String, month: String, year: String): ValidationState {
   try {
-    val dob = LocalDate.of(year, month, day)
+    val dob = LocalDate.of(year.toInt(), month.toInt(), day.toInt())
     val today = LocalDate.now()
 
     if (dob.isAfter(today)) {
@@ -313,6 +313,8 @@ fun validateBirthDate(day: Int, month: Int, year: Int): ValidationState {
 
     return ValidationState.Valid
   } catch (_: DateTimeException) {
+    return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
+  } catch (_: NumberFormatException) {
     return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
   }
 }

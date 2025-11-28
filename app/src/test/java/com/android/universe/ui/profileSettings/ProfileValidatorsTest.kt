@@ -565,7 +565,11 @@ class ProfileValidatorsTest {
   fun birthDateIsValid() {
     val today = LocalDate.now()
     val validDob = today.minusYears((InputLimits.MIN_AGE + 5).toLong()) // e.g., 18 years old
-    val result = validateBirthDate(validDob.dayOfMonth, validDob.monthValue, validDob.year)
+    val result =
+        validateBirthDate(
+            validDob.dayOfMonth.toString(),
+            validDob.monthValue.toString(),
+            validDob.year.toString())
     assert(result is ValidationState.Valid)
   }
 
@@ -573,21 +577,25 @@ class ProfileValidatorsTest {
   fun birthDateIsValidOnMinAgeBirthday() {
     val today = LocalDate.now()
     val validDob = today.minusYears((InputLimits.MIN_AGE).toLong()) // Exactly 13 today
-    val result = validateBirthDate(validDob.dayOfMonth, validDob.monthValue, validDob.year)
+    val result =
+        validateBirthDate(
+            validDob.dayOfMonth.toString(),
+            validDob.monthValue.toString(),
+            validDob.year.toString())
     assert(result is ValidationState.Valid)
   }
 
   @Test
   fun birthDateIsValidLeapYear() {
     // Feb 29th on a leap year, assuming 2000 was > MIN_AGE years ago
-    val result = validateBirthDate(29, 2, 2000)
+    val result = validateBirthDate("29", "2", "2000")
     assert(result is ValidationState.Valid)
   }
 
   @Test
   fun birthDateIsInvalidLogical() {
     // February 30th
-    val result = validateBirthDate(30, 2, 2000)
+    val result = validateBirthDate("30", "2", "2000")
     assert(result is ValidationState.Invalid)
     assertEquals(
         ErrorMessages.DATE_INVALID_LOGICAL, (result as ValidationState.Invalid).errorMessage)
@@ -596,7 +604,7 @@ class ProfileValidatorsTest {
   @Test
   fun birthDateIsInvalidLogicalNonLeapYear() {
     // Feb 29th on a non-leap year
-    val result = validateBirthDate(29, 2, 2001)
+    val result = validateBirthDate("29", "2", "2001")
     assert(result is ValidationState.Invalid)
     assertEquals(
         ErrorMessages.DATE_INVALID_LOGICAL, (result as ValidationState.Invalid).errorMessage)
@@ -606,7 +614,11 @@ class ProfileValidatorsTest {
   fun birthDateIsInFuture() {
     val today = LocalDate.now()
     val futureDate = today.plusDays(1)
-    val result = validateBirthDate(futureDate.dayOfMonth, futureDate.monthValue, futureDate.year)
+    val result =
+        validateBirthDate(
+            futureDate.dayOfMonth.toString(),
+            futureDate.monthValue.toString(),
+            futureDate.year.toString())
     assert(result is ValidationState.Invalid)
     assertEquals(ErrorMessages.DATE_IN_FUTURE, (result as ValidationState.Invalid).errorMessage)
   }
@@ -617,7 +629,10 @@ class ProfileValidatorsTest {
     // 1 day before 13th birthday (e.g., 12 years and 364 days old)
     val tooYoungDate = today.minusYears((InputLimits.MIN_AGE).toLong()).plusDays(1)
     val result =
-        validateBirthDate(tooYoungDate.dayOfMonth, tooYoungDate.monthValue, tooYoungDate.year)
+        validateBirthDate(
+            tooYoungDate.dayOfMonth.toString(),
+            tooYoungDate.monthValue.toString(),
+            tooYoungDate.year.toString())
     assert(result is ValidationState.Invalid)
     assertEquals(
         ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE),

@@ -1,34 +1,44 @@
 package com.android.universe.ui.profileCreation
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.universe.model.CountryData.countryToIsoCode
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.common.sanitize
 import com.android.universe.ui.common.sanitizeLead
 import com.android.universe.ui.common.toTitleCase
 import com.android.universe.ui.common.validateBirthDate
-import com.android.universe.ui.common.validateCountry
-import com.android.universe.ui.common.validateDay
 import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
-import com.android.universe.ui.common.validateMonth
 import com.android.universe.ui.common.validateUsername
-import com.android.universe.ui.common.validateYear
+import com.android.universe.ui.theme.Dimensions
+import java.io.ByteArrayOutputStream
 import java.time.LocalDate
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+enum class OnboardingState {
+  WELCOME,
+  ENTER_USERNAME,
+  ENTER_FIRSTNAME,
+  ENTER_LASTNAME,
+  ENTER_DATE_OF_BIRTH,
+  ENTER_DESCRIPTION
+}
 
 /**
  * Represents the UI state for the Add Profile screen.
@@ -40,37 +50,51 @@ import kotlinx.coroutines.launch
  * @property firstName The user's first name.
  * @property lastName The user's last name.
  * @property description Optional description or bio text.
- * @property country The user's selected country.
  * @property day The day of birth as a string.
  * @property month The month of a birth as a string.
  * @property year The year of birth as a string.
- * @property usernameError Optional error message for the username field.
- * @property firstNameError Optional error message for the first name field.
- * @property lastNameError Optional error message for the last name field.
- * @property descriptionError Optional error message for the description field.
- * @property countryError Optional error message for the country field.
- * @property yearError Optional error message for the year field.
- * @property monthError Optional error message for the month field.
- * @property dayError Optional error message for the day field.
  */
 data class AddProfileUIState(
     val username: String = "",
     val firstName: String = "",
     val lastName: String = "",
     val description: String? = null,
-    val country: String = "",
     val day: String = "",
     val month: String = "",
     val year: String = "",
-    val usernameError: String? = null,
-    val firstNameError: String? = null,
-    val lastNameError: String? = null,
-    val descriptionError: String? = null,
-    val countryError: String? = null,
-    val yearError: String? = null,
-    val monthError: String? = null,
-    val dayError: String? = null
-)
+    val profilePicture: ByteArray? = null,
+    val onboardingState: MutableMap<OnboardingState, Boolean> =
+        mutableMapOf(
+            OnboardingState.WELCOME to true,
+            OnboardingState.ENTER_USERNAME to false,
+            OnboardingState.ENTER_FIRSTNAME to false,
+            OnboardingState.ENTER_LASTNAME to false,
+            OnboardingState.ENTER_DATE_OF_BIRTH to false,
+            OnboardingState.ENTER_DESCRIPTION to false)
+) {
+  val canSave: Boolean
+    get() =
+        userNameValid is ValidationState.Valid &&
+            firstNameValid is ValidationState.Valid &&
+            lastNameValid is ValidationState.Valid &&
+            descriptionValid is ValidationState.Valid &&
+            dateOfBirthValid is ValidationState.Valid
+
+  val userNameValid: ValidationState
+    get() = validateUsername(username)
+
+  val firstNameValid: ValidationState
+    get() = validateFirstName(firstName)
+
+  val lastNameValid: ValidationState
+    get() = validateLastName(lastName)
+
+  val descriptionValid: ValidationState
+    get() = validateDescription(description ?: "")
+
+  val dateOfBirthValid: ValidationState
+    get() = validateBirthDate(day, month, year)
+}
 
 /**
  * ViewModel responsible for managing the Add Profile screen Logic.
@@ -81,10 +105,6 @@ data class AddProfileUIState(
  * UI should collect [uiState] to observe changes in real time.
  *
  * @param repository The data source handling user-related operations.
- * @param dispatcher The [CoroutineDispatcher] used for launching coroutines in this ViewModel.
- *   Defaults to [Dispatchers.Default].
- * @param repositoryDispatcher The [CoroutineDispatcher] used for executing repository operations.
- *   Defaults to [DDP.io].
  * @constructor Creates a new instance with an injected [UserRepository].
  */
 open class AddProfileViewModel(
@@ -97,26 +117,16 @@ open class AddProfileViewModel(
   /** Publicly exposed state of the Add Profile UI. */
   val uiState: StateFlow<AddProfileUIState> = _uiState.asStateFlow()
 
-  /**
-   * Converts a [ValidationState] to a nullable String.
-   *
-   * @return The error message if the result is [ValidationState.Invalid], otherwise null.
-   */
-  private fun ValidationState.toStringOrNull(): String? {
-    return when (this) {
-      is ValidationState.Valid -> null
-      is ValidationState.Neutral -> null
-      is ValidationState.Invalid -> this.errorMessage
-    }
+  fun setOnboardingState(state: OnboardingState, value: Boolean) {
+    _uiState.value.onboardingState[state] = value
   }
 
   /**
    * Validates all inputs and attempts to create and save a new user profile.
    *
-   * This method first triggers a comprehensive validation of all fields by calling
-   * [validateAllInputs]. If validation succeeds, it constructs a [UserProfile] object from the
-   * current UI state, sanitizing text fields and converting the country name to its ISO code. The
-   * new profile is then saved to the repository.
+   * If validation succeeds, it constructs a [UserProfile] object from the current UI state,
+   * sanitizing text fields and converting the country name to its ISO code. The new profile is then
+   * saved to the repository.
    *
    * On successful creation, it invokes the [onSuccess] callback.
    *
@@ -126,18 +136,12 @@ open class AddProfileViewModel(
    */
   fun addProfile(uid: String, onSuccess: () -> Unit = {}) {
     viewModelScope.launch {
-      if (!validateAllInputs()) {
+      if (!uiState.value.canSave) {
         return@launch
       }
 
       val state = _uiState.value
       val dateOfBirth = LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt())
-
-      val isoCode = countryToIsoCode[state.country]
-      if (isoCode == null) {
-        _uiState.update { it.copy(countryError = ErrorMessages.COUNTRY_INVALID) }
-        return@launch
-      }
 
       val userProfile =
           UserProfile(
@@ -146,91 +150,13 @@ open class AddProfileViewModel(
               firstName = sanitize(state.firstName).toTitleCase(),
               lastName = sanitize(state.lastName).toTitleCase(),
               description = state.description?.takeIf { it.isNotBlank() },
-              country = isoCode,
               dateOfBirth = dateOfBirth,
+              country = "",
               tags = emptySet())
 
       repository.addUser(userProfile)
       onSuccess()
     }
-  }
-
-  /**
-   * Validates all user inputs from the UI state and updates the [uiState] with any error messages.
-   * This includes checking for unique username, correct formats, and valid dates.
-   *
-   * @return `true` if all inputs are valid, `false` otherwise.
-   */
-  private suspend fun validateAllInputs(): Boolean {
-    val state = _uiState.value
-
-    var usernameResult = validateUsername(state.username)
-    val firstNameResult = validateFirstName(state.firstName)
-    val lastNameResult = validateLastName(state.lastName)
-    val descriptionResult = validateDescription(state.description ?: "")
-    val countryResult = validateCountry(state.country, countryToIsoCode)
-    val dayResult = validateDay(state.day)
-    val monthResult = validateMonth(state.month)
-    val yearResult = validateYear(state.year)
-
-    if (usernameResult is ValidationState.Valid) {
-      val isUnique = repository.isUsernameUnique(state.username)
-      if (!isUnique) {
-        usernameResult = ValidationState.Invalid(ErrorMessages.USERNAME_TAKEN)
-      }
-    }
-
-    val allDateFieldsValid =
-        dayResult is ValidationState.Valid &&
-            monthResult is ValidationState.Valid &&
-            yearResult is ValidationState.Valid
-
-    val logicalDateResult =
-        if (allDateFieldsValid) {
-          validateBirthDate(state.day.toInt(), state.month.toInt(), state.year.toInt())
-        } else {
-          ValidationState.Valid
-        }
-
-    val finalDayError =
-        if (logicalDateResult is ValidationState.Invalid &&
-            logicalDateResult.errorMessage == ErrorMessages.DATE_INVALID_LOGICAL) {
-          logicalDateResult
-        } else {
-          dayResult
-        }
-
-    val finalMonthError = monthResult
-
-    val finalYearError =
-        if (logicalDateResult is ValidationState.Invalid &&
-            logicalDateResult.errorMessage != ErrorMessages.DATE_INVALID_LOGICAL) {
-          logicalDateResult
-        } else {
-          yearResult
-        }
-
-    _uiState.update {
-      it.copy(
-          usernameError = usernameResult.toStringOrNull(),
-          firstNameError = firstNameResult.toStringOrNull(),
-          lastNameError = lastNameResult.toStringOrNull(),
-          descriptionError = descriptionResult.toStringOrNull(),
-          countryError = countryResult.toStringOrNull(),
-          dayError = finalDayError.toStringOrNull(),
-          monthError = finalMonthError.toStringOrNull(),
-          yearError = finalYearError.toStringOrNull())
-    }
-
-    // Return true if all results are valid
-    return usernameResult is ValidationState.Valid &&
-        firstNameResult is ValidationState.Valid &&
-        lastNameResult is ValidationState.Valid &&
-        descriptionResult is ValidationState.Valid &&
-        countryResult is ValidationState.Valid &&
-        finalDayError is ValidationState.Valid &&
-        finalMonthError is ValidationState.Valid &&
-        finalYearError is ValidationState.Valid
   }
 
   /**
@@ -241,10 +167,7 @@ open class AddProfileViewModel(
    */
   fun setUsername(username: String) {
     val finalUsername = username.take(InputLimits.USERNAME + 1)
-    val ValidationState = validateUsername(finalUsername)
-    _uiState.update {
-      it.copy(username = finalUsername, usernameError = ValidationState.toStringOrNull())
-    }
+    _uiState.update { it.copy(username = finalUsername) }
   }
 
   /**
@@ -256,10 +179,7 @@ open class AddProfileViewModel(
   fun setFirstName(firstName: String) {
     val cleaned = sanitizeLead(firstName)
     val finalName = cleaned.take(InputLimits.FIRST_NAME + 1)
-    val ValidationState = validateFirstName(finalName)
-    _uiState.update {
-      it.copy(firstName = finalName, firstNameError = ValidationState.toStringOrNull())
-    }
+    _uiState.update { it.copy(firstName = finalName) }
   }
 
   /**
@@ -271,10 +191,7 @@ open class AddProfileViewModel(
   fun setLastName(lastName: String) {
     val cleaned = sanitizeLead(lastName)
     val finalName = cleaned.take(InputLimits.LAST_NAME + 1)
-    val ValidationState = validateLastName(finalName)
-    _uiState.update {
-      it.copy(lastName = finalName, lastNameError = ValidationState.toStringOrNull())
-    }
+    _uiState.update { it.copy(lastName = finalName) }
   }
 
   /**
@@ -283,20 +200,7 @@ open class AddProfileViewModel(
    * @param description The new description string from the UI.
    */
   fun setDescription(description: String) {
-    val ValidationState = validateDescription(description)
-    _uiState.update {
-      it.copy(description = description, descriptionError = ValidationState.toStringOrNull())
-    }
-  }
-
-  /**
-   * Updates the selected country in the UI state and validates it.
-   *
-   * @param country The new country string from the UI.
-   */
-  fun setCountry(country: String) {
-    val ValidationState = validateCountry(country, countryToIsoCode)
-    _uiState.update { it.copy(country = country, countryError = ValidationState.toStringOrNull()) }
+    _uiState.update { it.copy(description = description) }
   }
 
   /**
@@ -307,8 +211,7 @@ open class AddProfileViewModel(
    */
   fun setDay(day: String) {
     val finalDay = day.filter { it.isDigit() }.take(InputLimits.DAY)
-    val dayResult = validateDay(finalDay)
-    _uiState.update { it.copy(day = finalDay, dayError = dayResult.toStringOrNull()) }
+    _uiState.update { it.copy(day = finalDay) }
   }
 
   /**
@@ -319,19 +222,7 @@ open class AddProfileViewModel(
    */
   fun setMonth(month: String) {
     val finalMonth = month.filter { it.isDigit() }.take(InputLimits.MONTH)
-    val monthResult = validateMonth(finalMonth)
-
-    val currentDayError = _uiState.value.dayError
-    val newDayError =
-        if (currentDayError == ErrorMessages.DATE_INVALID_LOGICAL) {
-          null
-        } else {
-          currentDayError
-        }
-
-    _uiState.update {
-      it.copy(month = finalMonth, monthError = monthResult.toStringOrNull(), dayError = newDayError)
-    }
+    _uiState.update { it.copy(month = finalMonth) }
   }
 
   /**
@@ -342,18 +233,54 @@ open class AddProfileViewModel(
    */
   fun setYear(year: String) {
     val finalYear = year.filter { it.isDigit() }.take(InputLimits.YEAR)
-    val yearResult = validateYear(finalYear)
+    _uiState.update { it.copy(year = finalYear) }
+  }
 
-    val currentDayError = _uiState.value.dayError
-    val newDayError =
-        if (currentDayError == ErrorMessages.DATE_INVALID_LOGICAL) {
-          null
-        } else {
-          currentDayError
+  fun setProfilePicture(context: Context, uri: Uri?) {
+    if (uri == null) {
+      _uiState.value = uiState.value.copy(profilePicture = null)
+    } else {
+      viewModelScope.launch(DefaultDP.io) {
+        // We redimension the image to have a 256256 image to reduce the space of the
+        // image.
+        val maxSize = Dimensions.ProfilePictureSize
+
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
+        context.contentResolver.openInputStream(uri)?.use { input ->
+          BitmapFactory.decodeStream(input, null, options)
         }
 
-    _uiState.update {
-      it.copy(year = finalYear, yearError = yearResult.toStringOrNull(), dayError = newDayError)
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+        if (height > maxSize || width > maxSize) {
+          val halfHeight = height / 2
+          val halfWidth = width / 2
+          while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
+            inSampleSize = 2
+          }
+        }
+
+        options.inSampleSize = inSampleSize
+        options.inJustDecodeBounds = false
+
+        val bitmap =
+            context.contentResolver.openInputStream(uri)?.use { input ->
+              BitmapFactory.decodeStream(input, null, options)
+            }
+
+        if (bitmap == null) {
+          Log.e("ImageError", "Failed to decode bitmap from URI $uri")
+        } else {
+          val stream = ByteArrayOutputStream()
+          // We compress the image with a low quality to reduce the space of the image.
+          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+          val byteArray = stream.toByteArray()
+          withContext(DefaultDP.main) {
+            _uiState.value = uiState.value.copy(profilePicture = byteArray)
+          }
+        }
+      }
     }
   }
 }

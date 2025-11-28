@@ -6,7 +6,9 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextClearance
@@ -15,7 +17,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.isoToCountryName
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.FormTestTags
@@ -95,7 +96,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     changeNameToBobAndVerify()
   }
 
-  private fun changeNameToBobAndVerify() {
+  private fun changeNameToBobAndVerify() = runTest {
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).performClick()
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).performClick()
@@ -112,7 +113,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).assertTextContains("Bob")
   }
 
-  private fun tabNavigationAndPrepareForEdit() {
+  private fun tabNavigationAndPrepareForEdit() = runTest {
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_SCREEN).assertIsDisplayed()
 
@@ -131,15 +132,13 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).assertIsDisplayed()
   }
 
-  private fun compareCreatedProfile() {
+  private fun compareCreatedProfile() = runTest {
     val createdUser = Firebase.auth.currentUser
     var createdUserProfile: UserProfile? = null
     assertNotNull(createdUser)
-    runTest {
-      // This delay avoid race conditions for the tags. Not the best but work for now
-      createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
-    }
-    assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile)
+    // This delay avoid race conditions for the tags. Not the best but work for now
+    createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
+    assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile.copy(country = "FR"))
   }
 
   private fun selectTagAndWait() {
@@ -156,7 +155,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
   }
 
-  private fun fillProfileDetailAndWait() {
+  private fun fillProfileDetailAndWait() = runTest {
     composeTestRule
         .onNodeWithTag(AddProfileScreenTestTags.USERNAME_FIELD)
         .performClick()
@@ -177,43 +176,23 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
         .performClick()
         .performTextInput(userTest.description!!)
 
-    // Wait 5 second max for the dropdown menu to appear
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.COUNTRY_FIELD).performClick()
+    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.DATE_OF_BIRTH_BUTTON).performClick()
 
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DROPDOWN_SCROLLING_MENU)
-        .performScrollToNode(
-            hasTestTag(
-                "${AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX}${isoToCountryName[userTest.country]}"))
+    composeTestRule.onNodeWithContentDescription("Switch to text input mode").performClick()
 
-    composeTestRule
-        .onNodeWithTag(
-            "${AddProfileScreenTestTags.COUNTRY_DROPDOWN_ITEM_PREFIX}${isoToCountryName[userTest.country]}")
-        .performClick()
+    composeTestRule.onNodeWithText("Date").performTextInput("12152005")
+    composeTestRule.onNodeWithText("OK").performClick()
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).isDisplayed()
+    }
 
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.DAY_FIELD)
-        .performClick()
-        .performTextInput("${userTest.dateOfBirth.dayOfMonth}")
-
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.MONTH_FIELD)
-        .performClick()
-        .performTextInput("${userTest.dateOfBirth.monthValue}")
-
-    composeTestRule
-        .onNodeWithTag(AddProfileScreenTestTags.YEAR_FIELD)
-        .performClick()
-        .performTextInput("${userTest.dateOfBirth.year}")
-
-    composeTestRule.onNodeWithTag(AddProfileScreenTestTags.SAVE_BUTTON).performClick()
-
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVE_BUTTON).isDisplayed()
     }
   }
 
-  private fun loginAndWait() {
+  private fun loginAndWait() = runTest {
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
@@ -231,6 +210,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
         .performTextInput(FAKE_EMAIL)
 
     composeTestRule.waitForIdle()
+
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
