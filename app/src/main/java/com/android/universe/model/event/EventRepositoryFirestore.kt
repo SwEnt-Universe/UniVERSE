@@ -314,7 +314,7 @@ class EventRepositoryFirestore(
     }
   }
 
-  suspend fun EventRepository.countEventsInViewport(viewport: VisibleRegion): Int {
+  override suspend fun countEventsInViewport(viewport: VisibleRegion): Int {
     val bounds = viewport.bounds
 
     return getAllEvents().count { event ->
@@ -322,7 +322,6 @@ class EventRepositoryFirestore(
       bounds.contains(geo)
     }
   }
-
   /**
    * Generates a new unique ID for an event.
    *

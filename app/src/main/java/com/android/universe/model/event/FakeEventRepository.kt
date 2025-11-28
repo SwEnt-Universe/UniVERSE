@@ -1,6 +1,8 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.user.UserProfile
+import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.map.display.map.VisibleRegion
 import java.util.UUID
 
 /**
@@ -105,6 +107,15 @@ class FakeEventRepository : EventRepository {
       val saved = e.copy(id = id)
       this.events.add(saved)
       saved
+    }
+  }
+
+  override suspend fun countEventsInViewport(viewport: VisibleRegion): Int {
+    val bounds = viewport.bounds
+
+    return getAllEvents().count { event ->
+      val geo = GeoPoint(event.location.latitude, event.location.longitude)
+      bounds.contains(geo)
     }
   }
 
