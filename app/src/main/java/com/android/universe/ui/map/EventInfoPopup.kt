@@ -98,6 +98,10 @@ private fun EventInfoPopUpPreview() {
   val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
 
   CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) {
-    EventInfoPopup(event = previewEvent, isUserParticipant = true, onDismiss = {}) {}
+    EventInfoPopup(
+        event = previewEvent,
+        isUserParticipant = true,
+        onDismiss = {},
+        onChatNavigate = { _, _ -> }) {}
   }
 }

@@ -97,7 +97,6 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   }
 
   private fun changeNameToBobAndVerify() = runTest {
-
     val uid = Firebase.auth.currentUser!!.uid
 
     composeTestRule.onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_$uid").performClick()
