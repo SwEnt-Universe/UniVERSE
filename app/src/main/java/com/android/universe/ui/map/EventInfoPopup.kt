@@ -12,14 +12,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.android.universe.model.event.Event
+import com.android.universe.model.location.Location
 import com.android.universe.ui.common.EventContentLayout
 import com.android.universe.ui.common.EventImageHelper
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import java.time.LocalDateTime
 
 /**
  * A popup component that displays detailed information about an event. Places an EventContentLayout
@@ -74,4 +81,27 @@ fun EventInfoPopup(
                   }
             }
       }
+}
+
+@Composable
+@Preview
+private fun EventInfoPopUpPreview() {
+  val previewEvent =
+      Event(
+          id = "preview",
+          title = "preview",
+          date = LocalDateTime.now(),
+          tags = emptySet(),
+          creator = "preview",
+          location = Location(0.0, 0.0))
+
+  val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
+
+  CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) {
+    EventInfoPopup(
+        event = previewEvent,
+        isUserParticipant = true,
+        onDismiss = {},
+        onChatNavigate = { _, _ -> }) {}
+  }
 }

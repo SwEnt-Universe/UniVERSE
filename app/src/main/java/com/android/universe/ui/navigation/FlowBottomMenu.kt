@@ -164,8 +164,8 @@ sealed class FlowTab(
  *   menu. Each tab has an associated icon, label, test tag, and onClick action.
  */
 @Composable
-fun FlowBottomMenu(flowTabs: List<FlowTab>) {
-  val selectedTabIndex = remember { mutableIntStateOf(-1) }
+fun FlowBottomMenu(flowTabs: List<FlowTab>, defaultSelectedTabIndex: Int = -1) {
+  val selectedTabIndex = remember { mutableIntStateOf(defaultSelectedTabIndex) }
 
   LiquidBottomTabs(
       selectedTabIndex = { selectedTabIndex.intValue },

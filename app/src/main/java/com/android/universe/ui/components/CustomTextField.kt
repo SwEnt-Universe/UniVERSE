@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -132,7 +134,7 @@ fun CustomTextField(
     // 1. The label
     Text(
         text = label,
-        style = MaterialTheme.typography.labelMedium,
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
         color = MaterialTheme.colorScheme.onBackground)
 
     // 2. The input row (Icon, field, Lock (optional))
@@ -142,7 +144,7 @@ fun CustomTextField(
                 .padding(top = 4.dp)
                 // Force the Row to a consistent height, matching the icon size.
                 // This prevents the underline from moving up/down if icons are absent.
-                .height(IconBoxSize),
+                .heightIn(min = IconBoxSize),
         verticalAlignment = Alignment.CenterVertically) {
           // 3. Leading icon
           if (leadingIcon != null) {
@@ -232,12 +234,13 @@ private fun CustomTextFieldPreview() {
       } else {
         ValidationState.Valid
       }
-
-  CustomTextField(
-      label = "Email",
-      placeholder = "Enter your email...",
-      value = email,
-      onValueChange = {},
-      leadingIcon = Icons.Default.Email,
-      validationState = emailValidation)
+  Surface(color = Color.White) {
+    CustomTextField(
+        label = "Email",
+        placeholder = "Enter your email...",
+        value = email,
+        onValueChange = {},
+        leadingIcon = Icons.Default.Email,
+        validationState = emailValidation)
+  }
 }

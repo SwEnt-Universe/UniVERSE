@@ -237,7 +237,7 @@ class SettingsViewModel(
     if (dayResult is ValidationState.Valid &&
         monthResult is ValidationState.Valid &&
         yearResult is ValidationState.Valid) {
-      logicalDateResult = validateBirthDate(day.toInt(), month.toInt(), year.toInt())
+      logicalDateResult = validateBirthDate(day, month, year)
     }
 
     // Use the same error derivation logic as AddProfileViewModel
@@ -393,7 +393,7 @@ class SettingsViewModel(
 
       val logicalRes =
           if (allValid) {
-            validateBirthDate(d.toInt(), m.toInt(), y.toInt())
+            validateBirthDate(d, m, y)
           } else ValidationState.Valid
 
       val (finalDayError, finalMonthError, finalYearError) =
