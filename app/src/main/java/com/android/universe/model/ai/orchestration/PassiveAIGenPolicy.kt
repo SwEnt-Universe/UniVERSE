@@ -1,5 +1,6 @@
 package com.android.universe.model.ai.orchestration
 
+import com.android.universe.model.ai.AIConfig.MAX_EVENT_PER_REQUEST
 import com.android.universe.model.ai.AIConfig.MAX_VIEWPORT_RADIUS_KM
 import com.android.universe.model.ai.AIConfig.MIN_EVENT_SPACING_KM
 import com.android.universe.model.ai.AIConfig.REQUEST_COOLDOWN
@@ -79,14 +80,24 @@ class PassiveAIGenPolicy {
      * with d^2. Their ratio gives the maximum number of evenly spaced events that can fit:
      * maxEvents ≈ (R / d)^2
      */
+    // 3. Compute max natural density
     val maxEventsAllowed = ((radiusKm / MIN_EVENT_SPACING_KM).pow(2)).toInt()
 
-    // Prevent overflow if viewport is extremely tiny
+    // Prevent zero or negative thresholds
     val threshold = maxEventsAllowed.coerceAtLeast(1)
 
-    // If we already have enough events, skip generation
+    // Already enough events?
     if (numEvents >= threshold) return Decision.Reject
 
-    return Decision.Accept(eventsToGenerate = threshold - numEvents)
+    // 4. Compute delta (missing events)
+    val deficit = threshold - numEvents
+
+    // 5. Apply upper cap from AIConfig
+    val capped = deficit.coerceAtMost(MAX_EVENT_PER_REQUEST)
+
+    // If after capping we have nothing to generate, reject
+    if (capped <= 0) return Decision.Reject
+
+    return Decision.Accept(eventsToGenerate = capped)
   }
 }

@@ -4,131 +4,134 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventDTO
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.utils.LoggerAI
 import java.time.LocalDateTime
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 
-/**
- * Parses JSON returned by the OpenAI event-generation API into domain-level [Event] objects.
- *
- * The parser handles:
- * - Stripping optional Markdown code fences
- * - Extracting the `"events"` array from the response
- * - Deserializing into [EventDTO] objects using Kotlinx Serialization
- * - Validating each DTO using [EventValidator]
- * - Converting DTOs into fully formed [Event] instances
- *
- * This object forms the bridge between raw AI output and the app's internal event model.
- */
 object ResponseParser {
-
-  private const val CREATOR = "OpenAI"
 
   private val json = Json {
     ignoreUnknownKeys = true
     coerceInputValues = true
   }
 
-  /**
-   * Represents the result of attempting to parse and validate a single [EventDTO].
-   *
-   * A DTO may either:
-   * - Produce a fully constructed domain [Event] (`Success`), or
-   * - Fail validation and record the associated exception (`Failure`).
-   */
-  sealed class EventParseResult {
-    data class Success(val event: Event) : EventParseResult()
+  // -------------------------------------------------------------------------
+  // PUBLIC ENTRYPOINT (never throws)
+  // -------------------------------------------------------------------------
+  fun parseEvents(rawJson: String): List<Event> {
+    LoggerAI.d("ResponseParser: Starting parse pipeline…")
 
-    data class Failure(val dto: EventDTO, val error: IllegalArgumentException) : EventParseResult()
-  }
-
-  /**
-   * The aggregated result of a lenient parse operation.
-   *
-   * Contains:
-   * - [events] — all successfully parsed, fully validated domain [Event] objects.
-   * - [failures] — all individual DTOs that failed validation, each with its error.
-   *
-   * This allows the caller to accept partial success while still inspecting or logging failures.
-   */
-  data class ParseOutcome(val events: List<Event>, val failures: List<EventParseResult.Failure>)
-
-  /**
-   * Parses OpenAI JSON output in:
-   * - Keeps all valid events.
-   * - Discards invalid ones.
-   * - Records per-item validation failures.
-   *
-   * Never throws for individual DTO validation errors.
-   *
-   * @param rawJson Raw JSON returned by the AI model (may include Markdown code fences).
-   * @return A [ParseOutcome] containing both valid events and detailed failure information.
-   * @throws IllegalStateException If the `"events"` field is missing entirely.
-   */
-  fun parseEvents(rawJson: String): ParseOutcome {
     val cleaned = cleanJson(rawJson)
+    LoggerAI.d("ResponseParser: Cleaned JSON (first 300 chars):\n${cleaned.take(300)}")
 
-    // Root object
-    val root = json.parseToJsonElement(cleaned).jsonObject
+    val root = parseRootObject(cleaned) ?: return fail("Root JSON object malformed")
+    val eventsElement = extractEventsArray(root) ?: return fail("Missing or invalid 'events' array")
+    val dtoList = decodeEventDTOs(eventsElement) ?: return fail("Failed to decode EventDTO list")
 
-    // Extract array
-    val eventsJson =
-        root["events"] ?: throw IllegalStateException("Missing 'events' field in OpenAI response")
+    LoggerAI.d("ResponseParser: Decoded ${dtoList.size} DTOs. Converting…")
 
-    // Decode into DTOs
-    val dtos: List<EventDTO> =
-        json.decodeFromJsonElement(
-            deserializer = ListSerializer(EventDTO.serializer()), element = eventsJson)
+    val events =
+      dtoList.mapNotNull { dto ->
+        convertToEvent(dto)
+      }
 
-    // Parse each DTO independently
-    val results = dtos.map(::parseEvent)
+    LoggerAI.d("ResponseParser: Successfully parsed ${events.size} events.")
 
-    val successes = results.filterIsInstance<EventParseResult.Success>().map { it.event }
-    val failures = results.filterIsInstance<EventParseResult.Failure>()
+    return events
+  }
 
-    return ParseOutcome(successes, failures)
+  // Convenience: return emptyList while logging an error
+  private fun fail(message: String): List<Event> {
+    LoggerAI.e("ResponseParser FAILURE: $message")
+    return emptyList()
   }
 
   // -------------------------------------------------------------------------
-  // Internal helpers
+  // STAGE 1 — clean markdown and whitespace
   // -------------------------------------------------------------------------
+  private fun cleanJson(raw: String): String =
+    raw.trim()
+      .removePrefix("```json")
+      .removePrefix("```")
+      .removeSuffix("```")
+      .trim()
 
-  /**
-   * Parses and validates a single [EventDTO] in lenient fashion.
-   * - If validation succeeds, returns [EventParseResult.Success].
-   * - If validation fails, returns [EventParseResult.Failure] containing the DTO and error.
-   *
-   * No exceptions propagate out of this function.
-   */
-  private fun parseEvent(dto: EventDTO): EventParseResult {
+  // -------------------------------------------------------------------------
+  // STAGE 2 — parse root object safely
+  // -------------------------------------------------------------------------
+  private fun parseRootObject(cleaned: String): JsonObject? {
     return try {
-      EventValidator.validate(dto)
-
-      val event =
-          Event(
-              id = "",
-              title = dto.title,
-              description = dto.description,
-              date = LocalDateTime.parse(dto.date),
-              tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
-              creator = CREATOR,
-              participants = emptySet(),
-              location = Location(dto.location.latitude, dto.location.longitude),
-          )
-
-      EventParseResult.Success(event)
-    } catch (e: IllegalArgumentException) {
-      EventParseResult.Failure(dto, e)
+      json.parseToJsonElement(cleaned).jsonObject
+    } catch (e: Exception) {
+      LoggerAI.e(
+        "ResponseParser: Failed at Stage 2 (parseRootObject). " +
+            "Error: ${e.message}\n" +
+            "Input snippet: ${cleaned.take(200)}"
+      )
+      null
     }
   }
 
-  /**
-   * Removes optional Markdown code fences from an OpenAI JSON string.
-   *
-   * @param raw The raw JSON string, possibly wrapped in Markdown fences.
-   * @return The cleaned JSON string, safe for deserialization.
-   */
-  private fun cleanJson(raw: String): String =
-      raw.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+  // -------------------------------------------------------------------------
+  // STAGE 3 — extract "events" array safely
+  // -------------------------------------------------------------------------
+  private fun extractEventsArray(root: JsonObject): JsonElement? {
+    return try {
+      root["events"]
+    } catch (e: Exception) {
+      LoggerAI.e(
+        "ResponseParser: Failed at Stage 3 (extractEventsArray). " +
+            "Error: ${e.message}"
+      )
+      null
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // STAGE 4 — decode DTO list safely
+  // -------------------------------------------------------------------------
+  private fun decodeEventDTOs(eventsElement: JsonElement): List<EventDTO>? {
+    return try {
+      json.decodeFromJsonElement(
+        deserializer = ListSerializer(EventDTO.serializer()),
+        element = eventsElement
+      )
+    } catch (e: Exception) {
+      LoggerAI.e(
+        "ResponseParser: Failed at Stage 4 (decodeEventDTOs). " +
+            "Error: ${e.message}\n" +
+            "Events raw: ${eventsElement.toString().take(300)}"
+      )
+      null
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // STAGE 5 — convert a single DTO to domain Event safely
+  // -------------------------------------------------------------------------
+  private fun convertToEvent(dto: EventDTO): Event? {
+    return try {
+      Event(
+        id = "",
+        title = dto.title,
+        description = dto.description,
+        date = LocalDateTime.parse(dto.date),
+        tags = dto.tags.mapNotNull(Tag::fromDisplayName).toSet(),
+        creator = "OpenAI",
+        participants = emptySet(),
+        location = Location(dto.location.latitude, dto.location.longitude),
+      )
+    } catch (e: Exception) {
+      LoggerAI.e(
+        "ResponseParser: Failed at Stage 5 (convertToEvent).\n" +
+            "DTO: $dto\n" +
+            "Error: ${e.message}"
+      )
+      null
+    }
+  }
 }
