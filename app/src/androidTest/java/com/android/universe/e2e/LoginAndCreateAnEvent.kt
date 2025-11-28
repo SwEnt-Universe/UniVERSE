@@ -87,6 +87,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     loginAndWait()
     clickOnMapAndCreateEvent()
     seeAddedEventInEventList()
+    clickOnEventInList()
   }
 
   private fun loginAndWait() {
@@ -194,5 +195,20 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onAllNodesWithTag("${EventContentTestTags.EVENT_DESCRIPTION}_0", useUnmergedTree = true)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.description!!)
+  }
+
+  private fun clickOnEventInList() {
+    composeTestRule
+        .onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0", useUnmergedTree = true)
+        .onFirst()
+        .performClick()
+
+    // Check that the event can be seen on the map
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule
+          .onAllNodesWithTag(MapScreenTestTags.EVENT_INFO_POPUP)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
   }
 }

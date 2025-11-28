@@ -28,14 +28,15 @@ import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import java.time.LocalDateTime
 
-/*
- * A popup component that displays detailed information about an event.
- * Places an EventContentLayout inside a LiquidBottomSheet with slide-in/out animations.
+/**
+ * A popup component that displays detailed information about an event. Places an EventContentLayout
+ * inside a LiquidBottomSheet with slide-in/out animations.
  *
  * @param event The [Event] object containing event details to be displayed.
  * @param isUserParticipant Boolean indicating if the user is a participant of the event.
  * @param onDismiss Callback function invoked when the popup is dismissed.
- * @param onToggleEventParticipation Callback function invoked when the user toggles their participation status.
+ * @param onToggleEventParticipation Callback function invoked when the user toggles their
+ *   participation status.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,7 @@ fun EventInfoPopup(
     event: Event,
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
+    onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
     onToggleEventParticipation: () -> Unit
 ) {
   Box(
@@ -74,8 +76,8 @@ fun EventInfoPopup(
                         imageContent = { EventImageHelper(eventImage = event.eventPicture) },
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,
-                        onChatClick = {},
-                        onLocationClick = null)
+                        onChatClick = { onChatNavigate(event.id, event.title) },
+                    )
                   }
             }
       }
