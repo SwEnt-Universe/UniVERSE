@@ -19,10 +19,10 @@ import com.android.universe.model.isoToCountryName
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.FormTestTags
+import com.android.universe.ui.common.ProfileContentTestTags
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
-import com.android.universe.ui.profile.UserProfileScreenTestTags
 import com.android.universe.ui.profileCreation.AddProfileScreenTestTags
 import com.android.universe.ui.profileSettings.SettingsTestTags
 import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
@@ -96,7 +96,9 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   }
 
   private fun changeNameToBobAndVerify() {
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).performClick()
+    val uid = Firebase.auth.currentUser!!.uid
+
+    composeTestRule.onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_$uid").performClick()
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).performClick()
     composeTestRule
@@ -122,13 +124,14 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
     composeTestRule.waitForIdle()
+    val uid = Firebase.auth.currentUser!!.uid
+    composeTestRule.onNodeWithTag("${ProfileContentTestTags.FULL_NAME}_$uid").assertIsDisplayed()
 
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.AGE).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.DESCRIPTION).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.COUNTRY).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.FIRSTNAME).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.LASTNAME).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(UserProfileScreenTestTags.EDIT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${ProfileContentTestTags.DESCRIPTION}_$uid").assertIsDisplayed()
+
+    composeTestRule
+        .onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_$uid")
+        .assertIsDisplayed()
   }
 
   private fun compareCreatedProfile() {
