@@ -25,6 +25,7 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.theme.Dimensions
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
+import com.tomtom.sdk.map.display.map.VisibleRegion
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -370,5 +371,26 @@ class MapViewModel(
               (bmp.height * Dimensions.ImageScale).toInt())
       BackgroundSnapshotRepository.updateSnapshot(scaled)
     }
+  }
+
+  /**
+   * Represents the geographic area currently visible on the map.
+   *
+   * Used to anchor AI event output to what the user sees on the map at this moment.
+   *
+   * A TomTom [VisibleRegion] contains four corner coordinates:
+   * - `topLeft`
+   * - `topRight`
+   * - `bottomLeft`
+   * - `bottomRight`
+   *
+   * These define the exact rectangular viewport that the user is currently looking at. This region
+   * is recalculated whenever the map camera moves or zooms.
+   */
+  private val _visibleRegion = MutableStateFlow<VisibleRegion?>(null)
+  val visibleRegion: StateFlow<VisibleRegion?> = _visibleRegion.asStateFlow()
+
+  fun onViewportChanged(region: VisibleRegion) {
+    _visibleRegion.value = region
   }
 }

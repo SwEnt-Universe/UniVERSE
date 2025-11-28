@@ -259,6 +259,11 @@ fun MapScreen(
 
                     map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
                     viewModel.nowInteractable()
+
+                    // --- Listener for viewport changes (used in AIEventGen) –––
+                    map.addCameraChangeListener {
+                      map.visibleRegion.onSuccess { region -> viewModel.onViewportChanged(region) }
+                    }
                   })
 
               if (uiState.selectedLocation != null) {
