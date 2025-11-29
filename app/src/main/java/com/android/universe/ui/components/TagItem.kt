@@ -48,7 +48,7 @@ object TagItemTestTag {
 
 /** Contain the dimensions used specially in this composable. */
 object TagItemDefaults {
-  const val HEIGHT_TAG = 30f
+  const val HEIGHT_TAG = 36f
   const val WIDTH_TAG = 110f
   val SizeIcon = 18.dp
   val SelectedBorderWidth = 3.dp
@@ -98,7 +98,7 @@ fun TagItem(
       isInteractive = isSelectable,
       height = heightTag,
       width = TagItemDefaults.WIDTH_TAG,
-      color = buttonColor,
+      tint = buttonColor,
       contentPadding = 4.dp,
       modifier =
           modifier

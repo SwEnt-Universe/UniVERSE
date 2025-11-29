@@ -90,7 +90,6 @@ fun ProfileContentLayout(
             tags = userProfile.tags.toList(),
             isSelectable = false,
             isSelected = { false },
-            background = true,
             heightList = heightTagList,
             modifierBox =
                 Modifier.testTag("${ProfileContentTestTags.TAGS_COLUMN}_${userProfile.uid}")

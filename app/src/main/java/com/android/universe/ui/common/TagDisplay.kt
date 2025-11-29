@@ -7,16 +7,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -27,32 +22,9 @@ import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.TagItem
 import com.android.universe.ui.components.TagItemDefaults
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.LocalIsDarkTheme
-import com.android.universe.ui.theme.TagBackgroundDark
-import com.android.universe.ui.theme.TagBackgroundLight
 
 /** Contain the tag for the tests. */
 object TagGroupTestTag {
-  fun tagTopFade(tags: List<Tag>): String {
-    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
-    return "Top fade$key"
-  }
-
-  fun tagBottomFade(tags: List<Tag>): String {
-    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
-    return "Bottom fade$key"
-  }
-
-  fun tagRightFade(tags: List<Tag>): String {
-    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
-    return "Right Fade$key"
-  }
-
-  fun tagLeftFade(tags: List<Tag>): String {
-    val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
-    return "Left fade$key"
-  }
-
   fun tagColumn(tags: List<Tag>): String {
     val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
     return "Column$key"
@@ -70,7 +42,7 @@ object TagGroupDefaults {
   val DefaultWidth = 500.dp
   val DefaultOuterPaddingH = 8.dp
   val DefaultOuterPaddingV = 12.dp
-  val DefaultInterPaddingH = 12.dp
+  val DefaultInterPaddingH = 8.dp
   val DefaultInterPaddingV = 12.dp
   val CornerShapeDp = 16.dp
   val titleFontSize = 28.sp
@@ -110,7 +82,6 @@ fun TagColumn(
     tags: List<Tag>,
     modifierTags: Modifier = Modifier,
     modifierBox: Modifier = Modifier,
-    modifierFade: Modifier = Modifier,
     heightTag: Float = TagItemDefaults.HEIGHT_TAG,
     heightList: Dp = TagGroupDefaults.DefaultHeight,
     isSelectable: Boolean = true,
@@ -119,68 +90,28 @@ fun TagColumn(
     onTagReSelect: (Tag) -> Unit = {},
     tagElement: ((Tag) -> String)? = null,
     state: LazyListState = rememberLazyListState(),
-    background: Boolean = false,
-    cornerShapeDp: Dp = TagGroupDefaults.CornerShapeDp,
-    fade: Boolean = true,
     fadeHeight: Dp = heightList * 0.1f
 ) {
-  val isDark = LocalIsDarkTheme.current
-  val backGround =
-      (if (isDark) {
-        TagBackgroundDark
-      } else {
-        TagBackgroundLight
-      })
-  Box(
+  LazyColumn(
+      state = state,
+      verticalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingV),
+      contentPadding = PaddingValues(vertical = TagGroupDefaults.DefaultInterPaddingV),
       modifier =
           modifierBox
               .height(heightList)
-              .then(
-                  if (background)
-                      Modifier.clip(RoundedCornerShape(cornerShapeDp)).background(backGround)
-                  else Modifier)) {
-        LazyColumn(
-            state = state,
-            verticalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingV),
-            contentPadding = PaddingValues(vertical = TagGroupDefaults.DefaultInterPaddingV),
-            modifier = Modifier.testTag(TagGroupTestTag.tagColumn(tags)).align(Alignment.TopCenter)) {
-              items(tags) { tag ->
-                TagItem(
-                    tag = tag,
-                    heightTag = heightTag,
-                    isSelectable = isSelectable,
-                    isSelected = isSelected(tag),
-                    onSelect = { tag -> onTagSelect(tag) },
-                    onDeSelect = { tag -> onTagReSelect(tag) },
-                    modifier =
-                        modifierTags.then(
-                            if (tagElement != null) Modifier.testTag(tagElement(tag))
-                            else Modifier))
-              }
-            }
-        if (fade) {
-          // Top fade
-          Box(
+              .testTag(TagGroupTestTag.tagColumn(tags))
+  ) {
+        items(tags) { tag ->
+          TagItem(
+              tag = tag,
+              heightTag = heightTag,
+              isSelectable = isSelectable,
+              isSelected = isSelected(tag),
+              onSelect = { tag -> onTagSelect(tag) },
+              onDeSelect = { tag -> onTagReSelect(tag) },
               modifier =
-                  modifierFade
-                      .testTag(TagGroupTestTag.tagTopFade(tags))
-                      .fillMaxWidth()
-                      .height(fadeHeight)
-                      .background(
-                          Brush.verticalGradient(
-                              colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent))))
-
-          // Bottom fade
-          Box(
-              modifier =
-                  modifierFade
-                      .testTag(TagGroupTestTag.tagBottomFade(tags))
-                      .fillMaxWidth()
-                      .height(fadeHeight)
-                      .align(Alignment.BottomCenter)
-                      .background(
-                          Brush.verticalGradient(
-                              colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f)))))
+                  modifierTags.then(
+                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
         }
       }
 }
@@ -217,7 +148,6 @@ fun TagRow(
     tags: List<Tag>,
     modifierTags: Modifier = Modifier,
     modifierBox: Modifier = Modifier,
-    modifierFade: Modifier = Modifier,
     heightTag: Float = TagItemDefaults.HEIGHT_TAG,
     widthList: Dp = TagGroupDefaults.DefaultWidth,
     isSelectable: Boolean = true,
@@ -226,69 +156,26 @@ fun TagRow(
     onTagReSelect: (Tag) -> Unit = {},
     tagElement: ((Tag) -> String)? = null,
     state: LazyListState = rememberLazyListState(),
-    background: Boolean = false,
-    cornerShapeDp: Dp = TagGroupDefaults.CornerShapeDp,
-    fade: Boolean = true,
-    fadeWidth: Dp = widthList * 0.1f
 ) {
-  val isDark = LocalIsDarkTheme.current
-  val backGround =
-      (if (isDark) {
-        TagBackgroundDark
-      } else {
-        TagBackgroundLight
-      })
-  Box(
+  LazyRow(
+      state = state,
+      horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
+      contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
       modifier =
-          modifierBox
-              .width(widthList)
-              .then(
-                  if (background)
-                      Modifier.clip(RoundedCornerShape(cornerShapeDp)).background(backGround)
-                  else Modifier)) {
-        LazyRow(
-            state = state,
-            horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
-            contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
-            modifier =
-                Modifier.testTag(TagGroupTestTag.tagRow(tags)).align(Alignment.CenterStart)) {
-              items(tags) { tag ->
-                TagItem(
-                    tag = tag,
-                    heightTag = heightTag,
-                    isSelectable = isSelectable,
-                    isSelected = isSelected(tag),
-                    onSelect = { tag -> onTagSelect(tag) },
-                    onDeSelect = { tag -> onTagReSelect(tag) },
-                    modifier =
-                        modifierTags.then(
-                            if (tagElement != null) Modifier.testTag(tagElement(tag))
-                            else Modifier))
-              }
-            }
-        if (fade) {
-          // Left fade
-          Box(
+          modifierBox.width(widthList)
+              .testTag(TagGroupTestTag.tagRow(tags))
+  ) {
+        items(tags) { tag ->
+          TagItem(
+              tag = tag,
+              heightTag = heightTag,
+              isSelectable = isSelectable,
+              isSelected = isSelected(tag),
+              onSelect = { tag -> onTagSelect(tag) },
+              onDeSelect = { tag -> onTagReSelect(tag) },
               modifier =
-                  modifierFade
-                      .testTag(TagGroupTestTag.tagLeftFade(tags))
-                      .fillMaxHeight()
-                      .width(fadeWidth)
-                      .background(
-                          Brush.horizontalGradient(
-                              colors = listOf(Color.Gray.copy(alpha = 0.7f), Color.Transparent))))
-
-          // Bottom fade
-          Box(
-              modifier =
-                  modifierFade
-                      .testTag(TagGroupTestTag.tagRightFade(tags))
-                      .fillMaxHeight()
-                      .width(fadeWidth)
-                      .align(Alignment.TopEnd)
-                      .background(
-                          Brush.horizontalGradient(
-                              colors = listOf(Color.Transparent, Color.Gray.copy(alpha = 0.7f)))))
+                  modifierTags.then(
+                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
         }
       }
 }
@@ -329,7 +216,7 @@ fun TagRow(
  * @param displayText If true, the group name is displayed above the tags.
  * @param tagElement Optional lambda that returns a unique string for each tag, useful for testing.
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagGroup(
     modifierColumn: Modifier = Modifier,
@@ -349,48 +236,72 @@ fun TagGroup(
     displayText: Boolean = true,
     tagElement: ((Tag) -> String)? = null
 ) {
-  LiquidBox(modifier = Modifier.fillMaxWidth().height(height), shape = RoundedCornerShape(24.dp)) {
-    Column(
-        modifier = modifierColumn.padding(horizontal = outerPaddingH).fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-          if (displayText) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier =
-                    Modifier.padding(Dimensions.PaddingLarge)
+    LiquidBox(
+        modifier = Modifier.fillMaxWidth().height(height),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(
+            modifier = modifierColumn
+                .fillMaxWidth()
+                .padding(horizontal = outerPaddingH),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingMedium)
+        ) {
+            if (displayText) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(TagGroupDefaults.textSectionSize)
-                        .padding(vertical = Dimensions.PaddingSmall),
-                fontSize = TagGroupDefaults.titleFontSize,
-                lineHeight = TagGroupDefaults.titleDefaultLineSize,
-                textAlign = TextAlign.Center)
-          }
-          FlowRow(
-              modifier =
-                  modifierFlowRow
-                      .padding(horizontal = interPaddingH, vertical = interPaddingV)
-                      .fillMaxWidth()
-                      .verticalScroll(rememberScrollState()),
-              horizontalArrangement = Arrangement.spacedBy(interPaddingH, Alignment.CenterHorizontally),
-              verticalArrangement = Arrangement.spacedBy(interPaddingV)
-              ) {
-                tagList.forEach { tag ->
-                  TagItem(
-                      tag = tag,
-                      heightTag = heightTag,
-                      isSelectable = isSelectable,
-                      isSelected = selectedTags.contains(tag),
-                      onSelect = { tag -> onTagSelect(tag) },
-                      onDeSelect = { tag -> onTagReSelect(tag) },
-                      modifier =
-                          Modifier.then(
-                              if (tagElement != null) Modifier.testTag(tagElement(tag))
-                              else Modifier
-                          )
-                  )
+                        .padding(top = Dimensions.PaddingMedium),
+                    fontSize = TagGroupDefaults.titleFontSize,
+                    lineHeight = TagGroupDefaults.titleDefaultLineSize,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            val chunkedTags = tagList.chunked(3)
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(bottom = outerPaddingV),
+                verticalArrangement = Arrangement.spacedBy(interPaddingV)
+            ) {
+                items(chunkedTags) { rowTags ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(interPaddingH)
+                    ) {
+                        rowTags.forEach { tag ->
+                            Box(
+                                modifier = Modifier.weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                TagItem(
+                                    tag = tag,
+                                    heightTag = heightTag,
+                                    isSelectable = isSelectable,
+                                    isSelected = selectedTags.contains(tag),
+                                    onSelect = { onTagSelect(tag) },
+                                    onDeSelect = { onTagReSelect(tag) },
+                                    modifier = Modifier.then(
+                                        if (tagElement != null) Modifier.testTag(tagElement(tag))
+                                        else Modifier
+                                    )
+                                )
+                            }
+                        }
+
+                        val missingItems = 3 - rowTags.size
+                        repeat(missingItems) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
-              }
+            }
         }
-  }
+    }
 }

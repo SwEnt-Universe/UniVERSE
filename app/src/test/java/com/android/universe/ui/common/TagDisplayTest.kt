@@ -255,26 +255,6 @@ class TagDisplayTest {
   }
 
   @Test
-  fun tagColumn_displaysFade() {
-    composeTestRule.setContentWithStubBackdrop {
-      TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = true)
-    }
-
-    composeTestRule.onNodeWithTag(TagGroupTestTag.tagBottomFade(sampleTags)).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(TagGroupTestTag.tagTopFade(sampleTags)).assertIsDisplayed()
-  }
-
-  @Test
-  fun tagColumn_displaysNoFadeWhenFalse() {
-    composeTestRule.setContentWithStubBackdrop {
-      TagColumn(tags = sampleTags, onTagSelect = {}, isSelected = { false }, fade = false)
-    }
-
-    composeTestRule.onNodeWithText(TagGroupTestTag.tagBottomFade(sampleTags)).assertIsNotDisplayed()
-    composeTestRule.onNodeWithText(TagGroupTestTag.tagTopFade(sampleTags)).assertIsNotDisplayed()
-  }
-
-  @Test
   fun tagColumn_isScrollable() {
     composeTestRule.setContentWithStubBackdrop {
       TagColumn(

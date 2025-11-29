@@ -32,13 +32,14 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -77,9 +78,10 @@ fun LiquidButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isInteractive: Boolean = true,
+    tint: Color = Color.Unspecified,
     height: Float = 48f,
     width: Float = 192f,
-    color: Color = MaterialTheme.colorScheme.background,
+    surfaceColor: Color = Color.Unspecified,
     contentPadding: Dp = 16.dp,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -87,7 +89,6 @@ fun LiquidButton(
   val backdrop = LocalLayerBackdrop.current
   val interactiveHighlight =
       remember(animationScope) { InteractiveHighlight(animationScope = animationScope) }
-  val containerColor = color.copy(alpha = 0.4f)
   Row(
       modifier
           .drawBackdrop(
@@ -129,7 +130,15 @@ fun LiquidButton(
                   } else {
                     null
                   },
-              onDrawSurface = { drawRect(containerColor) })
+              onDrawSurface = {
+                  if (tint.isSpecified) {
+                      drawRect(tint, blendMode = BlendMode.Hue)
+                      drawRect(tint.copy(alpha = 0.75f))
+                  }
+                  if (surfaceColor.isSpecified) {
+                      drawRect(surfaceColor)
+                  }
+              })
           .clickable(
               interactionSource = null,
               enabled = enabled,
