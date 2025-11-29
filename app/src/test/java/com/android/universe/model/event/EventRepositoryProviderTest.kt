@@ -3,6 +3,8 @@ package com.android.universe.model.event
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.EventTestData
+import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.map.display.map.VisibleRegion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -41,6 +43,15 @@ class EventRepositoryProviderTest {
           override suspend fun deleteEvent(eventId: String) {}
 
           override suspend fun persistAIEvents(events: List<Event>): List<Event> = events
+
+          override suspend fun countEventsInViewport(viewport: VisibleRegion): Int {
+            val bounds = viewport.bounds
+
+            return getAllEvents().count { event ->
+              val geo = GeoPoint(event.location.latitude, event.location.longitude)
+              bounds.contains(geo)
+            }
+          }
 
           override suspend fun getNewID(): String {
             return "new_id"
