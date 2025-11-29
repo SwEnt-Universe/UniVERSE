@@ -70,8 +70,8 @@ object TagGroupDefaults {
   val DefaultWidth = 500.dp
   val DefaultOuterPaddingH = 8.dp
   val DefaultOuterPaddingV = 12.dp
-  val DefaultInterPaddingH = 8.dp
-  val DefaultInterPaddingV = 4.dp
+  val DefaultInterPaddingH = 12.dp
+  val DefaultInterPaddingV = 12.dp
   val CornerShapeDp = 16.dp
   val titleFontSize = 28.sp
   val textSectionSize = 72.dp
@@ -141,8 +141,9 @@ fun TagColumn(
                   else Modifier)) {
         LazyColumn(
             state = state,
-            modifier =
-                Modifier.testTag(TagGroupTestTag.tagColumn(tags)).align(Alignment.TopCenter)) {
+            verticalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingV),
+            contentPadding = PaddingValues(vertical = TagGroupDefaults.DefaultInterPaddingV),
+            modifier = Modifier.testTag(TagGroupTestTag.tagColumn(tags)).align(Alignment.TopCenter)) {
               items(tags) { tag ->
                 TagItem(
                     tag = tag,
@@ -247,6 +248,8 @@ fun TagRow(
                   else Modifier)) {
         LazyRow(
             state = state,
+            horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
+            contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
             modifier =
                 Modifier.testTag(TagGroupTestTag.tagRow(tags)).align(Alignment.CenterStart)) {
               items(tags) { tag ->
@@ -369,7 +372,9 @@ fun TagGroup(
                       .padding(horizontal = interPaddingH, vertical = interPaddingV)
                       .fillMaxWidth()
                       .verticalScroll(rememberScrollState()),
-              horizontalArrangement = Arrangement.Center) {
+              horizontalArrangement = Arrangement.spacedBy(interPaddingH, Alignment.CenterHorizontally),
+              verticalArrangement = Arrangement.spacedBy(interPaddingV)
+              ) {
                 tagList.forEach { tag ->
                   TagItem(
                       tag = tag,
@@ -379,10 +384,11 @@ fun TagGroup(
                       onSelect = { tag -> onTagSelect(tag) },
                       onDeSelect = { tag -> onTagReSelect(tag) },
                       modifier =
-                          Modifier.padding(Dimensions.PaddingMedium)
-                              .then(
-                                  if (tagElement != null) Modifier.testTag(tagElement(tag))
-                                  else Modifier))
+                          Modifier.then(
+                              if (tagElement != null) Modifier.testTag(tagElement(tag))
+                              else Modifier
+                          )
+                  )
                 }
               }
         }

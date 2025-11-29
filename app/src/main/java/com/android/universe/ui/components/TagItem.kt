@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.theme.CapsuleLarge
@@ -48,7 +49,7 @@ object TagItemTestTag {
 /** Contain the dimensions used specially in this composable. */
 object TagItemDefaults {
   const val HEIGHT_TAG = 30f
-  const val WIDTH_TAG = 160f
+  const val WIDTH_TAG = 110f
   val SizeIcon = 18.dp
   val SelectedBorderWidth = 3.dp
 }
@@ -98,6 +99,7 @@ fun TagItem(
       height = heightTag,
       width = TagItemDefaults.WIDTH_TAG,
       color = buttonColor,
+      contentPadding = 4.dp,
       modifier =
           modifier
               .testTag(TagItemTestTag.tagButton(tag))
@@ -116,7 +118,8 @@ fun TagItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
               tag.displayName,
-              fontSize = MaterialTheme.typography.labelMedium.fontSize,
+              fontSize = MaterialTheme.typography.labelSmall.fontSize,
+              fontWeight = FontWeight.Bold,
               modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
           if (isSelected) {
             Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
