@@ -1,14 +1,7 @@
 package com.android.universe.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,13 +12,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
-import com.android.universe.ui.theme.CapsuleLarge
-import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.IconDark
-import com.android.universe.ui.theme.IconLight
-import com.android.universe.ui.theme.LocalIsDarkTheme
-import com.android.universe.ui.theme.TagSelectedBorderDark
-import com.android.universe.ui.theme.TagSelectedBorderLight
 import com.android.universe.ui.theme.tagColor
 
 /** Contain the tag for the tests. */
@@ -50,8 +36,6 @@ object TagItemTestTag {
 object TagItemDefaults {
   const val HEIGHT_TAG = 36f
   const val WIDTH_TAG = 110f
-  val SizeIcon = 18.dp
-  val SelectedBorderWidth = 3.dp
 }
 
 /**
@@ -82,59 +66,32 @@ fun TagItem(
     onSelect: (Tag) -> Unit,
     onDeSelect: (Tag) -> Unit
 ) {
-  val buttonColor by
-      animateColorAsState(
-          targetValue = tagColor(category = tag.category.displayName, isSelected = isSelected))
-  val isDark = LocalIsDarkTheme.current
-  LiquidButton(
-      onClick = {
-        if (isSelected) {
-          onDeSelect(tag)
-        } else {
-          onSelect(tag)
-        }
-      },
-      enabled = isSelectable,
-      isInteractive = isSelectable,
-      height = heightTag,
-      width = TagItemDefaults.WIDTH_TAG,
-      tint = buttonColor,
-      contentPadding = 4.dp,
-      modifier =
-          modifier
-              .testTag(TagItemTestTag.tagButton(tag))
-              .then(
-                  if (isSelected)
-                      Modifier.border(
-                          width = TagItemDefaults.SelectedBorderWidth,
-                          color =
-                              if (isDark) {
-                                TagSelectedBorderDark
-                              } else {
-                                TagSelectedBorderLight
-                              },
-                          shape = CapsuleLarge)
-                  else Modifier)) {
+    val buttonColor by
+    animateColorAsState(
+        targetValue = tagColor(category = tag.category.displayName, isSelected = isSelected))
+
+    LiquidButton(
+        onClick = {
+            if (isSelected) {
+                onDeSelect(tag)
+            } else {
+                onSelect(tag)
+            }
+        },
+        enabled = isSelectable,
+        isInteractive = isSelectable,
+        height = heightTag,
+        width = TagItemDefaults.WIDTH_TAG,
+        tint = buttonColor,
+        contentPadding = 4.dp,
+        modifier = modifier.testTag(TagItemTestTag.tagButton(tag))
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Text(
-              tag.displayName,
-              fontSize = MaterialTheme.typography.labelSmall.fontSize,
-              fontWeight = FontWeight.Bold,
-              modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
-          if (isSelected) {
-            Spacer(modifier = Modifier.width(Dimensions.SpacerSmall))
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Selected",
-                tint =
-                    if (isDark) {
-                      IconDark
-                    } else {
-                      IconLight
-                    },
-                modifier =
-                    Modifier.testTag(TagItemTestTag.tagIcon(tag)).size(TagItemDefaults.SizeIcon))
-          }
+            Text(
+                tag.displayName,
+                fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
         }
-      }
+    }
 }

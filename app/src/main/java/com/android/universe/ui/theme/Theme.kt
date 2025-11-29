@@ -136,36 +136,17 @@ fun UniverseTheme(
  */
 @Composable
 fun tagColor(category: String, isSelected: Boolean = false): Color {
-  val isDark = LocalIsDarkTheme.current
-
-  return when (category) {
-    "Music" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagMusicDark else TagMusicLight
-    "Sport" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagSportDark else TagSportLight
-    "Food" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagFoodDark else TagFoodLight
-    "Art" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagArtDark else TagArtLight
-    "Travel" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTravelDark else TagTravelLight
-    "Games" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagGamesDark else TagGamesLight
-    "Technology" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTechnologyDark else TagTechnologyLight
-    "Topic" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTopicDark else TagTopicLight
-
-    else -> MaterialTheme.colorScheme.primary
-  }
+    return when (category) {
+        "Music" -> if (isSelected) TagMusicSelected else TagMusic
+        "Sport" -> if (isSelected) TagSportSelected else TagSport
+        "Food" -> if (isSelected) TagFoodSelected else TagFood
+        "Art" -> if (isSelected) TagArtSelected else TagArt
+        "Travel" -> if (isSelected) TagTravelSelected else TagTravel
+        "Games" -> if (isSelected) TagGamesSelected else TagGames
+        "Technology" -> if (isSelected) TagTechnologySelected else TagTechnology
+        "Topic" -> if (isSelected) TagTopicSelected else TagTopic
+        else -> MaterialTheme.colorScheme.primary
+    }
 }
 
 object UniverseTheme {
