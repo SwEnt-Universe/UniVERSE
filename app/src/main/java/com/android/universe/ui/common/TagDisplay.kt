@@ -101,8 +101,8 @@ fun TagColumn(
     fade: Boolean = true,
     fadeHeight: Dp = heightList * 0.1f
 ) {
-    val density = LocalDensity.current
-    val fadeHeightPx = with(density) { fadeHeight.toPx() }
+  val density = LocalDensity.current
+  val fadeHeightPx = with(density) { fadeHeight.toPx() }
 
   LazyColumn(
       state = state,
@@ -114,22 +114,20 @@ fun TagColumn(
               .testTag(TagGroupTestTag.tagColumn(tags))
               .then(
                   if (fade) {
-                      Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                          .drawWithContent {
-                              drawContent()
-                              val transparent = Color.Black.copy(alpha = 0f)
-                              val opaque = Color.Black
-                              val brush =
-                                  Brush.verticalGradient(
-                                      0f to transparent,
-                                      (fadeHeightPx / size.height) to opaque,
-                                      ((size.height - fadeHeightPx) / size.height) to opaque,
-                                      1f to transparent
-                                  )
-                              drawRect(brush = brush, blendMode = BlendMode.DstIn)
-                          }
-                  } else Modifier)
-  ) {
+                    Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                        .drawWithContent {
+                          drawContent()
+                          val transparent = Color.Black.copy(alpha = 0f)
+                          val opaque = Color.Black
+                          val brush =
+                              Brush.verticalGradient(
+                                  0f to transparent,
+                                  (fadeHeightPx / size.height) to opaque,
+                                  ((size.height - fadeHeightPx) / size.height) to opaque,
+                                  1f to transparent)
+                          drawRect(brush = brush, blendMode = BlendMode.DstIn)
+                        }
+                  } else Modifier)) {
         items(tags) { tag ->
           TagItem(
               tag = tag,
@@ -188,50 +186,46 @@ fun TagRow(
     fade: Boolean = true,
     fadeWidth: Dp = widthList * 0.1f
 ) {
-    val density = LocalDensity.current
-    val fadeWidthPx = with(density) { fadeWidth.toPx() }
+  val density = LocalDensity.current
+  val fadeWidthPx = with(density) { fadeWidth.toPx() }
 
-    LazyRow(
-        state = state,
-        horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
-        contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
-        modifier =
-            modifierBox.width(widthList)
-                .testTag(TagGroupTestTag.tagRow(tags))
-                .then(
-                    if (fade) {
-                        Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                            .drawWithContent {
-                                drawContent()
-                                val transparent = Color.Black.copy(alpha = 0f)
-                                val opaque = Color.Black
-                                val brush =
-                                    Brush.horizontalGradient(
-                                        0f to transparent,
-                                        (fadeWidthPx / size.width) to opaque,
-                                        ((size.width - fadeWidthPx) / size.width) to opaque,
-                                        1f to transparent
-                                    )
-                                drawRect(brush = brush, blendMode = BlendMode.DstIn)
-                            }
-                    } else Modifier
-                )
-    ) {
+  LazyRow(
+      state = state,
+      horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
+      contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
+      modifier =
+          modifierBox
+              .width(widthList)
+              .testTag(TagGroupTestTag.tagRow(tags))
+              .then(
+                  if (fade) {
+                    Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                        .drawWithContent {
+                          drawContent()
+                          val transparent = Color.Black.copy(alpha = 0f)
+                          val opaque = Color.Black
+                          val brush =
+                              Brush.horizontalGradient(
+                                  0f to transparent,
+                                  (fadeWidthPx / size.width) to opaque,
+                                  ((size.width - fadeWidthPx) / size.width) to opaque,
+                                  1f to transparent)
+                          drawRect(brush = brush, blendMode = BlendMode.DstIn)
+                        }
+                  } else Modifier)) {
         items(tags) { tag ->
-            TagItem(
-                tag = tag,
-                heightTag = heightTag,
-                isSelectable = isSelectable,
-                isSelected = isSelected(tag),
-                onSelect = { tag -> onTagSelect(tag) },
-                onDeSelect = { tag -> onTagReSelect(tag) },
-                modifier =
-                    modifierTags.then(
-                        if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier
-                    )
-            )
+          TagItem(
+              tag = tag,
+              heightTag = heightTag,
+              isSelectable = isSelectable,
+              isSelected = isSelected(tag),
+              onSelect = { tag -> onTagSelect(tag) },
+              onDeSelect = { tag -> onTagReSelect(tag) },
+              modifier =
+                  modifierTags.then(
+                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
         }
-    }
+      }
 }
 
 /**
@@ -292,95 +286,86 @@ fun TagGroup(
     fade: Boolean = true,
     fadeHeight: Dp = height * 0.1f
 ) {
-    val density = LocalDensity.current
-    val fadeHeightPx = with(density) { fadeHeight.toPx() }
-    val scrollState = rememberScrollState()
+  val density = LocalDensity.current
+  val fadeHeightPx = with(density) { fadeHeight.toPx() }
+  val scrollState = rememberScrollState()
 
-    LiquidBox(
-        modifier = Modifier.fillMaxWidth().heightIn(max = height),
-        shape = RoundedCornerShape(24.dp)
-    ) {
+  LiquidBox(
+      modifier = Modifier.fillMaxWidth().heightIn(max = height),
+      shape = RoundedCornerShape(24.dp)) {
         Column(
-            modifier = modifierColumn
-                .fillMaxWidth()
-                .padding(horizontal = outerPaddingH),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (displayText) {
+            modifier = modifierColumn.fillMaxWidth().padding(horizontal = outerPaddingH),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+              if (displayText) {
                 Text(
                     title,
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = outerPaddingV, bottom = Dimensions.PaddingSmall),
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(top = outerPaddingV, bottom = Dimensions.PaddingSmall),
                     fontSize = TagGroupDefaults.titleFontSize,
                     lineHeight = TagGroupDefaults.titleDefaultLineSize,
-                    textAlign = TextAlign.Center
-                )
-            }
+                    textAlign = TextAlign.Center)
+              }
 
-            val chunkedTags = tagList.chunked(3)
+              val chunkedTags = tagList.chunked(3)
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = false)
-                    .then(
-                        if (fade) {
-                            Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                                .drawWithContent {
-                                    drawContent()
-                                    val brush = Brush.verticalGradient(
-                                        0f to Color.Transparent,
-                                        (fadeHeightPx / size.height) to Color.Black,
-                                        ((size.height - fadeHeightPx) / size.height) to Color.Black,
-                                        1f to Color.Transparent
-                                    )
-                                    drawRect(brush = brush, blendMode = BlendMode.DstIn)
+              Box(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .weight(1f, fill = false)
+                          .then(
+                              if (fade) {
+                                Modifier.graphicsLayer {
+                                      compositingStrategy = CompositingStrategy.Offscreen
+                                    }
+                                    .drawWithContent {
+                                      drawContent()
+                                      val brush =
+                                          Brush.verticalGradient(
+                                              0f to Color.Transparent,
+                                              (fadeHeightPx / size.height) to Color.Black,
+                                              ((size.height - fadeHeightPx) / size.height) to
+                                                  Color.Black,
+                                              1f to Color.Transparent)
+                                      drawRect(brush = brush, blendMode = BlendMode.DstIn)
+                                    }
+                              } else Modifier)) {
+                    Column(
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .verticalScroll(scrollState)
+                                .padding(vertical = if (fade) fadeHeight * 0.5f else outerPaddingV),
+                        verticalArrangement = Arrangement.spacedBy(interPaddingV)) {
+                          chunkedTags.forEach { rowTags ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(interPaddingH)) {
+                                  rowTags.forEach { tag ->
+                                    Box(
+                                        modifier = Modifier.weight(1f),
+                                        contentAlignment = Alignment.Center) {
+                                          TagItem(
+                                              tag = tag,
+                                              heightTag = heightTag,
+                                              isSelectable = isSelectable,
+                                              isSelected = selectedTags.contains(tag),
+                                              onSelect = { onTagSelect(tag) },
+                                              onDeSelect = { onTagReSelect(tag) },
+                                              modifier =
+                                                  Modifier.then(
+                                                      if (tagElement != null)
+                                                          Modifier.testTag(tagElement(tag))
+                                                      else Modifier))
+                                        }
+                                  }
+
+                                  val missingItems = 3 - rowTags.size
+                                  repeat(missingItems) { Spacer(modifier = Modifier.weight(1f)) }
                                 }
-                        } else Modifier
-                    )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(scrollState)
-                        .padding(vertical = if (fade) fadeHeight * 0.5f else outerPaddingV),
-                    verticalArrangement = Arrangement.spacedBy(interPaddingV)
-                ) {
-                    chunkedTags.forEach { rowTags ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(interPaddingH)
-                        ) {
-                            rowTags.forEach { tag ->
-                                Box(
-                                    modifier = Modifier.weight(1f),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    TagItem(
-                                        tag = tag,
-                                        heightTag = heightTag,
-                                        isSelectable = isSelectable,
-                                        isSelected = selectedTags.contains(tag),
-                                        onSelect = { onTagSelect(tag) },
-                                        onDeSelect = { onTagReSelect(tag) },
-                                        modifier = Modifier.then(
-                                            if (tagElement != null) Modifier.testTag(tagElement(tag))
-                                            else Modifier
-                                        )
-                                    )
-                                }
-                            }
-
-                            val missingItems = 3 - rowTags.size
-                            repeat(missingItems) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
+                          }
                         }
-                    }
-                }
+                  }
             }
-        }
-    }
+      }
 }

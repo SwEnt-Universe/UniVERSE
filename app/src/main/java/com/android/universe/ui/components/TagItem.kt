@@ -61,33 +61,32 @@ fun TagItem(
     onSelect: (Tag) -> Unit,
     onDeSelect: (Tag) -> Unit
 ) {
-    val buttonColor by
-    animateColorAsState(
-        targetValue = tagColor(category = tag.category.displayName, isSelected = isSelected))
+  val buttonColor by
+      animateColorAsState(
+          targetValue = tagColor(category = tag.category.displayName, isSelected = isSelected))
 
-    LiquidButton(
-        onClick = {
-            if (isSelected) {
-                onDeSelect(tag)
-            } else {
-                onSelect(tag)
-            }
-        },
-        enabled = isSelectable,
-        isInteractive = isSelectable,
-        height = heightTag,
-        width = TagItemDefaults.WIDTH_TAG,
-        tint = buttonColor,
-        disableBackdrop = true,
-        contentPadding = 4.dp,
-        modifier = modifier.testTag(TagItemTestTag.tagButton(tag))
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                tag.displayName,
-                fontSize = MaterialTheme.typography.labelSmall.fontSize,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
+  LiquidButton(
+      onClick = {
+        if (isSelected) {
+          onDeSelect(tag)
+        } else {
+          onSelect(tag)
         }
-    }
+      },
+      enabled = isSelectable,
+      isInteractive = isSelectable,
+      height = heightTag,
+      width = TagItemDefaults.WIDTH_TAG,
+      tint = buttonColor,
+      disableBackdrop = true,
+      contentPadding = 4.dp,
+      modifier = modifier.testTag(TagItemTestTag.tagButton(tag))) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              tag.displayName,
+              fontSize = MaterialTheme.typography.labelSmall.fontSize,
+              fontWeight = FontWeight.Bold,
+              modifier = Modifier.testTag(TagItemTestTag.tagText(tag)))
+        }
+      }
 }

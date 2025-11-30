@@ -136,17 +136,17 @@ fun UniverseTheme(
  */
 @Composable
 fun tagColor(category: String, isSelected: Boolean = false): Color {
-    return when (category) {
-        "Music" -> if (isSelected) TagMusicSelected else TagMusic
-        "Sport" -> if (isSelected) TagSportSelected else TagSport
-        "Food" -> if (isSelected) TagFoodSelected else TagFood
-        "Art" -> if (isSelected) TagArtSelected else TagArt
-        "Travel" -> if (isSelected) TagTravelSelected else TagTravel
-        "Games" -> if (isSelected) TagGamesSelected else TagGames
-        "Technology" -> if (isSelected) TagTechnologySelected else TagTechnology
-        "Topic" -> if (isSelected) TagTopicSelected else TagTopic
-        else -> MaterialTheme.colorScheme.primary
-    }
+  return when (category) {
+    "Music" -> if (isSelected) TagMusicSelected else TagMusic
+    "Sport" -> if (isSelected) TagSportSelected else TagSport
+    "Food" -> if (isSelected) TagFoodSelected else TagFood
+    "Art" -> if (isSelected) TagArtSelected else TagArt
+    "Travel" -> if (isSelected) TagTravelSelected else TagTravel
+    "Games" -> if (isSelected) TagGamesSelected else TagGames
+    "Technology" -> if (isSelected) TagTechnologySelected else TagTechnology
+    "Topic" -> if (isSelected) TagTopicSelected else TagTopic
+    else -> MaterialTheme.colorScheme.primary
+  }
 }
 
 object UniverseTheme {

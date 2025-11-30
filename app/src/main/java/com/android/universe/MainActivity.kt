@@ -203,7 +203,8 @@ fun UniverseApp(
               UniverseBackgroundContainer(bitmap) {
                 SelectTagScreen(
                     uid = authInstance.currentUser!!.uid,
-                    navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
+                    navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) },
+                    onBack = { navigationActions.goBack() })
               }
             }
           }
@@ -396,7 +397,8 @@ fun UniverseApp(
             SelectTagScreen(
                 selectTagMode = SelectTagMode.EVENT_CREATION,
                 uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navController.popBackStack() })
+                navigateOnSave = { navController.popBackStack() },
+                onBack = { navigationActions.goBack() })
           }
         }
       }
