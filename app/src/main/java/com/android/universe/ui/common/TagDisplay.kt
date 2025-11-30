@@ -317,7 +317,7 @@ fun TagGroup(
 
                 Box(
                     modifier =
-                        Modifier.fillMaxSize()
+                        Modifier.fillMaxWidth()
                             .then(
                                 if (fade) {
                                   Modifier.graphicsLayer {
