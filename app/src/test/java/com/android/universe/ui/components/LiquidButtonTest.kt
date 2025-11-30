@@ -39,7 +39,7 @@ class LiquidButtonTest {
             modifier = Modifier.height(100.dp).testTag(LiquidButtonTestTags.LIQUID_BUTTON),
             enabled = true,
             isInteractive = true,
-            color = Color.Green,
+            tint = Color.Green,
             height = 100f,
             width = 200f) {
               Text(RANDOM_STRING)
@@ -88,6 +88,29 @@ class LiquidButtonTest {
     }
     composeTestRule.onNodeWithText(RANDOM_STRING).assertExists()
     composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).assertIsEnabled()
+    composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).performClick()
+    assertEquals(true, clicked)
+  }
+
+  @Test
+  fun liquidButtonWithDisabledBackdropRendersAndClickable() {
+    var clicked = false
+    composeTestRule.setContentWithStubBackdrop {
+      MaterialTheme {
+        LiquidButton(
+            onClick = { clicked = true },
+            modifier = Modifier.testTag(LiquidButtonTestTags.LIQUID_BUTTON),
+            disableBackdrop = true,
+            tint = Color.Red,
+            enabled = true,
+            content = { Text(RANDOM_STRING) })
+      }
+    }
+
+    composeTestRule.onNodeWithText(RANDOM_STRING).assertExists()
+    composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).assertExists()
+    composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).assertIsEnabled()
+
     composeTestRule.onNodeWithTag(LiquidButtonTestTags.LIQUID_BUTTON).performClick()
     assertEquals(true, clicked)
   }

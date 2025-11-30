@@ -1,19 +1,22 @@
 package com.android.universe.ui.common
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
@@ -38,7 +41,6 @@ class TagDisplayTest {
     private val sampleTags = listOf(READING, RUNNING, MUSIC)
     private val manyTags =
         listOf(RUNNING, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, MUSIC, READING)
-    private const val SELECTED = "Selected"
     private val multipleTags =
         listOf(
             Tag.METAL,
@@ -105,16 +107,6 @@ class TagDisplayTest {
   }
 
   @Test
-  fun selectedTag_showsCheckIcon() {
-    composeTestRule.setContentWithStubBackdrop {
-      TagGroup(title = "Test", tagList = sampleTags, selectedTags = listOf(READING))
-    }
-
-    // Verify that the icon appears for the selected tag
-    composeTestRule.onNodeWithContentDescription(SELECTED).assertIsDisplayed()
-  }
-
-  @Test
   fun selectingAndDeselectingTag_triggersCorrectCallbacks() {
     val selectedTags = mutableStateListOf<Tag>()
     var lastSelected: Tag? = null
@@ -149,7 +141,7 @@ class TagDisplayTest {
   @Test
   fun tagList_isScrollable() {
     composeTestRule.setContentWithStubBackdrop {
-      TagGroup(title = "Test", tagList = multipleTags, selectedTags = emptyList())
+      TagGroup(title = "Test", tagList = multipleTags, selectedTags = emptyList(), height = 100.dp)
     }
 
     val lastTag = Tag.BASKETBALL.displayName
@@ -158,7 +150,7 @@ class TagDisplayTest {
 
     composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true).performScrollTo()
 
-    composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true).assertExists()
+    composeTestRule.onNodeWithText(lastTag, useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
@@ -202,7 +194,7 @@ class TagDisplayTest {
       TagColumn(
           tags = sampleTags,
           onTagSelect = { tag -> selectedTag = tag.displayName },
-          isSelected = { tag: Tag -> false },
+          isSelected = { _: Tag -> false },
           tagElement = { tag -> tag.displayName })
     }
     composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
@@ -217,7 +209,7 @@ class TagDisplayTest {
       TagColumn(
           tags = sampleTags,
           onTagReSelect = { tag -> reselectedTag = tag.displayName },
-          isSelected = { tag: Tag -> true },
+          isSelected = { _: Tag -> true },
           tagElement = { tag -> tag.displayName })
     }
 
@@ -232,8 +224,8 @@ class TagDisplayTest {
     composeTestRule.setContentWithStubBackdrop {
       TagColumn(
           tags = sampleTags,
-          onTagSelect = { tag -> called = true },
-          isSelected = { tag: Tag -> false },
+          onTagSelect = { _ -> called = true },
+          isSelected = { _: Tag -> false },
           tagElement = { tag -> tag.displayName },
           isSelectable = false)
     }
@@ -297,7 +289,7 @@ class TagDisplayTest {
       TagRow(
           tags = sampleTags,
           onTagSelect = { tag -> selectedTag = tag.displayName },
-          isSelected = { tag: Tag -> false },
+          isSelected = { _: Tag -> false },
           tagElement = { tag -> tag.displayName })
     }
     composeTestRule.onNodeWithText(RUNNING.displayName).performClick()
@@ -312,7 +304,7 @@ class TagDisplayTest {
       TagRow(
           tags = sampleTags,
           onTagReSelect = { tag -> reselectedTag = tag.displayName },
-          isSelected = { tag: Tag -> true },
+          isSelected = { _: Tag -> true },
           tagElement = { tag -> tag.displayName })
     }
 
@@ -327,8 +319,8 @@ class TagDisplayTest {
     composeTestRule.setContentWithStubBackdrop {
       TagRow(
           tags = sampleTags,
-          onTagSelect = { tag -> called = true },
-          isSelected = { tag: Tag -> false },
+          onTagSelect = { _ -> called = true },
+          isSelected = { _: Tag -> false },
           tagElement = { tag -> tag.displayName },
           isSelectable = false)
     }
@@ -393,5 +385,51 @@ class TagDisplayTest {
 
     assertTrue(sampleTags[0] in selectedTags)
     assertTrue(sampleTags[1] in selectedTags)
+  }
+
+  @Test
+  fun tagGroup_dynamicColumns_narrowWidth_singleColumn() {
+    val tags = listOf(Tag.RUNNING, Tag.SWIMMING)
+
+    composeTestRule.setContentWithStubBackdrop {
+      Box(modifier = Modifier.width(150.dp)) {
+        TagGroup(
+            title = "Dynamic 1 Col",
+            tagList = tags,
+            selectedTags = emptyList(),
+            tagElement = { "TAG_${it.name}" })
+      }
+    }
+
+    val tag1Bounds =
+        composeTestRule.onNodeWithTag("TAG_${tags[0].name}").fetchSemanticsNode().boundsInRoot
+    val tag2Bounds =
+        composeTestRule.onNodeWithTag("TAG_${tags[1].name}").fetchSemanticsNode().boundsInRoot
+
+    assertTrue(
+        "Tag 2 should be below Tag 1 in single column layout", tag2Bounds.top >= tag1Bounds.bottom)
+  }
+
+  @Test
+  fun tagGroup_dynamicColumns_wideWidth_multiColumn() {
+    val tags = listOf(Tag.RUNNING, Tag.SWIMMING)
+
+    composeTestRule.setContentWithStubBackdrop {
+      Box(modifier = Modifier.width(300.dp)) {
+        TagGroup(
+            title = "Dynamic 2 Col",
+            tagList = tags,
+            selectedTags = emptyList(),
+            tagElement = { "TAG_${it.name}" })
+      }
+    }
+
+    val tag1Bounds =
+        composeTestRule.onNodeWithTag("TAG_${tags[0].name}").fetchSemanticsNode().boundsInRoot
+    val tag2Bounds =
+        composeTestRule.onNodeWithTag("TAG_${tags[1].name}").fetchSemanticsNode().boundsInRoot
+
+    assertEquals("Tags should be in the same row", tag1Bounds.top, tag2Bounds.top, 5.0f)
+    assertTrue("Tag 2 should be to the right of Tag 1", tag2Bounds.left >= tag1Bounds.right)
   }
 }

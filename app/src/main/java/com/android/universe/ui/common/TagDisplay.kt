@@ -291,7 +291,7 @@ fun TagGroup(
   val scrollState = rememberScrollState()
 
   LiquidBox(
-      modifier = Modifier.fillMaxWidth().heightIn(max = height),
+      modifier = Modifier.fillMaxWidth().heightIn(max = height).then(modifierFlowRow),
       shape = RoundedCornerShape(24.dp)) {
         Column(
             modifier = modifierColumn.fillMaxWidth().padding(horizontal = outerPaddingH),
@@ -308,64 +308,70 @@ fun TagGroup(
                     textAlign = TextAlign.Center)
               }
 
-              val chunkedTags = tagList.chunked(3)
+              BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
+                val itemWidth = TagItemDefaults.WIDTH_TAG.dp
+                val columns =
+                    maxOf(1, ((maxWidth + interPaddingH) / (itemWidth + interPaddingH)).toInt())
 
-              Box(
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .weight(1f, fill = false)
-                          .then(
-                              if (fade) {
-                                Modifier.graphicsLayer {
-                                      compositingStrategy = CompositingStrategy.Offscreen
+                val chunkedTags = tagList.chunked(columns)
+
+                Box(
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .then(
+                                if (fade) {
+                                  Modifier.graphicsLayer {
+                                        compositingStrategy = CompositingStrategy.Offscreen
+                                      }
+                                      .drawWithContent {
+                                        drawContent()
+                                        val brush =
+                                            Brush.verticalGradient(
+                                                0f to Color.Transparent,
+                                                (fadeHeightPx / size.height) to Color.Black,
+                                                ((size.height - fadeHeightPx) / size.height) to
+                                                    Color.Black,
+                                                1f to Color.Transparent)
+                                        drawRect(brush = brush, blendMode = BlendMode.DstIn)
+                                      }
+                                } else Modifier)) {
+                      Column(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .verticalScroll(scrollState)
+                                  .padding(
+                                      vertical = if (fade) fadeHeight * 0.5f else outerPaddingV),
+                          verticalArrangement = Arrangement.spacedBy(interPaddingV)) {
+                            chunkedTags.forEach { rowTags ->
+                              Row(
+                                  modifier = Modifier.fillMaxWidth(),
+                                  horizontalArrangement = Arrangement.spacedBy(interPaddingH)) {
+                                    rowTags.forEach { tag ->
+                                      Box(
+                                          modifier = Modifier.weight(1f),
+                                          contentAlignment = Alignment.Center) {
+                                            TagItem(
+                                                tag = tag,
+                                                heightTag = heightTag,
+                                                isSelectable = isSelectable,
+                                                isSelected = selectedTags.contains(tag),
+                                                onSelect = { onTagSelect(tag) },
+                                                onDeSelect = { onTagReSelect(tag) },
+                                                modifier =
+                                                    Modifier.then(
+                                                        if (tagElement != null)
+                                                            Modifier.testTag(tagElement(tag))
+                                                        else Modifier))
+                                          }
                                     }
-                                    .drawWithContent {
-                                      drawContent()
-                                      val brush =
-                                          Brush.verticalGradient(
-                                              0f to Color.Transparent,
-                                              (fadeHeightPx / size.height) to Color.Black,
-                                              ((size.height - fadeHeightPx) / size.height) to
-                                                  Color.Black,
-                                              1f to Color.Transparent)
-                                      drawRect(brush = brush, blendMode = BlendMode.DstIn)
-                                    }
-                              } else Modifier)) {
-                    Column(
-                        modifier =
-                            Modifier.fillMaxWidth()
-                                .verticalScroll(scrollState)
-                                .padding(vertical = if (fade) fadeHeight * 0.5f else outerPaddingV),
-                        verticalArrangement = Arrangement.spacedBy(interPaddingV)) {
-                          chunkedTags.forEach { rowTags ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(interPaddingH)) {
-                                  rowTags.forEach { tag ->
-                                    Box(
-                                        modifier = Modifier.weight(1f),
-                                        contentAlignment = Alignment.Center) {
-                                          TagItem(
-                                              tag = tag,
-                                              heightTag = heightTag,
-                                              isSelectable = isSelectable,
-                                              isSelected = selectedTags.contains(tag),
-                                              onSelect = { onTagSelect(tag) },
-                                              onDeSelect = { onTagReSelect(tag) },
-                                              modifier =
-                                                  Modifier.then(
-                                                      if (tagElement != null)
-                                                          Modifier.testTag(tagElement(tag))
-                                                      else Modifier))
-                                        }
+
+                                    val missingItems = columns - rowTags.size
+                                    repeat(missingItems) { Spacer(modifier = Modifier.weight(1f)) }
                                   }
-
-                                  val missingItems = 3 - rowTags.size
-                                  repeat(missingItems) { Spacer(modifier = Modifier.weight(1f)) }
-                                }
+                            }
                           }
-                        }
-                  }
+                    }
+              }
             }
       }
 }
