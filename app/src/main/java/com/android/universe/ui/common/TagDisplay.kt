@@ -1,6 +1,5 @@
 package com.android.universe.ui.common
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -32,20 +31,35 @@ import com.android.universe.ui.components.TagItem
 import com.android.universe.ui.components.TagItemDefaults
 import com.android.universe.ui.theme.Dimensions
 
-/** Contain the tag for the tests. */
+/**
+ * Contains test tag identifiers for [TagColumn], [TagRow], and related components. These strings
+ * are used to locate UI elements during automated testing.
+ */
 object TagGroupTestTag {
+  /**
+   * Generates a unique test tag for a TagColumn based on its content.
+   *
+   * @param tags The list of tags contained in the column.
+   * @return A unique string identifier.
+   */
   fun tagColumn(tags: List<Tag>): String {
     val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
     return "Column$key"
   }
 
+  /**
+   * Generates a unique test tag for a TagRow based on its content.
+   *
+   * @param tags The list of tags contained in the row.
+   * @return A unique string identifier.
+   */
   fun tagRow(tags: List<Tag>): String {
     val key = tags.sortedBy { it.displayName }.joinToString("_") { it.displayName }
     return "Row$key"
   }
 }
 
-/** Contain the dimensions used specially in this composable. */
+/** Contains default dimension and style constants used by [TagGroup], [TagColumn], and [TagRow]. */
 object TagGroupDefaults {
   val DefaultHeight = 300.dp
   val DefaultWidth = 500.dp
@@ -53,37 +67,31 @@ object TagGroupDefaults {
   val DefaultOuterPaddingV = 12.dp
   val DefaultInterPaddingH = 8.dp
   val DefaultInterPaddingV = 12.dp
-  val CornerShapeDp = 16.dp
   val titleFontSize = 28.sp
   val titleDefaultLineSize = 32.sp
 }
 
 /**
- * A Composable that displays a vertical column of tags with selectable options and visual effects.
+ * A Composable that displays a vertical column of tags.
  *
- * This function creates a column of tags (`LazyColumn`) inside a `Box`. It can show a custom
- * background, allow tag selection/re-selection, and add "fade" effects at the top and bottom edges.
+ * This component renders a scrollable list of [TagItem]s arranged vertically. It supports
+ * interactive selection and can optionally apply a visual fade effect at the top and bottom edges
+ * to indicate scrolling content.
  *
- * @param tags List of [Tag] items to display.
- * @param modifierTags Modifier applied to each individual tag item.
- * @param modifierBox Modifier applied to the `Box` containing the LazyColumn and fade effects.
- * @param modifierFade Modifier applied to the fade boxes (top and bottom).
- * @param heightTag Height of an individual tag (default [TagItemDefaults.HEIGHT_TAG]).
- * @param heightList Total height of the tag column (default [TagGroupDefaults.DefaultHeight]).
- * @param isSelectable Whether tags can be selected (default `true`).
- * @param isSelected Function that takes a [Tag] and returns `true` if it is currently selected.
- * @param onTagSelect Callback invoked when a tag is selected.
- * @param onTagReSelect Callback invoked when a tag that is already selected is clicked again.
- * @param tagElement Optional function to convert a [Tag] into a string for testing or labeling.
- * @param state State of the LazyColumn (default `rememberLazyListState()`), allows programmatic
- *   scrolling.
- * @param background If `true`, applies a rounded background around the tag column with a color that
- *   adapts to the current theme.
- * @param cornerShapeDp Corner radius for the rounded background (default
- *   [TagGroupDefaults.CornerShapeDp]).
- * @param fade If `true`, shows a "fade" effect (gradient) at the top and bottom edges of the tag
- *   column.
- * @param fadeHeight Height of the fade effect (default 10% of `heightList`).
+ * @param tags The list of [Tag] objects to display.
+ * @param modifierTags Modifier to be applied to each individual [TagItem].
+ * @param modifierBox Modifier to be applied to the outer container of the column.
+ * @param heightTag The fixed height for each [TagItem]. Defaults to [TagItemDefaults.HEIGHT_TAG].
+ * @param heightList The fixed height of the entire column. Defaults to
+ *   [TagGroupDefaults.DefaultHeight].
+ * @param isSelectable Whether the tags can be interacted with (selected/deselected).
+ * @param isSelected A lambda that returns true if a given [Tag] is currently selected.
+ * @param onTagSelect Callback invoked when an unselected tag is clicked.
+ * @param onTagReSelect Callback invoked when a selected tag is clicked again (e.g., to deselect).
+ * @param tagElement Optional lambda to generate a custom test tag for individual tag items.
+ * @param state The [LazyListState] to control or observe the scrolling state.
+ * @param fade If true, applies a transparency gradient fade to the top and bottom edges.
+ * @param fadeHeight The height of the fade effect in Dp. Defaults to 10% of [heightList].
  */
 @Composable
 fun TagColumn(
@@ -144,31 +152,25 @@ fun TagColumn(
 }
 
 /**
- * A Composable that displays a horizontal row of tags with selectable options and visual effects.
+ * A Composable that displays a horizontal row of tags.
  *
- * This function creates a row of tags (`LazyRow`) inside a `Box`. It can show a custom background,
- * allow tag selection/re-selection, and add "fade" effects on the left and right edges.
+ * This component renders a scrollable list of [TagItem]s arranged horizontally. It supports
+ * interactive selection and can optionally apply a visual fade effect at the left and right edges
+ * to indicate scrolling content.
  *
- * @param tags List of [Tag] items to display.
- * @param modifierTags Modifier applied to each individual tag item.
- * @param modifierBox Modifier applied to the `Box` containing the LazyRow and fade effects.
- * @param modifierFade Modifier applied to the fade boxes (left and right).
- * @param heightTag Height of an individual tag (default [TagItemDefaults.HEIGHT_TAG]).
- * @param widthList Total width of the tag row (default [TagGroupDefaults.DefaultWidth]).
- * @param isSelectable Whether tags can be selected (default `true`).
- * @param isSelected Function that takes a [Tag] and returns `true` if it is currently selected.
- * @param onTagSelect Callback invoked when a tag is selected.
- * @param onTagReSelect Callback invoked when a tag that is already selected is clicked again.
- * @param tagElement Optional function to convert a [Tag] into a string for testing or labeling.
- * @param state State of the LazyRow (default `rememberLazyListState()`), allows programmatic
- *   scrolling.
- * @param background If `true`, applies a rounded background around the tag row with a color that
- *   adapts to the current theme.
- * @param cornerShapeDp Corner radius for the rounded background (default
- *   [TagGroupDefaults.CornerShapeDp]).
- * @param fade If `true`, shows a "fade" effect (gradient) on the left and right edges of the tag
- *   row.
- * @param fadeWidth Width of the fade (default 10% of `widthList`).
+ * @param tags The list of [Tag] objects to display.
+ * @param modifierTags Modifier to be applied to each individual [TagItem].
+ * @param modifierBox Modifier to be applied to the outer container of the row.
+ * @param heightTag The fixed height for each [TagItem]. Defaults to [TagItemDefaults.HEIGHT_TAG].
+ * @param widthList The fixed width of the entire row. Defaults to [TagGroupDefaults.DefaultWidth].
+ * @param isSelectable Whether the tags can be interacted with (selected/deselected).
+ * @param isSelected A lambda that returns true if a given [Tag] is currently selected.
+ * @param onTagSelect Callback invoked when an unselected tag is clicked.
+ * @param onTagReSelect Callback invoked when a selected tag is clicked again.
+ * @param tagElement Optional lambda to generate a custom test tag for individual tag items.
+ * @param state The [LazyListState] to control or observe the scrolling state.
+ * @param fade If true, applies a transparency gradient fade to the left and right edges.
+ * @param fadeWidth The width of the fade effect in Dp. Defaults to 10% of [widthList].
  */
 @Composable
 fun TagRow(
@@ -229,40 +231,38 @@ fun TagRow(
 }
 
 /**
- * Displays a labeled group of selectable tags, rendered as clickable buttons in a responsive
- * horizontal flow layout.
+ * Displays a labeled group of selectable tags organized in a dynamic grid layout.
  *
- * Each tag button visually indicates its selection state: selected tags are highlighted with a
- * border and check icon. Supports scrolling if the content overflows. Top and bottom fade effects
- * make the tags disappear smoothly when scrolling.
+ * This component is designed for screens that require selecting multiple tags from a category
+ * (e.g., selecting interests). It features:
+ * - Dynamic Columns: Automatically calculates the number of columns based on the available width.
+ * - Scrolling: Supports vertical scrolling if the content exceeds the maximum height.
+ * - Visual Effects: Includes a top and bottom fade effect to indicate scrolling, and uses
+ *   [LiquidBox] for the container background.
+ * - Responsive Layout: Tags are distributed evenly across columns, and spacers are used to maintain
+ *   alignment in the last row.
  *
- * When a tag is clicked:
- * - If it was not previously selected, [onTagSelect] is invoked.
- * - If it was already selected, [onTagReSelect] is invoked (allowing deselection or custom
- *   behavior).
- *
- * This composable is typically used to categorized tags such as user interests, hobbies, or filters
- * within a profile or settings screen.
- *
- * @param modifierColumn Modifier applied to the outer Column of the tag group.
- * @param modifierFlowRow Modifier applied to the FlowRow containing the tags.
- * @param height The height of the tag container. Defaults to [TagGroupDefaults.DefaultHeight].
- * @param interPaddingH Horizontal spacing between tags inside the FlowRow. Defaults to
- *   [TagGroupDefaults.DefaultInterPaddingH].
- * @param interPaddingV Vertical spacing between tags inside the FlowRow. Defaults to
- *   [TagGroupDefaults.DefaultInterPaddingV].
- * @param outerPaddingH Horizontal padding of the outer Column. Defaults to
- *   [TagGroupDefaults.DefaultOuterPaddingH].
- * @param outerPaddingV Vertical padding of the outer Column. Defaults to
- *   [TagGroupDefaults.DefaultOuterPaddingV].
- * @param title Optional title displayed above the tag group. If empty or blank, no title is shown.
- * @param tagList The list of tags to display.
- * @param selectedTags The list of tags that are currently selected.
- * @param isSelectable If true, tags can be selected/deselected; otherwise, tags are read-only.
- * @param onTagSelect Callback invoked when a tag is selected.
- * @param onTagReSelect Callback invoked when a selected tag is clicked again (deselected).
- * @param displayText If true, the group name is displayed above the tags.
- * @param tagElement Optional lambda that returns a unique string for each tag, useful for testing.
+ * @param modifierColumn Modifier applied to the inner Column holding the title and list.
+ * @param modifierFlowRow Modifier applied to the outer [LiquidBox] container. This is typically
+ *   used for applying test tags to the whole group.
+ * @param height The maximum height of the tag group container. The container will shrink if content
+ *   is smaller, but will scroll if content exceeds this height. Defaults to
+ *   [TagGroupDefaults.DefaultHeight].
+ * @param heightTag The fixed height for individual [TagItem]s.
+ * @param interPaddingH Horizontal spacing between columns.
+ * @param interPaddingV Vertical spacing between rows.
+ * @param outerPaddingH Horizontal padding inside the group container.
+ * @param outerPaddingV Vertical padding inside the group container.
+ * @param title Optional title text displayed at the top of the group.
+ * @param tagList The list of [Tag] objects to display.
+ * @param selectedTags The list of currently selected tags.
+ * @param isSelectable Whether tags can be selected/deselected.
+ * @param onTagSelect Callback invoked when an unselected tag is clicked.
+ * @param onTagReSelect Callback invoked when a selected tag is clicked again.
+ * @param displayText Whether to display the title text.
+ * @param tagElement Optional lambda to generate custom test tags for items.
+ * @param fade Whether to enable the top/bottom scroll fade effect.
+ * @param fadeHeight The height of the fade effect in Dp. Defaults to 10% of [height].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

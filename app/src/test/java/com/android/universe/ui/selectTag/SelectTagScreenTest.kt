@@ -31,9 +31,9 @@ class SelectTagScreenTest {
   companion object {
     private val dummyUser = UserTestData.NoTagsUser
     private const val LAZY_COLUMN_TAGS = SelectTagsScreenTestTags.LAZY_COLUMN
-    private val BUTTON_METAL = SelectTagsScreenTestTags.unselectedTag(Tag.METAL)
-    private val BUTTON_HANDBALL = SelectTagsScreenTestTags.unselectedTag(Tag.HANDBALL)
-    private val BUTTON_BAKING = SelectTagsScreenTestTags.unselectedTag(Tag.BAKING)
+    private val BUTTON_METAL = SelectTagsScreenTestTags.tagItem(Tag.METAL)
+    private val BUTTON_HANDBALL = SelectTagsScreenTestTags.tagItem(Tag.HANDBALL)
+    private val BUTTON_BAKING = SelectTagsScreenTestTags.tagItem(Tag.BAKING)
   }
 
   private fun launchDefaultScreen() {

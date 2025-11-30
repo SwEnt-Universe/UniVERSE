@@ -14,42 +14,53 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.theme.tagColor
 
-/** Contain the tag for the tests. */
+/**
+ * Contains test tag generators for [TagItem] components. These helpers ensure consistent naming for
+ * UI tests when locating specific tags by their display name.
+ */
 object TagItemTestTag {
-  /** Give the tag for a button according to the tag displayName. */
+  /**
+   * Generates the test tag for the clickable button surface of a specific [Tag].
+   *
+   * @param tag The tag object.
+   * @return A string identifier, e.g., "ButtonMusic".
+   */
   fun tagButton(tag: Tag): String {
     return "Button" + tag.displayName
   }
 
-  /** Give the tag for a text according to the tag displayName. */
+  /**
+   * Generates the test tag for the text label inside a specific [Tag].
+   *
+   * @param tag The tag object.
+   * @return A string identifier, e.g., "TextMusic".
+   */
   fun tagText(tag: Tag): String {
     return "Text" + tag.displayName
   }
 }
 
-/** Contain the dimensions used specially in this composable. */
+/** Contains default dimension constants used by the [TagItem] composable. */
 object TagItemDefaults {
   const val HEIGHT_TAG = 24f
   const val WIDTH_TAG = 110f
 }
 
 /**
- * A composable that displays a single tag using the LiquidButton.
+ * A composable that displays a single interactive tag button.
  *
- * This tag can optionally be selectable, and visually reacts to its selection state:
- * - The background color changes according to the tag’s category and whether it is selected.
- * - A border is added when the tag is selected.
- * - A check icon is shown when selected.
+ * This component renders a specific [Tag] using a [LiquidButton]. It visually communicates the
+ * tag's category through color and its state through opacity/tint changes.
  *
- * The component handles its own internal selection state, and triggers external callbacks when
- * selected or deselected.
- *
- * @param tag The [Tag] model containing name and category information.
- * @param isSelectable Whether the tag can be interacted with. If `false`, click interaction is
- *   disabled.
- * @param onSelect Callback invoked when the tag transitions from unselected → selected.
- * @param onDeSelect Callback invoked when the tag transitions from selected → unselected.
- * @param modifier Optional [Modifier] applied to the TagItem layout.
+ * @param modifier Modifier to be applied to the button container.
+ * @param tag The [Tag] data model containing the display name and category.
+ * @param heightTag The height of the button in dp (float value). Defaults to
+ *   [TagItemDefaults.HEIGHT_TAG].
+ * @param isSelectable Whether the tag responds to clicks. If false, the button acts as a static
+ *   label.
+ * @param isSelected Whether the tag is currently selected. Affects the color tint.
+ * @param onSelect Callback invoked when the user clicks an unselected tag.
+ * @param onDeSelect Callback invoked when the user clicks a selected tag.
  */
 @Composable
 fun TagItem(

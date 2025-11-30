@@ -23,6 +23,10 @@ import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
 
+/**
+ * Contains test tag identifiers for the Select Tag Screen. These tags are used by UI tests to
+ * locate specific categories, buttons, and layout structures.
+ */
 object SelectTagsScreenTestTags {
   const val MUSIC_TAGS = "MusicTags"
   const val SPORT_TAGS = "SportTags"
@@ -32,37 +36,47 @@ object SelectTagsScreenTestTags {
   const val GAMES_TAGS = "GamesTags"
   const val TECHNOLOGY_TAGS = "TechnologyTags"
   const val TOPIC_TAGS = "TopicTags"
-  const val SELECTED_TAGS = "SelectedTags"
   const val SAVE_BUTTON = "SaveButton"
-  const val DELETE_ICON = "DeleteIcon"
   const val TAG_BUTTON_PREFIX = "Button_"
-  const val SELECTED_TAG_BUTTON_PREFIX = "Button_Selected_"
   const val LAZY_COLUMN = "LazyColumnTags"
 
-  fun unselectedTag(tag: Tag): String = "$TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
-
-  fun selectedTag(tag: Tag): String =
-      "$SELECTED_TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
+  /**
+   * Generates a test tag for a tag button in the main list. Renamed from 'unselectedTag' to
+   * 'tagItem' as it represents the item regardless of selection state.
+   *
+   * @param tag The tag object.
+   * @return A string identifier, e.g., "Button_Metal".
+   */
+  fun tagItem(tag: Tag): String = "$TAG_BUTTON_PREFIX${tag.displayName.replace(" ", "_")}"
 }
 
-/** Composable that displays a horizontal line to visually divide sections on the tag screen. */
+/** A visual separator used to add vertical spacing between different [TagGroup] sections. */
 @Composable
 fun SectionDivider() {
   Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
 }
 
 /**
- * Composable screen that displays tags organized by topic and allows the user to select them.
+ * A screen that allows users to view and select tags from various categorized groups.
  *
- * Tags are grouped into categories defined by [Tag.Category]. Each category is displayed with a
- * title and a distinct color. Users can:
- * - Select a tag by clicking on it (selected tags turn grey and show a check icon).
- * - Deselect a tag by clicking it again in the main list or by clicking the trash icon in the
- *   selected tags section at the bottom.
- * - Save their selected tags using the "Save Tags" button, which updates their profile.
+ * This screen displays a scrollable list of [TagGroup]s, one for each [Tag.Category]. It is used
+ * for both User Profile creation/editing and Event creation, depending on the [selectTagMode].
  *
- * Selected tags are displayed in a horizontal row at the bottom of the screen, allowing scrolling
- * if necessary.
+ * **Features:**
+ * - **Categorization:** Tags are grouped by topics (Music, Sport, Food, etc.).
+ * - **Selection:** Tapping a tag toggles its selection state.
+ * - **Persistence:** The [SelectTagViewModel] manages the selection state and saves changes to the
+ *   repository.
+ * - **Navigation:** Uses a [Scaffold] with a [FlowBottomMenu] to provide "Back" and "Confirm"
+ *   actions.
+ *
+ * @param selectTagMode Determines the context of the screen (e.g., [SelectTagMode.USER_PROFILE] or
+ *   [SelectTagMode.EVENT_CREATION]), affecting which data source is used.
+ * @param selectedTagOverview The ViewModel managing the selected tags state.
+ * @param uid The unique identifier for the entity being edited (User ID or Event ID).
+ * @param onBack Callback invoked when the user clicks the "Back" button in the bottom menu.
+ * @param navigateOnSave Callback invoked after the tags have been successfully saved via the
+ *   "Confirm" button.
  */
 @Composable
 fun SelectTagScreen(
@@ -134,7 +148,7 @@ fun SelectTagScreen(
                               Tag.Category.TECHNOLOGY -> SelectTagsScreenTestTags.TECHNOLOGY_TAGS
                               Tag.Category.TOPIC -> SelectTagsScreenTestTags.TOPIC_TAGS
                             }),
-                    tagElement = { tag -> SelectTagsScreenTestTags.unselectedTag(tag) })
+                    tagElement = { tag -> SelectTagsScreenTestTags.tagItem(tag) })
                 SectionDivider()
               }
             }
