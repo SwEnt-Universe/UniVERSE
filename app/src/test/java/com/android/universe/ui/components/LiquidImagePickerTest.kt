@@ -33,6 +33,7 @@ class LiquidImagePickerTest {
 
     composeTestRule.onNodeWithContentDescription("No Image").assertIsDisplayed()
     composeTestRule.onNodeWithContentDescription("Add Image").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Delete Image").assertDoesNotExist()
   }
 
   @Test
@@ -52,8 +53,9 @@ class LiquidImagePickerTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("Image").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Selected Image").assertIsDisplayed()
     composeTestRule.onNodeWithContentDescription("Edit Image").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Delete Image").assertIsDisplayed()
   }
 
   @Test
@@ -69,5 +71,31 @@ class LiquidImagePickerTest {
 
     composeTestRule.onNodeWithContentDescription("Add Image").performClick()
     assertTrue("Expected onPickImage callback to be triggered", isClicked)
+  }
+
+  @Test
+  fun liquidImagePicker_invokesDeleteCallback_whenDeleteClicked() {
+    var isDeleteClicked = false
+    val validBytes =
+        ByteArrayOutputStream()
+            .apply {
+              val bitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+              bitmap.eraseColor(android.graphics.Color.RED)
+              bitmap.compress(Bitmap.CompressFormat.PNG, 100, this)
+            }
+            .toByteArray()
+
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        LiquidImagePicker(
+            imageBytes = validBytes,
+            onPickImage = {},
+            onDeleteImage = { isDeleteClicked = true },
+            dispatcher = testDispatcher)
+      }
+    }
+
+    composeTestRule.onNodeWithContentDescription("Delete Image").performClick()
+    assertTrue("Expected onDeleteImage callback to be triggered", isDeleteClicked)
   }
 }
