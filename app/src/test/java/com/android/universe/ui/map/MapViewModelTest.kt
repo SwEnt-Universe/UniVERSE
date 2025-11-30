@@ -468,14 +468,14 @@ class MapViewModelTest {
     val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
     coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns emptyList()
 
-    val viewModel = MapViewModel(
-      prefs = mockk(relaxed = true),
-      currentUserId = userId,
-      locationRepository = locationRepository,
-      eventRepository = eventRepository,
-      userRepository = userRepository,
-      aiOrchestrator = orchestrator
-    )
+    val viewModel =
+        MapViewModel(
+            prefs = mockk(relaxed = true),
+            currentUserId = userId,
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            aiOrchestrator = orchestrator)
 
     val region = mockk<VisibleRegion>(relaxed = true)
 
@@ -501,14 +501,14 @@ class MapViewModelTest {
 
     val eventRepo = mockk<EventRepository>(relaxed = true)
 
-    val viewModel = MapViewModel(
-      prefs = mockk(relaxed = true),
-      currentUserId = userId,
-      locationRepository = locationRepository,
-      eventRepository = eventRepo,
-      userRepository = userRepository,
-      aiOrchestrator = orchestrator
-    )
+    val viewModel =
+        MapViewModel(
+            prefs = mockk(relaxed = true),
+            currentUserId = userId,
+            locationRepository = locationRepository,
+            eventRepository = eventRepo,
+            userRepository = userRepository,
+            aiOrchestrator = orchestrator)
 
     viewModel.setAiOn(true)
 
@@ -524,60 +524,61 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `tryPassiveAIGeneration loads events and updates lastGen when AI generates events`() = runTest {
-    val newEvents = listOf(EventTestData.dummyEvent1)
+  fun `tryPassiveAIGeneration loads events and updates lastGen when AI generates events`() =
+      runTest {
+        val newEvents = listOf(EventTestData.dummyEvent1)
 
-    val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
-    coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns newEvents
+        val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
+        coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns newEvents
 
-    val eventRepo = mockk<EventRepository>(relaxed = true)
-    coEvery { eventRepo.getAllEvents() } returns newEvents
+        val eventRepo = mockk<EventRepository>(relaxed = true)
+        coEvery { eventRepo.getAllEvents() } returns newEvents
 
-    val viewModel = MapViewModel(
-      prefs = mockk(relaxed = true),
-      currentUserId = userId,
-      locationRepository = locationRepository,
-      eventRepository = eventRepo,
-      userRepository = userRepository,
-      aiOrchestrator = orchestrator
-    )
+        val viewModel =
+            MapViewModel(
+                prefs = mockk(relaxed = true),
+                currentUserId = userId,
+                locationRepository = locationRepository,
+                eventRepository = eventRepo,
+                userRepository = userRepository,
+                aiOrchestrator = orchestrator)
 
-    viewModel.setAiOn(true)
+        viewModel.setAiOn(true)
 
-    val region = mockk<VisibleRegion>(relaxed = true)
+        val region = mockk<VisibleRegion>(relaxed = true)
 
-    // Use fixed clock for predictable timestamps
-    val before = System.currentTimeMillis()
+        // Use fixed clock for predictable timestamps
+        val before = System.currentTimeMillis()
 
-    viewModel.onViewportChanged(region)
+        viewModel.onViewportChanged(region)
 
-    advanceTimeBy(300)
-    advanceUntilIdle()
+        advanceTimeBy(300)
+        advanceUntilIdle()
 
-    coVerify(exactly = 1) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
-    coVerify(exactly = 1) { eventRepo.getAllEvents() }
+        coVerify(exactly = 1) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
+        coVerify(exactly = 1) { eventRepo.getAllEvents() }
 
-    // Verify "lastAIGeneration" was updated (use reflection to access private var)
-    val field = MapViewModel::class.java.getDeclaredField("lastAIGeneration")
-    field.isAccessible = true
-    val lastGen = field.getLong(viewModel)
+        // Verify "lastAIGeneration" was updated (use reflection to access private var)
+        val field = MapViewModel::class.java.getDeclaredField("lastAIGeneration")
+        field.isAccessible = true
+        val lastGen = field.getLong(viewModel)
 
-    assertTrue("lastAIGeneration should be updated", lastGen >= before)
-  }
+        assertTrue("lastAIGeneration should be updated", lastGen >= before)
+      }
 
   @Test
   fun `tryPassiveAIGeneration cancels previous job when viewport changes rapidly`() = runTest {
     val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
     coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns emptyList()
 
-    val viewModel = MapViewModel(
-      prefs = mockk(relaxed = true),
-      currentUserId = userId,
-      locationRepository = locationRepository,
-      eventRepository = eventRepository,
-      userRepository = userRepository,
-      aiOrchestrator = orchestrator
-    )
+    val viewModel =
+        MapViewModel(
+            prefs = mockk(relaxed = true),
+            currentUserId = userId,
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            aiOrchestrator = orchestrator)
 
     viewModel.setAiOn(true)
 
