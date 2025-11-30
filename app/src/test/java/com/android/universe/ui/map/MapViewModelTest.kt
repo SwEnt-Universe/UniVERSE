@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.orchestration.AIEventGenOrchestrator
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
@@ -14,6 +15,7 @@ import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
+import com.tomtom.sdk.map.display.map.VisibleRegion
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -459,5 +461,139 @@ class MapViewModelTest {
     viewModel.nowInteractable()
 
     assertTrue(viewModel.uiState.value.isMapInteractive)
+  }
+
+  @Test
+  fun `tryPassiveAIGeneration triggers maybeGenerate after debounce when AI is on`() = runTest {
+    val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
+    coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns emptyList()
+
+    val viewModel = MapViewModel(
+      prefs = mockk(relaxed = true),
+      currentUserId = userId,
+      locationRepository = locationRepository,
+      eventRepository = eventRepository,
+      userRepository = userRepository,
+      aiOrchestrator = orchestrator
+    )
+
+    val region = mockk<VisibleRegion>(relaxed = true)
+
+    viewModel.setAiOn(true)
+
+    viewModel.onViewportChanged(region)
+
+    // Before 300ms → should not be called
+    advanceTimeBy(299)
+    coVerify(exactly = 0) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
+
+    // After debounce
+    advanceTimeBy(1)
+    advanceUntilIdle()
+
+    coVerify(exactly = 1) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
+  }
+
+  @Test
+  fun `tryPassiveAIGeneration skips loadAllEvents when no events generated`() = runTest {
+    val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
+    coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns emptyList()
+
+    val eventRepo = mockk<EventRepository>(relaxed = true)
+
+    val viewModel = MapViewModel(
+      prefs = mockk(relaxed = true),
+      currentUserId = userId,
+      locationRepository = locationRepository,
+      eventRepository = eventRepo,
+      userRepository = userRepository,
+      aiOrchestrator = orchestrator
+    )
+
+    viewModel.setAiOn(true)
+
+    val region = mockk<VisibleRegion>(relaxed = true)
+
+    viewModel.onViewportChanged(region)
+
+    advanceTimeBy(300)
+    advanceUntilIdle()
+
+    coVerify(exactly = 1) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
+    coVerify(exactly = 0) { eventRepo.getAllEvents() }
+  }
+
+  @Test
+  fun `tryPassiveAIGeneration loads events and updates lastGen when AI generates events`() = runTest {
+    val newEvents = listOf(EventTestData.dummyEvent1)
+
+    val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
+    coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns newEvents
+
+    val eventRepo = mockk<EventRepository>(relaxed = true)
+    coEvery { eventRepo.getAllEvents() } returns newEvents
+
+    val viewModel = MapViewModel(
+      prefs = mockk(relaxed = true),
+      currentUserId = userId,
+      locationRepository = locationRepository,
+      eventRepository = eventRepo,
+      userRepository = userRepository,
+      aiOrchestrator = orchestrator
+    )
+
+    viewModel.setAiOn(true)
+
+    val region = mockk<VisibleRegion>(relaxed = true)
+
+    // Use fixed clock for predictable timestamps
+    val before = System.currentTimeMillis()
+
+    viewModel.onViewportChanged(region)
+
+    advanceTimeBy(300)
+    advanceUntilIdle()
+
+    coVerify(exactly = 1) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
+    coVerify(exactly = 1) { eventRepo.getAllEvents() }
+
+    // Verify "lastAIGeneration" was updated (use reflection to access private var)
+    val field = MapViewModel::class.java.getDeclaredField("lastAIGeneration")
+    field.isAccessible = true
+    val lastGen = field.getLong(viewModel)
+
+    assertTrue("lastAIGeneration should be updated", lastGen >= before)
+  }
+
+  @Test
+  fun `tryPassiveAIGeneration cancels previous job when viewport changes rapidly`() = runTest {
+    val orchestrator = mockk<AIEventGenOrchestrator>(relaxed = true)
+    coEvery { orchestrator.maybeGenerate(any(), any(), any(), any()) } returns emptyList()
+
+    val viewModel = MapViewModel(
+      prefs = mockk(relaxed = true),
+      currentUserId = userId,
+      locationRepository = locationRepository,
+      eventRepository = eventRepository,
+      userRepository = userRepository,
+      aiOrchestrator = orchestrator
+    )
+
+    viewModel.setAiOn(true)
+
+    val region = mockk<VisibleRegion>(relaxed = true)
+
+    viewModel.onViewportChanged(region)
+
+    // Before 300 ms, trigger again
+    advanceTimeBy(100)
+    viewModel.onViewportChanged(region)
+
+    // Now advance 300ms from last call
+    advanceTimeBy(300)
+    advanceUntilIdle()
+
+    // Should only run ONCE because first job was cancelled
+    coVerify(exactly = 1) { orchestrator.maybeGenerate(any(), any(), any(), any()) }
   }
 }
