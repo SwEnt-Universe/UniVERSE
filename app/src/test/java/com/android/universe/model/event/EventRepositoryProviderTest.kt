@@ -2,9 +2,8 @@ package com.android.universe.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.UserProfile
+import com.android.universe.util.GeoUtils
 import com.android.universe.utils.EventTestData
-import com.tomtom.sdk.location.GeoPoint
-import com.tomtom.sdk.map.display.map.VisibleRegion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -44,12 +43,20 @@ class EventRepositoryProviderTest {
 
           override suspend fun persistAIEvents(events: List<Event>): List<Event> = events
 
-          override suspend fun countEventsInViewport(viewport: VisibleRegion): Int {
-            val bounds = viewport.bounds
+          override suspend fun countEventsInViewport(
+              centerLat: Double,
+              centerLon: Double,
+              radiusKm: Double
+          ): Int {
+            val events = getAllEvents()
 
-            return getAllEvents().count { event ->
-              val geo = GeoPoint(event.location.latitude, event.location.longitude)
-              bounds.contains(geo)
+            return events.count { event ->
+              val d =
+                  GeoUtils.distanceMeters(
+                      centerLat, centerLon, event.location.latitude, event.location.longitude) /
+                      1000.0
+
+              d <= radiusKm
             }
           }
 

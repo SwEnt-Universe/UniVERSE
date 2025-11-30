@@ -27,6 +27,7 @@ import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LoggerAI
+import com.android.universe.ui.utils.toViewportGeometry
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.map.VisibleRegion
@@ -419,6 +420,8 @@ class MapViewModel(
 
           val now = System.currentTimeMillis()
 
+          val vpGeometry = region.toViewportGeometry()
+
           LoggerAI.d("Viewport changed → evaluating AI generation...")
           LoggerAI.d(
               "Viewport corners:\n" +
@@ -430,7 +433,7 @@ class MapViewModel(
           val newEvents =
               aiOrchestrator.maybeGenerate(
                   currentUserId = currentUserId,
-                  viewport = region,
+                  vpGeometry = vpGeometry,
                   lastGen = lastAIGeneration,
                   now = now)
 

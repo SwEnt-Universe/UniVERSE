@@ -4,8 +4,6 @@ import com.android.universe.model.ai.AIConfig.MAX_EVENT_PER_REQUEST
 import com.android.universe.model.ai.AIConfig.MAX_VIEWPORT_RADIUS_KM
 import com.android.universe.model.ai.AIConfig.MIN_EVENT_SPACING_KM
 import com.android.universe.model.ai.AIConfig.REQUEST_COOLDOWN
-import com.android.universe.util.GeoUtils.estimateRadiusKm
-import com.tomtom.sdk.map.display.map.VisibleRegion
 import kotlin.Int
 import kotlin.math.pow
 
@@ -38,20 +36,12 @@ class PassiveAIGenPolicy {
    * @param lastGenTimestamp Timestamp of previous generation (ms).
    * @param now Current timestamp (ms).
    */
-  fun evaluate(
-      viewport: VisibleRegion,
-      numEvents: Int,
-      lastGenTimestamp: Long,
-      now: Long
-  ): Decision {
+  fun evaluate(radiusKm: Double, numEvents: Int, lastGenTimestamp: Long, now: Long): Decision {
 
     // 1. Cooldown guard
     if (now - lastGenTimestamp < REQUEST_COOLDOWN) {
       return Decision.Reject
     }
-
-    // 2. Estimate viewport radius (diagonal / 2)
-    val radiusKm = viewport.estimateRadiusKm()
 
     // If user is zoomed out extremely far: avoid generating
     if (radiusKm > MAX_VIEWPORT_RADIUS_KM) {

@@ -1,174 +1,95 @@
 package com.android.universe.model.ai.orchestration
 
+import android.R.attr.radius
 import com.android.universe.model.ai.AIConfig.MAX_EVENT_PER_REQUEST
 import com.android.universe.model.ai.AIConfig.MAX_VIEWPORT_RADIUS_KM
 import com.android.universe.model.ai.AIConfig.MIN_EVENT_SPACING_KM
 import com.android.universe.model.ai.AIConfig.REQUEST_COOLDOWN
-import com.tomtom.sdk.location.GeoBoundingBox
-import com.tomtom.sdk.location.GeoPoint
-import com.tomtom.sdk.map.display.map.VisibleRegion
-import kotlin.jvm.java
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
-// -----------------------------------------------------------------------------
-// Test-only helper for constructing a real VisibleRegion
-// -----------------------------------------------------------------------------
-fun createTestViewport(
-    southLat: Double,
-    westLon: Double,
-    northLat: Double,
-    eastLon: Double
-): VisibleRegion {
-  val sw = GeoPoint(southLat, westLon)
-  val se = GeoPoint(southLat, eastLon)
-  val nw = GeoPoint(northLat, westLon)
-  val ne = GeoPoint(northLat, eastLon)
-
-  // TomTom constructor requires TOP-LEFT and BOTTOM-RIGHT
-  val bounds = GeoBoundingBox(/* topLeft= */ nw, /* bottomRight= */ se)
-
-  val ctor =
-      VisibleRegion::class
-          .java
-          .getDeclaredConstructor(
-              GeoPoint::class.java, // farLeft
-              GeoPoint::class.java, // nearLeft
-              GeoPoint::class.java, // farRight
-              GeoPoint::class.java, // nearRight
-              GeoBoundingBox::class.java)
-          .apply { isAccessible = true }
-
-  return ctor.newInstance(
-      nw, // farLeft  (north-west)
-      sw, // nearLeft (south-west)
-      ne, // farRight (north-east)
-      se, // nearRight(south-east)
-      bounds)
-}
-
-/** Helper: construct viewport with controlled radius */
-private fun viewportForRadiusKm(radiusKm: Double): VisibleRegion {
-  val centerLat = 46.0
-  val centerLon = 6.0
-  val deltaDeg = radiusKm / 111.0
-
-  return createTestViewport(
-      centerLat - deltaDeg, centerLon - deltaDeg, centerLat + deltaDeg, centerLon + deltaDeg)
-}
-
-class PassiveAIGenPolicyFullTest {
+class PassiveAIGenPolicyTest {
 
   private val policy = PassiveAIGenPolicy()
 
-  /** Helper: construct viewport with controlled radius (km) */
-  private fun vp(km: Double): VisibleRegion = viewportForRadiusKm(km)
+  // Helper for readability
+  private fun eval(radiusKm: Double, numEvents: Int, last: Long, now: Long): Decision =
+      policy.evaluate(
+          radiusKm = radiusKm, numEvents = numEvents, lastGenTimestamp = last, now = now)
 
   // -------------------------------------------------------------------------
-  // 1. COOLDOWN BRANCH
+  // 1. COOLDOWN
   // -------------------------------------------------------------------------
   @Test
-  fun `rejects when cooldown still active`() {
+  fun `rejects when cooldown is still active`() {
     val now = 10_000L
     val last = now - (REQUEST_COOLDOWN - 1)
-    val result =
-        policy.evaluate(viewport = vp(0.5), numEvents = 0, lastGenTimestamp = last, now = now)
+
+    val result = eval(radiusKm = 1.0, numEvents = 0, last = last, now = now)
+
     assertTrue(result is Decision.Reject)
   }
 
   // -------------------------------------------------------------------------
-  // 2. VIEWPORT TOO LARGE (RADIUS > MAX_VIEWPORT_RADIUS_KM)
+  // 2. VIEWPORT TOO BIG
   // -------------------------------------------------------------------------
   @Test
-  fun `rejects when viewport radius is too large`() {
+  fun `rejects when radius exceeds maximum allowed`() {
     val result =
-        policy.evaluate(
-            viewport = vp(MAX_VIEWPORT_RADIUS_KM + 10),
+        eval(
+            radiusKm = MAX_VIEWPORT_RADIUS_KM + 5,
             numEvents = 0,
-            lastGenTimestamp = 0,
+            last = 0,
             now = REQUEST_COOLDOWN + 1)
+
     assertTrue(result is Decision.Reject)
   }
 
   // -------------------------------------------------------------------------
-  // 3. NUMEVENTS >= THRESHOLD BRANCH
+  // 3. ENOUGH EVENTS ALREADY
   // -------------------------------------------------------------------------
   @Test
-  fun `rejects when enough events already exist`() {
-    // A tiny viewport → threshold = 1
-    val tiny = vp(0.1)
+  fun `rejects when numEvents meets computed threshold`() {
+    // threshold ≈ (R / d)^2
+    val radius = MIN_EVENT_SPACING_KM
+    val threshold = 1 // roughly (1/1)^2
+
     val result =
-        policy.evaluate(
-            viewport = tiny,
-            numEvents = 1, // threshold = 1 → reject
-            lastGenTimestamp = 0,
-            now = REQUEST_COOLDOWN + 1)
+        eval(radiusKm = radius, numEvents = threshold, last = 0, now = REQUEST_COOLDOWN + 1)
+
     assertTrue(result is Decision.Reject)
   }
 
   // -------------------------------------------------------------------------
-  // 4. DEFICIT CALCULATION + CAP → capped <= 0
-  // This happens when:
-  // - threshold == numEvents  (already covered)
-  // - OR MAX_EVENT_PER_REQUEST == 0 (rare)
-  // So we force a case where capped = 0
+  // 4. ACCEPT — normal case
   // -------------------------------------------------------------------------
   @Test
-  fun `rejects when capped deficit is zero`() {
-    // Construct a viewport where threshold = 1
-    val tiny = vp(0.1)
+  fun `accepts when deficit positive and below cap`() {
+    val radius = MIN_EVENT_SPACING_KM * 3 // threshold ≈ 9
 
-    // numEvents = threshold - 1 = 0
-    // deficit = 1
-    // capped = deficit.coerceAtMost(MAX_EVENT_PER_REQUEST)
-    // → If MAX_EVENT_PER_REQUEST == 0 in your config, this triggers.
-    //
-    // If MAX_EVENT_PER_REQUEST > 0 (normal), we instead trigger zero by
-    // making deficit = 0:
-    val result =
-        policy.evaluate(
-            viewport = tiny,
-            numEvents = 0,
-            lastGenTimestamp = REQUEST_COOLDOWN + 1,
-            now = REQUEST_COOLDOWN + 2)
-
-    // If capped > 0 this becomes Accept; if capped == 0 it Rejects.
-    // So we assert the safe branch for coverage:
-    assertTrue(result is Decision.Accept || result is Decision.Reject)
-  }
-
-  // -------------------------------------------------------------------------
-  // 5. ACCEPT BRANCH — full valid case
-  // -------------------------------------------------------------------------
-  @Test
-  fun `accepts when deficit is positive and within cap`() {
-    // Create a viewport with enough radius to allow several events
-    val mid = vp(MIN_EVENT_SPACING_KM * 3) // threshold ≈ 9
-
-    val result =
-        policy.evaluate(
-            viewport = mid, numEvents = 0, lastGenTimestamp = 0, now = REQUEST_COOLDOWN + 1)
+    val result = eval(radiusKm = radius, numEvents = 0, last = 0, now = REQUEST_COOLDOWN + 1)
 
     assertTrue(result is Decision.Accept)
-    result as Decision.Accept
-    assertTrue(result.eventsToGenerate in 1..MAX_EVENT_PER_REQUEST)
+    val accept = result as Decision.Accept
+
+    assertTrue(accept.eventsToGenerate in 1..MAX_EVENT_PER_REQUEST)
   }
 
   // -------------------------------------------------------------------------
-  // 6. ACCEPT BRANCH — capped by MAX_EVENT_PER_REQUEST
+  // 5. ACCEPT — capped by MAX_EVENT_PER_REQUEST
   // -------------------------------------------------------------------------
   @Test
-  fun `accepts and caps eventsToGenerate to MAX_EVENT_PER_REQUEST`() {
-    val radius = MAX_VIEWPORT_RADIUS_KM * 0.5
-    val view = vp(radius)
-
+  fun `accepts and caps number of events to MAX_EVENT_PER_REQUEST`() {
     val result =
-        policy.evaluate(
-            viewport = view, numEvents = 0, lastGenTimestamp = 0, now = REQUEST_COOLDOWN + 1)
+        eval(
+            radiusKm = MAX_VIEWPORT_RADIUS_KM * 0.5,
+            numEvents = 0,
+            last = 0,
+            now = REQUEST_COOLDOWN + 1)
 
-    assertTrue("Expected Accept but got $result", result is Decision.Accept)
-    result as Decision.Accept
-    assertEquals(MAX_EVENT_PER_REQUEST, result.eventsToGenerate)
+    assertTrue(result is Decision.Accept)
+    val accept = result as Decision.Accept
+
+    assertEquals(MAX_EVENT_PER_REQUEST, accept.eventsToGenerate)
   }
 }

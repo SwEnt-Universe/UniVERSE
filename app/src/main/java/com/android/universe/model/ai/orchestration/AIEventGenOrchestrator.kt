@@ -7,7 +7,7 @@ import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.user.UserRepository
-import com.tomtom.sdk.map.display.map.VisibleRegion
+import com.android.universe.ui.utils.ViewportGeometry
 
 /**
  * Coordinates passive AI-driven event generation.
@@ -40,30 +40,29 @@ class AIEventGenOrchestrator(
    */
   suspend fun maybeGenerate(
       currentUserId: String,
-      viewport: VisibleRegion?,
+      vpGeometry: ViewportGeometry,
       lastGen: Long,
       now: Long
   ): List<Event> {
 
     // ----------------------------------------------------
-    // 0. Preconditions: we must know the map viewport
-    // ----------------------------------------------------
-    if (viewport == null) {
-      // Without viewport geometry we cannot estimate radius, density, etc.
-      return emptyList()
-    }
-
-    // ----------------------------------------------------
     // 1. Count current events inside the viewport
     // ----------------------------------------------------
-    val numEvents = events.countEventsInViewport(viewport)
+    val numEvents =
+        events.countEventsInViewport(
+            centerLat = vpGeometry.centerLat,
+            centerLon = vpGeometry.centerLon,
+            radiusKm = vpGeometry.radiusKm)
 
     // ----------------------------------------------------
     // 2. Pass everything to the policy and evaluate
     // ----------------------------------------------------
     val decision =
         policy.evaluate(
-            viewport = viewport, numEvents = numEvents, lastGenTimestamp = lastGen, now = now)
+            radiusKm = vpGeometry.radiusKm,
+            numEvents = numEvents,
+            lastGenTimestamp = lastGen,
+            now = now)
 
     // If policy rejects, stop immediately
     if (decision is Decision.Reject) {
@@ -84,7 +83,12 @@ class AIEventGenOrchestrator(
     // ----------------------------------------------------
     // 4. Define ContextConfig using viewport
     // ----------------------------------------------------
-    val context = ContextConfig.fromVisibleRegion(viewport)
+    val context =
+        ContextConfig(
+            location = null,
+            locationCoordinates = vpGeometry.centerLat to vpGeometry.centerLon,
+            radiusKm = vpGeometry.radiusKm.toInt(),
+        )
 
     // ----------------------------------------------------
     // 5. Build the task config
