@@ -25,16 +25,11 @@ object TagItemTestTag {
   fun tagText(tag: Tag): String {
     return "Text" + tag.displayName
   }
-
-  /** Give the tag for a icon according to the tag displayName. */
-  fun tagIcon(tag: Tag): String {
-    return "Icon" + tag.displayName
-  }
 }
 
 /** Contain the dimensions used specially in this composable. */
 object TagItemDefaults {
-  const val HEIGHT_TAG = 36f
+  const val HEIGHT_TAG = 24f
   const val WIDTH_TAG = 110f
 }
 
@@ -83,6 +78,7 @@ fun TagItem(
         height = heightTag,
         width = TagItemDefaults.WIDTH_TAG,
         tint = buttonColor,
+        disableBackdrop = true,
         contentPadding = 4.dp,
         modifier = modifier.testTag(TagItemTestTag.tagButton(tag))
     ) {
