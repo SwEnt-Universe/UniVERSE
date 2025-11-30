@@ -163,6 +163,6 @@ fun MapScreenTestWrapper(
 ) {
   Box {
     MapScreen(
-        uid = uid, viewModel = viewModel, onTabSelected = onTabSelected, createEvent = createEvent)
+        uid = uid, aiOn = false, viewModel = viewModel, onTabSelected = onTabSelected, createEvent = createEvent)
   }
 }

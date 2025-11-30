@@ -106,6 +106,7 @@ object MapScreenTestTags {
 @Composable
 fun MapScreen(
     uid: String,
+    aiOn: Boolean,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
@@ -186,6 +187,9 @@ fun MapScreen(
   LaunchedEffect(viewModel) {
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
   }
+
+  // AI toggle
+  LaunchedEffect(aiOn) { viewModel.setAiOn(aiOn) }
 
   // Handle direct event link: auto-focus and open popup
   LaunchedEffect(preselectedEventId, preselectedLocation, tomTomMap) {

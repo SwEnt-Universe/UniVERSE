@@ -25,6 +25,8 @@ class SettingsScreenTest {
 
   private fun setUpScreen(
       uiState: SettingsUiState = sampleSettingsState(),
+      aiOn: Boolean = false,
+      onAiToggle: (Boolean) -> Unit = {},
       onOpenField: (String) -> Unit = {},
       onUpdateTemp: (String, String) -> Unit = { _, _ -> },
       onToggleCountryDropdown: (Boolean) -> Unit = {},
@@ -39,6 +41,8 @@ class SettingsScreenTest {
       MaterialTheme {
         SettingsScreenContent(
             uiState = uiState,
+            aiOn = aiOn,
+            onAiToggle = onAiToggle,
             onOpenField = onOpenField,
             onUpdateTemp = onUpdateTemp,
             onToggleCountryDropdown = onToggleCountryDropdown,

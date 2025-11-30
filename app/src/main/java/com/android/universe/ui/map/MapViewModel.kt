@@ -387,6 +387,13 @@ class MapViewModel(
   // ----------------------------------------------------
   // AI related
   // ----------------------------------------------------
+
+  private val aiOn = MutableStateFlow(false)
+
+  fun setAiOn(value: Boolean) {
+    aiOn.value = value
+  }
+
   private var lastAIGeneration: Long = 0L
   private var aiGenerationJob: Job? = null
 
@@ -409,6 +416,10 @@ class MapViewModel(
    * @param region the newly computed visible map region
    */
   fun onViewportChanged(region: VisibleRegion) {
+    if (!aiOn.value) {
+      LoggerAI.d("AI is off, skipping generation.")
+      return
+    }
     tryPassiveAIGeneration(region)
   }
 

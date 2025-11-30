@@ -147,6 +147,8 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 @Composable
 fun SettingsScreen(
     uid: String,
+    aiOn: Boolean,
+    onAiToggle: (Boolean) -> Unit,
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel(),
     onLogout: () -> Unit = {},
@@ -167,6 +169,8 @@ fun SettingsScreen(
   SettingsScreenContent(
       uiState = uiState,
       onBack = onBack,
+      aiOn = aiOn,
+      onAiToggle = viewModel::setAiEnabled,
       onOpenField = viewModel::openModal,
       onCloseModal = viewModel::closeModal,
       onUpdateTemp = viewModel::updateTemp,
@@ -184,6 +188,8 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     uiState: SettingsUiState,
     onBack: () -> Unit = {},
+    aiOn: Boolean,
+    onAiToggle: (Boolean) -> Unit,
     onOpenField: (String) -> Unit = {},
     onCloseModal: () -> Unit = {},
     onUpdateTemp: (String, String) -> Unit = { _, _ -> },
@@ -302,7 +308,10 @@ fun SettingsScreenContent(
                       .padding(
                           horizontal = SettingsScreenPaddings.ContentHorizontalPadding,
                           vertical = Dimensions.PaddingSmall)) {
-                item { GeneralSection(uiState = uiState, open = onOpenField) }
+                item {
+                  GeneralSection(
+                      uiState = uiState, aiOn = aiOn, onAiToggle = onAiToggle, open = onOpenField)
+                }
                 item { ProfileSection(uiState = uiState, open = onOpenField) }
                 item { InterestsSection(uiState = uiState, open = onOpenField) }
               }
@@ -340,7 +349,12 @@ fun SettingsScreenContent(
  * ========================================================= */
 /** Section for displaying general account information like email and password. */
 @Composable
-private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
+private fun GeneralSection(
+    uiState: SettingsUiState,
+    aiOn: Boolean,
+    onAiToggle: (Boolean) -> Unit,
+    open: (String) -> Unit
+) {
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     Text("General", style = SettingsScreenStyles.sectionTitleStyle())
     EditableField(
@@ -355,6 +369,7 @@ private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
         error = uiState.passwordError,
         testTag = SettingsTestTags.PASSWORD_BUTTON,
         onClick = { open("password") })
+    Switch(checked = aiOn, onCheckedChange = onAiToggle)
   }
 }
 
@@ -460,6 +475,11 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
 @Composable
 private fun SettingsScreenContent_Preview() {
   UniverseTheme {
-    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
+    SettingsScreenContent(
+        uiState = sampleSettingsState(),
+        aiOn = false,
+        onAiToggle = {},
+        onOpenField = {},
+        onBack = {})
   }
 }

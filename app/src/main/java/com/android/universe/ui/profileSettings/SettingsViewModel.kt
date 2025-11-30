@@ -75,7 +75,8 @@ data class SettingsUiState(
     val currentField: String = "",
     val showCountryDropdown: Boolean = false,
     val errorMsg: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val aiOn: Boolean = false
 )
 
 /**
@@ -567,5 +568,9 @@ class SettingsViewModel(
       clear()
       navigate()
     }
+  }
+
+  fun setAiEnabled(enabled: Boolean) {
+    _uiState.update { it.copy(aiOn = enabled) }
   }
 }
