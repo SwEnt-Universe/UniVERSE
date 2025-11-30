@@ -23,9 +23,28 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.android.universe.di.DefaultDP
+import com.android.universe.ui.components.LiquidImagePickerDefaults.AddImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.DeleteImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.EditImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.NoImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.SelectedImage
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.toImageBitmap
 import kotlinx.coroutines.CoroutineDispatcher
+
+/**
+ * Object containing default content description strings for the [LiquidImagePicker] component.
+ *
+ * These constants are used to provide accessibility labels for the various states and buttons
+ * within the image picker interface, ensuring proper support for screen readers.
+ */
+object LiquidImagePickerDefaults {
+  const val SelectedImage = "Selected Image"
+  const val NoImage = "No Image"
+  const val DeleteImage = "Delete Image"
+  const val EditImage = "Edit Image"
+  const val AddImage = "Add Image"
+}
 
 /**
  * A custom image picker component displaying a "liquid" style container.
@@ -51,6 +70,8 @@ fun LiquidImagePicker(
     onDeleteImage: () -> Unit = {},
     dispatcher: CoroutineDispatcher = DefaultDP.default
 ) {
+  val buttonPadding = Dimensions.PaddingMedium + 4.dp
+
   val imageBitmap by
       produceState<ImageBitmap?>(initialValue = null, key1 = imageBytes) {
         value = imageBytes?.toImageBitmap(dispatcher)
@@ -67,13 +88,13 @@ fun LiquidImagePicker(
             if (imageBitmap != null) {
               Image(
                   bitmap = imageBitmap!!,
-                  contentDescription = "Selected Image",
+                  contentDescription = SelectedImage,
                   contentScale = ContentScale.Crop,
                   modifier = Modifier.fillMaxSize())
             } else {
               Icon(
                   imageVector = Icons.Outlined.Image,
-                  contentDescription = "No Image",
+                  contentDescription = NoImage,
                   tint = MaterialTheme.colorScheme.onSurfaceVariant,
                   modifier = Modifier.size(48.dp))
             }
@@ -87,12 +108,10 @@ fun LiquidImagePicker(
             contentPadding = Dimensions.PaddingSmall,
             modifier =
                 Modifier.align(Alignment.BottomStart)
-                    .padding(
-                        start = Dimensions.PaddingMedium + 4.dp,
-                        bottom = Dimensions.PaddingMedium + 4.dp)) {
+                    .padding(start = buttonPadding, bottom = buttonPadding)) {
               Icon(
                   imageVector = Icons.Default.Delete,
-                  contentDescription = "Delete Image",
+                  contentDescription = DeleteImage,
                   tint = MaterialTheme.colorScheme.onBackground,
                   modifier = Modifier.size(24.dp))
             }
@@ -105,12 +124,10 @@ fun LiquidImagePicker(
           contentPadding = Dimensions.PaddingSmall,
           modifier =
               Modifier.align(Alignment.BottomEnd)
-                  .padding(
-                      end = Dimensions.PaddingMedium + 4.dp,
-                      bottom = Dimensions.PaddingMedium + 4.dp)) {
+                  .padding(end = buttonPadding, bottom = buttonPadding)) {
             Icon(
                 imageVector = if (imageBitmap != null) Icons.Default.Edit else Icons.Default.Add,
-                contentDescription = if (imageBitmap != null) "Edit Image" else "Add Image",
+                contentDescription = if (imageBitmap != null) EditImage else AddImage,
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(24.dp))
           }

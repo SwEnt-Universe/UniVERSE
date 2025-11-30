@@ -9,6 +9,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.di.DispatcherProvider
 import com.android.universe.ui.theme.Dimensions
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import kotlinx.coroutines.withContext
 
 /**
@@ -42,11 +43,12 @@ class ImageBitmapManager(
    * @return A [ByteArray] containing the compressed JPEG data, or `null` if decoding fails or an
    *   error occurs.
    */
-  suspend fun resizeAndCompressImage(uri: Uri): ByteArray? =
+  suspend fun resizeAndCompressImage(
+      uri: Uri,
+      maxSize: Int = Dimensions.ProfilePictureSize
+  ): ByteArray? =
       withContext(dispatcherProvider.io) {
         try {
-          val maxSize = Dimensions.ProfilePictureSize
-
           val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
 
           context.contentResolver.openInputStream(uri)?.use { input ->
@@ -69,8 +71,14 @@ class ImageBitmapManager(
           val stream = ByteArrayOutputStream()
           bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
           stream.toByteArray()
-        } catch (e: Exception) {
-          Log.e("ImageBitmapManager", "Error processing image", e)
+        } catch (e: IOException) {
+          Log.e("ImageBitmapManager", "IO Error processing image: $uri", e)
+          null
+        } catch (e: SecurityException) {
+          Log.e("ImageBitmapManager", "Permission denied: $uri", e)
+          null
+        } catch (e: IllegalArgumentException) {
+          Log.e("ImageBitmapManager", "Invalid arguments", e)
           null
         }
       }

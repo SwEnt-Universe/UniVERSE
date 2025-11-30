@@ -6,6 +6,11 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.ui.components.LiquidImagePickerDefaults.AddImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.DeleteImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.EditImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.NoImage
+import com.android.universe.ui.components.LiquidImagePickerDefaults.SelectedImage
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.setContentWithStubBackdrop
 import java.io.ByteArrayOutputStream
@@ -31,9 +36,9 @@ class LiquidImagePickerTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("No Image").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Add Image").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Delete Image").assertDoesNotExist()
+    composeTestRule.onNodeWithContentDescription(NoImage).assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription(AddImage).assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription(DeleteImage).assertDoesNotExist()
   }
 
   @Test
@@ -53,9 +58,9 @@ class LiquidImagePickerTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("Selected Image").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Edit Image").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Delete Image").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription(SelectedImage).assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription(EditImage).assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription(DeleteImage).assertIsDisplayed()
   }
 
   @Test
@@ -69,7 +74,7 @@ class LiquidImagePickerTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("Add Image").performClick()
+    composeTestRule.onNodeWithContentDescription(AddImage).performClick()
     assertTrue("Expected onPickImage callback to be triggered", isClicked)
   }
 
@@ -95,7 +100,7 @@ class LiquidImagePickerTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("Delete Image").performClick()
+    composeTestRule.onNodeWithContentDescription(DeleteImage).performClick()
     assertTrue("Expected onDeleteImage callback to be triggered", isDeleteClicked)
   }
 }

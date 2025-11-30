@@ -2,12 +2,9 @@ package com.android.universe.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -29,7 +26,7 @@ import kotlinx.coroutines.CoroutineDispatcher
  *   is null or loading.
  * @param contentDescription Text used by accessibility services to describe what this image
  *   represents.
- * @param modifier The [Modifier] to be applied to the container [Box].
+ * @param modifier The [Modifier] to be applied to the [Image] component.
  * @param contentScale Optional scaling parameter to determine how the image fits within the bounds.
  *   Defaults to [ContentScale.Crop].
  * @param dispatcher The [CoroutineDispatcher] used for converting the byte array to a bitmap
@@ -49,19 +46,19 @@ fun ImageDisplay(
         value = image?.toImageBitmap(dispatcher)
       }
 
-  Box(modifier = modifier, contentAlignment = Alignment.Center) {
-    if (imageBitmap != null) {
-      Image(
-          bitmap = imageBitmap!!,
-          contentDescription = contentDescription,
-          contentScale = contentScale,
-          modifier = Modifier.fillMaxSize())
-    } else {
-      Image(
-          painter = painterResource(id = defaultImageId),
-          contentDescription = contentDescription,
-          contentScale = contentScale,
-          modifier = Modifier.fillMaxSize())
-    }
+  val targetBitmap = imageBitmap
+
+  if (targetBitmap != null) {
+    Image(
+        bitmap = targetBitmap,
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        modifier = modifier)
+  } else {
+    Image(
+        painter = painterResource(id = defaultImageId),
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        modifier = modifier)
   }
 }
