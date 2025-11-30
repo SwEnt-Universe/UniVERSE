@@ -40,7 +40,6 @@ import io.mockk.every
 import io.mockk.mockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -67,9 +66,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   override fun setUp() {
     super.setUp()
     mockkObject(DefaultDP)
-    every { DefaultDP.io } returns UnconfinedTestDispatcher()
-    every { DefaultDP.default } returns UnconfinedTestDispatcher()
+    every { DefaultDP.io } returns Dispatchers.IO
+    every { DefaultDP.default } returns Dispatchers.Default
     every { DefaultDP.main } returns Dispatchers.Main
+
     runTest {
       val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
       fakeUser = fakeUser.copy(uid = uid)
