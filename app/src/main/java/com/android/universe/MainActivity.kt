@@ -3,12 +3,14 @@ package com.android.universe
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -22,9 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
@@ -46,6 +52,8 @@ import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.map.MapScreen
+import com.android.universe.ui.map.MapViewModel
+import com.android.universe.ui.map.MapViewModelFactory
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.Tab
@@ -62,10 +70,89 @@ import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
+import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.tomtom.sdk.common.Uri
+import com.tomtom.sdk.map.display.MapOptions
+import com.tomtom.sdk.map.display.style.StyleDescriptor
+import com.tomtom.sdk.map.display.ui.MapView
+import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
+import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+  private val mapViewModel by viewModels<MapViewModel> { MapViewModelFactory(this) }
+  private lateinit var mapView: MapView
+  private lateinit var composeViewForMap: ComposeView
+  private lateinit var composeView: ComposeView
+
+  private fun mapSetup(savedInstanceState: Bundle?) {
+    val mapOptions =
+      MapOptions(
+          mapKey = BuildConfig.TOMTOM_API_KEY,
+          mapStyle =
+              StyleDescriptor(
+                  Uri.parse(
+                      "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
+          renderToTexture = true)
+    mapView = MapView(this, mapOptions)
+
+    composeViewForMap = ComposeView(this).apply {
+        setContent {
+            val backgroundColor = Color.Transparent
+            val backdrop = rememberLayerBackdrop {
+                drawRect(backgroundColor)
+                drawContent()
+            }
+            CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
+                AndroidView(
+                    factory = {
+                        mapView.apply {
+                            onCreate(savedInstanceState)
+                            onStart()
+                            configureUiSettings()
+                            getMapAsync(mapViewModel::onMapReady)
+                        }
+                    },
+                    update = { mapView.onResume() },
+                    modifier = Modifier.testTag("test").graphicsLayer {  }
+                )
+            }
+        }
+    }
+  }
+
+  private fun MapView.configureUiSettings() {
+    this.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
+    this.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
+    this.scaleView.isVisible = false
+  }
+
+  private fun composeSetup() {
+    composeView =
+        ComposeView(this).apply {
+          setContent {
+            UniverseTheme {
+              val backgroundColor = Color.Transparent
+              val backdrop = rememberLayerBackdrop {
+                drawRect(backgroundColor)
+                drawContent()
+              }
+              CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier =
+                        Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+                    color = Color.Transparent) {
+                      UniverseApp()
+                    }
+              }
+            }
+          }
+        }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -75,23 +162,43 @@ class MainActivity : ComponentActivity() {
     // Enable automatic index creation for Firestore (makes offline queries faster)
     Firebase.firestore.persistentCacheIndexManager?.apply { enableIndexAutoCreation() }
 
-    setContent {
-      UniverseTheme {
-        val backgroundColor = Color.White
-        val backdrop = rememberLayerBackdrop {
-          drawRect(backgroundColor)
-          drawContent()
+    mapSetup(savedInstanceState)
+    composeSetup()
+    val rootLayout =
+        FrameLayout(this).apply {
+          layoutParams =
+              ViewGroup.LayoutParams(
+                  ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         }
-        CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
-          // A surface container using the 'background' color from the theme
-          Surface(
-              modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-              color = MaterialTheme.colorScheme.background) {
-                UniverseApp()
-              }
-        }
-      }
-    }
+
+    rootLayout.addView(composeViewForMap)
+    rootLayout.addView(composeView)
+
+    setContentView(rootLayout)
+  }
+
+  override fun onStart() {
+    super.onStart()
+  }
+
+  override fun onResume() {
+    super.onResume()
+  }
+
+  override fun onPause() {
+    super.onPause()
+  }
+
+  override fun onStop() {
+    super.onStop()
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
   }
 }
 

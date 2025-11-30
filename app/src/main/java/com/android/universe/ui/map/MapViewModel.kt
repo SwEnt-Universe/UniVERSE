@@ -1,13 +1,11 @@
 package com.android.universe.ui.map
 
 import android.content.SharedPreferences
-import android.graphics.Bitmap
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
-import androidx.core.graphics.scale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.R
-import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
@@ -22,10 +20,15 @@ import com.android.universe.model.tag.Tag.Category.TECHNOLOGY
 import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
-import com.android.universe.ui.theme.Dimensions
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
-import kotlinx.coroutines.CoroutineDispatcher
+import com.tomtom.sdk.map.display.TomTomMap
+import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
+import com.tomtom.sdk.map.display.camera.CameraOptions
+import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
+import com.tomtom.sdk.map.display.location.LocationMarkerOptions
+import com.tomtom.sdk.map.display.marker.Marker
+import com.tomtom.sdk.map.display.marker.MarkerOptions
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -83,11 +86,9 @@ data class MapMarkerUiModel(
  */
 class MapViewModel(
     private val prefs: SharedPreferences,
-    private val currentUserId: String,
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
-    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
 ) : ViewModel() {
 
   private val _uiState =
@@ -120,9 +121,14 @@ class MapViewModel(
   private var locationTrackingJob: Job? = null
   private var pollingJob: Job? = null
 
+  private var tomTomMap: TomTomMap? = null
+  private val markerToEvent = mutableMapOf<String, Event>()
+  private lateinit var currentUserId: String
+
   /** Initializes data loading and starts event polling. */
-  fun initData() {
+  fun initData(uid: String) {
     // Temporary until the filtering of event works well.
+    currentUserId = uid
     loadAllEvents()
     startEventPolling()
   }
@@ -137,6 +143,132 @@ class MapViewModel(
     super.onCleared()
     stopLocationTracking()
     stopEventPolling()
+  }
+
+  @OptIn(ExperimentalMapSetAntialiasingMethodApi::class)
+  fun onMapReady(map: TomTomMap) {
+    tomTomMap = map
+    map.apply {
+      setInitialCamera(uiState.value.cameraPosition, uiState.value.zoomLevel)
+      setAntialiasingMethod(AntialiasingMethod.FastApproximateAntialiasing)
+      setUpMapListeners(
+          onMapClick = { onMapClick() },
+          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
+          onMarkerClick = { marker ->
+            markerToEvent[marker.tag]?.let { event: Event ->
+              onMarkerClick(event)
+              true
+            } ?: false
+          },
+          onCameraChange = { pos, zoom -> onCameraStateChange(pos, zoom) })
+
+      setMarkerSettings()
+      if (uiState.value.isLocationPermissionGranted) {
+        enableLocationMarker(LocationMarkerOptions(type = LocationMarkerOptions.Type.Chevron))
+        initLocationProvider(locationProvider)
+      }
+
+      nowInteractable()
+    }
+  }
+
+  private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
+    provider?.let {
+      this.setLocationProvider(it)
+      val locationMarkerOptions = LocationMarkerOptions(type = LocationMarkerOptions.Type.Pointer)
+      this.enableLocationMarker(locationMarkerOptions)
+      it.enable()
+    }
+  }
+
+  private fun TomTomMap.setUpMapListeners(
+      onMapClick: () -> Unit,
+      onMapLongClick: (GeoPoint) -> Unit,
+      onMarkerClick: (Marker) -> Boolean,
+      onCameraChange: (GeoPoint, Double) -> Unit
+  ) {
+
+    this.addMapClickListener {
+      onMapClick()
+      true
+    }
+
+    this.addMapLongClickListener { geoPoint ->
+      onMapLongClick(geoPoint)
+      true
+    }
+
+    this.addMarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker) }
+
+    this.addCameraSteadyListener {
+      onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
+    }
+  }
+
+  private fun TomTomMap.setInitialCamera(position: GeoPoint, zoom: Double) {
+    this.moveCamera(CameraOptions(position = position, zoom = zoom))
+  }
+
+  private fun TomTomMap.executeMapAction(action: MapAction) {
+    when (action) {
+      is MapAction.MoveCamera -> {
+        this.moveCamera(CameraOptions(position = action.target, zoom = this.cameraPosition.zoom))
+      }
+      is MapAction.ZoomIn -> {
+        val newZoom = (this.cameraPosition.zoom + 1.0).coerceAtMost(22.0)
+        this.animateCamera(CameraOptions(zoom = newZoom))
+      }
+    }
+  }
+
+  private fun TomTomMap.setMarkerSettings() {
+    this.markersFadingRange = IntRange(300, 500)
+  }
+
+  suspend fun syncEventMarkers(
+      markers: List<MapMarkerUiModel>,
+  ) {
+    val map = tomTomMap ?: return
+    val (optionsToAdd, markersToRemove, eventForNewMarkers) =
+        withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
+
+    if (markersToRemove.isNotEmpty()) {
+      markersToRemove.forEach { markerToEvent.remove(it) }
+    }
+    if (optionsToAdd.isNotEmpty()) {
+      val addedMarkers = map.addMarkers(optionsToAdd)
+      addedMarkers.forEachIndexed { index, marker ->
+        markerToEvent[marker.tag!!] = eventForNewMarkers[index]
+      }
+    }
+  }
+
+  @VisibleForTesting
+  internal suspend fun markerLogic(
+      markerMap: MutableMap<String, Event>,
+      markers: List<MapMarkerUiModel>
+  ): Triple<List<MarkerOptions>, Set<String>, List<Event>> {
+    val previousEvents = markerMap.values.toSet()
+    val currentEvents = markers.map { it.event }.toSet()
+    val toAdd = markers.filter { it.event !in previousEvents }
+    val toRemove = markerMap.filterValues { it !in currentEvents }.keys
+
+    val optionsToAdd =
+        toAdd.map {
+          val pin = MarkerImageCache.get(it.iconResId)
+          MarkerOptions(tag = it.event.id, coordinate = it.position, pinImage = pin)
+        }
+    return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
+  }
+
+  suspend fun syncSelectedLocationMarker(location: GeoPoint?) {
+    val map = tomTomMap ?: return
+    map.removeMarkers("selected_location")
+    location?.let { geoPoint ->
+      val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
+      map.addMarker(
+          MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
+    }
   }
 
   /**
@@ -291,7 +423,7 @@ class MapViewModel(
               _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
             }
             count++
-            withContext(ioDispatcher) { delay(intervalMinutes * 60 * 1000) }
+            withContext(DefaultDP.io) { delay(intervalMinutes * 60 * 1000) }
           }
         }
   }
@@ -355,20 +487,5 @@ class MapViewModel(
    */
   fun isUserParticipant(event: Event): Boolean {
     return event.participants.contains(currentUserId)
-  }
-
-  /**
-   * Called when a snapshot is available.
-   *
-   * @param bmp The bitmap of the snapshot.
-   */
-  fun onSnapshotAvailable(bmp: Bitmap) {
-    viewModelScope.launch {
-      val scaled =
-          bmp.scale(
-              (bmp.width * Dimensions.ImageScale).toInt(),
-              (bmp.height * Dimensions.ImageScale).toInt())
-      BackgroundSnapshotRepository.updateSnapshot(scaled)
-    }
   }
 }
