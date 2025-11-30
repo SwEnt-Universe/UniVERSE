@@ -30,14 +30,18 @@ import kotlinx.coroutines.CoroutineDispatcher
 /**
  * A custom image picker component displaying a "liquid" style container.
  *
- * This component renders an image if provided (via [imageBytes]) or a placeholder icon if null. It
- * includes a floating action button (LiquidButton) positioned at the bottom-end to trigger image
- * editing or addition.
+ * This component renders an image if provided (via [imageBytes]) or a placeholder icon if null.
+ * When an image is present, it displays floating action buttons to both edit (replace) and delete
+ * the image. If no image is present, it shows an "Add" button.
  *
  * @param imageBytes The raw byte array of the image to display. If null, a placeholder icon is
  *   shown.
  * @param onPickImage The callback lambda triggered when the edit/add button is clicked.
  * @param modifier The [Modifier] to be applied to the outer layout of the component.
+ * @param onDeleteImage The callback lambda triggered when the delete button is clicked. The delete
+ *   button is only visible when [imageBytes] is not null.
+ * @param dispatcher The [CoroutineDispatcher] used for converting the byte array to a bitmap
+ *   asynchronously. Defaults to [DefaultDP.default].
  */
 @Composable
 fun LiquidImagePicker(

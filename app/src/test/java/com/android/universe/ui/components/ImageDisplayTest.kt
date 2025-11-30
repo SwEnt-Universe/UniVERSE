@@ -3,15 +3,20 @@ package com.android.universe.ui.components
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class ImageDisplayTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  private val testDispatcher = UnconfinedTestDispatcher()
 
   private val validPngBytes =
       byteArrayOf(
@@ -91,7 +96,11 @@ class ImageDisplayTest {
     val contentDesc = "Default Profile Picture"
 
     composeTestRule.setContent {
-      ImageDisplay(image = null, defaultImageId = defaultImageId, contentDescription = contentDesc)
+      ImageDisplay(
+          image = null,
+          defaultImageId = defaultImageId,
+          contentDescription = contentDesc,
+          dispatcher = testDispatcher)
     }
 
     composeTestRule.onNodeWithContentDescription(contentDesc).assertIsDisplayed()
@@ -104,7 +113,10 @@ class ImageDisplayTest {
 
     composeTestRule.setContent {
       ImageDisplay(
-          image = validPngBytes, defaultImageId = defaultImageId, contentDescription = contentDesc)
+          image = validPngBytes,
+          defaultImageId = defaultImageId,
+          contentDescription = contentDesc,
+          dispatcher = testDispatcher)
     }
 
     composeTestRule.waitForIdle()
