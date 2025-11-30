@@ -12,7 +12,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -28,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +40,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutButton
 import com.android.universe.ui.common.LogoutConfirmationDialog
+import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.LiquidImagePicker
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
@@ -152,9 +157,84 @@ fun SettingsScreen(
     onLogout: () -> Unit = {},
     clear: suspend () -> Unit = {}
 ) {
-  val uiState by viewModel.uiState.collectAsState()
-  val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    Box(modifier = Modifier.fillMaxSize()){
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally ) {
+            //TODO CHANGE START SCREEN
+            //TODO INCREASE SPACING
+            Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+            LiquidImagePicker(uiState.profilePicture, onPickImage = {
+                //TODO PICK IMAGE
+            },
+                modifier = Modifier
+                .width(200.dp)
+                .height(140.dp))
+            LogoutButton(onClick = { onLogout()})
 
+
+            /*LiquidBox(shape = RectangleShape) {
+                Column() {
+                    Text("General", style = SettingsScreenStyles.sectionTitleStyle())
+                    EditableField(
+                        label = "Email address",
+                        value = uiState.email,
+                        error = uiState.emailError,
+                        testTag = SettingsTestTags.EMAIL_BUTTON,
+                        onClick = { })
+                    EditableField(
+                        label = "Password",
+                        value = if (uiState.password.isEmpty()) "Unchanged" else "********",
+                        error = uiState.passwordError,
+                        testTag = SettingsTestTags.PASSWORD_BUTTON,
+                        onClick = {  })
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        thickness = Dimensions.DividerThickness,
+                        modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
+                    Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
+                    EditableField(
+                        label = "First Name",
+                        value = uiState.firstName,
+                        error = uiState.firstNameError,
+                        testTag = SettingsTestTags.FIRST_NAME_BUTTON,
+                        onClick = {  })
+                    EditableField(
+                        label = "Last Name",
+                        value = uiState.lastName,
+                        error = uiState.lastNameError,
+                        testTag = SettingsTestTags.LAST_NAME_BUTTON,
+                        onClick = {  })
+                    EditableField(
+                        label = "Description",
+                        value = uiState.description.take(30) + if (uiState.description.length > 30) "..." else "",
+                        error = uiState.descriptionError,
+                        testTag = SettingsTestTags.DESCRIPTION_BUTTON,
+                        onClick = { })
+                    EditableField(
+                        label = "Country",
+                        value = uiState.country,
+                        testTag = SettingsTestTags.COUNTRY_BUTTON,
+                        onClick = { })
+                    EditableField(
+                        label = "Date of Birth",
+                        value = "${uiState.year}-${uiState.month}-${uiState.day}",
+                        testTag = SettingsTestTags.DATE_BUTTON,
+                        onClick = {  })
+
+                }
+
+
+
+            }
+             */
+
+
+        }
+    }
+
+
+    /*
   LaunchedEffect(uiState.errorMsg) {
     uiState.errorMsg?.let {
       Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -176,6 +256,8 @@ fun SettingsScreen(
       onSaveModal = { viewModel.saveModal(uid) },
       onLogout = { viewModel.signOut(clear, onLogout) },
       onSelectPicture = { byteArray -> viewModel.updateProfilePicture(byteArray, uid) })
+
+     */
 }
 
 /** Stateless content of the Settings screen, allowing for previews and tests. */
