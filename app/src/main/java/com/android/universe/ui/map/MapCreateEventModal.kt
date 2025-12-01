@@ -10,10 +10,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.components.LiquidButton
+import com.android.universe.ui.map.MapCreateEventModalTestTags.AI_CREATE_EVENT_BUTTON
+import com.android.universe.ui.map.MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON
 import com.android.universe.ui.theme.Dimensions
+
+object MapCreateEventModalTestTags {
+  const val MANUAL_CREATE_EVENT_BUTTON = "manual_create_event_button"
+  const val AI_CREATE_EVENT_BUTTON = "ai_create_event_button"
+}
 
 /**
  * A modal bottom sheet prompting the user to choose between:
@@ -64,7 +72,10 @@ fun MapCreateEventModal(
             onAiCreate()
             onDismissRequest()
           },
-          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.PaddingLarge)) {
+          modifier =
+              Modifier.fillMaxWidth()
+                  .padding(horizontal = Dimensions.PaddingLarge)
+                  .testTag(AI_CREATE_EVENT_BUTTON)) {
             Text("Create Event with AI")
           }
 
@@ -76,7 +87,10 @@ fun MapCreateEventModal(
             onManualCreate()
             onDismissRequest()
           },
-          modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.PaddingLarge)) {
+          modifier =
+              Modifier.fillMaxWidth()
+                  .padding(horizontal = Dimensions.PaddingLarge)
+                  .testTag(MANUAL_CREATE_EVENT_BUTTON)) {
             Text("Create Event Yourself")
           }
 
