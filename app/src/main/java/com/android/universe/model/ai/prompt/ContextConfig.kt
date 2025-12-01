@@ -20,11 +20,11 @@ import java.time.LocalDate
  * The [Default] companion preset provides a minimal, development-friendly configuration.
  */
 data class ContextConfig(
-  val location: String? = "Lausanne",
-  val locationCoordinates: Pair<Double, Double>? = null,
-  val radiusKm: Int? = null,
-  val timeFrame: String? = "today",
-  val currentDate: LocalDate = LocalDate.now(),
+    val location: String? = "Lausanne",
+    val locationCoordinates: Pair<Double, Double>? = null,
+    val radiusKm: Int? = null,
+    val timeFrame: String? = "today",
+    val currentDate: LocalDate = LocalDate.now(),
 ) {
   companion object {
     val Default = ContextConfig()

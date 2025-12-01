@@ -52,17 +52,17 @@ private const val KEY_CAMERA_ZOOM = "camera_zoom"
 
 /** UI state for the Map screen. */
 data class MapUiState(
-  val isLoading: Boolean = true,
-  val error: String? = null,
-  val markers: List<MapMarkerUiModel> = emptyList(),
-  val userLocation: GeoPoint? = null,
-  val selectedLocation: GeoPoint? = null,
-  val isLocationPermissionGranted: Boolean = false,
-  val isMapInteractive: Boolean = false,
+    val isLoading: Boolean = true,
+    val error: String? = null,
+    val markers: List<MapMarkerUiModel> = emptyList(),
+    val userLocation: GeoPoint? = null,
+    val selectedLocation: GeoPoint? = null,
+    val isLocationPermissionGranted: Boolean = false,
+    val isMapInteractive: Boolean = false,
 
     // Defaults to Lausanne
-  val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
-  val zoomLevel: Double = 14.0
+    val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
+    val zoomLevel: Double = 14.0
 )
 
 /** One-off actions for Map interactions. */
@@ -380,42 +380,33 @@ class MapViewModel(
     }
   }
 
-  fun generateAiEventAroundUser(
-    radiusKm: Int = MAX_RADIUS_KM,
-    timeFrame: String = "today"
-  ) {
-    val userLoc = uiState.value.userLocation ?: run {
-      _uiState.update { it.copy(error = "User location unavailable") }
-      return
-    }
+  fun generateAiEventAroundUser(radiusKm: Int = MAX_RADIUS_KM, timeFrame: String = "today") {
+    val userLoc =
+        uiState.value.userLocation
+            ?: run {
+              _uiState.update { it.copy(error = "User location unavailable") }
+              return
+            }
 
     viewModelScope.launch {
       try {
         val profile = userRepository.getUser(currentUserId)
 
-        val context = ContextConfig(
-          location = null,
-          locationCoordinates = Pair(userLoc.latitude, userLoc.longitude),
-          radiusKm = radiusKm,
-          timeFrame = timeFrame
-        )
+        val context =
+            ContextConfig(
+                location = null,
+                locationCoordinates = Pair(userLoc.latitude, userLoc.longitude),
+                radiusKm = radiusKm,
+                timeFrame = timeFrame)
 
-        val task = TaskConfig(
-          eventCount = 1,
-          requireRelevantTags = true
-        )
+        val task = TaskConfig(eventCount = 1, requireRelevantTags = true)
 
-        val query = EventQuery(
-          user = profile,
-          task = task,
-          context = context
-        )
+        val query = EventQuery(user = profile, task = task, context = context)
 
         val events = ai.generateEvents(query)
 
         eventRepository.persistAIEvents(events)
         loadAllEvents()
-
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
       }
