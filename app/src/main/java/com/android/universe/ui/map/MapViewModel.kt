@@ -427,7 +427,7 @@ class MapViewModel(
     aiGenerationJob?.cancel()
     aiGenerationJob =
         viewModelScope.launch {
-          delay(300L) // debounce camera movement
+          delay(5_000L) // debounce camera movement for x_000L = x seconds
 
           val now = System.currentTimeMillis()
 

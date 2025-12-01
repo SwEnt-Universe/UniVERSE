@@ -81,11 +81,7 @@ class PassiveAIGenPolicyTest {
   @Test
   fun `accepts and caps number of events to MAX_EVENT_PER_REQUEST`() {
     val result =
-        eval(
-            radiusKm = MAX_VIEWPORT_RADIUS_KM * 0.5,
-            numEvents = 0,
-            last = 0,
-            now = REQUEST_COOLDOWN + 1)
+        eval(radiusKm = MAX_VIEWPORT_RADIUS_KM, numEvents = 0, last = 0, now = REQUEST_COOLDOWN + 1)
 
     assertTrue(result is Decision.Accept)
     val accept = result as Decision.Accept

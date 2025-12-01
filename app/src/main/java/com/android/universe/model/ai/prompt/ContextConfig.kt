@@ -1,5 +1,8 @@
 package com.android.universe.model.ai.prompt
 
+import com.android.universe.model.ai.AIConfig.MIN_EVENT_SPACING_KM
+import java.time.LocalDate
+
 /**
  * Defines the contextual parameters used when generating events.
  *
@@ -16,7 +19,9 @@ data class ContextConfig(
     val location: String? = "Lausanne",
     val locationCoordinates: Pair<Double, Double>? = null,
     val radiusKm: Int? = null,
-    val timeFrame: String? = "today"
+    val timeFrame: String? = "today",
+    val currentDate: LocalDate = LocalDate.now(),
+    val eventSpacingKm: Double = MIN_EVENT_SPACING_KM
 ) {
 
   companion object {
