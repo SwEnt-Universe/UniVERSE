@@ -411,9 +411,8 @@ class MapViewModel(
         )
 
         val events = ai.generateEvents(query)
-        val event = events.first()
 
-        eventRepository.addEvent(event)
+        eventRepository.persistAIEvents(events)
         loadAllEvents()
 
       } catch (e: Exception) {
