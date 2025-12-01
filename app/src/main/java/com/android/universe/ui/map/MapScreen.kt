@@ -12,6 +12,8 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
@@ -74,6 +76,8 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlinx.coroutines.withContext
+import com.android.universe.ui.theme.Dimensions
+
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -126,6 +130,7 @@ fun MapScreen(
   val layerBackdrop = LocalLayerBackdrop.current
   var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
+  var showMapModal by remember { mutableStateOf(false) }
 
   // Local cache for marker click handling (ID -> Event)
   val markerToEvent = remember { mutableMapOf<String, Event>() }
@@ -261,10 +266,16 @@ fun MapScreen(
                     viewModel.nowInteractable()
                   })
 
-              if (uiState.selectedLocation != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.BottomCenter) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(padding)
+              .padding(
+                horizontal = Dimensions.PaddingExtraLarge,
+              )
+            ,
+            contentAlignment = Alignment.BottomStart
+          ) {
                       LiquidButton(
                           onClick = {
                             val view = mapViewInstance
@@ -279,15 +290,12 @@ fun MapScreen(
                                 uiState.selectedLocation!!.latitude,
                                 uiState.selectedLocation!!.longitude)
                           },
-                          modifier =
-                              Modifier.padding(bottom = 96.dp)
-                                  .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                          modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
                             Text(
-                                "Create your Event !",
+                                "+",
                                 color = MaterialTheme.colorScheme.onBackground)
                           }
                     }
-              }
               // Overlays
               if (uiState.isLoading) {
                 CircularProgressIndicator(
