@@ -14,7 +14,6 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
-import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventCardTestTags
@@ -36,9 +35,6 @@ import com.android.universe.utils.selectMinute
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import io.mockk.every
-import io.mockk.mockkObject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -65,10 +61,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Before
   override fun setUp() {
     super.setUp()
-    mockkObject(DefaultDP)
-    every { DefaultDP.io } returns Dispatchers.IO
-    every { DefaultDP.default } returns Dispatchers.Default
-    every { DefaultDP.main } returns Dispatchers.Main
 
     runTest {
       val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
