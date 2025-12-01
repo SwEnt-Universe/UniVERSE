@@ -87,9 +87,8 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
     }
 
     // ========================================================================
-    // 5: PARSING & CONVERSION
+    // 5: PARSING
     // ========================================================================
-    val outcome = ResponseParser.parseEvents(raw)
-    return outcome.events
+    return ResponseParser.parseEvents(raw)
   }
 }
