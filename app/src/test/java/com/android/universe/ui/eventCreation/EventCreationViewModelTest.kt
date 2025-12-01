@@ -90,6 +90,7 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
+    viewModel.setLocation(0.0,0.0)
 
     assertEquals(
         viewModel.formatTime(viewModel.uiStateEventCreation.value.time), SAMPLE_TIME_FORMAT)
@@ -99,7 +100,7 @@ class EventCreationViewModelTest {
     tagRepository.updateTags(sample_tags)
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(location = Location(0.0, 0.0), uid = "user123")
+    viewModel.saveEvent(uid = "user123")
     testDispatcher.scheduler.advanceUntilIdle()
     val savedEvent = eventRepository.getAllEvents()
     assert(savedEvent.size == 1)

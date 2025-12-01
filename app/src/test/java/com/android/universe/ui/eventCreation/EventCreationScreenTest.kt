@@ -53,8 +53,8 @@ class EventCreationScreenTest {
     composeTestRule.setContent {
       EventCreationScreen(
           eventCreationViewModel = viewModel,
-          location = Location(0.0, 0.0),
           onSave = {},
+          onSelectLocation = {},
           onAddTag = {
             viewModel.setEventTags(
                 setOf(
