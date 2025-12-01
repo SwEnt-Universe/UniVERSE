@@ -19,20 +19,20 @@ class PromptBuilderTest {
   private val DummyDate = LocalDate.of(2000, 8, 11)
 
   private val allTags =
-    (Tag.Companion.getTagsForCategory(Tag.Category.TOPIC) +
-        Tag.Companion.getTagsForCategory(Tag.Category.FOOD))
-      .toSet()
+      (Tag.Companion.getTagsForCategory(Tag.Category.TOPIC) +
+              Tag.Companion.getTagsForCategory(Tag.Category.FOOD))
+          .toSet()
 
   private val user =
-    UserProfile(
-      uid = "69",
-      username = "ai_69",
-      firstName = "AI",
-      lastName = "Base",
-      country = "CH",
-      description = "Has all tags, country = Switzerland",
-      dateOfBirth = DummyDate,
-      tags = allTags)
+      UserProfile(
+          uid = "69",
+          username = "ai_69",
+          firstName = "AI",
+          lastName = "Base",
+          country = "CH",
+          description = "Has all tags, country = Switzerland",
+          dateOfBirth = DummyDate,
+          tags = allTags)
 
   @Ignore("Developer debugging tool. Used to print/inspect PromptBuilder output")
   @Test
@@ -40,11 +40,11 @@ class PromptBuilderTest {
     val task = TaskConfig(eventCount = 5, requireRelevantTags = true)
 
     val context =
-      ContextConfig(
-        location = "Lausanne",
-        radiusKm = 5,
-        timeFrame = "today",
-        locationCoordinates = 46.5191 to 6.5668)
+        ContextConfig(
+            location = "Lausanne",
+            radiusKm = 5,
+            timeFrame = "today",
+            locationCoordinates = 46.5191 to 6.5668)
 
     val system = PromptBuilder.buildSystemMessage()
     val userMsg = PromptBuilder.buildUserMessage(user, task, context)
@@ -54,15 +54,15 @@ class PromptBuilderTest {
   }
 
   private fun dummyProfile() =
-    UserProfile(
-      uid = "u1",
-      username = "johnny",
-      firstName = "John",
-      lastName = "Doe",
-      country = "CH",
-      description = "Example description",
-      dateOfBirth = LocalDate.of(2000, 1, 1),
-      tags = setOf(Tag.ROCK, Tag.MUSIC))
+      UserProfile(
+          uid = "u1",
+          username = "johnny",
+          firstName = "John",
+          lastName = "Doe",
+          country = "CH",
+          description = "Example description",
+          dateOfBirth = LocalDate.of(2000, 1, 1),
+          tags = setOf(Tag.ROCK, Tag.MUSIC))
 
   @Test
   fun promptBuilder_systemMessage_isValidStrictJson() {
@@ -79,11 +79,11 @@ class PromptBuilderTest {
     val profile = dummyProfile()
     val task = TaskConfig(eventCount = 3, requireRelevantTags = true)
     val ctx =
-      ContextConfig(
-        location = "Geneva",
-        locationCoordinates = 47.0 to 8.0,
-        radiusKm = 15,
-        timeFrame = "this-week")
+        ContextConfig(
+            location = "Geneva",
+            locationCoordinates = 47.0 to 8.0,
+            radiusKm = 15,
+            timeFrame = "this-week")
 
     val txt = PromptBuilder.buildUserMessage(profile, task, ctx)
     val root = Json.parseToJsonElement(txt).jsonObject
@@ -94,8 +94,8 @@ class PromptBuilderTest {
     val taskObj = root["task"]!!.jsonObject
 
     assertEquals(
-      "generate public, drop-in, realistic events that match the environment and the user's interests when feasible.",
-      taskObj["goal"]!!.jsonPrimitive.content)
+        "generate public, drop-in, realistic events that match the environment and the user's interests when feasible.",
+        taskObj["goal"]!!.jsonPrimitive.content)
 
     assertEquals(3, taskObj["eventsToGenerate"]!!.jsonPrimitive.int)
     assertEquals(true, taskObj["requireRelevantTags"]!!.jsonPrimitive.boolean)

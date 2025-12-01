@@ -11,7 +11,7 @@ class ResponseParserTest {
   @Test
   fun `parseEvents returns correctly parsed domain events`() {
     val raw =
-      """
+        """
         {
           "events": [
             {
@@ -24,7 +24,7 @@ class ResponseParserTest {
           ]
         }
         """
-        .trimIndent()
+            .trimIndent()
 
     val events = ResponseParser.parseEvents(raw)
 
@@ -49,7 +49,7 @@ class ResponseParserTest {
   @Test
   fun `parseEvents handles multiple events`() {
     val raw =
-      """
+        """
         {
           "events": [
             {
@@ -69,7 +69,7 @@ class ResponseParserTest {
           ]
         }
         """
-        .trimIndent()
+            .trimIndent()
 
     val events = ResponseParser.parseEvents(raw)
 
@@ -89,14 +89,14 @@ class ResponseParserTest {
   @Test
   fun `cleanJson removes json code fences`() {
     val raw =
-      """
+        """
         ```json
         {
           "events": []
         }
         ```
         """
-        .trimIndent()
+            .trimIndent()
 
     val events = ResponseParser.parseEvents(raw)
 
@@ -106,12 +106,12 @@ class ResponseParserTest {
   @Test
   fun `cleanJson removes backticks`() {
     val raw =
-      """
+        """
         ```
         {"events": []}
         ```
         """
-        .trimIndent()
+            .trimIndent()
 
     val events = ResponseParser.parseEvents(raw)
 
@@ -121,7 +121,7 @@ class ResponseParserTest {
   @Test
   fun `parseEvents ignores extra unknown fields`() {
     val raw =
-      """
+        """
         {
           "events": [
             {
@@ -136,7 +136,7 @@ class ResponseParserTest {
           ]
         }
         """
-        .trimIndent()
+            .trimIndent()
 
     val events = ResponseParser.parseEvents(raw)
 
