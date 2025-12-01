@@ -23,6 +23,8 @@ object NavigationTestTags {
   const val EMAIL_VALIDATION_SCREEN = "EmailValidationScreen"
   const val EVENT_CREATION_SCREEN = "EventCreationScreen"
 
+  const val SELECT_LOCATION_SCREEN = "SelectLocationScreen"
+
   // BOTTOM NAVIGATION MENU
   const val BOTTOM_NAVIGATION_MENU = "BottomNavigationMenu"
   const val CHAT_TAB = "ChatTab"
@@ -66,5 +68,6 @@ object NavigationTestTags {
         is NavigationScreens.EmailValidation -> EMAIL_VALIDATION_SCREEN
         is NavigationScreens.EventCreation -> EVENT_CREATION_SCREEN
         is NavigationScreens.ChatInstance -> CHAT_INSTANCE_SCREEN
+        is NavigationScreens.SelectLocation -> SELECT_LOCATION_SCREEN
       }
 }

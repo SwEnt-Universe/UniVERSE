@@ -107,11 +107,14 @@ object MapScreenTestTags {
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
+    onNavigateToEventCreation: () -> Unit,
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
+    mode: MapMode = MapMode.NORMAL,
+    onLocationSelected: (Double, Double) -> Unit = { _, _ -> },
+    createEvent: () -> Unit = {},
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
@@ -246,9 +249,11 @@ fun MapScreen(
                     map.setMarkerSettings()
 
                     map.setUpMapListeners(
+                        mode = mode,
+                        onLocationSelected = onLocationSelected,
                         onMapClick = { viewModel.onMapClick() },
-                        onMapLongClick = { pos ->
-                          viewModel.onMapLongClick(pos.latitude, pos.longitude)
+                        onMapLongClick = { geo ->
+                          viewModel.onMapLongClick(geo.latitude, geo.longitude)
                         },
                         onMarkerClick = { marker ->
                           markerToEvent[marker.tag]?.let { event ->
@@ -314,8 +319,8 @@ fun MapScreen(
                   onDismissRequest = { showMapModal = false },
                   onAiCreate = { viewModel.generateAiEventAroundUser() },
                   onManualCreate = {
-                    createEvent(
-                        uiState.selectedLocation!!.latitude, uiState.selectedLocation!!.longitude)
+                    onNavigateToEventCreation() // ← perfect, no navController needed here
+                    showMapModal = false
                   })
             }
       }
@@ -409,19 +414,26 @@ private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
 }
 
 private fun TomTomMap.setUpMapListeners(
+    mode: MapMode,
+    onLocationSelected: (Double, Double) -> Unit,
     onMapClick: () -> Unit,
     onMapLongClick: (GeoPoint) -> Unit,
     onMarkerClick: (Marker) -> Boolean,
     onCameraChange: (GeoPoint, Double) -> Unit
 ) {
-
   this.addMapClickListener {
-    onMapClick()
+    if (mode != MapMode.SELECT_LOCATION) {
+      onMapClick()
+    }
     true
   }
 
   this.addMapLongClickListener { geoPoint ->
-    onMapLongClick(geoPoint)
+    if (mode == MapMode.SELECT_LOCATION) {
+      onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+    } else {
+      onMapLongClick(geoPoint)
+    }
     true
   }
 

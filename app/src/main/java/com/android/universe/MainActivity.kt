@@ -29,6 +29,7 @@ import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,6 +46,8 @@ import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
+import com.android.universe.ui.eventCreation.EventCreationViewModel
+import com.android.universe.ui.map.MapMode
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationScreens
@@ -216,6 +219,9 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
+              onNavigateToEventCreation = {
+                navController.navigate(NavigationScreens.EventCreation.route)
+              },
               onChatNavigate = { chatID, chatName ->
                 navController.navigate(
                     route =
@@ -224,7 +230,7 @@ fun UniverseApp(
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
               },
-              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
+              createEvent = { navController.navigate(NavigationScreens.EventCreation.route) })
         }
 
         composable(
@@ -241,6 +247,9 @@ fun UniverseApp(
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
                   onTabSelected = onTabSelected,
+                  onNavigateToEventCreation = {
+                    navController.navigate(NavigationScreens.EventCreation.route)
+                  },
                   preselectedEventId = eventId,
                   preselectedLocation = Location(lat, lng),
                   onChatNavigate = { chatID, chatName ->
@@ -250,9 +259,7 @@ fun UniverseApp(
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
                   },
-                  createEvent = { lat2, lng2 ->
-                    navController.navigate("eventCreation/$lat2/$lng2")
-                  })
+                  createEvent = { navController.navigate(NavigationScreens.EventCreation.route) })
             }
       }
 
@@ -367,39 +374,59 @@ fun UniverseApp(
             }
           }
       navigation(
-          startDestination = NavigationScreens.EventCreation.route,
           route = NavigationScreens.EventCreation.name,
-      ) {
-        composable(
-            route = NavigationScreens.EventCreation.route,
-            arguments =
-                listOf(
-                    navArgument("latitude") { type = NavType.FloatType },
-                    navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
-              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
-              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
+          startDestination = NavigationScreens.EventCreation.route) {
+
+            // The main Event Creation Screen
+            composable(NavigationScreens.EventCreation.route) { entry ->
+              val vm: EventCreationViewModel = viewModel(entry)
 
               UniverseBackgroundContainer(bitmap) {
                 EventCreationScreen(
-                    location = Location(latitude.toDouble(), longitude.toDouble()),
-                    onAddTag = { navController.navigate("selectTagEvent") },
-                    onSave = {
-                      navController.popBackStack(
-                          route = NavigationScreens.EventCreation.route, inclusive = true)
-                    })
+                    eventCreationViewModel = vm,
+                    onAddTag = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
+                    onSelectLocation = {
+                      navController.navigate(NavigationScreens.SelectLocation.route)
+                    },
+                    onSave = { navController.popBackStack() })
               }
             }
-        composable(
-            route = NavigationScreens.SelectTagEvent.route,
-        ) {
-          UniverseBackgroundContainer(bitmap) {
-            SelectTagScreen(
-                selectTagMode = SelectTagMode.EVENT_CREATION,
-                uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navController.popBackStack() })
+
+            // Map for selecting location
+            composable(NavigationScreens.SelectLocation.route) {
+
+              // You MUST remember this
+              val parentEntry =
+                  remember(navController) {
+                    navController.getBackStackEntry(NavigationScreens.EventCreation.route)
+                  }
+
+              val vm: EventCreationViewModel = viewModel(parentEntry)
+
+              MapScreen(
+                  uid = authInstance.currentUser!!.uid,
+                  mode = MapMode.SELECT_LOCATION,
+                  onTabSelected = {},
+                  onNavigateToEventCreation = {
+                    navController.navigate(NavigationScreens.EventCreation.route)
+                  },
+                  onLocationSelected = { lat, lon ->
+                    vm.setLocation(lat, lon)
+                    navController.popBackStack()
+                  })
+            }
+
+            composable(
+                route = NavigationScreens.SelectTagEvent.route,
+            ) {
+              UniverseBackgroundContainer(bitmap) {
+                SelectTagScreen(
+                    selectTagMode = SelectTagMode.EVENT_CREATION,
+                    uid = authInstance.currentUser!!.uid,
+                    navigateOnSave = { navController.popBackStack() })
+              }
+            }
           }
-        }
-      }
     }
   }
 }

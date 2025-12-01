@@ -56,7 +56,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.location.Location
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.UniversalTimePickerDialog
 import com.android.universe.ui.theme.Dimensions
@@ -157,7 +156,7 @@ private fun TextFieldEventCreation(
 @Composable
 fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
-    location: Location,
+    onSelectLocation: () -> Unit,
     onSave: () -> Unit = {},
     onAddTag: () -> Unit = {}
 ) {
@@ -174,6 +173,7 @@ fun EventCreationScreen(
       if (uiState.value.time == null) eventCreationViewModel.noTimeText
       else eventCreationViewModel.formatTime(uiState.value.time)
   val showTime = remember { mutableStateOf(false) }
+  val selectedLocation by eventCreationViewModel.location.collectAsState()
   Scaffold(
       containerColor = Color.Transparent,
       content = { paddingValues ->
@@ -252,6 +252,15 @@ fun EventCreationScreen(
                       .align(Alignment.CenterHorizontally)
                       .testTag(EventCreationTestTags.DELETE_IMAGE_BUTTON)) {
                 Text("Remove Image")
+              }
+          Spacer(Modifier.height(16.dp))
+
+          Button(
+              onClick = onSelectLocation,
+              modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge).fillMaxWidth()) {
+                Text(
+                    selectedLocation?.let { "Location: ${it.latitude}, ${it.longitude}" }
+                        ?: "Select Location on Map")
               }
           TextFieldEventCreation(
               modifier =
@@ -377,7 +386,7 @@ fun EventCreationScreen(
               onClick = {
                 val currentUser = FirebaseAuth.getInstance().currentUser?.uid
                 if (currentUser != null) {
-                  eventCreationViewModel.saveEvent(location = location, uid = currentUser)
+                  eventCreationViewModel.saveEvent(uid = currentUser)
                   onSave()
                 }
               },

@@ -94,6 +94,13 @@ class EventCreationViewModel(
   val noDateText = "No date selected"
   val noTimeText = "No time selected"
 
+  private val _location = MutableStateFlow<Location?>(null)
+  val location = _location.asStateFlow()
+
+  fun setLocation(lat: Double, lon: Double) {
+    _location.value = Location(lat, lon)
+  }
+
   /** We launch a coroutine that will update the set of tag each time the tag repository change. */
   init {
     viewModelScope.launch {
@@ -134,7 +141,8 @@ class EventCreationViewModel(
         eventCreationUiState.value.date != null &&
         eventCreationUiState.value.dateError == null &&
         eventCreationUiState.value.time != null &&
-        eventCreationUiState.value.timeError == null)
+        eventCreationUiState.value.timeError == null &&
+        _location.value != null)
   }
 
   /**
@@ -292,7 +300,7 @@ class EventCreationViewModel(
    * @param location the location of the event.
    * @param uid the uid of the Current User.
    */
-  fun saveEvent(location: Location, uid: String) {
+  fun saveEvent(uid: String) {
     if (validateAll()) {
       viewModelScope.launch {
         try {
@@ -312,7 +320,7 @@ class EventCreationViewModel(
                   tags = _eventTags.value,
                   creator = uid,
                   participants = setOf(uid),
-                  location = location,
+                  location = _location.value!!,
                   eventPicture = eventCreationUiState.value.eventPicture)
           eventRepository.addEvent(event)
           // The event is saved, we can now delete the current tag Set for the event.
