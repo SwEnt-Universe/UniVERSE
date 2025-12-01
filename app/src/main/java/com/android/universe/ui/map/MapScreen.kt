@@ -12,8 +12,6 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Color
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
@@ -38,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
@@ -59,6 +56,7 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.tomtom.sdk.common.Bundle
@@ -76,8 +74,6 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlinx.coroutines.withContext
-import com.android.universe.ui.theme.Dimensions
-
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -266,36 +262,30 @@ fun MapScreen(
                     viewModel.nowInteractable()
                   })
 
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .padding(padding)
-              .padding(
-                horizontal = Dimensions.PaddingExtraLarge,
-              )
-            ,
-            contentAlignment = Alignment.BottomStart
-          ) {
-                      LiquidButton(
-                          onClick = {
-                            val view = mapViewInstance
-                            if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
-                              view.takeSnapshot { bmp ->
-                                if (bmp != null) {
-                                  viewModel.onSnapshotAvailable(bmp)
-                                }
+              Box(
+                  modifier =
+                      Modifier.fillMaxSize()
+                          .padding(padding)
+                          .padding(
+                              horizontal = Dimensions.PaddingExtraLarge,
+                          ),
+                  contentAlignment = Alignment.BottomStart) {
+                    LiquidButton(
+                        onClick = {
+                          val view = mapViewInstance
+                          if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
+                            view.takeSnapshot { bmp ->
+                              if (bmp != null) {
+                                viewModel.onSnapshotAvailable(bmp)
                               }
                             }
-                            createEvent(
-                                uiState.selectedLocation!!.latitude,
-                                uiState.selectedLocation!!.longitude)
-                          },
-                          modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                            Text(
-                                "+",
-                                color = MaterialTheme.colorScheme.onBackground)
                           }
-                    }
+                          showMapModal = true
+                        },
+                        modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                          Text("+", color = MaterialTheme.colorScheme.onBackground)
+                        }
+                  }
               // Overlays
               if (uiState.isLoading) {
                 CircularProgressIndicator(
@@ -319,6 +309,16 @@ fun MapScreen(
                     onChatNavigate = onChatNavigate,
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
               }
+              MapCreateEventModal(
+                  isPresented = showMapModal,
+                  onDismissRequest = { showMapModal = false },
+                  onAiCreate = {
+                    // TODO AI creation
+                  },
+                  onManualCreate = {
+                    createEvent(
+                        uiState.selectedLocation!!.latitude, uiState.selectedLocation!!.longitude)
+                  })
             }
       }
 }
