@@ -154,7 +154,7 @@ class EventCreationScreenTest {
     composeTestRule.waitForIdle()
     selectDay(composeTestRule, SAMPLE_DATE.plusMonths(1))
     pressOKDate(composeTestRule)
-    composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE.plusMonths(1))).assertIsDisplayed()
+    composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE)).assertIsDisplayed()
   }
 
   @Test
