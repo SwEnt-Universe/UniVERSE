@@ -66,9 +66,9 @@ object PromptBuilder {
           "Event titles and descriptions must match the environment (urban → food/culture/meetups, lakeside → relaxing/outdoors, park → fitness/picnics, etc.).")
 
         // ======================================================
-        // STRICT GEOGRAPHIC CONSTRAINTS
+        // GEOGRAPHIC CONSTRAINTS
         // ======================================================
-        add("All event coordinates MUST lie strictly within radiusKm of the provided coordinates.")
+        add("Event coordinates must lie within radiusKm, but should not be identical to user location unless no other plausible point exists.")
 
         // ======================================================
         // TIME RULES

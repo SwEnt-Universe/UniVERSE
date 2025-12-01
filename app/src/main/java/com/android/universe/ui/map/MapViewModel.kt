@@ -380,7 +380,7 @@ class MapViewModel(
   }
 
   fun generateAiEventAroundUser(
-    radiusKm: Int = 2,
+    radiusKm: Int = 5,
     timeFrame: String = "today"
   ) {
     val userLoc = uiState.value.userLocation ?: run {
