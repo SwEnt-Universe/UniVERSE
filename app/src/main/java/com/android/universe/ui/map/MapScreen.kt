@@ -312,9 +312,7 @@ fun MapScreen(
               MapCreateEventModal(
                   isPresented = showMapModal,
                   onDismissRequest = { showMapModal = false },
-                  onAiCreate = {
-                    // TODO AI creation
-                  },
+                  onAiCreate = { viewModel.generateAiEventAroundUser() },
                   onManualCreate = {
                     createEvent(
                         uiState.selectedLocation!!.latitude, uiState.selectedLocation!!.longitude)

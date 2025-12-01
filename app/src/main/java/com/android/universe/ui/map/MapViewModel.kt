@@ -9,6 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.R
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.AIEventGen
+import com.android.universe.model.ai.openai.OpenAIProvider
+import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.EventQuery
+import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
@@ -23,6 +28,7 @@ import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.theme.Dimensions
+import com.google.android.play.integrity.internal.ai
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,17 +51,17 @@ private const val KEY_CAMERA_ZOOM = "camera_zoom"
 
 /** UI state for the Map screen. */
 data class MapUiState(
-    val isLoading: Boolean = true,
-    val error: String? = null,
-    val markers: List<MapMarkerUiModel> = emptyList(),
-    val userLocation: GeoPoint? = null,
-    val selectedLocation: GeoPoint? = null,
-    val isLocationPermissionGranted: Boolean = false,
-    val isMapInteractive: Boolean = false,
+  val isLoading: Boolean = true,
+  val error: String? = null,
+  val markers: List<MapMarkerUiModel> = emptyList(),
+  val userLocation: GeoPoint? = null,
+  val selectedLocation: GeoPoint? = null,
+  val isLocationPermissionGranted: Boolean = false,
+  val isMapInteractive: Boolean = false,
 
     // Defaults to Lausanne
-    val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
-    val zoomLevel: Double = 14.0
+  val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
+  val zoomLevel: Double = 14.0
 )
 
 /** One-off actions for Map interactions. */
@@ -87,7 +93,8 @@ class MapViewModel(
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
-    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io,
+    private val ai: AIEventGen = OpenAIProvider.eventGen,
 ) : ViewModel() {
 
   private val _uiState =
@@ -369,6 +376,49 @@ class MapViewModel(
               (bmp.width * Dimensions.ImageScale).toInt(),
               (bmp.height * Dimensions.ImageScale).toInt())
       BackgroundSnapshotRepository.updateSnapshot(scaled)
+    }
+  }
+
+  fun generateAiEventAroundUser(
+    radiusKm: Int = 2,
+    timeFrame: String = "today"
+  ) {
+    val userLoc = uiState.value.userLocation ?: run {
+      _uiState.update { it.copy(error = "User location unavailable") }
+      return
+    }
+
+    viewModelScope.launch {
+      try {
+        val profile = userRepository.getUser(currentUserId)
+
+        val context = ContextConfig(
+          location = null,
+          locationCoordinates = Pair(userLoc.latitude, userLoc.longitude),
+          radiusKm = radiusKm,
+          timeFrame = timeFrame
+        )
+
+        val task = TaskConfig(
+          eventCount = 1,
+          requireRelevantTags = true
+        )
+
+        val query = EventQuery(
+          user = profile,
+          task = task,
+          context = context
+        )
+
+        val events = ai.generateEvents(query)
+        val event = events.first()
+
+        eventRepository.addEvent(event)
+        loadAllEvents()
+
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
+      }
     }
   }
 }
