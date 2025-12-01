@@ -111,7 +111,7 @@ fun UniverseApp(
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
   BackgroundSnapshotRepository.loadInitialSnapshot(context)
-  var aiOn by remember { mutableStateOf(true) }
+  var aiOn by remember { mutableStateOf(false) }
   val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
   val bitmap =
       BackgroundSnapshotRepository.currentSnapshot
