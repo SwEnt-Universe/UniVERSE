@@ -11,7 +11,7 @@ class ResponseParserTest {
   @Test
   fun `parseEvents returns correctly parsed domain events`() {
     val raw =
-        """
+      """
         {
           "events": [
             {
@@ -24,14 +24,13 @@ class ResponseParserTest {
           ]
         }
         """
-            .trimIndent()
+        .trimIndent()
 
-    val outcome = ResponseParser.parseEvents(raw)
+    val events = ResponseParser.parseEvents(raw)
 
-    Assert.assertEquals(1, outcome.events.size)
-    Assert.assertEquals(0, outcome.failures.size)
+    Assert.assertEquals(1, events.size)
 
-    val e = outcome.events.first()
+    val e = events.first()
 
     Assert.assertEquals("Physics Meetup", e.title)
     Assert.assertEquals("Quantum discussion", e.description)
@@ -50,7 +49,7 @@ class ResponseParserTest {
   @Test
   fun `parseEvents handles multiple events`() {
     val raw =
-        """
+      """
         {
           "events": [
             {
@@ -70,61 +69,59 @@ class ResponseParserTest {
           ]
         }
         """
-            .trimIndent()
+        .trimIndent()
 
-    val outcome = ResponseParser.parseEvents(raw)
+    val events = ResponseParser.parseEvents(raw)
 
-    Assert.assertEquals(2, outcome.events.size)
-    Assert.assertEquals(0, outcome.failures.size)
+    Assert.assertEquals(2, events.size)
 
-    Assert.assertEquals("Event A", outcome.events[0].title)
-    Assert.assertEquals("Event B", outcome.events[1].title)
+    Assert.assertEquals("Event A", events[0].title)
+    Assert.assertEquals("Event B", events[1].title)
   }
 
-  @Test(expected = IllegalStateException::class)
-  fun `parseEvents throws when events field is missing`() {
+  @Test
+  fun `parseEvents gracefully returns empty list when events field is missing`() {
     val raw = """{"foo": "bar"}"""
-    ResponseParser.parseEvents(raw) // still throws for missing "events"
+    val events = ResponseParser.parseEvents(raw)
+    Assert.assertTrue(events.isEmpty())
   }
 
   @Test
   fun `cleanJson removes json code fences`() {
     val raw =
-        """
+      """
         ```json
         {
           "events": []
         }
         ```
         """
-            .trimIndent()
+        .trimIndent()
 
-    val outcome = ResponseParser.parseEvents(raw)
+    val events = ResponseParser.parseEvents(raw)
 
-    Assert.assertTrue(outcome.events.isEmpty())
-    Assert.assertEquals(0, outcome.failures.size)
+    Assert.assertTrue(events.isEmpty())
   }
 
   @Test
   fun `cleanJson removes backticks`() {
     val raw =
-        """
+      """
         ```
         {"events": []}
         ```
         """
-            .trimIndent()
+        .trimIndent()
 
-    val outcome = ResponseParser.parseEvents(raw)
+    val events = ResponseParser.parseEvents(raw)
 
-    Assert.assertTrue(outcome.events.isEmpty())
-    Assert.assertEquals(0, outcome.failures.size)
+    Assert.assertTrue(events.isEmpty())
   }
 
   @Test
   fun `parseEvents ignores extra unknown fields`() {
     val raw =
-        """
+      """
         {
           "events": [
             {
@@ -139,12 +136,11 @@ class ResponseParserTest {
           ]
         }
         """
-            .trimIndent()
+        .trimIndent()
 
-    val outcome = ResponseParser.parseEvents(raw)
+    val events = ResponseParser.parseEvents(raw)
 
-    Assert.assertEquals(1, outcome.events.size)
-    Assert.assertEquals("Valid Event", outcome.events.first().title)
-    Assert.assertEquals(0, outcome.failures.size)
+    Assert.assertEquals(1, events.size)
+    Assert.assertEquals("Valid Event", events.first().title)
   }
 }
