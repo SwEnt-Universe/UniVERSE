@@ -72,8 +72,10 @@ fun LiquidImagePicker(
 ) {
   val buttonPadding = Dimensions.PaddingMedium + 4.dp
 
+  val imageHash = imageBytes?.contentHashCode()
+
   val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, key1 = imageBytes) {
+      produceState<ImageBitmap?>(initialValue = null, key1 = imageHash) {
         value = imageBytes?.toImageBitmap(dispatcher)
       }
 
