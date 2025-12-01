@@ -167,10 +167,13 @@ fun SettingsScreen(
   LaunchedEffect(uid) { viewModel.loadUser(uid) }
 
   SettingsScreenContent(
-      uiState = uiState,
-      onBack = onBack,
-      aiOn = aiOn,
-      onAiToggle = viewModel::setAiEnabled,
+    uiState = uiState,
+    onBack = onBack,
+    aiOn = aiOn,
+    onAiToggle = { enabled ->
+      viewModel.setAiEnabled(enabled)
+      onAiToggle(enabled)
+    },
       onOpenField = viewModel::openModal,
       onCloseModal = viewModel::closeModal,
       onUpdateTemp = viewModel::updateTemp,
@@ -355,6 +358,10 @@ private fun GeneralSection(
     onAiToggle: (Boolean) -> Unit,
     open: (String) -> Unit
 ) {
+  AiToggleRow(
+    checked = aiOn,
+    onCheckedChange = onAiToggle
+  )
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     Text("General", style = SettingsScreenStyles.sectionTitleStyle())
     EditableField(
@@ -369,7 +376,6 @@ private fun GeneralSection(
         error = uiState.passwordError,
         testTag = SettingsTestTags.PASSWORD_BUTTON,
         onClick = { open("password") })
-    Switch(checked = aiOn, onCheckedChange = onAiToggle)
   }
 }
 
@@ -452,6 +458,31 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
     }
   }
 }
+
+@Composable
+private fun AiToggleRow(
+  checked: Boolean,
+  onCheckedChange: (Boolean) -> Unit,
+) {
+  Row(
+    modifier =
+      Modifier
+        .padding(vertical = SettingsScreenPaddings.InternalSpacing),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween
+  ) {
+    Text(
+      text = "AI Suggestions",
+      style = MaterialTheme.typography.bodyLarge,
+      modifier = Modifier.weight(1f)
+    )
+    Switch(
+      checked = checked,
+      onCheckedChange = onCheckedChange
+    )
+  }
+}
+
 
 /* =========================================================
  * Previews (use stateless content only)
