@@ -1,5 +1,7 @@
 package com.android.universe.model.ai.prompt
 
+import java.time.LocalDate
+
 /**
  * Defines the contextual parameters used when generating events.
  *
@@ -18,10 +20,11 @@ package com.android.universe.model.ai.prompt
  * The [Default] companion preset provides a minimal, development-friendly configuration.
  */
 data class ContextConfig(
-    val location: String? = "Lausanne",
-    val locationCoordinates: Pair<Double, Double>? = null,
-    val radiusKm: Int? = null,
-    val timeFrame: String? = "today"
+  val location: String? = "Lausanne",
+  val locationCoordinates: Pair<Double, Double>? = null,
+  val radiusKm: Int? = null,
+  val timeFrame: String? = "today",
+  val currentDate: LocalDate = LocalDate.now(),
 ) {
   companion object {
     val Default = ContextConfig()
