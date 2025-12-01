@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -17,11 +16,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,18 +30,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.LogoutButton
 import com.android.universe.ui.common.LogoutConfirmationDialog
+import com.android.universe.ui.components.CustomTextField
+import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
@@ -102,7 +108,8 @@ private fun EditableField(
 ) {
   Row(
       modifier =
-          Modifier.fillMaxWidth()
+          Modifier
+              .fillMaxWidth()
               .clickable { onClick() }
               .testTag(testTag)
               .padding(vertical = SettingsScreenPaddings.InternalSpacing),
@@ -153,88 +160,96 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 fun SettingsScreen(
     uid: String,
     onBack: () -> Unit = {},
-    viewModel: SettingsViewModel = viewModel(),
+    viewModel: SettingsViewModel = viewModel {SettingsViewModel(uid)},
     onLogout: () -> Unit = {},
     clear: suspend () -> Unit = {}
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    Box(modifier = Modifier.fillMaxSize()){
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(state = rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally ) {
-            //TODO CHANGE START SCREEN
-            //TODO INCREASE SPACING
-            Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-            LiquidImagePicker(uiState.profilePicture, onPickImage = {
-                //TODO PICK IMAGE
-            },
-                modifier = Modifier
-                .width(200.dp)
-                .height(140.dp))
-            LogoutButton(onClick = { onLogout()})
+  val uiState by viewModel.uiState.collectAsState()
+  val context = LocalContext.current
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .matchParentSize()
+            .verticalScroll(state = rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+          // TODO CHANGE START SCREEN
+          // TODO INCREASE SPACING
+          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium * 3))
+          LiquidImagePicker(
+              uiState.profilePicture,
+              onPickImage = {
+                // TODO PICK IMAGE
+              },
+              modifier = Modifier
+                  .width(200.dp)
+                  .height(140.dp))
+          LogoutButton(onClick = { onLogout() })
 
-
-            /*LiquidBox(shape = RectangleShape) {
-                Column() {
-                    Text("General", style = SettingsScreenStyles.sectionTitleStyle())
+          LiquidBox(
+              modifier = Modifier
+                  .fillMaxSize()
+                  //TODO readjust
+                  .height(1000.dp),
+              shape = BottomSheetDefaults.ExpandedShape,
+              enableLens = false) {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(
+                                horizontal = Dimensions.PaddingExtraLarge,
+                                vertical = Dimensions.PaddingLarge
+                            ), verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingMedium)) {
+                      Text("General", style = SettingsScreenStyles.sectionTitleStyle())
+                        FieldModifier(leadingIcon = Icons.Default.AccountCircle, title = "Email address", endText = uiState.email, trailingIcon = Icons.Default.Edit)
+                      //TODO password is different than the typical modal because of hidden text
                     EditableField(
-                        label = "Email address",
-                        value = uiState.email,
-                        error = uiState.emailError,
-                        testTag = SettingsTestTags.EMAIL_BUTTON,
-                        onClick = { })
-                    EditableField(
-                        label = "Password",
-                        value = if (uiState.password.isEmpty()) "Unchanged" else "********",
-                        error = uiState.passwordError,
-                        testTag = SettingsTestTags.PASSWORD_BUTTON,
-                        onClick = {  })
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        thickness = Dimensions.DividerThickness,
-                        modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
-                    Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
-                    EditableField(
-                        label = "First Name",
-                        value = uiState.firstName,
-                        error = uiState.firstNameError,
-                        testTag = SettingsTestTags.FIRST_NAME_BUTTON,
-                        onClick = {  })
-                    EditableField(
-                        label = "Last Name",
-                        value = uiState.lastName,
-                        error = uiState.lastNameError,
-                        testTag = SettingsTestTags.LAST_NAME_BUTTON,
-                        onClick = {  })
-                    EditableField(
-                        label = "Description",
-                        value = uiState.description.take(30) + if (uiState.description.length > 30) "..." else "",
-                        error = uiState.descriptionError,
-                        testTag = SettingsTestTags.DESCRIPTION_BUTTON,
-                        onClick = { })
-                    EditableField(
-                        label = "Country",
-                        value = uiState.country,
-                        testTag = SettingsTestTags.COUNTRY_BUTTON,
-                        onClick = { })
-                    EditableField(
-                        label = "Date of Birth",
-                        value = "${uiState.year}-${uiState.month}-${uiState.day}",
-                        testTag = SettingsTestTags.DATE_BUTTON,
-                        onClick = {  })
-
-                }
-
-
-
-            }
-             */
-
-
+                          label = "Password",
+                          value = if (uiState.password.isEmpty()) "Unchanged" else "********",
+                          error = uiState.passwordError,
+                          testTag = SettingsTestTags.PASSWORD_BUTTON,
+                          onClick = {})
+                      HorizontalDivider(
+                          color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                          thickness = Dimensions.DividerThickness,
+                          modifier =
+                              Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
+                      Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
+                    FieldModifier(leadingIcon = Icons.Default.AccountCircle, title = "Username", endText = uiState.username, trailingIcon = Icons.Default.Edit, onClick = { viewModel.setModalType(ModalType.USERNAME)})
+                    FieldModifier(leadingIcon = Icons.Default.AccountCircle, title = "First Name", endText = uiState.firstName, trailingIcon = Icons.Default.Edit)
+                      FieldModifier(leadingIcon = Icons.Default.AccountCircle, title = "Last Name", endText = uiState.lastName, trailingIcon = Icons.Default.Edit)
+                      FieldModifier(leadingIcon = null, title = "Bio", endText = uiState.description, trailingIcon = Icons.Default.Edit)
+                    FieldModifier(leadingIcon = Icons.Default.CalendarMonth, title = "Date of Birth", endText = uiState.year + "-" + uiState.month + "-" + uiState.day, trailingIcon = Icons.Default.Edit)
+                    }
+              }
         }
+        LiquidBottomSheet( isPresented = uiState.showModal, onDismissRequest = {
+            viewModel.stopModal()
+        }) {
+            Column(modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween){
+                    Text(text = uiState.modalType!!.fieldName, fontSize = 30.sp)
+                    Row{
+                        Text(text = "Cancel") //TODO add click
+                        Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
+                        Text(text = "Save") //TODO add click
+                    }
+                }
+                CustomTextField(label = "", placeholder = uiState.modalType!!.fieldName, onValueChange = { str -> viewModel.setModalText(str)}, value = uiState.modalText!!, validationState = uiState.modalValState)
+                Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
+            }
+        }
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter){
+        FlowBottomMenu(
+            listOf(
+                FlowTab.Back(onClick = {}),
+                FlowTab.Confirm(onClick = {}, enabled = true)
+            )
+        )
     }
+  }
 
-
-    /*
+  /*
   LaunchedEffect(uiState.errorMsg) {
     uiState.errorMsg?.let {
       Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -305,7 +320,9 @@ fun SettingsScreenContent(
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
       }) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)) {
           // Profile picture of the user.
           val context = LocalContext.current
           val scope = rememberCoroutineScope()
@@ -357,7 +374,8 @@ fun SettingsScreenContent(
               }
           Box(
               modifier =
-                  Modifier.align(Alignment.CenterHorizontally)
+                  Modifier
+                      .align(Alignment.CenterHorizontally)
                       .padding(Dimensions.PaddingSmall)
                       .size(100.dp)
                       .background(MaterialTheme.colorScheme.surface, CircleShape)
@@ -374,16 +392,19 @@ fun SettingsScreenContent(
           Button(
               onClick = { onSelectPicture(null) },
               modifier =
-                  Modifier.align(Alignment.CenterHorizontally)
+                  Modifier
+                      .align(Alignment.CenterHorizontally)
                       .testTag(SettingsTestTags.DELETE_PICTURE_BUTTON)) {
                 Text("delete profile picture")
               }
           LazyColumn(
               modifier =
-                  Modifier.fillMaxSize()
+                  Modifier
+                      .fillMaxSize()
                       .padding(
                           horizontal = SettingsScreenPaddings.ContentHorizontalPadding,
-                          vertical = Dimensions.PaddingSmall)) {
+                          vertical = Dimensions.PaddingSmall
+                      )) {
                 item { GeneralSection(uiState = uiState, open = onOpenField) }
                 item { ProfileSection(uiState = uiState, open = onOpenField) }
                 item { InterestsSection(uiState = uiState, open = onOpenField) }
@@ -408,7 +429,8 @@ fun SettingsScreenContent(
   // This is the loading icon which will appear during the signing out
   if (uiState.isLoading) {
     Box(
-        Modifier.fillMaxSize()
+        Modifier
+            .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .testTag(SettingsTestTags.LOADING_ICON),
         contentAlignment = Alignment.Center) {
@@ -544,4 +566,35 @@ private fun SettingsScreenContent_Preview() {
   UniverseTheme {
     SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
   }
+}
+
+/**
+ * TODO DOC
+ */
+@Composable
+fun FieldModifier(
+    modifier: Modifier = Modifier,
+    leadingIcon: ImageVector?,
+    title: String,
+    endText: String,
+    trailingIcon: ImageVector,
+    onClick: () -> Unit = {}
+) {
+    Row(modifier = modifier.fillMaxWidth().clickable { onClick() }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween){
+        Row(verticalAlignment = Alignment.CenterVertically){
+            if(leadingIcon != null){
+                Icon(imageVector = leadingIcon, contentDescription = title)
+                Spacer(modifier = Modifier.width(Dimensions.PaddingSmall))
+            }
+            Text(text = title)
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = endText,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false)
+        )
+        Icon(imageVector = trailingIcon, contentDescription = "Edit $title")
+    }
 }

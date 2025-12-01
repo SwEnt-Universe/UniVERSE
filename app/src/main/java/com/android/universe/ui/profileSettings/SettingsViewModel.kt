@@ -25,6 +25,7 @@ import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validateMonth
 import com.android.universe.ui.common.validatePassword
+import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.common.validateYear
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
@@ -75,9 +76,22 @@ data class SettingsUiState(
     val currentField: String = "",
     val showCountryDropdown: Boolean = false,
     val errorMsg: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val modalType: ModalType? = null,
+    val modalText : String? = null,
+    val modalValState : ValidationState = ValidationState.Neutral
 )
 
+/**
+ * For textfields
+ */
+enum class ModalType (val fieldName: String){
+    EMAIL(fieldName = "Email"),
+    USERNAME(fieldName = "Username"),
+    FIRSTNAME(fieldName = "First Name"),
+    LASTNAME(fieldName = "Last Name"),
+    DESCRIPTION(fieldName = "Description")
+}
 /**
  * ViewModel that manages all state and business logic for the profile settings screen.
  *
@@ -88,7 +102,11 @@ data class SettingsUiState(
  * - Persisting updates to Firebase Authentication and the local repository.
  * - Logging out the user through [signOut] from [AuthModelFirebase].
  */
+/**
+ * TODO uid
+ */
 class SettingsViewModel(
+    private val uid: String,
     private val userRepository: UserRepositoryProvider = UserRepositoryProvider,
     private val authModel: AuthModel = AuthModelFirebase()
 ) : ViewModel() {
@@ -104,6 +122,7 @@ class SettingsViewModel(
   }
 
   init {
+      loadUser(uid) //TODO NEW
     FirebaseAuth.getInstance().currentUser?.email?.let { email ->
       _uiState.value = _uiState.value.copy(email = email)
     }
@@ -142,6 +161,46 @@ class SettingsViewModel(
     _uiState.value = _uiState.value.copy(errorMsg = null)
   }
 
+    /**
+     * TODO
+     */
+    fun setModalType(type: ModalType){
+        val text = when(type){
+            ModalType.EMAIL -> _uiState.value.email
+            ModalType.USERNAME -> _uiState.value.username
+            ModalType.FIRSTNAME -> _uiState.value.firstName
+            ModalType.LASTNAME -> _uiState.value.lastName
+            ModalType.DESCRIPTION -> _uiState.value.description
+        }
+        _uiState.value = _uiState.value.copy(modalType = type, showModal = true, modalText = text)
+    }
+
+    /**
+     * TODO
+     */
+    fun stopModal(){
+        _uiState.value = _uiState.value.copy(modalType = null, showModal = false, modalText = null)
+    }
+
+    /**
+     * TODO FINISH
+     */
+    fun setModalText(string: String){
+        val length = string.length
+        when(_uiState.value.modalType){
+            ModalType.EMAIL -> TODO()
+            ModalType.USERNAME -> {
+                if(length <= InputLimits.USERNAME){
+                    val valState = validateUsername(string)
+                    _uiState.value = _uiState.value.copy(modalText = string, modalValState = valState)
+                }
+            }
+            ModalType.FIRSTNAME -> TODO()
+            ModalType.LASTNAME -> TODO()
+            ModalType.DESCRIPTION -> TODO()
+            null -> {}
+        }
+    }
   /**
    * Updates a temporary modal field (e.g., `tempValue`, `tempDay`, etc.) based on the given [key].
    *
