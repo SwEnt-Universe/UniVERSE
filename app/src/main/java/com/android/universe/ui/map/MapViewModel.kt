@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.R
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.AIConfig.MAX_RADIUS_KM
 import com.android.universe.model.ai.AIEventGen
 import com.android.universe.model.ai.openai.OpenAIProvider
 import com.android.universe.model.ai.prompt.ContextConfig
@@ -380,7 +381,7 @@ class MapViewModel(
   }
 
   fun generateAiEventAroundUser(
-    radiusKm: Int = 5,
+    radiusKm: Int = MAX_RADIUS_KM,
     timeFrame: String = "today"
   ) {
     val userLoc = uiState.value.userLocation ?: run {
