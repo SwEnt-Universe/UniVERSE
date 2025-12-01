@@ -42,8 +42,8 @@ object EventValidator {
 
     // Validate date format
     val dateTime =
-        runCatching { LocalDateTime.parse(dto.date) }
-            .getOrElse { throw IllegalArgumentException("Invalid date format: ${dto.date}") }
+      runCatching { LocalDateTime.parse(dto.date) }
+        .getOrElse { throw IllegalArgumentException("Invalid date format: ${dto.date}") }
 
     // Ensure future event
     require(dateTime.isAfter(LocalDateTime.now())) {
