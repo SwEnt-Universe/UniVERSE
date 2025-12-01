@@ -1,8 +1,14 @@
 package com.android.universe.ui.profileSettings
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
@@ -27,6 +33,7 @@ import com.android.universe.ui.common.validateMonth
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.common.validateYear
+import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +41,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.time.Period
+import java.time.format.DateTimeFormatter
 
 /**
  * Represents all UI-related state for the user settings screen.
@@ -45,7 +56,7 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val username: String = "",
     val email: String = "preview@epfl.ch",
-    val password: String = "",
+    val password: String = "asdasdas",
     val firstName: String = "",
     val lastName: String = "",
     val country: String = "",
@@ -79,14 +90,19 @@ data class SettingsUiState(
     val isLoading: Boolean = false,
     val modalType: ModalType? = null,
     val modalText : String? = null,
-    val modalValState : ValidationState = ValidationState.Neutral
+    val modalValState : ValidationState = ValidationState.Neutral,
+    val passwordEnabled : Boolean = false,
+    val date : LocalDate? = null,
+    val formattedDate : String? = null,
+    val dateValidation : ValidationState = ValidationState.Neutral
 )
 
 /**
- * For textfields
+ * For textfields TODO desc
  */
 enum class ModalType (val fieldName: String){
     EMAIL(fieldName = "Email"),
+    PASSWORD(fieldName = "Password"),
     USERNAME(fieldName = "Username"),
     FIRSTNAME(fieldName = "First Name"),
     LASTNAME(fieldName = "Last Name"),
@@ -121,11 +137,17 @@ class SettingsViewModel(
     }
   }
 
-  init {
+    val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    init {
       loadUser(uid) //TODO NEW
     FirebaseAuth.getInstance().currentUser?.email?.let { email ->
       _uiState.value = _uiState.value.copy(email = email)
     }
+      viewModelScope.launch {
+          val methods = authModel.fetchSignInMethodsForEmail(FirebaseAuth.getInstance().currentUser?.email!!).signInMethods
+          val enabled = methods?.contains("password") ?: false
+          _uiState.value = _uiState.value.copy(passwordEnabled = enabled)
+      }
   }
 
   /**
@@ -145,6 +167,8 @@ class SettingsViewModel(
                 lastName = userProfile.lastName,
                 country = isoToCountryName[userProfile.country] ?: userProfile.country,
                 description = userProfile.description ?: "",
+                date = userProfile.dateOfBirth,
+                formattedDate = formatter.format(userProfile.dateOfBirth),
                 day = userProfile.dateOfBirth.dayOfMonth.toString(),
                 month = userProfile.dateOfBirth.monthValue.toString(),
                 year = userProfile.dateOfBirth.year.toString(),
@@ -155,6 +179,85 @@ class SettingsViewModel(
       }
     }
   }
+
+    /**
+     * Taken as is from AddProfileViewmodel
+     */
+    fun setProfilePicture(context: Context, uri: Uri?) {
+        if (uri == null) {
+            //_uiState.value = uiState.value.copy(profilePicture = null)
+        } else {
+            viewModelScope.launch(DefaultDP.io) {
+                // We redimension the image to have a 256256 image to reduce the space of the
+                // image.
+                val maxSize = Dimensions.ProfilePictureSize
+
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    BitmapFactory.decodeStream(input, null, options)
+                }
+
+                val (height: Int, width: Int) = options.run { outHeight to outWidth }
+                var inSampleSize = 1
+                if (height > maxSize || width > maxSize) {
+                    val halfHeight = height / 2
+                    val halfWidth = width / 2
+                    while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
+                        inSampleSize = 2
+                    }
+                }
+
+                options.inSampleSize = inSampleSize
+                options.inJustDecodeBounds = false
+
+                val bitmap =
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        BitmapFactory.decodeStream(input, null, options)
+                    }
+
+                if (bitmap == null) {
+                    Log.e("ImageError", "Failed to decode bitmap from URI $uri")
+                } else {
+                    val stream = ByteArrayOutputStream()
+                    // We compress the image with a low quality to reduce the space of the image.
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
+                    val byteArray = stream.toByteArray()
+                    withContext(DefaultDP.main) {
+                        _uiState.value = uiState.value.copy(profilePicture = byteArray)
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Sets the date of birth of the user if not null
+     * @param date the date of birth
+     */
+    fun setDate(date: LocalDate?){
+        if (date != null) {
+            val age = Period.between(date, LocalDate.now()).years
+            if (age < InputLimits.MIN_AGE) {
+                _uiState.value = _uiState.value.copy(date = date, formattedDate = formatter.format(date), dateValidation = ValidationState.Invalid(ErrorMessages.DATE_TOO_YOUNG.format(InputLimits.MIN_AGE)))
+            }
+            else _uiState.value = _uiState.value.copy(date = date, formattedDate = formatter.format(date), dateValidation = ValidationState.Valid)
+        }
+    }
+
+    /**
+     * Saves the temporary modal to the main state
+     */
+    fun saveTempModal(){
+        when(_uiState.value.modalType){
+            ModalType.EMAIL -> _uiState.value = _uiState.value.copy(email = _uiState.value.modalText!!, modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
+            ModalType.PASSWORD -> _uiState.value = _uiState.value.copy(password = _uiState.value.modalText!!, modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
+            ModalType.USERNAME -> _uiState.value = _uiState.value.copy(username = _uiState.value.modalText!!, modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
+            ModalType.FIRSTNAME -> _uiState.value = _uiState.value.copy(firstName = _uiState.value.modalText!!, modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
+            ModalType.LASTNAME -> _uiState.value = _uiState.value.copy(lastName = _uiState.value.modalText!!, modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
+            ModalType.DESCRIPTION -> _uiState.value = _uiState.value.copy(description = _uiState.value.modalText!!, modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
+            null -> {}
+        }
+    }
 
   /** Clears any active global error message shown via toast or snackbar. */
   fun clearErrorMsg() {
@@ -167,6 +270,7 @@ class SettingsViewModel(
     fun setModalType(type: ModalType){
         val text = when(type){
             ModalType.EMAIL -> _uiState.value.email
+            ModalType.PASSWORD -> _uiState.value.password
             ModalType.USERNAME -> _uiState.value.username
             ModalType.FIRSTNAME -> _uiState.value.firstName
             ModalType.LASTNAME -> _uiState.value.lastName
@@ -176,28 +280,36 @@ class SettingsViewModel(
     }
 
     /**
-     * TODO
+     * Stops the modal and thus informs the UI
      */
     fun stopModal(){
-        _uiState.value = _uiState.value.copy(modalType = null, showModal = false, modalText = null)
+        _uiState.value = _uiState.value.copy(modalType = null, showModal = false, modalText = null, modalValState = ValidationState.Neutral)
     }
 
     /**
-     * TODO FINISH
+     * A helper to simplify similar logic in the modal
+     * @param limit the possible input limit
+     * @param string the current input
+     * @param validate the validation function
+     */
+    @VisibleForTesting
+    private fun setterHelper(limit: Int?, string: String, validate: (String) -> ValidationState) {
+        if(limit != null && string.length <= limit) {
+            _uiState.value = _uiState.value.copy(modalText = string, modalValState = validate(string))
+        } else _uiState.value = _uiState.value.copy(modalText = string, modalValState = validate(string))
+    }
+    /**
+     * Sets the text of the modal to handle the temporary changes
+     * @param string the current input
      */
     fun setModalText(string: String){
-        val length = string.length
         when(_uiState.value.modalType){
-            ModalType.EMAIL -> TODO()
-            ModalType.USERNAME -> {
-                if(length <= InputLimits.USERNAME){
-                    val valState = validateUsername(string)
-                    _uiState.value = _uiState.value.copy(modalText = string, modalValState = valState)
-                }
-            }
-            ModalType.FIRSTNAME -> TODO()
-            ModalType.LASTNAME -> TODO()
-            ModalType.DESCRIPTION -> TODO()
+            ModalType.EMAIL -> setterHelper(InputLimits.EMAIL_MAX_LENGTH, string) { validateEmail(it) }
+            ModalType.PASSWORD -> setterHelper(null, string) { validatePassword(it)}
+            ModalType.USERNAME -> setterHelper(InputLimits.USERNAME, string) { validateUsername(it) }
+            ModalType.FIRSTNAME -> setterHelper(InputLimits.FIRST_NAME, string) { validateFirstName(it) }
+            ModalType.LASTNAME -> setterHelper(InputLimits.LAST_NAME, string) { validateLastName(it)}
+            ModalType.DESCRIPTION -> setterHelper(InputLimits.DESCRIPTION, string) { validateDescription(it) }
             null -> {}
         }
     }
@@ -580,8 +692,7 @@ class SettingsViewModel(
                 lastName = cleanedLastName,
                 country = countryToIsoCode[state.country] ?: state.country,
                 description = cleanedDescription,
-                dateOfBirth =
-                    LocalDate.of(state.year.toInt(), state.month.toInt(), state.day.toInt()),
+                dateOfBirth = state.date!!,
                 tags = state.selectedTags.toSet(),
                 profilePicture = state.profilePicture)
 

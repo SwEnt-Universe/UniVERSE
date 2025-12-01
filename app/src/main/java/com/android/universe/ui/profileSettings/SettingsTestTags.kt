@@ -4,6 +4,7 @@ package com.android.universe.ui.profileSettings
 object SettingsTestTags {
   const val EMAIL_BUTTON = "email_button"
   const val PASSWORD_BUTTON = "password_button"
+  const val USERNAME_BUTTON = "username_button"
   const val FIRST_NAME_BUTTON = "first_name_button"
   const val LAST_NAME_BUTTON = "last_name_button"
   const val DESCRIPTION_BUTTON = "description_field_button"
@@ -19,10 +20,14 @@ object SettingsTestTags {
   const val YEAR_FIELD = "year_field"
   const val EMAIL_FIELD = "email_field"
   const val PASSWORD_FIELD = "password_field"
+  const val USERNAME_FIELD = "username_field"
   const val FIRST_NAME_FIELD = "first_name_field"
   const val LAST_NAME_FIELD = "last_name_field"
   const val DESCRIPTION_FIELD = "description_field"
   const val LOADING_ICON = "loading_icon"
   const val PICTURE_EDITING = "picture editing"
   const val DELETE_PICTURE_BUTTON = "delete picture"
+  const val DATE_ERROR = "date error"
+  const val CUSTOMFIELD = "custom field"
+  const val DATE_DIALOG = "date dialog"
 }
