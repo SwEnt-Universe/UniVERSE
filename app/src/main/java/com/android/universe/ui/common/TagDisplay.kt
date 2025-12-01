@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -109,8 +108,6 @@ fun TagColumn(
     fade: Boolean = true,
     fadeHeight: Dp = heightList * 0.1f
 ) {
-  val density = LocalDensity.current
-  val fadeHeightPx = with(density) { fadeHeight.toPx() }
 
   LazyColumn(
       state = state,
@@ -120,22 +117,7 @@ fun TagColumn(
           modifierBox
               .height(heightList)
               .testTag(TagGroupTestTag.tagColumn(tags))
-              .then(
-                  if (fade) {
-                    Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                        .drawWithContent {
-                          drawContent()
-                          val transparent = Color.Black.copy(alpha = 0f)
-                          val opaque = Color.Black
-                          val brush =
-                              Brush.verticalGradient(
-                                  0f to transparent,
-                                  (fadeHeightPx / size.height) to opaque,
-                                  ((size.height - fadeHeightPx) / size.height) to opaque,
-                                  1f to transparent)
-                          drawRect(brush = brush, blendMode = BlendMode.DstIn)
-                        }
-                  } else Modifier)) {
+              .fadingEdge(visible = fade, fadeSize = fadeHeight)) {
         items(tags) { tag ->
           TagItem(
               tag = tag,
@@ -188,8 +170,6 @@ fun TagRow(
     fade: Boolean = true,
     fadeWidth: Dp = widthList * 0.1f
 ) {
-  val density = LocalDensity.current
-  val fadeWidthPx = with(density) { fadeWidth.toPx() }
 
   LazyRow(
       state = state,
@@ -199,22 +179,7 @@ fun TagRow(
           modifierBox
               .width(widthList)
               .testTag(TagGroupTestTag.tagRow(tags))
-              .then(
-                  if (fade) {
-                    Modifier.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                        .drawWithContent {
-                          drawContent()
-                          val transparent = Color.Black.copy(alpha = 0f)
-                          val opaque = Color.Black
-                          val brush =
-                              Brush.horizontalGradient(
-                                  0f to transparent,
-                                  (fadeWidthPx / size.width) to opaque,
-                                  ((size.width - fadeWidthPx) / size.width) to opaque,
-                                  1f to transparent)
-                          drawRect(brush = brush, blendMode = BlendMode.DstIn)
-                        }
-                  } else Modifier)) {
+              .fadingEdge(visible = fade, fadeSize = fadeWidth, isVertical = false)) {
         items(tags) { tag ->
           TagItem(
               tag = tag,
@@ -286,8 +251,6 @@ fun TagGroup(
     fade: Boolean = true,
     fadeHeight: Dp = height * 0.1f
 ) {
-  val density = LocalDensity.current
-  val fadeHeightPx = with(density) { fadeHeight.toPx() }
   val scrollState = rememberScrollState()
 
   LiquidBox(
@@ -317,24 +280,7 @@ fun TagGroup(
 
                 Box(
                     modifier =
-                        Modifier.fillMaxWidth()
-                            .then(
-                                if (fade) {
-                                  Modifier.graphicsLayer {
-                                        compositingStrategy = CompositingStrategy.Offscreen
-                                      }
-                                      .drawWithContent {
-                                        drawContent()
-                                        val brush =
-                                            Brush.verticalGradient(
-                                                0f to Color.Transparent,
-                                                (fadeHeightPx / size.height) to Color.Black,
-                                                ((size.height - fadeHeightPx) / size.height) to
-                                                    Color.Black,
-                                                1f to Color.Transparent)
-                                        drawRect(brush = brush, blendMode = BlendMode.DstIn)
-                                      }
-                                } else Modifier)) {
+                        Modifier.fillMaxWidth().fadingEdge(visible = fade, fadeSize = fadeHeight)) {
                       Column(
                           modifier =
                               Modifier.fillMaxWidth()
@@ -373,5 +319,52 @@ fun TagGroup(
                     }
               }
             }
+      }
+}
+
+/**
+ * Applies a fading transparency effect to the start and end edges of a component.
+ *
+ * This modifier creates a visual "fade out" effect, typically used to indicate scrollable content
+ * that extends beyond the visible area. It uses an offscreen compositing layer and a
+ * [BlendMode.DstIn] gradient to mask the content's alpha channel.
+ *
+ * @param visible Whether the fade effect should be applied. If false, the modifier returns the
+ *   original instance.
+ * @param fadeSize The size (height or width depending on orientation) of the fade gradient in [Dp].
+ * @param isVertical Determines the direction of the fade. True for top/bottom fading (vertical),
+ *   false for left/right fading (horizontal). Defaults to true.
+ * @return A [Modifier] with the fading effect applied.
+ */
+private fun Modifier.fadingEdge(
+    visible: Boolean,
+    fadeSize: Dp,
+    isVertical: Boolean = true
+): Modifier {
+  if (!visible) return this
+
+  return this.graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+      .drawWithContent {
+        drawContent()
+        val fadePx = fadeSize.toPx()
+        val length = if (isVertical) size.height else size.width
+
+        if (length <= 0f || fadePx <= 0f) return@drawWithContent
+
+        val startRatio = (fadePx / length).coerceIn(0f, 0.5f)
+        val endRatio = ((length - fadePx) / length).coerceIn(0.5f, 1f)
+
+        val transparent = Color.Transparent
+        val opaque = Color.Black
+
+        val brush =
+            if (isVertical) {
+              Brush.verticalGradient(
+                  0f to transparent, startRatio to opaque, endRatio to opaque, 1f to transparent)
+            } else {
+              Brush.horizontalGradient(
+                  0f to transparent, startRatio to opaque, endRatio to opaque, 1f to transparent)
+            }
+        drawRect(brush = brush, blendMode = BlendMode.DstIn)
       }
 }
