@@ -115,55 +115,47 @@ fun UniverseTheme(
 }
 
 /**
- * Returns the appropriate [Color] for a tag based on its category, selection state, and the current
- * theme (light or dark).
+ * Determines the display color for a tag based on its category and selection state.
  *
- * This composable function adapts the color of tags used throughout the UI to ensure visual
- * consistency across categories: "INTEREST", "SPORT", "MUSIC", "TRANSPORT", and "CANTON".
+ * This function returns a vibrant category-specific color when the tag is unselected, and a
+ * lighter, more transparent version of that color when selected (simulating a "pressed" or "glassy"
+ * state).
  *
- * If a tag is **selected**, it uses a universal selected color (`TagSelectedDark` or
- * `TagSelectedLight`) depending on the current theme. Otherwise, it uses a category-specific color
- * variant (e.g., `TagInterestDark`, `TagSportLight`, etc.).
+ * The colors are predefined for each category:
+ * - Music: Violet
+ * - Sport: Sky Blue
+ * - Food: Yellow
+ * - Art: Red
+ * - Travel: Brown
+ * - Games: Orange
+ * - Technology: Grey
+ * - Topic: Pink
  *
- * Categories not explicitly handled default to the [MaterialTheme.colorScheme.primary] color.
- *
- * @param category the tag category name (e.g., `"INTEREST"`, `"SPORT"`, `"MUSIC"`, `"TRANSPORT"`,
- *   `"CANTON"`).
- * @param isSelected whether the tag is currently selected. Defaults to `false`.
- * @return a [Color] corresponding to the tag's category, selection state, and theme.
- * @see LocalIsDarkTheme for determining the current theme mode.
- * @see MaterialTheme.colorScheme for fallback colors.
+ * @param category The string representation of the tag's category (e.g., "Music", "Sport").
+ * @param isSelected Whether the tag is currently selected. If true, the lighter color variant is
+ *   returned.
+ * @return The [Color] corresponding to the category and state. Defaults to
+ *   `MaterialTheme.colorScheme.primary` if the category is not recognized.
  */
 @Composable
 fun tagColor(category: String, isSelected: Boolean = false): Color {
-  val isDark = LocalIsDarkTheme.current
-
+  val isDark = UniverseTheme.isDark
   return when (category) {
     "Music" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagMusicDark else TagMusicLight
+        if (isSelected) (if (isDark) TagMusicSelectedDark else TagMusicSelected) else TagMusic
     "Sport" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagSportDark else TagSportLight
-    "Food" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagFoodDark else TagFoodLight
-    "Art" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagArtDark else TagArtLight
+        if (isSelected) (if (isDark) TagSportSelectedDark else TagSportSelected) else TagSport
+    "Food" -> if (isSelected) (if (isDark) TagFoodSelectedDark else TagFoodSelected) else TagFood
+    "Art" -> if (isSelected) (if (isDark) TagArtSelectedDark else TagArtSelected) else TagArt
     "Travel" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTravelDark else TagTravelLight
+        if (isSelected) (if (isDark) TagTravelSelectedDark else TagTravelSelected) else TagTravel
     "Games" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagGamesDark else TagGamesLight
+        if (isSelected) (if (isDark) TagGamesSelectedDark else TagGamesSelected) else TagGames
     "Technology" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTechnologyDark else TagTechnologyLight
+        if (isSelected) (if (isDark) TagTechnologySelectedDark else TagTechnologySelected)
+        else TagTechnology
     "Topic" ->
-        if (isSelected) if (isDark) TagSelectedDark else TagSelectedLight
-        else if (isDark) TagTopicDark else TagTopicLight
-
+        if (isSelected) (if (isDark) TagTopicSelectedDark else TagTopicSelected) else TagTopic
     else -> MaterialTheme.colorScheme.primary
   }
 }
