@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,7 +82,6 @@ object EventCreationDefaults {
  * @param eventCreationViewModel the viewModel.
  * @param location the location of the event.
  * @param onSave the callBack to call when the user click on the 'Save Event' button.
- * @param onAddTag the callBack to call when the user click on the 'Add Tag' button.
  * @param onAiClick the callBack to call when the user click on the 'AI' button.
  * @param onBack the callBack to call when the user click on the back button of the bottom bar.
  */
@@ -93,12 +91,9 @@ fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
     location: Location,
     onSave: () -> Unit = {},
-    onAddTag: () -> Unit = {},
     onAiClick: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
-  // If the user leave the screen we clear all the tags in the tagRepositoryProvider.
-  DisposableEffect(Unit) { onDispose { eventCreationViewModel.clearTags() } }
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
   val eventImage = uiState.value.eventPicture
   val dateText =
