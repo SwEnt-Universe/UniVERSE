@@ -39,26 +39,42 @@ val PlaceholderLight = Color(0xFF8A8A8A)
 val PlaceholderDark = Color(0xFFAAAAAA)
 
 // Tag category colors (Light and Dark variants for all categories)
+// Music
 val TagMusic = Color(0xFF8E44AD)
 val TagMusicSelected = Color(0xFFD2B4DE)
+val TagMusicSelectedDark = Color(0xFF552867)
 
+// Sport
 val TagSport = Color(0xFF3498DB)
 val TagSportSelected = Color(0xFFAED6F1)
+val TagSportSelectedDark = Color(0xFF1F5B83)
 
+// Food
 val TagFood = Color(0xFFF1C40F)
 val TagFoodSelected = Color(0xFFF9E79F)
+val TagFoodSelectedDark = Color(0xFF907509)
 
+// Art
 val TagArt = Color(0xFFC0392B)
 val TagArtSelected = Color(0xFFE6B0AA)
+val TagArtSelectedDark = Color(0xFF732219)
 
+// Travel
 val TagTravel = Color(0xFFA67B5B)
 val TagTravelSelected = Color(0xFFDBCABD)
+val TagTravelSelectedDark = Color(0xFF634936)
 
+// Games
 val TagGames = Color(0xFFE67E22)
 val TagGamesSelected = Color(0xFFF5CBA7)
+val TagGamesSelectedDark = Color(0xFF8A4B14)
 
+// Technology
 val TagTechnology = Color(0xFF34495E)
 val TagTechnologySelected = Color(0xFFAEB6BF)
+val TagTechnologySelectedDark = Color(0xFF1F2B38)
 
+// Topic
 val TagTopic = Color(0xFFE91E63)
 val TagTopicSelected = Color(0xFFF8BBD0)
+val TagTopicSelectedDark = Color(0xFF8B123B)

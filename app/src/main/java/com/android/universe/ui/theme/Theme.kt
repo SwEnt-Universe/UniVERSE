@@ -139,15 +139,23 @@ fun UniverseTheme(
  */
 @Composable
 fun tagColor(category: String, isSelected: Boolean = false): Color {
+  val isDark = UniverseTheme.isDark
   return when (category) {
-    "Music" -> if (isSelected) TagMusicSelected else TagMusic
-    "Sport" -> if (isSelected) TagSportSelected else TagSport
-    "Food" -> if (isSelected) TagFoodSelected else TagFood
-    "Art" -> if (isSelected) TagArtSelected else TagArt
-    "Travel" -> if (isSelected) TagTravelSelected else TagTravel
-    "Games" -> if (isSelected) TagGamesSelected else TagGames
-    "Technology" -> if (isSelected) TagTechnologySelected else TagTechnology
-    "Topic" -> if (isSelected) TagTopicSelected else TagTopic
+    "Music" ->
+        if (isSelected) (if (isDark) TagMusicSelectedDark else TagMusicSelected) else TagMusic
+    "Sport" ->
+        if (isSelected) (if (isDark) TagSportSelectedDark else TagSportSelected) else TagSport
+    "Food" -> if (isSelected) (if (isDark) TagFoodSelectedDark else TagFoodSelected) else TagFood
+    "Art" -> if (isSelected) (if (isDark) TagArtSelectedDark else TagArtSelected) else TagArt
+    "Travel" ->
+        if (isSelected) (if (isDark) TagTravelSelectedDark else TagTravelSelected) else TagTravel
+    "Games" ->
+        if (isSelected) (if (isDark) TagGamesSelectedDark else TagGamesSelected) else TagGames
+    "Technology" ->
+        if (isSelected) (if (isDark) TagTechnologySelectedDark else TagTechnologySelected)
+        else TagTechnology
+    "Topic" ->
+        if (isSelected) (if (isDark) TagTopicSelectedDark else TagTopicSelected) else TagTopic
     else -> MaterialTheme.colorScheme.primary
   }
 }
