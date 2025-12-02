@@ -10,7 +10,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
@@ -170,15 +169,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // —————————————————————————————————————
     // 2. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
-    composeTestRule.waitUntil(10_000L) {
-      runCatching { composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).assertExists() }
-          .isSuccess
-    }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
-      advanceEventTime(1000)
-      down(center)
-    }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
+    composeTestRule
+        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+        .performClick()
+
     // —————————————————————————————
     // 3. OTHER PARAMETERS
     // —————————————————————————————

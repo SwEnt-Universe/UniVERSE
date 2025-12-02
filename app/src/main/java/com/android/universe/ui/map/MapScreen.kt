@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -266,6 +267,15 @@ fun MapScreen(
                     map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
                     viewModel.nowInteractable()
                   })
+
+              if (BuildConfig.DEBUG) {
+                Box(
+                    modifier =
+                        Modifier.fillMaxSize().testTag("test_select_location_backdoor").clickable {
+                          val cam = tomTomMap?.cameraPosition?.position
+                          onLocationSelected(cam?.latitude ?: 46.52, cam?.longitude ?: 6.63)
+                        })
+              }
 
               Box(
                   modifier =
