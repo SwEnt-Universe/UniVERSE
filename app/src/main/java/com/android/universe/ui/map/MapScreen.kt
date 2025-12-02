@@ -286,6 +286,8 @@ fun MapScreen(
                               start = Dimensions.PaddingExtraLarge)) {
                     LiquidButton(
                         onClick = { showMapModal = true },
+                        height = 56f,
+                        width = 56f,
                         modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
                           Text("+", color = MaterialTheme.colorScheme.onBackground)
                         }
