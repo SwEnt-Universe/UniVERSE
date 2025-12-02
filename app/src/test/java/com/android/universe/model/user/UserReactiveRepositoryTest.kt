@@ -34,11 +34,11 @@ class UserReactiveRepositoryTest {
 
   @Test
   fun `getUserFlow returns system user for OpenAI uid`() = runTest {
-    val flow = repository.getUserFlow("system_openai")
+    val flow = repository.getUserFlow("OpenAI")
 
     val result = flow.first()
 
-    assertEquals("system_openai", result?.uid)
+    assertEquals("OpenAI", result?.uid)
     assertEquals("OpenAI", result?.username)
   }
 }
