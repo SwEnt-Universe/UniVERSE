@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -148,8 +149,11 @@ fun ChatPreviewItem(
                     style = MaterialTheme.typography.labelMedium,
                     modifier =
                         Modifier.padding(
-                                top = Dimensions.PaddingSmall, start = Dimensions.PaddingLarge)
+                                top = Dimensions.PaddingSmall, start = Dimensions.PaddingMedium)
                             .testTag(nodeTestTag + DISPLAY_TIME_TEXT))
+              }
+              Column(Modifier.align(Alignment.CenterVertically)) {
+                Text(text = ">", modifier = Modifier.padding(start = Dimensions.PaddingSmall))
               }
             }
       }
