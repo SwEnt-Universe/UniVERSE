@@ -1,5 +1,6 @@
 package com.android.universe.model.ai.response
 
+import com.android.universe.model.ai.AIUserProfile
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventDTO
 import com.android.universe.model.location.Location
@@ -23,7 +24,7 @@ import kotlinx.serialization.json.jsonObject
  */
 object ResponseParser {
 
-  private const val CREATOR = "OpenAI"
+  private val CREATOR = AIUserProfile.OPENAI_USER.uid
 
   private val json = Json {
     ignoreUnknownKeys = true

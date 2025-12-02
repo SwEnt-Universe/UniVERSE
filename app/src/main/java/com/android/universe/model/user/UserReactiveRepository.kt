@@ -2,6 +2,7 @@ package com.android.universe.model.user
 
 import android.util.Log
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.AIUserProfile
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.shareIn
 
 /**
@@ -163,6 +165,11 @@ class UserReactiveRepository(
    * @return A **shared** Flow that emits `UserProfile?` on initial load and on subsequent updates.
    */
   fun getUserFlow(uid: String): Flow<UserProfile?> {
+    // Check for system user before querying database
+    if (uid == "OpenAI") {
+      return flowOf(AIUserProfile.OPENAI_USER)
+    }
+
     return userFlows.getOrPut(uid) {
       callbackFlow {
             val listener =

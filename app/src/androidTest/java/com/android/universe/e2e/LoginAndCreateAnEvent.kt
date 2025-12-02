@@ -30,7 +30,7 @@ import com.android.universe.utils.UserTestData
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
 import com.android.universe.utils.pressOKTime
-import com.android.universe.utils.selectDay
+import com.android.universe.utils.selectDayWithMonth
 import com.android.universe.utils.selectHour
 import com.android.universe.utils.selectMinute
 import com.android.universe.utils.setContentWithStubBackdrop
@@ -155,7 +155,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .performClick()
     nextMonth(composeTestRule)
     composeTestRule.waitForIdle()
-    selectDay(composeTestRule, FAKE_EVENT.date.toLocalDate())
+    selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
     composeTestRule.waitForIdle()
     pressOKDate(composeTestRule)
     composeTestRule
