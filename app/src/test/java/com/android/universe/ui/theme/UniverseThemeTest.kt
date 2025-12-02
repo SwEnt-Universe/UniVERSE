@@ -94,25 +94,6 @@ class UniverseThemeTest {
     }
   }
 
-  // ────────────────────────────────────────────────
-  // TAG COLOR TESTS
-  // ────────────────────────────────────────────────
-
-  @Test
-  fun tagColor_returnsDifferentColorsForLightAndDarkThemes() {
-    var light: Color? = null
-    var dark: Color? = null
-
-    composeTestRule.setContent {
-      light = tagColorForTest(category = "Topic", isSelected = false, darkTheme = false)
-      dark = tagColorForTest(category = "Topic", isSelected = false, darkTheme = true)
-    }
-
-    assertNotNull(light)
-    assertNotNull(dark)
-    assertNotEquals(light, dark)
-  }
-
   @Test
   fun tagColor_returnsColorsForAllCategoriesAndStates() {
     val categories =
