@@ -3,6 +3,7 @@ package com.android.universe.e2e
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -19,6 +20,7 @@ import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
+import com.android.universe.ui.map.MapCreateEventModalTestTags
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -85,7 +87,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
     loginAndWait()
-    clickOnMapAndCreateEvent()
+    createEvent()
     seeAddedEventInEventList()
     clickOnEventInList()
   }
@@ -121,32 +123,32 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 
     // Wait max 30 seconds, we should arrive on the MapScreen
-    composeTestRule.waitUntil(30_000L) {
+    composeTestRule.waitUntil(50_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
-    }
-
-    composeTestRule.waitUntil(15_000L) {
-      composeTestRule
-          .onAllNodesWithTag(MapScreenTestTags.INTERACTABLE)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
     }
   }
 
-  private fun clickOnMapAndCreateEvent() = runTest {
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
-      advanceEventTime(1000)
-      down(center)
-    }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
-
-    composeTestRule.waitUntil(10_000L) {
+  private fun createEvent() = runTest {
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
+    composeTestRule.waitUntil(5_000) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
-    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(3_000) {
+      composeTestRule
+          .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
+          .isDisplayed()
+    }
+    composeTestRule
+        .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
+        .performClick()
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).isDisplayed()
+    }
 
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.DATE_BUTTON)
@@ -171,12 +173,30 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
 
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
+
+    composeTestRule.waitUntil(19_000L) {
+      composeTestRule
+          .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
+          .isDisplayed()
+    }
+
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
+        .performTouchInput { click(center) }
+
+    composeTestRule.waitUntil(69_000L) {
+      composeTestRule
+          .onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON)
+          .assertIsDisplayed()
+          .isDisplayed()
+    }
     composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
 
   private fun seeAddedEventInEventList() = runTest {
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(10_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
     }
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()

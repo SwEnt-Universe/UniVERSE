@@ -90,7 +90,7 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
-    viewModel.setLocation(0.0,0.0)
+    viewModel.setLocation(0.0, 0.0)
 
     assertEquals(
         viewModel.formatTime(viewModel.uiStateEventCreation.value.time), SAMPLE_TIME_FORMAT)

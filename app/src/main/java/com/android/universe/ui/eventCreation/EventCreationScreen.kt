@@ -88,6 +88,8 @@ object EventCreationTestTags {
   const val TIME_BUTTON = "TimeButton"
   const val DATE_DIALOG = "DateDialog"
   const val TIME_DIALOG = "TimeDialog"
+
+  const val SET_LOCATION_BUTTON = "SetLocationButton"
 }
 
 /**
@@ -257,7 +259,10 @@ fun EventCreationScreen(
 
           Button(
               onClick = onSelectLocation,
-              modifier = Modifier.padding(horizontal = Dimensions.PaddingLarge).fillMaxWidth()) {
+              modifier =
+                  Modifier.padding(horizontal = Dimensions.PaddingLarge)
+                      .fillMaxWidth()
+                      .testTag(EventCreationTestTags.SET_LOCATION_BUTTON)) {
                 Text(
                     selectedLocation?.let { "Location: ${it.latitude}, ${it.longitude}" }
                         ?: "Select Location on Map")
