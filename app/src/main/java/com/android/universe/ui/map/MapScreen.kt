@@ -85,6 +85,10 @@ object MapScreenTestTags {
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
+object TestFlags {
+  var enableMapBackdoor = false
+}
+
 /**
  * The main screen composable for displaying a map with event markers.
  *
@@ -269,7 +273,7 @@ fun MapScreen(
                   })
 
               // TEST BACKDOOR
-              if (BuildConfig.DEBUG) {
+              if (TestFlags.enableMapBackdoor) {
                 Box(
                     modifier =
                         Modifier.fillMaxSize().testTag("test_select_location_backdoor").clickable {

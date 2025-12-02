@@ -67,6 +67,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Before
   override fun setUp() {
     super.setUp()
+    com.android.universe.ui.map.TestFlags.enableMapBackdoor = true
     mockkObject(DefaultDP)
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
