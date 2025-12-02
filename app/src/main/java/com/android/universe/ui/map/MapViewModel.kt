@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.R
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.openai.OpenAIProvider
+import com.android.universe.model.ai.orchestration.AIEventGenOrchestrator
+import com.android.universe.model.ai.orchestration.PassiveAIGenPolicy
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
@@ -23,8 +26,11 @@ import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.utils.LoggerAI
+import com.android.universe.ui.utils.toViewportGeometry
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
+import com.tomtom.sdk.map.display.map.VisibleRegion
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -87,7 +93,13 @@ class MapViewModel(
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
-    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io,
+    private val aiOrchestrator: AIEventGenOrchestrator =
+        AIEventGenOrchestrator(
+            ai = OpenAIProvider.aiEventGen, // TODO Is this correct? Do I even need this.
+            events = eventRepository,
+            users = userRepository,
+            policy = PassiveAIGenPolicy())
 ) : ViewModel() {
 
   private val _uiState =
@@ -370,5 +382,85 @@ class MapViewModel(
               (bmp.height * Dimensions.ImageScale).toInt())
       BackgroundSnapshotRepository.updateSnapshot(scaled)
     }
+  }
+
+  // ----------------------------------------------------
+  // AI related
+  // ----------------------------------------------------
+
+  private val aiOn = MutableStateFlow(false)
+
+  fun setAiOn(value: Boolean) {
+    aiOn.value = value
+  }
+
+  private var lastAIGeneration: Long = 0L
+  private var aiGenerationJob: Job? = null
+
+  /**
+   * Called whenever the visible map viewport changes.
+   *
+   * This method is invoked after TomTom recalculates the current [VisibleRegion], which happens
+   * whenever the user pans, zooms, or the camera otherwise moves.
+   *
+   * The viewport represents the exact geographic rectangle the user is currently looking at,
+   * defined by four corner coordinates:
+   * - `farLeft` (top-left)
+   * - `farRight` (top-right)
+   * - `nearLeft` (bottom-left)
+   * - `nearRight` (bottom-right)
+   *
+   * The updated region is **not stored** in ViewModel state. Instead, it is used immediately to
+   * evaluate whether passive AI event generation should be triggered.
+   *
+   * @param region the newly computed visible map region
+   */
+  fun onViewportChanged(region: VisibleRegion) {
+    if (!aiOn.value) {
+      LoggerAI.d("AI is off, skipping generation.")
+      return
+    }
+    tryPassiveAIGeneration(region)
+  }
+
+  private fun tryPassiveAIGeneration(region: VisibleRegion) {
+    aiGenerationJob?.cancel()
+    aiGenerationJob =
+        viewModelScope.launch {
+          delay(5_000L) // debounce camera movement for x_000L = x seconds
+
+          val now = System.currentTimeMillis()
+
+          val vpGeometry = region.toViewportGeometry()
+
+          LoggerAI.d("Viewport changed → evaluating AI generation...")
+          LoggerAI.d(
+              "Viewport corners:\n" +
+                  "farLeft=${region.farLeft}\n" +
+                  "farRight=${region.farRight}\n" +
+                  "nearLeft=${region.nearLeft}\n" +
+                  "nearRight=${region.nearRight}")
+
+          val newEvents =
+              aiOrchestrator.maybeGenerate(
+                  currentUserId = currentUserId,
+                  vpGeometry = vpGeometry,
+                  lastGen = lastAIGeneration,
+                  now = now)
+
+          if (newEvents.isNotEmpty()) {
+            LoggerAI.i("Generated ${newEvents.size} new AI events")
+
+            // Update last generation time
+            lastAIGeneration = now
+
+            LoggerAI.d("JUST BEFORE LOAD ALL EVENTS")
+            // Refresh markers to include AI-generated events
+            loadAllEvents()
+            LoggerAI.d("JUST AFTER LOAD ALL EVENTS")
+          } else {
+            LoggerAI.d("AI generation skipped.")
+          }
+        }
   }
 }

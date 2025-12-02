@@ -76,6 +76,8 @@ interface EventRepository {
    */
   suspend fun persistAIEvents(events: List<Event>): List<Event>
 
+  suspend fun countEventsInViewport(centerLat: Double, centerLon: Double, radiusKm: Double): Int
+
   /**
    * Generates a new unique ID for an event.
    *

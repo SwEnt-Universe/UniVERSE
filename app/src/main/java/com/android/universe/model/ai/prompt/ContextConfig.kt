@@ -1,5 +1,8 @@
 package com.android.universe.model.ai.prompt
 
+import com.android.universe.model.ai.AIConfig.MIN_EVENT_SPACING_KM
+import java.time.LocalDate
+
 /**
  * Defines the contextual parameters used when generating events.
  *
@@ -7,22 +10,20 @@ package com.android.universe.model.ai.prompt
  * user. These values help the prompt builder precisely scope the request sent to the OpenAI event
  * generator.
  *
- * @property location Optional human-readable location name (e.g., "Lausanne"). Defaults to
- *   `"Lausanne"` for convenience during development.
- * @property locationCoordinates Optional geographic coordinates (latitude, longitude) used for map
- *   placement or distance filtering.
+ * @property location Optional human-readable location name (e.g., "Lausanne").
+ * @property locationCoordinates Optional geographic coordinates (latitude, longitude).
  * @property radiusKm Optional radius in kilometers within which events should be generated.
- * @property timeFrame Optional natural-language description of the desired time window (e.g.,
- *   `"today"`, `"this week"`, `"next month"`).
- *
- * The [Default] companion preset provides a minimal, development-friendly configuration.
+ * @property timeFrame Natural-language time window such as `"today"` or `"this week"`.
  */
 data class ContextConfig(
     val location: String? = "Lausanne",
     val locationCoordinates: Pair<Double, Double>? = null,
     val radiusKm: Int? = null,
-    val timeFrame: String? = "today"
+    val timeFrame: String? = "today",
+    val currentDate: LocalDate = LocalDate.now(),
+    val eventSpacingKm: Double = MIN_EVENT_SPACING_KM
 ) {
+
   companion object {
     val Default = ContextConfig()
   }

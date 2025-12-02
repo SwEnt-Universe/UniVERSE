@@ -26,6 +26,8 @@ class SettingsModalTest {
 
   private fun renderWith(
       ui: SettingsUiState,
+      aiOn: Boolean = false,
+      onAiToggle: (Boolean) -> Unit = {},
       onUpdateTemp: (String, String) -> Unit = { _, _ -> },
       onToggleCountryDropdown: (Boolean) -> Unit = {},
       onAddTag: (Tag) -> Unit = {},
@@ -37,6 +39,8 @@ class SettingsModalTest {
       MaterialTheme {
         SettingsScreenContent(
             uiState = ui,
+            aiOn = aiOn,
+            onAiToggle = onAiToggle,
             onUpdateTemp = onUpdateTemp,
             onToggleCountryDropdown = onToggleCountryDropdown,
             onAddTag = onAddTag,

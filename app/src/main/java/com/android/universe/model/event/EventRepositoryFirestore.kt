@@ -5,6 +5,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
+import com.android.universe.util.GeoUtils
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -309,6 +310,22 @@ class EventRepositoryFirestore(
       val saved = e.copy(id = id)
       addEvent(saved)
       saved
+    }
+  }
+
+  override suspend fun countEventsInViewport(
+      centerLat: Double,
+      centerLon: Double,
+      radiusKm: Double
+  ): Int {
+    val events = getAllEvents()
+
+    return events.count { event ->
+      val d =
+          GeoUtils.distanceMeters(
+              centerLat, centerLon, event.location.latitude, event.location.longitude) / 1000.0
+
+      d <= radiusKm
     }
   }
 

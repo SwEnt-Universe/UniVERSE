@@ -1,15 +1,14 @@
 package com.android.universe.model.ai.openai
 
+import com.android.universe.model.ai.AIConfig.AI_MODEL
+import com.android.universe.model.ai.AIConfig.MAX_COMPLETION_TOKENS
 import com.android.universe.model.ai.AIEventGen
 import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.ai.prompt.PromptBuilder
 import com.android.universe.model.ai.response.ResponseParser
 import com.android.universe.model.event.Event
-
-private const val MAX_TOKENS = 800
-
-/** See [OpenAI pricing](https://platform.openai.com/docs/pricing?utm_source=chatgpt.com) */
-private const val MODEL = "gpt-4o-mini"
+import com.android.universe.ui.utils.LoggerAI
+import kotlinx.serialization.json.Json
 
 /**
  * Generates events using the OpenAI Chat Completions API.
@@ -25,6 +24,11 @@ private const val MODEL = "gpt-4o-mini"
  * @property service Retrofit-backed OpenAI API client.
  */
 class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
+  private val debugJson = Json {
+    prettyPrint = true
+    encodeDefaults = true
+    ignoreUnknownKeys = true
+  }
 
   /**
    * Executes the full OpenAI -> JSON -> Event pipeline.
@@ -52,13 +56,24 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
     // ========================================================================
     val request =
         ChatCompletionRequest(
-            model = MODEL,
+            model = AI_MODEL,
             messages =
                 listOf(
                     Message(role = "system", content = system),
                     Message(role = "user", content = user)),
-            max_completion_tokens = MAX_TOKENS,
+            max_completion_tokens = MAX_COMPLETION_TOKENS,
             response_format = eventFormat)
+
+    LoggerAI.d(
+        """
+    ---- OPENAI REQUEST ----
+    model: ${request.model}
+    max_tokens: ${request.max_completion_tokens}
+    system: ${system}
+    user: ${user}
+    schema: ${eventFormat.json_schema}
+    """
+            .trimIndent())
 
     // Call OpenAI API
     val response = service.chatCompletion(request)
@@ -87,9 +102,9 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
     }
 
     // ========================================================================
-    // 5: PARSING & CONVERSION
+    // 5: PARSING
     // ========================================================================
-    val outcome = ResponseParser.parseEvents(raw)
-    return outcome.events
+    val events = ResponseParser.parseEvents(raw)
+    return events
   }
 }

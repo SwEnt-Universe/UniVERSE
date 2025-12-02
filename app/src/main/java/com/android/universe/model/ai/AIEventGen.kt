@@ -16,7 +16,7 @@ import com.android.universe.model.event.Event
  *
  * val query = EventQuery(
  *     user = currentUserProfile,
- *     task = EventQuery.Task.AUTOGEN,
+ *     task = EventQuery.Task,
  *     context = EventQuery.Context(location = userLocation)
  * )
  *

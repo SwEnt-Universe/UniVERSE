@@ -111,6 +111,7 @@ fun UniverseApp(
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
   BackgroundSnapshotRepository.loadInitialSnapshot(context)
+  var aiOn by remember { mutableStateOf(false) }
   val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
   val bitmap =
       BackgroundSnapshotRepository.currentSnapshot
@@ -215,6 +216,7 @@ fun UniverseApp(
         composable(NavigationScreens.Map.route) {
           MapScreen(
               uid = authInstance.currentUser!!.uid,
+              aiOn = aiOn,
               onTabSelected = onTabSelected,
               onChatNavigate = { chatID, chatName ->
                 navController.navigate(
@@ -240,6 +242,7 @@ fun UniverseApp(
 
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
+                  aiOn = aiOn,
                   onTabSelected = onTabSelected,
                   preselectedEventId = eventId,
                   preselectedLocation = Location(lat, lng),
@@ -357,6 +360,8 @@ fun UniverseApp(
             UniverseBackgroundContainer(bitmap) {
               SettingsScreen(
                   uid = uid,
+                  aiOn = aiOn,
+                  onAiToggle = { aiOn = it },
                   onBack = {
                     navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
                   },

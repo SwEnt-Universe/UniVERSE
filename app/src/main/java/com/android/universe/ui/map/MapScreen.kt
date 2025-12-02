@@ -106,6 +106,7 @@ object MapScreenTestTags {
 @Composable
 fun MapScreen(
     uid: String,
+    aiOn: Boolean,
     onTabSelected: (Tab) -> Unit,
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
@@ -187,6 +188,9 @@ fun MapScreen(
     viewModel.mapActions.collect { action -> tomTomMap?.executeMapAction(action) }
   }
 
+  // AI toggle
+  LaunchedEffect(aiOn) { viewModel.setAiOn(aiOn) }
+
   // Handle direct event link: auto-focus and open popup
   LaunchedEffect(preselectedEventId, preselectedLocation, tomTomMap) {
     val map = tomTomMap ?: return@LaunchedEffect
@@ -259,6 +263,18 @@ fun MapScreen(
 
                     map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
                     viewModel.nowInteractable()
+
+                    // Used by AI to trigger passive event generation
+                    map.addCameraChangeListener {
+                      val result = map.getVisibleRegion()
+
+                      if (result.isSuccess()) {
+                        val region = result.value()
+                        if (region != null) {
+                          viewModel.onViewportChanged(region)
+                        }
+                      }
+                    }
                   })
 
               if (uiState.selectedLocation != null) {

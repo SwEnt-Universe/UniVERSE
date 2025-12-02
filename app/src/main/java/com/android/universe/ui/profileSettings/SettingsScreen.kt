@@ -147,6 +147,8 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 @Composable
 fun SettingsScreen(
     uid: String,
+    aiOn: Boolean,
+    onAiToggle: (Boolean) -> Unit,
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel(),
     onLogout: () -> Unit = {},
@@ -167,6 +169,11 @@ fun SettingsScreen(
   SettingsScreenContent(
       uiState = uiState,
       onBack = onBack,
+      aiOn = aiOn,
+      onAiToggle = { enabled ->
+        viewModel.setAiEnabled(enabled)
+        onAiToggle(enabled)
+      },
       onOpenField = viewModel::openModal,
       onCloseModal = viewModel::closeModal,
       onUpdateTemp = viewModel::updateTemp,
@@ -184,6 +191,8 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     uiState: SettingsUiState,
     onBack: () -> Unit = {},
+    aiOn: Boolean,
+    onAiToggle: (Boolean) -> Unit,
     onOpenField: (String) -> Unit = {},
     onCloseModal: () -> Unit = {},
     onUpdateTemp: (String, String) -> Unit = { _, _ -> },
@@ -302,7 +311,10 @@ fun SettingsScreenContent(
                       .padding(
                           horizontal = SettingsScreenPaddings.ContentHorizontalPadding,
                           vertical = Dimensions.PaddingSmall)) {
-                item { GeneralSection(uiState = uiState, open = onOpenField) }
+                item {
+                  GeneralSection(
+                      uiState = uiState, aiOn = aiOn, onAiToggle = onAiToggle, open = onOpenField)
+                }
                 item { ProfileSection(uiState = uiState, open = onOpenField) }
                 item { InterestsSection(uiState = uiState, open = onOpenField) }
               }
@@ -340,7 +352,13 @@ fun SettingsScreenContent(
  * ========================================================= */
 /** Section for displaying general account information like email and password. */
 @Composable
-private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
+private fun GeneralSection(
+    uiState: SettingsUiState,
+    aiOn: Boolean,
+    onAiToggle: (Boolean) -> Unit,
+    open: (String) -> Unit
+) {
+  AiToggleRow(checked = aiOn, onCheckedChange = onAiToggle)
   Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
     Text("General", style = SettingsScreenStyles.sectionTitleStyle())
     EditableField(
@@ -438,6 +456,23 @@ private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
   }
 }
 
+@Composable
+private fun AiToggleRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+  Row(
+      modifier = Modifier.padding(vertical = SettingsScreenPaddings.InternalSpacing),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(
+            text = "AI Suggestions",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+      }
+}
+
 /* =========================================================
  * Previews (use stateless content only)
  * ========================================================= */
@@ -460,6 +495,11 @@ fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
 @Composable
 private fun SettingsScreenContent_Preview() {
   UniverseTheme {
-    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
+    SettingsScreenContent(
+        uiState = sampleSettingsState(),
+        aiOn = false,
+        onAiToggle = {},
+        onOpenField = {},
+        onBack = {})
   }
 }

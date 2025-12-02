@@ -21,7 +21,7 @@ class OpenAIProviderTest {
   @Test
   fun retrofit_and_api_are_initialized_and_use_same_client() = runTest {
     // Trigger initialization
-    val eventGen: AIEventGen = OpenAIProvider.eventGen
+    val eventGen: AIEventGen = OpenAIProvider.aiEventGen
     assertTrue(eventGen is OpenAIEventGen)
 
     // Extract retrofit via lazy delegate
@@ -41,8 +41,8 @@ class OpenAIProviderTest {
 
   @Test
   fun eventGen_is_singleton() = runTest {
-    val g1 = OpenAIProvider.eventGen
-    val g2 = OpenAIProvider.eventGen
+    val g1 = OpenAIProvider.aiEventGen
+    val g2 = OpenAIProvider.aiEventGen
     assertSame(g1, g2)
   }
 }

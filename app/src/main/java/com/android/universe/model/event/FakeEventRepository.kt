@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.user.UserProfile
+import com.android.universe.util.GeoUtils
 import java.util.UUID
 
 /**
@@ -105,6 +106,22 @@ class FakeEventRepository : EventRepository {
       val saved = e.copy(id = id)
       this.events.add(saved)
       saved
+    }
+  }
+
+  override suspend fun countEventsInViewport(
+      centerLat: Double,
+      centerLon: Double,
+      radiusKm: Double
+  ): Int {
+    val events = getAllEvents()
+
+    return events.count { event ->
+      val d =
+          GeoUtils.distanceMeters(
+              centerLat, centerLon, event.location.latitude, event.location.longitude) / 1000.0
+
+      d <= radiusKm
     }
   }
 

@@ -2,6 +2,7 @@ package com.android.universe.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.user.UserProfile
+import com.android.universe.util.GeoUtils
 import com.android.universe.utils.EventTestData
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -41,6 +42,23 @@ class EventRepositoryProviderTest {
           override suspend fun deleteEvent(eventId: String) {}
 
           override suspend fun persistAIEvents(events: List<Event>): List<Event> = events
+
+          override suspend fun countEventsInViewport(
+              centerLat: Double,
+              centerLon: Double,
+              radiusKm: Double
+          ): Int {
+            val events = getAllEvents()
+
+            return events.count { event ->
+              val d =
+                  GeoUtils.distanceMeters(
+                      centerLat, centerLon, event.location.latitude, event.location.longitude) /
+                      1000.0
+
+              d <= radiusKm
+            }
+          }
 
           override suspend fun getNewID(): String {
             return "new_id"
