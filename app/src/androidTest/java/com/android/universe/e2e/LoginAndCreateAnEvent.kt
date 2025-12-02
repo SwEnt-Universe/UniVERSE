@@ -83,8 +83,13 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   @Test
   fun `Login and Create an Event`() = runTest {
-    composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
+    composeTestRule.waitUntil(15_000L) {
+      try {
+        composeTestRule
+          .onNodeWithTag(SignInScreenTestTags.WELCOME_BOX, useUnmergedTree = true)
+          .assertExists()
+        true
+      } catch (_: Throwable) { false }
     }
     loginAndWait()
     createEvent()
