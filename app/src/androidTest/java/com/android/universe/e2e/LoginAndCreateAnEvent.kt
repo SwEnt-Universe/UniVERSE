@@ -1,7 +1,6 @@
 package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.app.Activity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.isDisplayed
@@ -13,9 +12,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withTagValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
@@ -27,7 +23,6 @@ import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapCreateEventModalTestTags
 import com.android.universe.ui.map.MapScreenTestTags
-import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
