@@ -2,7 +2,11 @@ package com.android.universe.ui.common
 
 import java.time.DateTimeException
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.Period
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 /** Defines the input length and value constraints for user profile fields. */
 object InputLimits {
@@ -28,6 +32,10 @@ object InputLimits {
   const val EMAIL_MAX_LENGTH = 254
   /** Minimum required length for a password. */
   const val PASSWORD_MIN_LENGTH = 6
+  /** Maximum length for an event title */
+  const val TITLE_EVENT_MAX_LENGTH = 40
+  /** Maximum length for an event time */
+  const val TIME_MAX_LENGTH = 5
 }
 
 /** Provides standardized error messages for input validation failures. */
@@ -111,6 +119,26 @@ object ErrorMessages {
   const val DATE_TOO_YOUNG = "You must be at least %d years old"
   /** Error message for a date that is logically impossible (e.g., April 31st). */
   const val DATE_INVALID_LOGICAL = "This date does not exist"
+
+  // Event Title
+  /** Error message for a event title that exceeds the maximum length. */
+  const val TITLE_EVENT_TOO_LONG = "Event title cannot be longer than %d characters"
+  /** Error message for an empty event title */
+  const val TITLE_EVENT_EMPTY = "Event title cannot be empty"
+
+  // Event Date
+  /** Error message for a date that is in the past. */
+  const val EVENT_DATE_IN_PAST = "Date of the event cannot be in the past"
+
+  // Time
+  /** Error message for a time input that doesn't respect the format. */
+  const val TIME_INVALID_LOGICAL = "This time does not respect the good format HH:MM"
+  /** Error message for a time input that is empty. */
+  const val TIME_EMPTY = "Time cannot be empty"
+
+  // Event Date Time
+  /** Error message for a date and time inputs that are in the past for an event creation. */
+  const val EVENT_BEFORE = "An event cannot start in the past"
 }
 
 /** Regex for validating EPFL email addresses. */
@@ -213,6 +241,8 @@ fun validateLastName(lastName: String): ValidationState {
 fun validateDescription(description: String): ValidationState {
   return if (description.length > InputLimits.DESCRIPTION) {
     ValidationState.Invalid(ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION))
+  } else if (description.isEmpty()) {
+    ValidationState.Neutral
   } else {
     ValidationState.Valid
   }
@@ -316,6 +346,90 @@ fun validateBirthDate(day: String, month: String, year: String): ValidationState
     return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
   } catch (_: NumberFormatException) {
     return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
+  }
+}
+
+/**
+ * Validates an event title. It must not be blank and must not exceed the maximum length.
+ *
+ * @param eventTitle The event title to validate.
+ * @return [ValidationState.Valid] if the eventTitle is valid, otherwise [ValidationState.Invalid].
+ */
+fun validateEventTitle(eventTitle: String): ValidationState {
+  return when {
+    eventTitle.isBlank() -> ValidationState.Invalid(ErrorMessages.TIME_EMPTY)
+    eventTitle.length > InputLimits.TITLE_EVENT_MAX_LENGTH ->
+        ValidationState.Invalid(
+            ErrorMessages.TITLE_EVENT_TOO_LONG.format(InputLimits.TITLE_EVENT_MAX_LENGTH))
+    else -> ValidationState.Valid
+  }
+}
+
+/**
+ * Validates a complete date input for an event. Checks if the date is logically correct (e.g., not
+ * February 30th) and not in the past.
+ *
+ * @param date the input event date.
+ * @return [ValidationState.Valid] if the date is valid, [ValidationState.Neutral] if the date is
+ *   null, otherwise [ValidationState.Invalid].
+ */
+fun validateEventDate(date: LocalDate?): ValidationState {
+  if (date == null) {
+    return ValidationState.Neutral
+  }
+  try {
+    val today = LocalDate.now()
+
+    if (date.isBefore(today)) {
+      return ValidationState.Invalid(ErrorMessages.EVENT_DATE_IN_PAST)
+    }
+    return ValidationState.Valid
+  } catch (_: DateTimeException) {
+    return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
+  } catch (_: NumberFormatException) {
+    return ValidationState.Invalid(ErrorMessages.DATE_INVALID_LOGICAL)
+  }
+}
+
+/**
+ * Validates an event time input. It must not be empty and must respect the good format.
+ *
+ * @param time The event time input.
+ * @return [ValidationState.Valid] if the time input is valid, otherwise [ValidationState.Invalid].
+ */
+fun validateTime(time: String): ValidationState {
+  if (time.isEmpty()) {
+    return ValidationState.Invalid(ErrorMessages.TIME_EMPTY)
+  }
+  try {
+    LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"))
+    return ValidationState.Valid
+  } catch (e: DateTimeParseException) {
+    return ValidationState.Invalid(ErrorMessages.TIME_INVALID_LOGICAL)
+  }
+}
+
+/**
+ * Validates the combination of a event date and time input. The association of both must not be in
+ * the past.
+ *
+ * @param date The event date input.
+ * @param time The event time input.
+ * @return [ValidationState.Valid] if the inputs are valid, otherwise [ValidationState.Invalid].
+ */
+fun validateDateTime(date: LocalDate?, time: String): ValidationState {
+  if (date == null || time.isEmpty()) {
+    return ValidationState.Valid
+  }
+  try {
+    val localTime = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"))
+    return if (LocalDateTime.of(date, localTime).isBefore(LocalDateTime.now())) {
+      ValidationState.Invalid(ErrorMessages.EVENT_BEFORE)
+    } else {
+      ValidationState.Valid
+    }
+  } catch (e: DateTimeParseException) {
+    return ValidationState.Valid
   }
 }
 
