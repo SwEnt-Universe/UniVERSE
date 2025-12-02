@@ -1,9 +1,10 @@
 package com.android.universe.ui.chat
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,14 +15,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +30,8 @@ import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_NAME
 import com.android.universe.ui.chat.ChatListScreenTestTags.DISPLAY_TIME_TEXT
 import com.android.universe.ui.chat.ChatListScreenTestTags.LAST_MESSAGE_TEXT
 import com.android.universe.ui.chat.ChatListScreenTestTags.NO_CHAT_PREVIEW
+import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -68,18 +69,21 @@ fun ChatListScreen(
     vm: ChatListViewModel = viewModel { ChatListViewModel(userID = userID) }
 ) {
   val chatPreviews by vm.chatPreviews.collectAsState()
-  Scaffold(
-      containerColor = Color.Transparent,
+  ScreenLayout(
       bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) },
       modifier = Modifier.testTag(NavigationTestTags.CHAT_SCREEN)) { paddingValues ->
         if (chatPreviews.isNotEmpty()) {
           LazyColumn(
               horizontalAlignment = CenterHorizontally,
-              modifier = Modifier.fillMaxSize().padding(paddingValues).testTag(CHAT_LIST_COLUMN),
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(top = Dimensions.PaddingExtraLarge * 3)
+                      .testTag(CHAT_LIST_COLUMN),
           ) {
             items(items = chatPreviews, key = { it.chatID }) { chatPreview ->
               ChatPreviewItem(chatPreview, onChatSelected)
             }
+            item { BottomBarScrollItem(paddingValues) }
           }
         } else {
           Column(
@@ -109,39 +113,56 @@ fun ChatPreviewItem(
     onChatSelected: (chatID: String, chatName: String) -> Unit
 ) {
   val nodeTestTag = CHAT_ITEM_PREFIX + chatPreview.chatID
-  Row(
-      horizontalArrangement = Arrangement.SpaceBetween,
+  LiquidBox(
       modifier =
           Modifier.fillMaxWidth()
-              .padding(horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingSmall)
-              .background(
-                  MaterialTheme.colorScheme.surface, RoundedCornerShape(Dimensions.RoundedCorner))
-              .padding(horizontal = Dimensions.PaddingSmall, vertical = Dimensions.PaddingSmall)
+              .padding(
+                  top = Dimensions.PaddingMedium,
+                  start = Dimensions.PaddingMedium,
+                  end = Dimensions.PaddingMedium)
               .clickable { onChatSelected(chatPreview.chatID, chatPreview.chatName) }
-              // Add the test tag to the clickable Row, using chatID for uniqueness
-              .testTag(nodeTestTag)) {
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-              text = chatPreview.chatName,
-              style = MaterialTheme.typography.titleMedium,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.testTag(nodeTestTag + CHAT_NAME))
-          Spacer(modifier = Modifier.height(Dimensions.SpacerMedium))
-          Text(
-              text = chatPreview.lastMessage.value?.message ?: "Empty in here ...",
-              style = MaterialTheme.typography.bodyMedium,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.testTag(nodeTestTag + LAST_MESSAGE_TEXT))
-        }
-        chatPreview.lastMessage.value?.let {
-          Text(
-              text = it.getDisplayTime(),
-              style = MaterialTheme.typography.labelMedium,
-              modifier =
-                  Modifier.padding(top = Dimensions.PaddingSmall, start = Dimensions.PaddingLarge)
-                      .testTag(nodeTestTag + DISPLAY_TIME_TEXT))
-        }
+              .testTag(nodeTestTag),
+      shape = RoundedCornerShape(Dimensions.RoundedCorner * 2)) {
+        Row(
+            Modifier.fillMaxWidth()
+                .padding(vertical = Dimensions.PaddingMedium, horizontal = Dimensions.PaddingLarge),
+            horizontalArrangement = Arrangement.SpaceBetween) {
+              Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = chatPreview.chatName,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag(nodeTestTag + CHAT_NAME))
+                Spacer(modifier = Modifier.height(Dimensions.SpacerMedium))
+                Text(
+                    text = chatPreview.lastMessage.value?.message ?: "Empty in here ...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag(nodeTestTag + LAST_MESSAGE_TEXT))
+              }
+              chatPreview.lastMessage.value?.let {
+                Text(
+                    text = it.getDisplayTime(),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier =
+                        Modifier.padding(
+                                top = Dimensions.PaddingSmall, start = Dimensions.PaddingLarge)
+                            .testTag(nodeTestTag + DISPLAY_TIME_TEXT))
+              }
+            }
       }
+}
+
+/**
+ * A spacer list item used to provide scrollable space above a bottom bar. It ensures the real last
+ * content item can scroll fully above the bottom bar instead of being obscured by it.
+ *
+ * @param paddingValues The bottom padding provided by the Scaffold (usually `innerPadding`) that
+ *   matches the height of the bottom bar.
+ */
+@Composable
+fun BottomBarScrollItem(paddingValues: PaddingValues) {
+  Box(modifier = Modifier.fillMaxWidth().padding(paddingValues))
 }
