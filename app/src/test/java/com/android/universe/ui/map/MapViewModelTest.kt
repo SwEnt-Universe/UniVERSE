@@ -522,17 +522,18 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `generateAiEventAroundUser sets error and returns early when userLocation is null`() = runTest {
-    // userLocation is null by default in initial MapUiState
+  fun `generateAiEventAroundUser sets error and returns early when userLocation is null`() =
+      runTest {
+        // userLocation is null by default in initial MapUiState
 
-    viewModel.generateAiEventAroundUser()
-    advanceUntilIdle()
+        viewModel.generateAiEventAroundUser()
+        advanceUntilIdle()
 
-    val state = viewModel.uiState.value
-    assertEquals("User location unavailable", state.error)
+        val state = viewModel.uiState.value
+        assertEquals("User location unavailable", state.error)
 
-    coVerify(exactly = 0) { userRepository.getUser(any()) }
-    coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
-    coVerify(exactly = 0) { eventRepository.getAllEvents() }
-  }
+        coVerify(exactly = 0) { userRepository.getUser(any()) }
+        coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
+        coVerify(exactly = 0) { eventRepository.getAllEvents() }
+      }
 }
