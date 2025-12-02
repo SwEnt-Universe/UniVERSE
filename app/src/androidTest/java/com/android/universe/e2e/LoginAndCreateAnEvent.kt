@@ -171,19 +171,9 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // 2. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
 
-
-
-
-
-
-
-
-    /*
     composeTestRule
         .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
         .performClick()
-
-     */
 
     // —————————————————————————————
     // 3. OTHER PARAMETERS

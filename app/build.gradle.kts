@@ -66,6 +66,8 @@ android {
     compose = true
   }
 
+  testBuildType = "debug"
+
   // Expose TOMTOM_API_KEY as BuildConfig.TOMTOM_API_KEY
   // Expose OPENAI_API_KEY as BuildConfig.OPENAI_API_KEY
   buildTypes.configureEach {
