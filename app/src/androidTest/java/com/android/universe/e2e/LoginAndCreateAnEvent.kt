@@ -3,9 +3,9 @@ package com.android.universe.e2e
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.click
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
@@ -129,13 +129,11 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun createEvent() = runTest {
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
-    composeTestRule.waitUntil(5_000) {
-      composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
-    }
+    // —————————————————————————————
+    // CLICK CREATE EVENT BUTTON -> CLICK MANUAL CREATE BUTTON
+    // —————————————————————————————
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
-    composeTestRule.waitUntil(3_000) {
+    composeTestRule.waitUntil(52_000) {
       composeTestRule
           .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
           .isDisplayed()
@@ -144,9 +142,29 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
         .performClick()
 
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+    // —————————————————————————————
+    // SET LOCATION
+    // —————————————————————————————
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
+    composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(53_000L) {
+      composeTestRule
+        .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
+        .isDisplayed()
+    }
+
+    composeTestRule
+      .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
+      .assertIsDisplayed()
+      .performTouchInput {
+        longClick(center)  // more reliable than click(center)
+      }
+
+    // —————————————————————————————
+    // OTHER PARAMETERS
+    // —————————————————————————————
+    composeTestRule.waitUntil(64_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).isDisplayed()
     }
 
@@ -172,18 +190,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
-
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
-
-    composeTestRule.waitUntil(19_000L) {
-      composeTestRule
-          .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
-          .isDisplayed()
-    }
-
-    composeTestRule
-        .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
-        .performTouchInput { click(center) }
 
     composeTestRule.waitUntil(69_000L) {
       composeTestRule

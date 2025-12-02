@@ -319,7 +319,7 @@ fun MapScreen(
                   onDismissRequest = { showMapModal = false },
                   onAiCreate = { viewModel.generateAiEventAroundUser() },
                   onManualCreate = {
-                    onNavigateToEventCreation() // ← perfect, no navController needed here
+                    onNavigateToEventCreation()
                     showMapModal = false
                   })
             }

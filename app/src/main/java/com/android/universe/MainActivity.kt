@@ -395,7 +395,7 @@ fun UniverseApp(
             // Map for selecting location
             composable(NavigationScreens.SelectLocation.route) {
 
-              // You MUST remember this
+              //TODO
               val parentEntry =
                   remember(navController) {
                     navController.getBackStackEntry(NavigationScreens.EventCreation.route)
