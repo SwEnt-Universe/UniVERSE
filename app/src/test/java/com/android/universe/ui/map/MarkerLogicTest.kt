@@ -3,6 +3,7 @@ package com.android.universe.ui.map
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.location.Location
 import com.android.universe.utils.EventTestData
+import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.marker.Marker
 import io.mockk.*
@@ -20,7 +21,9 @@ class MarkerLogicTest {
   // 1. Setup Data Stubs
   // We mock Marker because we can't instantiate the real TomTom Marker easily
   private val markerA = mockk<Marker>(relaxed = true)
+  private val eventACreator = UserTestData.Alice
   private val eventA = EventTestData.dummyEvent1.copy(id = "A")
+  private val eventBCreator = UserTestData.Bob
   private val eventB = EventTestData.dummyEvent1.copy(id = "B")
   private val markerB = mockk<Marker>(relaxed = true)
   private val eventBBis = EventTestData.dummyEvent1.copy(id = "B", location = Location(0.0, 0.0))
@@ -29,6 +32,7 @@ class MarkerLogicTest {
   private val uiModelB =
       MapMarkerUiModel(
           event = eventB,
+          creator = eventBCreator,
           iconResId = 123,
           position = GeoPoint(0.0, 0.0) // Use real GeoPoint if possible, or mock
           )
@@ -36,7 +40,11 @@ class MarkerLogicTest {
   // The click position does not matter when we test this exact logic.
   // Basically event location are took from the click position in the first place
   private val uiModelBBis =
-      MapMarkerUiModel(event = eventBBis, iconResId = 123, position = GeoPoint(0.0, 0.0))
+      MapMarkerUiModel(
+          event = eventBBis,
+          creator = eventBCreator,
+          iconResId = 123,
+          position = GeoPoint(0.0, 0.0))
 
   @Before
   fun setup() {
@@ -115,7 +123,10 @@ class MarkerLogicTest {
     // GIVEN
     val currentMap = mutableMapOf(markerA.tag!! to eventA)
     // The new list matches the old list exactly
-    val newMarkers = listOf(MapMarkerUiModel(event = eventA, iconResId = 111, position = mockk()))
+    val newMarkers =
+        listOf(
+            MapMarkerUiModel(
+                event = eventA, creator = eventACreator, iconResId = 111, position = mockk()))
 
     // WHEN
     val result = markerLogic(currentMap, newMarkers)
