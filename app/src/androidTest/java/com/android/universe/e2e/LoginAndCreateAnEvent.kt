@@ -70,6 +70,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns Dispatchers.Main
+
     runTest {
       val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
       fakeUser = fakeUser.copy(uid = uid)
