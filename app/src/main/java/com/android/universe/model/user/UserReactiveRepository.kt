@@ -166,7 +166,7 @@ class UserReactiveRepository(
    */
   fun getUserFlow(uid: String): Flow<UserProfile?> {
     // Check for system user before querying database
-    if (uid == "system_openai" || uid == "OpenAI") {
+    if (uid == "OpenAI") {
       return flowOf(AIUserProfile.OPENAI_USER)
     }
 

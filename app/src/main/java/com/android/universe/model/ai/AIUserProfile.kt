@@ -6,11 +6,11 @@ import java.time.LocalDate
 object AIUserProfile {
   val OPENAI_USER =
       UserProfile(
-          uid = "system_openai",
+          uid = "OpenAI",
           username = "OpenAI",
           firstName = "Open",
           lastName = "AI",
-          country = "Global",
+          country = "US",
           description = "AI-generated event creator",
           dateOfBirth = LocalDate.of(2002, 1, 1),
           tags = emptySet())

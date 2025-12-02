@@ -257,58 +257,26 @@ class MapViewModel(
         _eventMarkers.value = events
 
         if (userReactiveRepository != null) {
-          // Convert list of creators to distinct set
           val distinctCreators = events.map { it.creator }.distinct()
-          // Combine all creator flows
+
+          if (distinctCreators.isEmpty()) {
+            _uiState.update { it.copy(markers = emptyList()) }
+            return@launch
+          }
+
           combine(
                   distinctCreators.map { uid ->
                     userReactiveRepository.getUserFlow(uid).map { uid to it }
                   }) { userPairs ->
                     val usersMap = userPairs.toMap()
-                    events.map { event ->
-                      val user = usersMap[event.creator]
-                      val category: Category? =
-                          event.tags
-                              .groupingBy { it.category }
-                              .eachCount()
-                              .maxByOrNull { it.value }
-                              ?.key
-                      val drawableBasedOnCategory =
-                          when (category) {
-                            MUSIC -> R.drawable.violet_pin
-                            SPORT -> R.drawable.sky_blue_pin
-                            FOOD -> R.drawable.yellow_pin
-                            ART -> R.drawable.red_pin
-                            TRAVEL -> R.drawable.brown_pin
-                            GAMES -> R.drawable.orange_pin
-                            TECHNOLOGY -> R.drawable.grey_pin
-                            TOPIC -> R.drawable.pink_pin
-                            null -> R.drawable.base_pin
-                          }
-                      MapMarkerUiModel(
-                          event, user, event.location.toGeoPoint(), drawableBasedOnCategory)
-                    }
+                    events.map { event -> mapEventToMarker(event, usersMap[event.creator]) }
                   }
               .collect { markers -> _uiState.update { it.copy(markers = markers) } }
         } else {
           val markers =
               events.map { event ->
                 val user = userRepository.getUser(event.creator)
-                val category: Category? =
-                    event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
-                val drawableBasedOnCategory =
-                    when (category) {
-                      MUSIC -> R.drawable.violet_pin
-                      SPORT -> R.drawable.sky_blue_pin
-                      FOOD -> R.drawable.yellow_pin
-                      ART -> R.drawable.red_pin
-                      TRAVEL -> R.drawable.brown_pin
-                      GAMES -> R.drawable.orange_pin
-                      TECHNOLOGY -> R.drawable.grey_pin
-                      TOPIC -> R.drawable.pink_pin
-                      null -> R.drawable.base_pin
-                    }
-                MapMarkerUiModel(event, user, event.location.toGeoPoint(), drawableBasedOnCategory)
+                mapEventToMarker(event, user)
               }
           _uiState.update { it.copy(markers = markers) }
         }
@@ -316,6 +284,31 @@ class MapViewModel(
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
+  }
+
+  /** Returns the drawable resource ID for a given event category. */
+  private fun getCategoryDrawable(category: Category?): Int {
+    return when (category) {
+      MUSIC -> R.drawable.violet_pin
+      SPORT -> R.drawable.sky_blue_pin
+      FOOD -> R.drawable.yellow_pin
+      ART -> R.drawable.red_pin
+      TRAVEL -> R.drawable.brown_pin
+      GAMES -> R.drawable.orange_pin
+      TECHNOLOGY -> R.drawable.grey_pin
+      TOPIC -> R.drawable.pink_pin
+      null -> R.drawable.base_pin
+    }
+  }
+
+  /** Maps an Event and its creator UserProfile to a MapMarkerUiModel with appropriate icon. */
+  private fun mapEventToMarker(event: Event, user: UserProfile?): MapMarkerUiModel {
+    val category = event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
+
+    val drawable = getCategoryDrawable(category)
+
+    return MapMarkerUiModel(
+        event = event, creator = user, position = event.location.toGeoPoint(), iconResId = drawable)
   }
 
   /** Loads events suggested for the current user. */
