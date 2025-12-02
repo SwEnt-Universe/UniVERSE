@@ -5,7 +5,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
@@ -171,9 +170,15 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // —————————————————————————————————————
     // 2. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
-
-
-
+    composeTestRule.waitUntil(10_000L) {
+      runCatching { composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).assertExists() }
+          .isSuccess
+    }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
+      advanceEventTime(1000)
+      down(center)
+    }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
     // —————————————————————————————
     // 3. OTHER PARAMETERS
     // —————————————————————————————
