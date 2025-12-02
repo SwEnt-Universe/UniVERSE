@@ -276,17 +276,7 @@ fun MapScreen(
                           ),
                   contentAlignment = Alignment.BottomStart) {
                     LiquidButton(
-                        onClick = {
-                          val view = mapViewInstance
-                          if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
-                            view.takeSnapshot { bmp ->
-                              if (bmp != null) {
-                                viewModel.onSnapshotAvailable(bmp)
-                              }
-                            }
-                          }
-                          showMapModal = true
-                        },
+                        onClick = { showMapModal = true },
                         modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
                           Text("+", color = MaterialTheme.colorScheme.onBackground)
                         }

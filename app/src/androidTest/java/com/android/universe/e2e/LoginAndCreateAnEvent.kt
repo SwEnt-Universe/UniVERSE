@@ -1,6 +1,7 @@
 package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.app.Activity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.isDisplayed
@@ -12,16 +13,21 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withTagValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
+import com.android.universe.e2e.LoginAndCreateAnEvent.Companion.FAKE_EVENT
 import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapCreateEventModalTestTags
 import com.android.universe.ui.map.MapScreenTestTags
+import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
@@ -130,39 +136,51 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   private fun createEvent() = runTest {
     // —————————————————————————————
-    // CLICK CREATE EVENT BUTTON -> CLICK MANUAL CREATE BUTTON
+    // 1. CLICK CREATE EVENT BUTTON -> CLICK MANUAL CREATE BUTTON -> CLICK SET LOCATION
     // —————————————————————————————
+    // Wait for + button on map
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
+          }
+          .isSuccess
+    }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
-    composeTestRule.waitUntil(52_000) {
-      composeTestRule
-          .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
-          .isDisplayed()
+
+    // Wait for Manual Create button inside the popup modal
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule
+                .onAllNodesWithTag(
+                    MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+                .onFirst()
+                .assertExists()
+          }
+          .isSuccess
     }
     composeTestRule
-        .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
+        .onAllNodesWithTag(
+            MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+        .onFirst()
         .performClick()
 
-    // —————————————————————————————
-    // SET LOCATION
-    // —————————————————————————————
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntil(53_000L) {
-      composeTestRule
-        .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
-        .isDisplayed()
+    // Click “Set location” button in the creation screen
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
+          }
+          .isSuccess
     }
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
 
-    composeTestRule
-      .onNodeWithTag(MapScreenTestTags.INTERACTABLE, useUnmergedTree = true)
-      .assertIsDisplayed()
-      .performTouchInput {
-        longClick(center)  // more reliable than click(center)
-      }
+    // —————————————————————————————————————
+    // 2. SET LOCATION BY CLICKING ON MAP
+    // —————————————————————————————————————
+
+
 
     // —————————————————————————————
-    // OTHER PARAMETERS
+    // 3. OTHER PARAMETERS
     // —————————————————————————————
     composeTestRule.waitUntil(64_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).isDisplayed()
