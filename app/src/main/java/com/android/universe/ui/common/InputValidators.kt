@@ -357,7 +357,7 @@ fun validateBirthDate(day: String, month: String, year: String): ValidationState
  */
 fun validateEventTitle(eventTitle: String): ValidationState {
   return when {
-    eventTitle.isBlank() -> ValidationState.Invalid(ErrorMessages.TIME_EMPTY)
+    eventTitle.isBlank() -> ValidationState.Invalid(ErrorMessages.TITLE_EVENT_EMPTY)
     eventTitle.length > InputLimits.TITLE_EVENT_MAX_LENGTH ->
         ValidationState.Invalid(
             ErrorMessages.TITLE_EVENT_TOO_LONG.format(InputLimits.TITLE_EVENT_MAX_LENGTH))
