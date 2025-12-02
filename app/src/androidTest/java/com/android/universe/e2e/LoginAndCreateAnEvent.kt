@@ -100,14 +100,13 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun loginAndWait() = runTest {
-    composeTestRule.waitUntil(20_000L) {
+    composeTestRule.waitUntil(20_001L) {
       runCatching {
             composeTestRule
                 .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON, useUnmergedTree = true)
                 .assertIsDisplayed()
-            true
           }
-          .getOrElse { false }
+          .isSuccess
     }
 
     composeTestRule
@@ -117,14 +116,13 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
 
     // EMAIL FIELD
-    composeTestRule.waitUntil(20_000L) {
+    composeTestRule.waitUntil(20_002L) {
       runCatching {
             composeTestRule
                 .onNodeWithTag(FormTestTags.EMAIL_FIELD, useUnmergedTree = true)
-                .assertExists()
-            true
+                .assertIsDisplayed()
           }
-          .getOrElse { false }
+          .isSuccess
     }
 
     composeTestRule
@@ -135,22 +133,26 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
 
     // CONFIRM BUTTON
-    composeTestRule.waitUntil(20_000L) {
+    composeTestRule.waitUntil(20_003L) {
       runCatching {
             composeTestRule
                 .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON, useUnmergedTree = true)
                 .assertIsDisplayed()
-            true
           }
-          .getOrElse { false }
+          .isSuccess
     }
 
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON, useUnmergedTree = true)
         .performClick()
 
-    composeTestRule.waitUntil(60_000L) {
-      composeTestRule.onNodeWithTag(SignInScreenTestTags.PASSWORD_BOX).isDisplayed()
+    composeTestRule.waitUntil(20_004L) {
+      runCatching {
+            composeTestRule
+                .onNodeWithTag(SignInScreenTestTags.PASSWORD_BOX, useUnmergedTree = true)
+                .assertIsDisplayed()
+          }
+          .isSuccess
     }
 
     composeTestRule
@@ -161,7 +163,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 
-    // Wait max 30 seconds, we should arrive on the MapScreen
     composeTestRule.waitUntil(50_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
     }
