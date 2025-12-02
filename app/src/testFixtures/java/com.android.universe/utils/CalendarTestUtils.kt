@@ -118,6 +118,14 @@ fun previousMonth(rule: ComposeTestRule) {
  * @param monthDay the date containing the current month's page and the day to select
  */
 fun selectDay(rule: ComposeTestRule, monthDay: LocalDate) {
+  rule
+      .onNodeWithText("${monthDay.dayOfMonth}", substring = true, useUnmergedTree = true)
+      .assertIsDisplayed()
+      .performClick()
+  rule.waitForIdle()
+}
+
+fun selectDayWithMonth(rule: ComposeTestRule, monthDay: LocalDate) {
   val formatMonth = monthDay.format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH))
 
   rule
