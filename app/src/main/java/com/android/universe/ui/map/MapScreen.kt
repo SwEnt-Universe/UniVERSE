@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
 import androidx.core.view.drawToBitmap
@@ -268,29 +269,31 @@ fun MapScreen(
                     viewModel.nowInteractable()
                   })
 
+              // TEST BACKDOOR
               if (BuildConfig.DEBUG) {
                 Box(
                     modifier =
-                        Modifier.fillMaxSize().testTag("test_select_location_backdoor").clickable {
-                          val cam = tomTomMap?.cameraPosition?.position
-                          onLocationSelected(cam?.latitude ?: 46.52, cam?.longitude ?: 6.63)
-                        })
+                        Modifier.fillMaxSize()
+                            .testTag("test_select_location_backdoor")
+                            .clickable {
+                              val cam = tomTomMap?.cameraPosition?.position
+                              onLocationSelected(cam?.latitude ?: 46.52, cam?.longitude ?: 6.63)
+                            })
               }
 
               Box(
                   modifier =
-                      Modifier.fillMaxSize()
-                          .padding(padding)
+                      Modifier.align(Alignment.BottomStart)
                           .padding(
-                              horizontal = Dimensions.PaddingExtraLarge,
-                          ),
-                  contentAlignment = Alignment.BottomStart) {
+                              bottom = padding.calculateBottomPadding(),
+                              start = Dimensions.PaddingExtraLarge)) {
                     LiquidButton(
                         onClick = { showMapModal = true },
                         modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
                           Text("+", color = MaterialTheme.colorScheme.onBackground)
                         }
                   }
+
               // Overlays
               if (uiState.isLoading) {
                 CircularProgressIndicator(
