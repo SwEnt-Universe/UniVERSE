@@ -100,21 +100,53 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun loginAndWait() = runTest {
+    composeTestRule.waitUntil(20_000L) {
+      runCatching {
+            composeTestRule
+                .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON, useUnmergedTree = true)
+                .assertIsDisplayed()
+            true
+          }
+          .getOrElse { false }
+    }
+
     composeTestRule
-        .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON)
-        .assertIsDisplayed()
+        .onNodeWithTag(SignInScreenTestTags.JOIN_BUTTON, useUnmergedTree = true)
         .performClick()
 
     composeTestRule.waitForIdle()
+
+    // EMAIL FIELD
+    composeTestRule.waitUntil(20_000L) {
+      runCatching {
+            composeTestRule
+                .onNodeWithTag(FormTestTags.EMAIL_FIELD, useUnmergedTree = true)
+                .assertExists()
+            true
+          }
+          .getOrElse { false }
+    }
+
     composeTestRule
-        .onNodeWithTag(FormTestTags.EMAIL_FIELD)
+        .onNodeWithTag(FormTestTags.EMAIL_FIELD, useUnmergedTree = true)
         .performClick()
         .performTextInput(FAKE_EMAIL)
 
     composeTestRule.waitForIdle()
+
+    // CONFIRM BUTTON
+    composeTestRule.waitUntil(20_000L) {
+      runCatching {
+            composeTestRule
+                .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON, useUnmergedTree = true)
+                .assertIsDisplayed()
+            true
+          }
+          .getOrElse { false }
+    }
+
     composeTestRule
-        .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
-        .assertIsDisplayed()
+        .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON, useUnmergedTree = true)
         .performClick()
 
     composeTestRule.waitUntil(60_000L) {
