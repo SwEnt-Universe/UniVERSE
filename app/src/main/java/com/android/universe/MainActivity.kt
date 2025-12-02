@@ -392,40 +392,40 @@ fun UniverseApp(
                     onSave = { navController.popBackStack() })
               }
             }
-				// Map for selecting location
-				composable(NavigationScreens.SelectLocation.route) { backStackEntry ->
-					val parentEntry =
-						remember(backStackEntry) {
-							navController.getBackStackEntry(NavigationScreens.EventCreation.route)
-						}
+            // Map for selecting location
+            composable(NavigationScreens.SelectLocation.route) { backStackEntry ->
+              val parentEntry =
+                  remember(backStackEntry) {
+                    navController.getBackStackEntry(NavigationScreens.EventCreation.route)
+                  }
 
-					val vm: EventCreationViewModel = viewModel(parentEntry)
+              val vm: EventCreationViewModel = viewModel(parentEntry)
 
-					MapScreen(
-						uid = authInstance.currentUser!!.uid,
-						mode = MapMode.SELECT_LOCATION,
-						onTabSelected = {},
-						onNavigateToEventCreation = {
-							navController.navigate(NavigationScreens.EventCreation.route)
-						},
-						onLocationSelected = { lat, lon ->
-							vm.setLocation(lat, lon)
-							navController.popBackStack()
-						})
-				}
+              MapScreen(
+                  uid = authInstance.currentUser!!.uid,
+                  mode = MapMode.SELECT_LOCATION,
+                  onTabSelected = {},
+                  onNavigateToEventCreation = {
+                    navController.navigate(NavigationScreens.EventCreation.route)
+                  },
+                  onLocationSelected = { lat, lon ->
+                    vm.setLocation(lat, lon)
+                    navController.popBackStack()
+                  })
+            }
 
-        composable(
-            route = NavigationScreens.SelectTagEvent.route,
-        ) {
-          UniverseBackgroundContainer(bitmap) {
-            SelectTagScreen(
-                selectTagMode = SelectTagMode.EVENT_CREATION,
-                uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navController.popBackStack() },
-                onBack = { navigationActions.goBack() })
+            composable(
+                route = NavigationScreens.SelectTagEvent.route,
+            ) {
+              UniverseBackgroundContainer(bitmap) {
+                SelectTagScreen(
+                    selectTagMode = SelectTagMode.EVENT_CREATION,
+                    uid = authInstance.currentUser!!.uid,
+                    navigateOnSave = { navController.popBackStack() },
+                    onBack = { navigationActions.goBack() })
+              }
+            }
           }
-        }
-      }
     }
   }
 }
