@@ -181,6 +181,7 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
+    viewModel.setLocation(0.0, 0.0)
 
     assertTrue(viewModel.validateAll())
   }
@@ -241,6 +242,18 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(BAD_SAMPLE_DATE)
     viewModel.setTime(BAD_SAMPLE_TIME)
+
+    assertFalse(viewModel.validateAll())
+  }
+
+  @Test
+  fun validateAllFailsWithoutLocation() {
+    viewModel.setEventName(SAMPLE_TITLE)
+    viewModel.setEventDescription(SAMPLE_DESCRIPTION)
+    viewModel.setDate(SAMPLE_DATE)
+    viewModel.setTime(SAMPLE_TIME)
+
+    // No location set here
 
     assertFalse(viewModel.validateAll())
   }
