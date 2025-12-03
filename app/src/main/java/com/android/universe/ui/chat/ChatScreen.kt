@@ -16,7 +16,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -65,7 +64,7 @@ fun ChatScreen(
     vm: ChatUIViewModel = viewModel { ChatUIViewModel(chatID, userID) }
 ) {
   val activity = LocalContext.current as? Activity
-  val window: Window? = remember { activity?.window }
+  val window: Window? = activity?.window
   LaunchedEffect(window) {
     window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
   }
