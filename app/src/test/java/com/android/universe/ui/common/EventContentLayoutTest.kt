@@ -34,8 +34,7 @@ class EventContentLayoutTest {
       eventId: String = defaultEventId,
       title: String = defaultTitle,
       description: String? = defaultDescription,
-      isUserParticipant: Boolean = true,
-      onLocationClick: (() -> Unit)? = null
+      isUserParticipant: Boolean = true
   ) {
     composeTestRule.setContentWithStubBackdrop {
       EventContentLayout(
@@ -45,6 +44,7 @@ class EventContentLayoutTest {
           date = defaultDate,
           tags = emptyList(),
           participants = defaultParticipants,
+          creator = "Test Creator",
           imageContent = { Box(Modifier.testTag("FAKE_IMAGE")) },
           isUserParticipant = isUserParticipant,
           onToggleEventParticipation = { participationClicked = true },
@@ -74,6 +74,10 @@ class EventContentLayoutTest {
 
     composeTestRule
         .onNodeWithTag("${EventContentTestTags.EVENT_DATE}_$defaultEventId")
+        .assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${EventContentTestTags.EVENT_CREATOR}_$defaultEventId")
         .assertExists()
 
     composeTestRule

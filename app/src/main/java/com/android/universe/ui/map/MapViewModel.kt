@@ -21,7 +21,6 @@ import com.android.universe.model.tag.Tag.Category.SPORT
 import com.android.universe.model.tag.Tag.Category.TECHNOLOGY
 import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
@@ -73,7 +72,7 @@ sealed interface MapAction {
 /** UI model representing a map marker. */
 data class MapMarkerUiModel(
     val event: Event,
-    val creator: UserProfile?,
+    val creator: String?,
     val position: GeoPoint, // TomTom uses GeoPoint(lat, lon)
     val iconResId: Int,
 )
@@ -120,6 +119,10 @@ class MapViewModel(
   private val _selectedEvent = MutableStateFlow<Event?>(null)
   /** The currently selected event, if any. */
   val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+
+  private val _selectedCreator = MutableStateFlow<String?>(null)
+  /** The creator of the currently selected event, if any. */
+  val selectedCreator: StateFlow<String?> = _selectedCreator
 
   /** Provider for location services. */
   val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
@@ -266,7 +269,9 @@ class MapViewModel(
 
           combine(
                   distinctCreators.map { uid ->
-                    userReactiveRepository.getUserFlow(uid).map { uid to it }
+                    userReactiveRepository.getUserFlow(uid).map { user ->
+                      uid to "${user?.firstName} ${user?.lastName}"
+                    }
                   }) { userPairs ->
                     val usersMap = userPairs.toMap()
                     events.map { event -> mapEventToMarker(event, usersMap[event.creator]) }
@@ -276,7 +281,8 @@ class MapViewModel(
           val markers =
               events.map { event ->
                 val user = userRepository.getUser(event.creator)
-                mapEventToMarker(event, user)
+                val creatorName = "${user.firstName} ${user.lastName}"
+                mapEventToMarker(event, creatorName)
               }
           _uiState.update { it.copy(markers = markers) }
         }
@@ -302,7 +308,7 @@ class MapViewModel(
   }
 
   /** Maps an Event and its creator UserProfile to a MapMarkerUiModel with appropriate icon. */
-  private fun mapEventToMarker(event: Event, user: UserProfile?): MapMarkerUiModel {
+  private fun mapEventToMarker(event: Event, user: String?): MapMarkerUiModel {
     val category = event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
 
     val drawable = getCategoryDrawable(category)
@@ -368,6 +374,8 @@ class MapViewModel(
    * @param event The event to select, or null to clear selection.
    */
   fun selectEvent(event: Event?) {
+    val marker = _uiState.value.markers.firstOrNull { it.event.id == event?.id }
+    _selectedCreator.value = marker?.creator
     viewModelScope.launch { _selectedEvent.emit(event) }
   }
 

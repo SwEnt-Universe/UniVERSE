@@ -17,7 +17,8 @@ sealed class NavigationScreens(
   object Map : NavigationScreens(route = "map", name = "Map", isTopLevelDestination = true)
 
   object MapInstance :
-      NavigationScreens(route = "map/{eventId}/{latitude}/{longitude}", name = "MapInstance")
+      NavigationScreens(
+          route = "map/{eventId}/{creator}/{latitude}/{longitude}", name = "MapInstance")
 
   object Event : NavigationScreens(route = "event", name = "Event", isTopLevelDestination = true)
 
