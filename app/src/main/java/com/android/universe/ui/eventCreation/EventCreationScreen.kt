@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AddLocationAlt
-import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
@@ -39,8 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.location.Location
-import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
@@ -62,7 +59,7 @@ object EventCreationTestTags {
   const val EVENT_TIME_TEXT_FIELD = "EventTimeTextField"
   const val EVENT_PICTURE_PICKER = "EventPicturePicker"
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
-	const val SET_LOCATION_BUTTON = "SetLocationButton"
+  const val SET_LOCATION_BUTTON = "SetLocationButton"
 }
 
 object EventCreationDefaults {

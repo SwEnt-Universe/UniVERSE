@@ -10,7 +10,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
@@ -31,10 +30,7 @@ import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
-import com.android.universe.utils.pressOKTime
 import com.android.universe.utils.selectDayWithMonth
-import com.android.universe.utils.selectHour
-import com.android.universe.utils.selectMinute
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -207,14 +203,14 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
 
-		// —————————————————————————————————————
-		// 3. SET LOCATION BY CLICKING ON MAP
-		// —————————————————————————————————————
+    // —————————————————————————————————————
+    // 3. SET LOCATION BY CLICKING ON MAP
+    // —————————————————————————————————————
 
-		composeTestRule
-			.onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
-			.performClick()
-		composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule
+        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+        .performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
 
