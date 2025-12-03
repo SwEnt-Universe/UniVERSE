@@ -33,6 +33,9 @@ enum class SelectTagMode {
  * @param userRepository The data source handling user-related operations. Defaults to
  *   UserRepositoryProvider.repository
  * @param tagRepository The repository for the tags. Used only if the mode is EVENT_CREATION.
+ * @param eventRepository The repository to save the event if the screen is in EVENT_CREATION mode.
+ * @param eventTemporaryRepository The temporary event repository to load the input of the user for
+ *   his event.
  */
 class SelectTagViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
