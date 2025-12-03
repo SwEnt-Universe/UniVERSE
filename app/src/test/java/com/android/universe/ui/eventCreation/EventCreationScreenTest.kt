@@ -9,7 +9,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
-import com.android.universe.model.location.Location
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
 import com.android.universe.utils.selectDay
@@ -41,8 +40,7 @@ class EventCreationScreenTest {
   fun setUp() {
     viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContentWithStubBackdrop {
-      EventCreationScreen(
-          eventCreationViewModel = viewModel, onSelectLocation = {}, onSave = {})
+      EventCreationScreen(eventCreationViewModel = viewModel, onSelectLocation = {}, onSave = {})
     }
   }
 
