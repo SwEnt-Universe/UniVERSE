@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
-import com.android.universe.model.tag.Tag
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
 import com.android.universe.utils.selectDay
@@ -44,38 +43,7 @@ class EventCreationScreenTest {
     viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContentWithStubBackdrop {
       EventCreationScreen(
-          eventCreationViewModel = viewModel,
-          location = Location(0.0, 0.0),
-          onSave = {},
-          onAddTag = {
-            viewModel.setEventTags(
-                setOf(
-                    Tag.DND,
-                    Tag.TABLE_TENNIS,
-                    Tag.AI,
-                    Tag.METAL,
-                    Tag.COUNTRY,
-                    Tag.PROGRAMMING,
-                    Tag.HANDBALL,
-                    Tag.RUNNING,
-                    Tag.CYCLING,
-                    Tag.CHESS,
-                    Tag.VIDEO_GAMES,
-                    Tag.FITNESS,
-                    Tag.YOGA,
-                    Tag.MEDITATION,
-                    Tag.RAP,
-                    Tag.BOARD_GAMES,
-                    Tag.BASKETBALL,
-                    Tag.RNB,
-                    Tag.BEACH,
-                    Tag.GRAFFITI,
-                    Tag.GROUP_TRAVEL,
-                    Tag.HIKING,
-                    Tag.REGGAE,
-                    Tag.KARATE,
-                    Tag.MACHINE_LEARNING))
-          })
+          eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
     }
   }
 
