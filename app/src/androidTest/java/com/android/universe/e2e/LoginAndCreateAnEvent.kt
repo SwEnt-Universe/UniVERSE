@@ -164,21 +164,32 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onFirst()
         .performClick()
 
+    // —————————————————————————————————————
+    // 3. SET LOCATION BY CLICKING ON MAP
+    // —————————————————————————————————————
+
     // Click “Set location” button in the creation screen
     composeTestRule.waitUntil(10_000L) {
       runCatching {
-            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
-          }
-          .isSuccess
+        composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
+      }
+        .isSuccess
     }
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
+
+
+    composeTestRule
+      .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+      .performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
 
     // —————————————————————————————
     // 2. OTHER PARAMETERS
     // —————————————————————————————
     composeTestRule.waitUntil(64_000L) {
-      composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).isDisplayed()
+      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
     }
 
     composeTestRule
@@ -200,16 +211,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
 
-    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-    composeTestRule.waitForIdle()
-
-    // —————————————————————————————————————
-    // 3. SET LOCATION BY CLICKING ON MAP
-    // —————————————————————————————————————
-
-    composeTestRule
-        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
-        .performClick()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }

@@ -165,14 +165,14 @@ fun EventCreationScreen(
                                 onClick = { onSelectLocation() },
                                 height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
                                 width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
-                                contentPadding = Dimensions.PaddingSmall) {
+                                contentPadding = Dimensions.PaddingSmall,
+                                modifier = Modifier.testTag(EventCreationTestTags.SET_LOCATION_BUTTON) ){
                                   Icon(
                                       imageVector = Icons.Default.AddLocationAlt,
                                       contentDescription = "Set location",
                                       tint = MaterialTheme.colorScheme.onBackground,
                                       modifier =
-                                          Modifier.size(EventCreationDefaults.locIconSize)
-                                              .testTag(EventCreationTestTags.SET_LOCATION_BUTTON))
+                                          Modifier.size(EventCreationDefaults.locIconSize))
                                 }
                           }
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))

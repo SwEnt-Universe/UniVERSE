@@ -42,7 +42,7 @@ class EventCreationScreenTest {
     viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContentWithStubBackdrop {
       EventCreationScreen(
-          eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
+          eventCreationViewModel = viewModel, onSelectLocation = {}, onSave = {})
     }
   }
 
@@ -51,7 +51,7 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_PICTURE_PICKER).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).assertIsDisplayed()
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.AI_BUTTON, useUnmergedTree = true)
+        .onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON, useUnmergedTree = true)
         .assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD).assertIsDisplayed()
     composeTestRule
