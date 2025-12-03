@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowRight
-import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -163,7 +162,6 @@ fun ChatPreviewItem(
               }
               Column(Modifier.align(Alignment.CenterVertically)) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowRight, contentDescription = null)
-                // Text(text = ">", modifier = Modifier.padding(start = Dimensions.PaddingSmall))
               }
             }
       }
