@@ -90,6 +90,17 @@ object TestFlags {
 }
 
 /**
+ * Defines the interaction mode of the map UI.
+ * - `NORMAL`: Standard browsing mode where users can pan/zoom the map and view events.
+ * - `SELECT_LOCATION`: Special mode used when creating an event, allowing the user to pick a
+ *   specific location by clicking on the map.
+ */
+enum class MapMode {
+  NORMAL,
+  SELECT_LOCATION
+}
+
+/**
  * The main screen composable for displaying a map with event markers.
  *
  * This screen handles location permissions, initializes the map, displays event markers, and

@@ -44,7 +44,7 @@ fun MapCreateEventModal(
   ) {
     Column(modifier = Modifier.fillMaxWidth()) {
 
-      // Optional title
+      // Title
       Text(
           text = "Create Event",
           style = MaterialTheme.typography.headlineSmall,
