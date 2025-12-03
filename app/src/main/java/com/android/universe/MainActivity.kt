@@ -376,9 +376,6 @@ fun UniverseApp(
                   })
             }
           }
-      // ----------------------------------------------------------
-      // EVENT CREATION NAVIGATION GRAPH
-      // ----------------------------------------------------------
       navigation(
           route = NavigationScreens.EventCreation.name,
           startDestination = NavigationScreens.EventCreation.route) {
@@ -421,7 +418,7 @@ fun UniverseApp(
                   })
             }
 
-            // --- Add Tags Screen ---
+            // --- Add Tags Screen FOR EVENT---
             composable(NavigationScreens.SelectTagEvent.route) {
               UniverseBackgroundContainer(bitmap) {
                 SelectTagScreen(
@@ -435,17 +432,18 @@ fun UniverseApp(
               }
             }
           }
-			composable(
-				route = NavigationScreens.SelectTagUserSettings.route,
-			) {
-				UniverseBackgroundContainer(bitmap) {
-					SelectTagScreen(
-						selectTagMode = SelectTagMode.SETTINGS,
-						uid = authInstance.currentUser!!.uid,
-						navigateOnSave = { navigationActions.goBack() },
-						onBack = { navigationActions.goBack() })
-				}
-			}
-		}
-	}
+      // --- Add Tags Screen FOR USER---
+      composable(
+          route = NavigationScreens.SelectTagUserSettings.route,
+      ) {
+        UniverseBackgroundContainer(bitmap) {
+          SelectTagScreen(
+              selectTagMode = SelectTagMode.SETTINGS,
+              uid = authInstance.currentUser!!.uid,
+              navigateOnSave = { navigationActions.goBack() },
+              onBack = { navigationActions.goBack() })
+        }
+      }
+    }
+  }
 }
