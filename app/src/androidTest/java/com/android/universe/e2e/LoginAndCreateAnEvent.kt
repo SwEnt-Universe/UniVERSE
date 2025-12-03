@@ -14,7 +14,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
-import com.android.universe.e2e.LoginAndCreateAnEvent.Companion.FAKE_EVENT
 import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventCardTestTags
@@ -168,6 +167,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // 3. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
 
+    composeTestRule.waitForIdle()
     // Click “Set location” button in the creation screen
     composeTestRule.waitUntil(10_000L) {
       runCatching {
@@ -176,8 +176,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
           .isSuccess
     }
 
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
 
+    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
         .performClick()
