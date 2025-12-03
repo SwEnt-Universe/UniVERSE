@@ -68,7 +68,7 @@ class Chat(
    * @param message The new [Message] object that was added.
    */
   private fun onMessageAdded(message: Message) {
-    _messages.add(message)
+    _messages.add(0, message)
     _lastMessage.value = message
   }
 
