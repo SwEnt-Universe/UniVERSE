@@ -138,12 +138,12 @@ class EventCreationViewModel(
   /** Check that all the parameters require to create an event are well input by the user. */
   fun validateAll(): Boolean {
     val uiStateValue = eventCreationUiState.value
-    return (uiStateValue.eventTitleValid == ValidationState.Valid &&
-        (uiStateValue.eventDescriptionValid == ValidationState.Valid ||
-            uiStateValue.eventDescriptionValid == ValidationState.Neutral) &&
-        uiStateValue.eventDateValid == ValidationState.Valid &&
-        uiStateValue.eventTimeValid == ValidationState.Valid &&
-        uiStateValue.eventDateTimeValid == ValidationState.Valid)
+    return (uiStateValue.eventTitleValid is ValidationState.Valid &&
+        (uiStateValue.eventDescriptionValid is ValidationState.Valid ||
+            uiStateValue.eventDescriptionValid is ValidationState.Neutral) &&
+        uiStateValue.eventDateValid is ValidationState.Valid &&
+        uiStateValue.eventTimeValid is ValidationState.Valid &&
+        uiStateValue.eventDateTimeValid is ValidationState.Valid)
   }
 
   /**
