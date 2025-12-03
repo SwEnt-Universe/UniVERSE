@@ -160,12 +160,11 @@ class SettingsViewModel(
     }
   }
 
-    /**
-     * Deletes the profile picture
-     */
-    fun deleteImage(){
-        _uiState.value = _uiState.value.copy(profilePicture = null)
-    }
+  /** Deletes the profile picture */
+  fun deleteImage() {
+    _uiState.value = _uiState.value.copy(profilePicture = null)
+  }
+
   /** Taken as is from AddProfileViewmodel */
   fun setProfilePicture(context: Context, uri: Uri?) {
     if (uri == null) {

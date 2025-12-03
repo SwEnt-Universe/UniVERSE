@@ -14,7 +14,6 @@ object SettingsTestTags {
   const val MODAL_CANCEL_BUTTON = "modal_cancel_button"
   const val MODAL_SAVE_BUTTON = "modal_save_button"
   const val MODAL_POPUP = "modal_popup"
-  const val FIRST_NAME_FIELD = "first_name_field"
   const val LOADING_ICON = "loading_icon"
   const val PICTURE = "picture"
   const val LIQUID_BOX_CONTENT = "liquid_box_content"
