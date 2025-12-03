@@ -114,7 +114,7 @@ class SettingsViewModel(
   val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
 
   init {
-    loadUser(uid) // TODO NEW
+    loadUser(uid)
     FirebaseAuth.getInstance().currentUser?.email?.let { email ->
       _uiState.value = _uiState.value.copy(email = email)
     }
@@ -160,10 +160,16 @@ class SettingsViewModel(
     }
   }
 
+    /**
+     * Deletes the profile picture
+     */
+    fun deleteImage(){
+        _uiState.value = _uiState.value.copy(profilePicture = null)
+    }
   /** Taken as is from AddProfileViewmodel */
   fun setProfilePicture(context: Context, uri: Uri?) {
     if (uri == null) {
-      // _uiState.value = uiState.value.copy(profilePicture = null)
+      // do nothing
     } else {
       viewModelScope.launch(DefaultDP.io) {
         // We redimension the image to have a 256256 image to reduce the space of the

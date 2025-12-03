@@ -77,6 +77,7 @@ object FieldTitles {
  * @param onBack Callback when back arrow pressed.
  * @param viewModel Shared [SettingsViewModel] for state and actions.
  * @param onLogout to log the user out
+ * @param onAddTag to go to the select tag screen
  * @param clear to clear the credential state
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,7 +121,8 @@ fun SettingsScreen(
               modifier =
                   Modifier.testTag(SettingsTestTags.PICTURE)
                       .width(Dimensions.LiquidImagePickerWidth)
-                      .height(Dimensions.LiquidImagePickerHeight))
+                      .height(Dimensions.LiquidImagePickerHeight),
+              onDeleteImage = { viewModel.deleteImage() })
           LiquidBox(
               modifier = Modifier.fillMaxSize(),
               shape = BottomSheetDefaults.ExpandedShape,
