@@ -39,38 +39,42 @@ val PlaceholderLight = Color(0xFF8A8A8A)
 val PlaceholderDark = Color(0xFFAAAAAA)
 
 // Tag category colors (Light and Dark variants for all categories)
-val TagMusicLight = Color(0xFF90A4AE)
-val TagMusicDark = Color(0xFF78909C)
+// Music
+val TagMusic = Color(0xFF8E44AD)
+val TagMusicSelected = Color(0xFFD2B4DE)
+val TagMusicSelectedDark = Color(0xFF552867)
 
-val TagSportLight = Color(0xFFA5D6A7)
-val TagSportDark = Color(0xFF81C784)
+// Sport
+val TagSport = Color(0xFF3498DB)
+val TagSportSelected = Color(0xFFAED6F1)
+val TagSportSelectedDark = Color(0xFF1F5B83)
 
-val TagFoodLight = Color(0xFFB39DDB)
-val TagFoodDark = Color(0xFF9575CD)
+// Food
+val TagFood = Color(0xFFF1C40F)
+val TagFoodSelected = Color(0xFFF9E79F)
+val TagFoodSelectedDark = Color(0xFF907509)
 
-val TagArtLight = Color(0xFF80CBC4)
-val TagArtDark = Color(0xFF4DB6AC)
+// Art
+val TagArt = Color(0xFFC0392B)
+val TagArtSelected = Color(0xFFE6B0AA)
+val TagArtSelectedDark = Color(0xFF732219)
 
-val TagTravelLight = Color(0xFF546E7A)
-val TagTravelDark = Color(0xFF455A64)
+// Travel
+val TagTravel = Color(0xFFA67B5B)
+val TagTravelSelected = Color(0xFFDBCABD)
+val TagTravelSelectedDark = Color(0xFF634936)
 
-val TagGamesLight = Color(0xFFFFCC80)
-val TagGamesDark = Color(0xFF6D4C41)
+// Games
+val TagGames = Color(0xFFE67E22)
+val TagGamesSelected = Color(0xFFF5CBA7)
+val TagGamesSelectedDark = Color(0xFF8A4B14)
 
-val TagTechnologyLight = Color(0xFF90A4AE)
-val TagTechnologyDark = Color(0xFF546E7A)
+// Technology
+val TagTechnology = Color(0xFF34495E)
+val TagTechnologySelected = Color(0xFFAEB6BF)
+val TagTechnologySelectedDark = Color(0xFF1F2B38)
 
-val TagTopicLight = Color(0xFFE57373)
-val TagTopicDark = Color(0xFFC62828)
-
-// Selected tag highlight (used in TagGroup, SelectTagScreen)
-val TagSelectedLight = Color(0xFF9E9E9E) // Gray for selected tags
-val TagSelectedDark = Color.White
-val TagSelectedBorderLight = Color(0xFF607D8B)
-val TagSelectedBorderDark = Color(0xFF455A64)
-val TagBackgroundLight = Color(0xFFCCCCCC).copy(alpha = 0.5f)
-val TagBackgroundDark = Color(0xFF2C2C2E).copy(alpha = 0.5f)
-
-// Icon
-val IconLight = Color.Black
-val IconDark = Color.White
+// Topic
+val TagTopic = Color(0xFFE91E63)
+val TagTopicSelected = Color(0xFFF8BBD0)
+val TagTopicSelectedDark = Color(0xFF8B123B)
