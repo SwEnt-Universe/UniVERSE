@@ -384,9 +384,7 @@ fun UniverseApp(
                 EventCreationScreen(
                     location = Location(latitude.toDouble(), longitude.toDouble()),
                     onSave = {
-                      navController.navigate(route = NavigationScreens.SelectTagEvent.route) {
-                        popUpTo(NavigationScreens.EventCreation.route) { inclusive = true }
-                      }
+                      navController.navigate(route = NavigationScreens.SelectTagEvent.route)
                     })
               }
             }
@@ -397,7 +395,7 @@ fun UniverseApp(
             SelectTagScreen(
                 selectTagMode = SelectTagMode.EVENT_CREATION,
                 uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navController.popBackStack() },
+                navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) },
                 onBack = { navigationActions.goBack() })
           }
         }
