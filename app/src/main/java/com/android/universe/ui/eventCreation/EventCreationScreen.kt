@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
+import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
@@ -61,7 +62,6 @@ object EventCreationTestTags {
   const val EVENT_TIME_TEXT_FIELD = "EventTimeTextField"
   const val EVENT_PICTURE_PICKER = "EventPicturePicker"
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
-  const val AI_BUTTON = "AiButton"
 	const val SET_LOCATION_BUTTON = "SetLocationButton"
 }
 
@@ -69,9 +69,9 @@ object EventCreationDefaults {
   val eventPictureBoxHeight = 270.dp
   val eventBoxCornerRadius = 24.dp
   val titleFontSize = 32.sp
-  const val AI_BUTTON_HEIGHT = 40f
-  const val AI_BUTTON_WIDTH = 40f
-  val aiIconSize = 20.dp
+  const val SET_LOCATION_BUTTON_HEIGHT = 40f
+  const val SET_LOCATION_BUTTON_WIDTH = 40f
+  val locIconSize = 20.dp
 }
 
 /**
@@ -166,16 +166,16 @@ fun EventCreationScreen(
                                 fontSize = EventCreationDefaults.titleFontSize)
                             LiquidButton(
                                 onClick = { onSelectLocation() },
-                                height = EventCreationDefaults.AI_BUTTON_HEIGHT,
-                                width = EventCreationDefaults.AI_BUTTON_WIDTH,
+                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
+                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
                                 contentPadding = Dimensions.PaddingSmall) {
                                   Icon(
-                                      imageVector = Icons.Default.AutoFixHigh,
-                                      contentDescription = "IA event completion",
+                                      imageVector = Icons.Default.AddLocationAlt,
+                                      contentDescription = "Set location",
                                       tint = MaterialTheme.colorScheme.onBackground,
                                       modifier =
-                                          Modifier.size(EventCreationDefaults.aiIconSize)
-                                              .testTag(EventCreationTestTags.AI_BUTTON))
+                                          Modifier.size(EventCreationDefaults.locIconSize)
+                                              .testTag(EventCreationTestTags.SET_LOCATION_BUTTON))
                                 }
                           }
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
