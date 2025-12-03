@@ -383,10 +383,10 @@ fun UniverseApp(
               UniverseBackgroundContainer(bitmap) {
                 EventCreationScreen(
                     location = Location(latitude.toDouble(), longitude.toDouble()),
-                    onAddTag = { navController.navigate("selectTagEvent") },
                     onSave = {
-                      navController.popBackStack(
-                          route = NavigationScreens.EventCreation.route, inclusive = true)
+                      navController.navigate(route = NavigationScreens.SelectTagEvent.route) {
+                        popUpTo(NavigationScreens.EventCreation.route) { inclusive = true }
+                      }
                     })
               }
             }
