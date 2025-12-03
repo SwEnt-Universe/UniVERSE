@@ -20,6 +20,7 @@ object NavigationTestTags {
   const val SETTINGS_SCREEN = "SettingsScreen"
   const val SELECT_TAG_SCREEN_USER = "SelectTagScreenUser"
   const val SELECT_TAG_SCREEN_EVENT = "SelectTagScreenEvent"
+  const val SELECT_TAG_SCREEN_SETTINGS = "SelectTagScreenSettings"
   const val EMAIL_VALIDATION_SCREEN = "EmailValidationScreen"
   const val EVENT_CREATION_SCREEN = "EventCreationScreen"
 
@@ -66,5 +67,6 @@ object NavigationTestTags {
         is NavigationScreens.EmailValidation -> EMAIL_VALIDATION_SCREEN
         is NavigationScreens.EventCreation -> EVENT_CREATION_SCREEN
         is NavigationScreens.ChatInstance -> CHAT_INSTANCE_SCREEN
+        is NavigationScreens.SelectTagUserSettings -> SELECT_TAG_SCREEN_SETTINGS
       }
 }

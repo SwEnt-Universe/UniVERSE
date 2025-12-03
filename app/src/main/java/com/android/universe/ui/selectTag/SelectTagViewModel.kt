@@ -15,7 +15,8 @@ import kotlinx.coroutines.launch
 /** Mode to know if the viewModel should save tag for a userProfile or for an event. */
 enum class SelectTagMode {
   USER_PROFILE,
-  EVENT_CREATION
+  EVENT_CREATION,
+  SETTINGS
 }
 
 /**
@@ -101,6 +102,7 @@ class SelectTagViewModel(
           _selectedTags.value = userProfile.tags.toList()
         }
         SelectTagMode.EVENT_CREATION -> _selectedTags.value = tagRepository.getTags().toList()
+        SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
       }
     }
   }
@@ -119,6 +121,7 @@ class SelectTagViewModel(
           userRepository.updateUser(uid, newUserProfile)
         }
         SelectTagMode.EVENT_CREATION -> tagRepository.updateTags(_selectedTags.value.toSet())
+        SelectTagMode.SETTINGS -> tagRepository.updateTags(_selectedTags.value.toSet())
       }
     }
   }

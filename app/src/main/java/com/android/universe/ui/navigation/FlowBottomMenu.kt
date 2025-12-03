@@ -33,7 +33,7 @@ object FlowBottomMenuTestTags {
   const val GOOGLE_BUTTON = "BtnGoogle"
   const val PASSWORD_BUTTON = "BtnPassword"
   const val EMAIL_BUTTON = "BtnEmail"
-    const val LOGOUT_BUTTON = "BtnLogout"
+  const val LOGOUT_BUTTON = "BtnLogout"
 }
 
 /**
@@ -154,24 +154,23 @@ sealed class FlowTab(
           testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
           onClick = onClick)
 
-    /**
-     * Represents the "Logout" action tab. This tab displays a logout icon and is typically used to
-     * initiate a logout action.
-     *
-     * @param onClick The lambda function to be executed when the logout tab is clicked.
-     */
-    class Logout(onClick: () -> Unit) :
-        FlowTab(
-            icon = {
-                Icon(
-                    imageVector = UniverseTheme.icons.logout,
-                    contentDescription = "Logout",
-                    modifier = Modifier.size(Dimensions.IconSizeLarge))
-            },
-            label = "Logout",
-            testTag = FlowBottomMenuTestTags.LOGOUT_BUTTON,
-            onClick = onClick
-        )
+  /**
+   * Represents the "Logout" action tab. This tab displays a logout icon and is typically used to
+   * initiate a logout action.
+   *
+   * @param onClick The lambda function to be executed when the logout tab is clicked.
+   */
+  class Logout(onClick: () -> Unit) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = UniverseTheme.icons.logout,
+                contentDescription = "Logout",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Logout",
+          testTag = FlowBottomMenuTestTags.LOGOUT_BUTTON,
+          onClick = onClick)
 }
 
 /**

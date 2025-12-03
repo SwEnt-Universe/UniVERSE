@@ -50,6 +50,10 @@ object Dimensions {
   // Image size
   val ProfilePictureSize = 256
 
+  // LiquidImagePicker
+  val LiquidImagePickerWidth = 200.dp
+  val LiquidImagePickerHeight = 140.dp
+
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
 
