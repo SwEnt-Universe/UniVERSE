@@ -361,7 +361,11 @@ fun UniverseApp(
                   onBack = {
                     navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
                   },
+                  onConfirm = { navigationActions.navigateTo(NavigationScreens.Profile) },
                   onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+                  onAddTag = {
+                    navController.navigate(NavigationScreens.SelectTagUserSettings.route)
+                  },
                   clear = {
                     credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
                   })
@@ -397,6 +401,17 @@ fun UniverseApp(
                 selectTagMode = SelectTagMode.EVENT_CREATION,
                 uid = authInstance.currentUser!!.uid,
                 navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) },
+                onBack = { navigationActions.goBack() })
+          }
+        }
+        composable(
+            route = NavigationScreens.SelectTagUserSettings.route,
+        ) {
+          UniverseBackgroundContainer(bitmap) {
+            SelectTagScreen(
+                selectTagMode = SelectTagMode.SETTINGS,
+                uid = authInstance.currentUser!!.uid,
+                navigateOnSave = { navigationActions.goBack() },
                 onBack = { navigationActions.goBack() })
           }
         }

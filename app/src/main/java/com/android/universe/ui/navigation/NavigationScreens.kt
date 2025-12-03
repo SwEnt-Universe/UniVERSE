@@ -41,6 +41,9 @@ sealed class NavigationScreens(
 
   object SelectTagEvent : NavigationScreens(route = "selectTagEvent", name = "Select Tag event")
 
+  object SelectTagUserSettings :
+      NavigationScreens(route = "selectTagUserSettings", name = "Select Tag user settings")
+
   object EventCreation :
       NavigationScreens(route = "eventCreation/{latitude}/{longitude}", name = "EventCreation")
 }

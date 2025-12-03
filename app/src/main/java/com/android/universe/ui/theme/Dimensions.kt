@@ -52,6 +52,10 @@ object Dimensions {
   val EventPictureHeight = 160.dp
   val EventPictureWidth = 220.dp
 
+  // LiquidImagePicker
+  val LiquidImagePickerWidth = 200.dp
+  val LiquidImagePickerHeight = 140.dp
+
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
 

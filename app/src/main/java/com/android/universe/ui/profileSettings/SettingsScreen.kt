@@ -1,134 +1,69 @@
 package com.android.universe.ui.profileSettings
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.tag.Tag
-import com.android.universe.ui.common.LogoutButton
+import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.LogoutConfirmationDialog
+import com.android.universe.ui.common.UniversalDatePickerDialog
+import com.android.universe.ui.common.ValidationState
+import com.android.universe.ui.components.CustomTextField
+import com.android.universe.ui.components.LiquidBottomSheet
+import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.UniverseTheme
-import java.io.ByteArrayOutputStream
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
-/* =========================================================
- * Padding/style constants
- * ========================================================= */
-object SettingsScreenPaddings {
-  val InternalSpacing = Dimensions.PaddingSmall
-  val DividerPadding = Dimensions.PaddingExtraLarge
-  val ContentHorizontalPadding = Dimensions.PaddingExtraLarge
-  val ErrorIndent = Dimensions.PaddingMedium
-  val FieldIconSpacing = Dimensions.PaddingFieldIconSpacing
-  val DateFieldSpacing = Dimensions.PaddingMedium
-}
+import java.time.LocalDate
+import java.time.ZoneId
 
 object SettingsScreenStyles {
   @Composable fun sectionTitleStyle() = MaterialTheme.typography.titleLarge
 }
 
-/* =========================================================
- * Helper methods
- * ========================================================= */
-/** Maps internal field keys to modal titles. */
-internal fun modalTitle(field: String): String =
-    when (field) {
-      "email" -> "Edit Email"
-      "password" -> "Edit Password"
-      "firstName" -> "Edit First Name"
-      "lastName" -> "Edit Last Name"
-      "description" -> "Edit Description"
-      "country" -> "Edit Country"
-      "date" -> "Edit Date of Birth"
-      Tag.Category.MUSIC.fieldName -> Tag.Category.MUSIC.displayName
-      Tag.Category.SPORT.fieldName -> Tag.Category.SPORT.displayName
-      Tag.Category.FOOD.fieldName -> Tag.Category.FOOD.displayName
-      Tag.Category.ART.fieldName -> Tag.Category.ART.displayName
-      Tag.Category.TRAVEL.fieldName -> Tag.Category.TRAVEL.displayName
-      Tag.Category.GAMES.fieldName -> Tag.Category.GAMES.displayName
-      Tag.Category.TECHNOLOGY.fieldName -> Tag.Category.TECHNOLOGY.displayName
-      Tag.Category.TOPIC.fieldName -> Tag.Category.TOPIC.displayName
-
-      else -> field.ifBlank { "Edit" }
-    }
-
-/** Reusable editable text row with trailing edit icon. */
-@Composable
-private fun EditableField(
-    label: String,
-    value: String,
-    error: String? = null,
-    testTag: String,
-    onClick: () -> Unit
-) {
-  Row(
-      modifier =
-          Modifier.fillMaxWidth()
-              .clickable { onClick() }
-              .testTag(testTag)
-              .padding(vertical = SettingsScreenPaddings.InternalSpacing),
-      verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis)
-        Spacer(modifier = Modifier.width(SettingsScreenPaddings.FieldIconSpacing))
-        Icon(Icons.Filled.Edit, contentDescription = "Edit $label")
-      }
-  if (error != null) {
-    Text(
-        error,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.error,
-        modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
-  }
-}
-
-/** Reusable row for displaying a list of tags. */
-@Composable
-private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpen: () -> Unit) {
-  val joined = names.joinToString(", ")
-  EditableField(
-      label = label,
-      value = if (joined.length > 30) joined.take(30) + "..." else joined,
-      testTag = testTag,
-      onClick = onOpen)
+object FieldTitles {
+  const val MAIL = "Email address"
+  const val PASSWORD = "Password"
+  const val USERNAME = "Username"
+  const val FIRSTNAME = "First Name"
+  const val LASTNAME = "Last Name"
+  const val DESCRIPTION = "Bio"
+  const val DATE = "Date of Birth"
+  const val LOCATION = "Location"
+  const val TAG = "Tag"
+  const val AUTHENTICATION = "Authentication"
+  const val PROFILE = "Profile"
 }
 
 /* =========================================================
@@ -141,6 +76,7 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
  * @param onBack Callback when back arrow pressed.
  * @param viewModel Shared [SettingsViewModel] for state and actions.
  * @param onLogout to log the user out
+ * @param onAddTag to go to the select tag screen
  * @param clear to clear the credential state
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,318 +84,271 @@ private fun ChipsLine(label: String, names: List<String>, testTag: String, onOpe
 fun SettingsScreen(
     uid: String,
     onBack: () -> Unit = {},
-    viewModel: SettingsViewModel = viewModel(),
+    onConfirm: () -> Unit = {},
+    viewModel: SettingsViewModel = viewModel { SettingsViewModel(uid) },
     onLogout: () -> Unit = {},
+    onAddTag: () -> Unit = {},
     clear: suspend () -> Unit = {}
 ) {
   val uiState by viewModel.uiState.collectAsState()
+  val tagState by viewModel.userTags.collectAsState()
+  val time = LocalDate.now(ZoneId.of("Europe/Berlin"))
+  val bottomSheetSize = 300.dp
   val context = LocalContext.current
+  val launcher =
+      rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+        viewModel.setProfilePicture(context, uri)
+      }
+  val showDate = remember { mutableStateOf(false) }
 
-  LaunchedEffect(uiState.errorMsg) {
-    uiState.errorMsg?.let {
-      Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-      viewModel.clearErrorMsg()
-    }
-  }
-
-  LaunchedEffect(uid) { viewModel.loadUser(uid) }
-
-  SettingsScreenContent(
-      uiState = uiState,
-      onBack = onBack,
-      onOpenField = viewModel::openModal,
-      onCloseModal = viewModel::closeModal,
-      onUpdateTemp = viewModel::updateTemp,
-      onToggleCountryDropdown = viewModel::toggleCountryDropdown,
-      onAddTag = viewModel::addTag,
-      onRemoveTag = viewModel::removeTag,
-      onSaveModal = { viewModel.saveModal(uid) },
-      onLogout = { viewModel.signOut(clear, onLogout) },
-      onSelectPicture = { byteArray -> viewModel.updateProfilePicture(byteArray, uid) })
-}
-
-/** Stateless content of the Settings screen, allowing for previews and tests. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SettingsScreenContent(
-    uiState: SettingsUiState,
-    onBack: () -> Unit = {},
-    onOpenField: (String) -> Unit = {},
-    onCloseModal: () -> Unit = {},
-    onUpdateTemp: (String, String) -> Unit = { _, _ -> },
-    onToggleCountryDropdown: (Boolean) -> Unit = {},
-    onAddTag: (Tag) -> Unit = {},
-    onRemoveTag: (Tag) -> Unit = {},
-    onSaveModal: () -> Unit = {},
-    onLogout: () -> Unit = {},
-    onSelectPicture: (ByteArray?) -> Unit = {}
-) {
   val showDialog = remember { mutableStateOf(false) }
   LogoutConfirmationDialog(
       showDialog = showDialog.value,
       onConfirm = {
         showDialog.value = false
-        onLogout()
+        viewModel.signOut(clear, onLogout)
       },
       onDismiss = { showDialog.value = false })
-  Scaffold(
-      containerColor = Color.Transparent,
-      topBar = {
-        TopAppBar(
-            title = {
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Text("Settings")
-                    LogoutButton(onClick = { showDialog.value = true })
-                  }
-            },
-            navigationIcon = {
-              IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-              }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN))
-      }) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-          // Profile picture of the user.
-          val context = LocalContext.current
-          val scope = rememberCoroutineScope()
-          val launcher =
-              rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) {
-                  uri: Uri? ->
-                uri?.let { selectedUri ->
-                  scope.launch(Dispatchers.IO) {
-                    // We redimension the image to have a 256*256 image to reduce the space of the
-                    // image.
-                    val maxSize = Dimensions.ProfilePictureSize
-
-                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-
-                    context.contentResolver.openInputStream(selectedUri)?.use { input ->
-                      BitmapFactory.decodeStream(input, null, options)
+  Box(modifier = Modifier.fillMaxSize().testTag(NavigationTestTags.SETTINGS_SCREEN)) {
+    Column(
+        modifier = Modifier.padding(top = Dimensions.PaddingExtraLarge),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingExtraLarge)) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+          LiquidImagePicker(
+              uiState.profilePicture,
+              onPickImage = { launcher.launch("image/*") },
+              modifier =
+                  Modifier.testTag(SettingsTestTags.PICTURE)
+                      .width(Dimensions.LiquidImagePickerWidth)
+                      .height(Dimensions.LiquidImagePickerHeight),
+              onDeleteImage = { viewModel.deleteImage() })
+          LiquidBox(
+              modifier = Modifier.fillMaxSize(),
+              shape = BottomSheetDefaults.ExpandedShape,
+              enableLens = false) {
+                Column(
+                    modifier =
+                        Modifier.testTag(SettingsTestTags.LIQUID_BOX_CONTENT)
+                            .fillMaxSize()
+                            .verticalScroll(state = rememberScrollState())
+                            .padding(
+                                horizontal = Dimensions.PaddingExtraLarge,
+                                vertical = Dimensions.PaddingLarge),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingLarge)) {
+                      Text(
+                          FieldTitles.AUTHENTICATION,
+                          style = SettingsScreenStyles.sectionTitleStyle())
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.EMAIL_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.EMAIL_BUTTON),
+                          leadingIcon = Icons.Default.Mail,
+                          title = FieldTitles.MAIL,
+                          endText = uiState.email,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.EMAIL) })
+                      if (uiState.passwordEnabled ?: false) {
+                        FieldModifier(
+                            modifier = Modifier.testTag(SettingsTestTags.PASSWORD_TEXT),
+                            editModifier = Modifier.testTag(SettingsTestTags.PASSWORD_BUTTON),
+                            leadingIcon = Icons.Default.Lock, // TODO test on real app
+                            title = FieldTitles.PASSWORD,
+                            endText = "********",
+                            trailingIcon = Icons.Default.Edit,
+                            onClick = { viewModel.setModalType(ModalType.PASSWORD) })
+                      }
+                      Text(FieldTitles.PROFILE, style = SettingsScreenStyles.sectionTitleStyle())
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.USERNAME_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.USERNAME_BUTTON),
+                          leadingIcon = Icons.Default.AccountCircle,
+                          title = FieldTitles.USERNAME,
+                          endText = uiState.username,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.USERNAME) })
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.FIRST_NAME_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.FIRST_NAME_BUTTON),
+                          leadingIcon = Icons.Default.AccountCircle,
+                          title = FieldTitles.FIRSTNAME,
+                          endText = uiState.firstName,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.FIRSTNAME) })
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.LAST_NAME_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.LAST_NAME_BUTTON),
+                          leadingIcon = Icons.Default.AccountCircle,
+                          title = FieldTitles.LASTNAME,
+                          endText = uiState.lastName,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.LASTNAME) })
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.DESCRIPTION_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.DESCRIPTION_BUTTON),
+                          leadingIcon = Icons.Default.Description,
+                          title = FieldTitles.DESCRIPTION,
+                          endText = uiState.description,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.DESCRIPTION) })
+                      Column(
+                          modifier = Modifier.fillMaxWidth(),
+                          verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingSmall)) {
+                            FieldModifier(
+                                modifier = Modifier.testTag(SettingsTestTags.DATE_TEXT),
+                                editModifier = Modifier.testTag(SettingsTestTags.DATE_BUTTON),
+                                leadingIcon = Icons.Default.CalendarMonth,
+                                title = FieldTitles.DATE,
+                                endText = uiState.formattedDate ?: "Unavailable",
+                                trailingIcon = Icons.Default.Edit,
+                                onClick = { showDate.value = true })
+                            if (uiState.dateValidation is ValidationState.Invalid) {
+                              Text(
+                                  modifier = Modifier.testTag(SettingsTestTags.DATE_ERROR),
+                                  text =
+                                      (uiState.dateValidation as ValidationState.Invalid)
+                                          .errorMessage,
+                                  color = MaterialTheme.colorScheme.error)
+                            }
+                          }
+                      FieldModifier(
+                          leadingIcon = Icons.Default.LocationOn,
+                          title = FieldTitles.LOCATION,
+                          endText = "TBD",
+                          trailingIcon = Icons.Default.Edit) // TODO location
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.TAG_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.TAG_BUTTON),
+                          leadingIcon = Icons.Default.LightMode,
+                          title = FieldTitles.TAG,
+                          endText = tagState.take(4).joinToString { t -> t.displayName },
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { onAddTag() })
+                      // Padding to cover for the bottom bar and prevent overlap issues
+                      Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
+                      Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
                     }
-
-                    val (height: Int, width: Int) = options.run { outHeight to outWidth }
-                    var inSampleSize = 1
-                    if (height > maxSize || width > maxSize) {
-                      val halfHeight = height / 2
-                      val halfWidth = width / 2
-                      while ((halfHeight / inSampleSize) >= maxSize &&
-                          (halfWidth / inSampleSize) >= maxSize) {
-                        inSampleSize *= 2
+              }
+        }
+    LiquidBottomSheet(
+        isPresented = uiState.showModal, onDismissRequest = { viewModel.stopModal() }) {
+          Column(
+              modifier =
+                  Modifier.height(bottomSheetSize)
+                      .padding(
+                          horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)
+                      .testTag(SettingsTestTags.MODAL_POPUP)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+                      Text(
+                          text = uiState.modalType!!.fieldName,
+                          fontSize = 32.sp,
+                          modifier = Modifier.testTag(SettingsTestTags.MODAL_TITLE))
+                      Row {
+                        Text(
+                            text = "Cancel",
+                            modifier =
+                                Modifier.clickable(onClick = { viewModel.stopModal() })
+                                    .testTag(SettingsTestTags.MODAL_CANCEL_BUTTON))
+                        Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
+                        val enabled =
+                            uiState.modalValState == ValidationState.Valid ||
+                                uiState.modalValState == ValidationState.Neutral
+                        Text(
+                            text = "Save",
+                            modifier =
+                                Modifier.clickable(
+                                        enabled = enabled, onClick = { viewModel.saveTempModal() })
+                                    .testTag(SettingsTestTags.MODAL_SAVE_BUTTON))
                       }
                     }
-
-                    options.inSampleSize = inSampleSize
-                    options.inJustDecodeBounds = false
-
-                    val bitmap =
-                        context.contentResolver.openInputStream(selectedUri)?.use { input ->
-                          BitmapFactory.decodeStream(input, null, options)
-                        }
-
-                    if (bitmap == null) {
-                      Log.e("ImageError", "Failed to decode bitmap from URI $selectedUri")
-                    } else {
-                      val stream = ByteArrayOutputStream()
-                      // We compress the image with a low quality to reduce the space of the image.
-                      bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-                      val byteArray = stream.toByteArray()
-                      withContext(Dispatchers.Main) { onSelectPicture(byteArray) }
-                    }
-                  }
-                }
-              }
-          Box(
-              modifier =
-                  Modifier.align(Alignment.CenterHorizontally)
-                      .padding(Dimensions.PaddingSmall)
-                      .size(100.dp)
-                      .background(MaterialTheme.colorScheme.surface, CircleShape)
-                      .testTag(SettingsTestTags.PICTURE_EDITING),
-              contentAlignment = Alignment.Center) {
-                IconButton(onClick = { launcher.launch("image/*") }) {
-                  Icon(
-                      tint = MaterialTheme.colorScheme.onSurface,
-                      contentDescription = "Image",
-                      imageVector = Icons.Filled.Image,
-                      modifier = Modifier.size(Dimensions.IconSizeLarge))
-                }
-              }
-          Button(
-              onClick = { onSelectPicture(null) },
-              modifier =
-                  Modifier.align(Alignment.CenterHorizontally)
-                      .testTag(SettingsTestTags.DELETE_PICTURE_BUTTON)) {
-                Text("delete profile picture")
-              }
-          LazyColumn(
-              modifier =
-                  Modifier.fillMaxSize()
-                      .padding(
-                          horizontal = SettingsScreenPaddings.ContentHorizontalPadding,
-                          vertical = Dimensions.PaddingSmall)) {
-                item { GeneralSection(uiState = uiState, open = onOpenField) }
-                item { ProfileSection(uiState = uiState, open = onOpenField) }
-                item { InterestsSection(uiState = uiState, open = onOpenField) }
+                Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
+                CustomTextField(
+                    modifier = Modifier.testTag(SettingsTestTags.CUSTOMFIELD),
+                    label = "",
+                    isPassword = uiState.modalType == ModalType.PASSWORD,
+                    placeholder = uiState.modalType!!.fieldName,
+                    onValueChange = { str -> viewModel.setModalText(str) },
+                    value = uiState.modalText!!,
+                    validationState = uiState.modalValState)
+                Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
               }
         }
+    UniversalDatePickerDialog(
+        modifier = Modifier.testTag(SettingsTestTags.DATE_DIALOG),
+        visible = showDate.value,
+        initialDate = uiState.date ?: time.minusYears(InputLimits.MIN_AGE.toLong()),
+        yearRange = IntRange(time.year - 100, time.minusYears(InputLimits.MIN_AGE.toLong()).year),
+        onDismiss = { showDate.value = false },
+        onConfirm = {
+          viewModel.setDate(it)
+          showDate.value = false
+        })
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+      FlowBottomMenu(
+          listOf(
+              FlowTab.Back(onClick = onBack),
+              FlowTab.Confirm(
+                  onClick = { viewModel.saveProfile(uid, onConfirm) },
+                  enabled =
+                      uiState.dateValidation == ValidationState.Valid ||
+                          uiState.dateValidation == ValidationState.Neutral),
+              FlowTab.Logout(onClick = { showDialog.value = true })))
+    }
+    if (uiState.isLoading) {
+      Box(
+          Modifier.fillMaxSize()
+              .background(MaterialTheme.colorScheme.background)
+              .testTag(SettingsTestTags.LOADING_ICON),
+          contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+          }
+    }
+  }
+}
+
+/**
+ * A Row of trailing icon with its text and at the end the value text and its icon. The value text
+ * is ... if too large. Adaptive layout based on screen width.
+ *
+ * @param modifier Modifier to be applied to the changing text.
+ * @param editModifier Modifier to be applied to the edit button.
+ * @param leadingIcon Icon to be displayed at the start of the row.
+ * @param title Text to be displayed at the start of the row.
+ * @param endText Text to be displayed at the end of the row.
+ * @param trailingIcon Icon to be displayed at the end of the row
+ * @param onClick Callback to be invoked when the trailing icon is clicked.
+ */
+@Composable
+fun FieldModifier(
+    modifier: Modifier = Modifier,
+    editModifier: Modifier = Modifier,
+    leadingIcon: ImageVector?,
+    title: String,
+    endText: String,
+    trailingIcon: ImageVector,
+    onClick: () -> Unit = {}
+) {
+  Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      if (leadingIcon != null) {
+        Icon(imageVector = leadingIcon, contentDescription = title)
+        Spacer(modifier = Modifier.width(Dimensions.PaddingSmall))
       }
-
-  if (uiState.showModal) {
-    ModalBottomSheet(
-        onDismissRequest = onCloseModal, sheetState = rememberModalBottomSheetState()) {
-          ModalContent(
-              uiState = uiState,
-              onUpdateTemp = onUpdateTemp,
-              onToggleCountryDropdown = onToggleCountryDropdown,
-              onAddTag = onAddTag,
-              onRemoveTag = onRemoveTag,
-              onClose = onCloseModal,
-              onSave = onSaveModal)
-        }
-  }
-
-  // This is the loading icon which will appear during the signing out
-  if (uiState.isLoading) {
-    Box(
-        Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .testTag(SettingsTestTags.LOADING_ICON),
-        contentAlignment = Alignment.Center) {
-          CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        }
-  }
-}
-
-/* =========================================================
- * Sections
- * ========================================================= */
-/** Section for displaying general account information like email and password. */
-@Composable
-private fun GeneralSection(uiState: SettingsUiState, open: (String) -> Unit) {
-  Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
-    Text("General", style = SettingsScreenStyles.sectionTitleStyle())
-    EditableField(
-        label = "Email address",
-        value = uiState.email,
-        error = uiState.emailError,
-        testTag = SettingsTestTags.EMAIL_BUTTON,
-        onClick = { open("email") })
-    EditableField(
-        label = "Password",
-        value = if (uiState.password.isEmpty()) "Unchanged" else "********",
-        error = uiState.passwordError,
-        testTag = SettingsTestTags.PASSWORD_BUTTON,
-        onClick = { open("password") })
-  }
-}
-
-/** Section for displaying personal profile information. */
-@Composable
-private fun ProfileSection(uiState: SettingsUiState, open: (String) -> Unit) {
-  Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
-    HorizontalDivider(
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = Dimensions.DividerThickness,
-        modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
-    Text("Profile", style = SettingsScreenStyles.sectionTitleStyle())
-    EditableField(
-        label = "First Name",
-        value = uiState.firstName,
-        error = uiState.firstNameError,
-        testTag = SettingsTestTags.FIRST_NAME_BUTTON,
-        onClick = { open("firstName") })
-    EditableField(
-        label = "Last Name",
-        value = uiState.lastName,
-        error = uiState.lastNameError,
-        testTag = SettingsTestTags.LAST_NAME_BUTTON,
-        onClick = { open("lastName") })
-    EditableField(
-        label = "Description",
-        value = uiState.description.take(30) + if (uiState.description.length > 30) "..." else "",
-        error = uiState.descriptionError,
-        testTag = SettingsTestTags.DESCRIPTION_BUTTON,
-        onClick = { open("description") })
-    EditableField(
-        label = "Country",
-        value = uiState.country,
-        testTag = SettingsTestTags.COUNTRY_BUTTON,
-        onClick = { open("country") })
-    EditableField(
-        label = "Date of Birth",
-        value = "${uiState.year}-${uiState.month}-${uiState.day}",
-        testTag = SettingsTestTags.DATE_BUTTON,
-        onClick = { open("date") })
-    uiState.dayError?.let {
-      Text(
-          it,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.error,
-          modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
+      Text(text = title)
     }
-    uiState.monthError?.let {
-      Text(
-          it,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.error,
-          modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
-    }
-    uiState.yearError?.let {
-      Text(
-          it,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.error,
-          modifier = Modifier.padding(start = SettingsScreenPaddings.ErrorIndent))
-    }
-  }
-}
-
-/** Section for displaying and editing tag-based interests. */
-@Composable
-private fun InterestsSection(uiState: SettingsUiState, open: (String) -> Unit) {
-  Column(verticalArrangement = Arrangement.spacedBy(SettingsScreenPaddings.InternalSpacing)) {
-    HorizontalDivider(
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-        thickness = Dimensions.DividerThickness,
-        modifier = Modifier.padding(vertical = SettingsScreenPaddings.DividerPadding))
-    Text("Interests", style = SettingsScreenStyles.sectionTitleStyle())
-    Tag.Category.entries.forEach { category ->
-      ChipsLine(
-          label = category.displayName,
-          names = Tag.toDisplayNamesByCategory(uiState.selectedTags, category),
-          testTag = "SettingsTestTags.${category.name}_BUTTON",
-          onOpen = { open(category.fieldName) })
-    }
-  }
-}
-
-/* =========================================================
- * Previews (use stateless content only)
- * ========================================================= */
-fun sampleSettingsState(showModal: Boolean = false, field: String = "") =
-    SettingsUiState(
-        email = "preview@epfl.ch",
-        firstName = "Emma",
-        lastName = "Prolapse",
-        country = "Switzerland",
-        description = "Loves Kotlin, skiing, and fondue. Building UniVERSE app.",
-        day = "05",
-        month = "01",
-        year = "2000",
-        // Use Tag enums directly
-        selectedTags = listOf(Tag.HIKING, Tag.CYCLING, Tag.CLASSICAL, Tag.KARATE, Tag.METAL),
-        showModal = showModal,
-        currentField = field)
-
-@Preview(showBackground = true, name = "Settings")
-@Composable
-private fun SettingsScreenContent_Preview() {
-  UniverseTheme {
-    SettingsScreenContent(uiState = sampleSettingsState(), onOpenField = {}, onBack = {})
+    Spacer(modifier = Modifier.weight(1f))
+    Text(
+        text = endText,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.weight(1f, fill = true),
+        textAlign = TextAlign.End)
+    Spacer(modifier = Modifier.weight(0.01f))
+    Icon(
+        imageVector = trailingIcon,
+        contentDescription = "Edit $title",
+        modifier = editModifier.clickable(onClick = onClick))
   }
 }
