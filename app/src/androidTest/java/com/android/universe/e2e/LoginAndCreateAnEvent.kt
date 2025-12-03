@@ -22,7 +22,6 @@ import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
-import com.android.universe.ui.selectTag.SelectTagsScreenTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.EventTestData
@@ -169,7 +168,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVE_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
 
