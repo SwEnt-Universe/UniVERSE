@@ -32,7 +32,6 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.theme.Dimensions
-import com.google.android.play.integrity.internal.ai
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import kotlinx.coroutines.CoroutineDispatcher
