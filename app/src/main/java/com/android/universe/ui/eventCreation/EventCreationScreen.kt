@@ -150,7 +150,7 @@ private fun TextFieldEventCreation(
  * button to save the Event with the parameters that have been selected
  *
  * @param eventCreationViewModel the viewModel.
- * @param location the location of the event.
+ * @param onSelectLocation triggers location selection flow
  * @param onSave the callBack to call when the user click on the 'Save Event' button.
  * @param onAddTag the callBack to call when the user click on the 'Add Tag' button.
  */
