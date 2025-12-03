@@ -1,213 +1,206 @@
 package com.android.universe.ui.profileSettings
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.model.tag.Tag
+import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.model.user.UserRepository
+import com.android.universe.ui.common.GeneralDatePopUpTestTags
 import com.android.universe.ui.common.LogoutTestTags
+import com.android.universe.ui.navigation.FlowBottomMenuTestTags
+import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.utils.UserTestData
+import com.android.universe.utils.selectDay
+import com.android.universe.utils.setContentWithStubBackdrop
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import java.time.LocalDate
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
+  companion object {
+    val user = UserTestData.Alice
+    val newUsername = "newusername"
+    val sampleDate =
+        LocalDate.of(user.dateOfBirth.year, user.dateOfBirth.month, user.dateOfBirth.dayOfMonth + 1)
+  }
+
+  private lateinit var viewmodel: SettingsViewModel
+  private lateinit var repository: UserRepository
+  private lateinit var mockFirebaseUser: FirebaseUser
+  private lateinit var mockEmailTask: Task<Void>
+  private lateinit var mockPasswordTask: Task<Void>
+
+  private fun resolveTypeButton(type: ModalType): String {
+    return when (type) {
+      ModalType.EMAIL -> SettingsTestTags.EMAIL_BUTTON
+      ModalType.PASSWORD -> SettingsTestTags.PASSWORD_BUTTON
+      ModalType.USERNAME -> SettingsTestTags.USERNAME_BUTTON
+      ModalType.FIRSTNAME -> SettingsTestTags.FIRST_NAME_BUTTON
+      ModalType.LASTNAME -> SettingsTestTags.LAST_NAME_BUTTON
+      ModalType.DESCRIPTION -> SettingsTestTags.DESCRIPTION_BUTTON
+    }
+  }
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private fun setUpScreen(
-      uiState: SettingsUiState = sampleSettingsState(),
-      onOpenField: (String) -> Unit = {},
-      onUpdateTemp: (String, String) -> Unit = { _, _ -> },
-      onToggleCountryDropdown: (Boolean) -> Unit = {},
-      onAddTag: (Tag) -> Unit = {},
-      onRemoveTag: (Tag) -> Unit = {},
-      onCloseModal: () -> Unit = {},
-      onSaveModal: () -> Unit = {},
+  fun screenSetup(
       onBack: () -> Unit = {},
-      onLogout: () -> Unit = {}
+      onConfirm: () -> Unit = {},
+      onLogout: () -> Unit = {},
+      onAddTag: () -> Unit = {},
+      clear: suspend () -> Unit = {}
   ) {
-    composeTestRule.setContent {
-      MaterialTheme {
-        SettingsScreenContent(
-            uiState = uiState,
-            onOpenField = onOpenField,
-            onUpdateTemp = onUpdateTemp,
-            onToggleCountryDropdown = onToggleCountryDropdown,
-            onAddTag = onAddTag,
-            onRemoveTag = onRemoveTag,
-            onCloseModal = onCloseModal,
-            onSaveModal = onSaveModal,
-            onBack = onBack,
-            onLogout = onLogout)
+    composeTestRule.setContentWithStubBackdrop {
+      UniverseTheme {
+        SettingsScreen(user.uid, onBack, onConfirm, viewmodel, onLogout, onAddTag, clear)
       }
     }
   }
 
-  @Test
-  fun testSettingsScreen_DisplaysGeneralSectionFields() {
-    setUpScreen()
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.EMAIL_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Email address", "preview@epfl.ch")
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Password", "Unchanged")
+  @Before
+  fun setUp() {
+    // Mock FirebaseAuth
+    mockkStatic(FirebaseAuth::class)
+    val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
+    every { FirebaseAuth.getInstance() } returns fakeAuth
+    every { fakeAuth.currentUser } returns null
+
+    mockkStatic(FirebaseFirestore::class)
+    every { FirebaseFirestore.getInstance() } returns mockk(relaxed = true)
+    // Mock Firebase user and tasks
+    mockFirebaseUser = mockk()
+    mockEmailTask = mockk(relaxed = true)
+    mockPasswordTask = mockk(relaxed = true)
+
+    every { mockFirebaseUser.email } returns "old@epfl.ch"
+    every { mockFirebaseUser.updateEmail(any()) } returns mockEmailTask
+    every { mockFirebaseUser.updatePassword(any()) } returns mockPasswordTask
+    val repository = FakeUserRepository()
+    runTest {
+      repository.addUser(user)
+      viewmodel = SettingsViewModel(user.uid, repository)
+    }
   }
 
   @Test
-  fun testSettingsScreen_DisplaysProfileSectionFields() {
-    setUpScreen()
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("First Name", "Emma")
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.LAST_NAME_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Last Name", "Prolapse")
-
-    // Description is truncated to 30 chars + "..."
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.DESCRIPTION_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Description", "Loves Kotlin, skiing, and fond...")
-
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.COUNTRY_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Country", "Switzerland")
-    composeTestRule
-        .onNodeWithTag(SettingsTestTags.DATE_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Date of Birth", "2000-01-05")
+  fun mainDisplayed() {
+    screenSetup()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_POPUP).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.PICTURE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.LIQUID_BOX_CONTENT).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.EMAIL_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.LAST_NAME_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.DESCRIPTION_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.DATE_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_TITLE).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.LOGOUT_BUTTON).assertIsDisplayed()
   }
 
   @Test
-  fun testSettingsScreen_OpenVariousModals_viaButtons() {
-    var opened: String? = null
-    setUpScreen(onOpenField = { opened = it })
+  fun modalDisplayed() {
+    screenSetup()
+    for (type in ModalType.entries) {
+      if (type == ModalType.PASSWORD) continue
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(resolveTypeButton(type)).performClick()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_POPUP).assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_TITLE).assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_CANCEL_BUTTON).performClick()
+    }
+  }
 
-    composeTestRule.onNodeWithTag(SettingsTestTags.EMAIL_BUTTON).performClick()
-    assertEquals("email", opened)
-
-    composeTestRule.onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON).performClick()
-    assertEquals("password", opened)
-
-    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).performClick()
-    assertEquals("firstName", opened)
-
-    composeTestRule.onNodeWithTag(SettingsTestTags.LAST_NAME_BUTTON).performClick()
-    assertEquals("lastName", opened)
-
-    composeTestRule.onNodeWithTag(SettingsTestTags.DESCRIPTION_BUTTON).performClick()
-    assertEquals("description", opened)
-
-    composeTestRule.onNodeWithTag(SettingsTestTags.COUNTRY_BUTTON).performClick()
-    assertEquals("country", opened)
-
+  @Test
+  fun canSelectDate() {
+    screenSetup()
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(SettingsTestTags.DATE_BUTTON).performClick()
-    assertEquals("date", opened)
-  }
-
-  @Test
-  fun testSettingsScreen_InterestsSection_ShowsCategoryChipsLines() {
-    setUpScreen()
-
-    // The interests section creates test tags literally like "SettingsTestTags.INTEREST_BUTTON"
-    listOf(
-            "SettingsTestTags.MUSIC_BUTTON",
-            "SettingsTestTags.SPORT_BUTTON",
-            "SettingsTestTags.FOOD_BUTTON",
-            "SettingsTestTags.ART_BUTTON",
-            "SettingsTestTags.TRAVEL_BUTTON",
-            "SettingsTestTags.GAMES_BUTTON",
-            "SettingsTestTags.TECHNOLOGY_BUTTON",
-            "SettingsTestTags.TOPIC_BUTTON")
-        .forEach { tag -> composeTestRule.onNodeWithTag(tag).performScrollTo().assertIsDisplayed() }
-  }
-
-  @Test
-  fun testSettingsScreen_BackButton() {
-    var backClicked = false
-    setUpScreen(onBack = { backClicked = true })
-    composeTestRule.onNodeWithContentDescription("Back").performClick()
-    assert(backClicked) { "Back button should trigger onBack action" }
-  }
-
-  @Test
-  fun testPasswordMaskingWhenNonEmpty() {
-    val state = sampleSettingsState().copy(password = "secret")
-    setUpScreen(uiState = state)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.DATE_DIALOG).assertIsDisplayed()
+    selectDay(composeTestRule, sampleDate)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(GeneralDatePopUpTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    assertEquals(sampleDate, viewmodel.uiState.value.date)
     composeTestRule
-        .onNodeWithTag(SettingsTestTags.PASSWORD_BUTTON)
-        .assertIsDisplayed()
-        .assertTextEquals("Password", "********")
+        .onNodeWithTag(SettingsTestTags.DATE_TEXT)
+        .assertTextEquals(viewmodel.formatter.format(sampleDate))
   }
 
   @Test
-  fun testErrorTexts_AllThreeDateErrorsShown() {
-    val state =
-        sampleSettingsState()
-            .copy(
-                dayError = "Invalid day", monthError = "Invalid month", yearError = "Invalid year")
-    setUpScreen(state)
-    composeTestRule.onNodeWithText("Invalid day").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Invalid month").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Invalid year").assertIsDisplayed()
+  fun callBacksAreCalled() {
+    var cleared = false
+    var navigated = false
+    var added = false
+    var onBack = false
+    var onConfirm = false
+    screenSetup(
+        onBack = { onBack = true },
+        onConfirm = { onConfirm = true },
+        onLogout = { navigated = true },
+        onAddTag = { added = true },
+        clear = suspend { cleared = true })
+
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.LOGOUT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(LogoutTestTags.ALERT_CONFIRM_BUTTON).performClick()
+    assertEquals(true, cleared)
+    assertEquals(true, navigated)
+    composeTestRule.onNodeWithTag(SettingsTestTags.TAG_BUTTON).performClick()
+    assertEquals(true, added)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
+    assertEquals(true, onBack)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    assertEquals(true, onConfirm)
   }
 
   @Test
-  fun testLogout() {
-    val state = sampleSettingsState()
-    var logoutClicked = false
-    setUpScreen(uiState = state, onLogout = { logoutClicked = true })
-    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.LOGOUT_BUTTON).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
-
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_DIALOG).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_TITLE).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_TEXT).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CANCEL_BUTTON).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CONFIRM_BUTTON).assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CANCEL_BUTTON).performClick()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_DIALOG).assertDoesNotExist()
-
-    composeTestRule.onNodeWithTag(LogoutTestTags.LOGOUT_BUTTON).performClick()
-    composeTestRule.onNodeWithTag(testTag = LogoutTestTags.ALERT_CONFIRM_BUTTON).performClick()
-    assert(logoutClicked) { "Logout button should trigger onLogout action" }
-  }
-
-  @Test
-  fun testLoading() {
-    val state = sampleSettingsState()
-    setUpScreen(uiState = state.copy(isLoading = true))
-    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.LOADING_ICON).assertIsDisplayed()
-  }
-
-  @Test
-  fun testEditingProfilePictureIsDisplayed() {
-    setUpScreen()
-    composeTestRule.onNodeWithTag(testTag = SettingsTestTags.PICTURE_EDITING).assertIsDisplayed()
-  }
-
-  @Test
-  fun testDeleteProfilePictureIsDisplayed() {
-    setUpScreen()
-    composeTestRule
-        .onNodeWithTag(testTag = SettingsTestTags.DELETE_PICTURE_BUTTON)
-        .assertIsDisplayed()
+  fun modalTextInput() {
+    screenSetup()
+    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.CUSTOMFIELD).performTextClearance()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.CUSTOMFIELD).performTextInput(newUsername)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_CANCEL_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_TEXT).assertTextEquals(user.username)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.CUSTOMFIELD).performTextClearance()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.CUSTOMFIELD).performTextInput(newUsername)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_TEXT).assertTextEquals(newUsername)
   }
 }

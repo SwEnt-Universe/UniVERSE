@@ -104,16 +104,16 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).performClick()
     composeTestRule
-        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.FIRST_NAME_FIELD))
+        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.CUSTOMFIELD))
         .performClick()
         .performTextClearance()
     composeTestRule
-        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.FIRST_NAME_FIELD))
+        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.CUSTOMFIELD))
         .performTextInput("Bob")
 
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
 
-    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).assertTextContains("Bob")
+    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_TEXT).assertTextContains("Bob")
   }
 
   private fun tabNavigationAndPrepareForEdit() = runTest {
