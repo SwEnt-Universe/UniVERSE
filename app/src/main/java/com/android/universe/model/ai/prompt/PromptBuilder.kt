@@ -1,6 +1,5 @@
 package com.android.universe.model.ai.prompt
 
-import EventSchema.json
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.Period
