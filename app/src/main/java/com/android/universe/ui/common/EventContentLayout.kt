@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +20,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter
  * @param title Event title text.
  * @param description Optional event description.
  * @param date Event date and time.
- * @param tags List of event tags (currently unused in this layout).
+ * @param tags List of event tags.
  * @param participants Number of people attending.
  * @param creator Event author/creator name.
  * @param imageContent Composable that renders the event image.
@@ -59,59 +59,67 @@ fun EventContentLayout(
     onChatClick: () -> Unit
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = Modifier.fillMaxWidth()) {
       Box(
           modifier =
               Modifier.fillMaxWidth(2f / 3f)
                   .height(Dimensions.CardImageHeight)
-                  .align(Alignment.TopStart)
                   .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
                   .testTag("${EventContentTestTags.EVENT_IMAGE_CONTAINER}_$eventId")) {
             imageContent()
 
-            Box(
+            LiquidButton(
                 modifier =
-                    Modifier.align(Alignment.BottomStart)
-                        .padding(Dimensions.PaddingMedium)
-                        .padding(
-                            horizontal = Dimensions.PaddingMedium,
-                            vertical = Dimensions.PaddingMedium)) {
-                  Column {
+                    Modifier.align(Alignment.TopStart)
+                        .padding(Dimensions.PaddingLarge)
+                        .widthIn(max = Dimensions.CardImageTagOverlayWidthDp)
+                        .wrapContentWidth(),
+                enabled = false,
+                isInteractive = false,
+                height = Dimensions.CardImageTagOverlayHeight,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                onClick = {}) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
+                        text = date.format(DateTimeFormatter.ofPattern("dd MMM")),
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
-                    Spacer(Modifier.height(Dimensions.SpacerSmall))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = {
-                          Text(
-                              text = date.format(DateTimeFormatter.ofPattern("dd/MMM/yyyy")),
-                              style = MaterialTheme.typography.bodyLarge,
-                              color = Color.White,
-                              modifier =
-                                  Modifier.testTag("${EventContentTestTags.EVENT_DATE}_$eventId"))
-                          Spacer(Modifier.width(Dimensions.SpacerSmall))
-                          Icon(
-                              imageVector = Icons.Outlined.StarBorder,
-                              contentDescription = null,
-                              tint = Color.White,
-                              modifier = Modifier.size(Dimensions.IconSizeSmall),
-                          )
-                          Spacer(Modifier.width(Dimensions.SpacerSmall))
-                          Text(
-                              text = date.format(DateTimeFormatter.ofPattern("hh:mm")),
-                              style = MaterialTheme.typography.bodyLarge,
-                              color = Color.White,
-                              modifier =
-                                  Modifier.testTag("${EventContentTestTags.EVENT_TIME}_$eventId"))
-                        })
+                        modifier = Modifier.testTag("${EventContentTestTags.EVENT_DATE}_$eventId"))
+                    Spacer(Modifier.width(Dimensions.SpacerSmall))
+                    Text(
+                        text = date.format(DateTimeFormatter.ofPattern("hh:mm a")),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TIME}_$eventId"))
                   }
                 }
+
+            Box(modifier = Modifier.align(Alignment.BottomStart).padding(Dimensions.PaddingLarge)) {
+              Text(
+                  text = title,
+                  style = MaterialTheme.typography.titleLarge,
+                  color = Color.White,
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis,
+                  modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
+            }
           }
+
+      Column(modifier = Modifier.weight(1f).height(Dimensions.CardImageHeight)) {
+        TagColumn(
+            tags = tags,
+            isSelectable = false,
+            isSelected = { false },
+            background = true,
+            heightList = 260.dp,
+            modifierBox =
+                Modifier.testTag("${EventContentTestTags.EVENT_TAGS}_${eventId}")
+                    .padding(start = Dimensions.PaddingLarge))
+      }
     }
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))

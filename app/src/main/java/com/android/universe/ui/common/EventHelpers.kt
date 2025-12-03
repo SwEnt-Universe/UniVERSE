@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Check
@@ -48,6 +50,7 @@ object EventContentTestTags {
   const val EVENT_DESCRIPTION = "event_description"
   const val EVENT_PARTICIPANTS = "event_participants"
   const val EVENT_CREATOR = "event_creator"
+  const val EVENT_TAGS = "event_tags"
   const val PARTICIPATION_BUTTON = "event_participation_button"
   const val CHAT_BUTTON = "event_chat_button"
 }
@@ -100,15 +103,14 @@ fun EventImageHelper(eventImage: ByteArray?, modifier: Modifier = Modifier) {
  */
 @Composable
 fun ParticipantsAuthorColumn(
+    modifier: Modifier = Modifier,
     eventId: String,
     participants: Int,
     creator: String,
     isUserParticipant: Boolean
 ) {
   if (isUserParticipant) {
-    Spacer(Modifier.width(Dimensions.SpacerMedium))
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$eventId"),
           text = "$participants joined",
@@ -116,8 +118,9 @@ fun ParticipantsAuthorColumn(
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
       HorizontalDivider(
-          modifier = Modifier.padding(vertical = Dimensions.SpacerSmall).width(60.dp),
-      )
+          modifier = Modifier.padding(vertical = Dimensions.SpacerSmall).width(80.dp),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          thickness = 1.8.dp)
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_CREATOR}_$eventId"),
           text = "by $creator",
@@ -126,22 +129,21 @@ fun ParticipantsAuthorColumn(
           overflow = TextOverflow.Ellipsis)
     }
   } else {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$eventId"),
           text = "$participants joined",
-          style = MaterialTheme.typography.bodyMedium,
+          style = MaterialTheme.typography.bodyLarge,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
       VerticalDivider(
-          modifier =
-              Modifier.height(Dimensions.IconSizeMedium)
-                  .padding(horizontal = Dimensions.SpacerSmall),
-      )
+          modifier = Modifier.height(20.dp).padding(horizontal = Dimensions.SpacerSmall),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          thickness = 1.8.dp)
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_CREATOR}_$eventId"),
           text = "by $creator",
-          style = MaterialTheme.typography.bodyMedium,
+          style = MaterialTheme.typography.bodyLarge,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
     }
@@ -176,8 +178,11 @@ fun EventCardActionsRow(
           LiquidButton(
               onClick = onChatClick,
               height = Dimensions.CardButtonHeight,
-              width = Dimensions.CardButtonWidth,
-              modifier = Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")) {
+              contentPadding = Dimensions.PaddingMedium,
+              modifier =
+                  Modifier.testTag("${EventContentTestTags.CHAT_BUTTON}_$eventId")
+                      .widthIn(max = Dimensions.CardButtonWidthDp)
+                      .wrapContentWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
                       imageVector = Icons.AutoMirrored.Filled.Chat,
@@ -187,17 +192,22 @@ fun EventCardActionsRow(
                   Text("Chat", style = MaterialTheme.typography.labelLarge)
                 }
               }
+          Spacer(Modifier.width(Dimensions.SpacerLarge))
         }
 
-        ParticipantsAuthorColumn(eventId, participants, creator, isUserParticipant)
+        ParticipantsAuthorColumn(
+            Modifier.weight(1f), eventId, participants, creator, isUserParticipant)
 
         Spacer(Modifier.width(Dimensions.SpacerMedium))
 
         LiquidButton(
             onClick = onToggleEventParticipation,
             height = Dimensions.CardButtonHeight,
-            width = Dimensions.CardButtonWidth,
-            modifier = Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")) {
+            contentPadding = Dimensions.PaddingSmall,
+            modifier =
+                Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")
+                    .widthIn(max = Dimensions.CardButtonWidthDp)
+                    .wrapContentWidth()) {
               Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = if (isUserParticipant) Icons.Filled.Close else Icons.Filled.Check,
