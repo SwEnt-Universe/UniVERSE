@@ -71,6 +71,7 @@ data class EventCreationUIState(
     val dateError: String? = null,
     val timeError: String? = null,
     val eventPicture: ByteArray? = null,
+    val location: Location? = null,
     val onboardingState: MutableMap<OnboardingState, Boolean> =
         mutableMapOf(
             OnboardingState.ENTER_EVENT_TITLE to false,
@@ -101,6 +102,9 @@ data class EventCreationUIState(
   /** Keep the ValidationState of the combination of the date and the time of the event */
   val eventDateTimeValid: ValidationState
     get() = validateDateTime(date, time)
+
+  val eventLocationValid: ValidationState
+    get() = validateLocation(location)
 }
 
 /**
@@ -120,11 +124,8 @@ class EventCreationViewModel(
     const val MISSING_DATE_TEXT = "Please select a date"
   }
 
-  private val _location = MutableStateFlow<Location?>(null)
-  val location = _location.asStateFlow()
-
   fun setLocation(lat: Double, lon: Double) {
-    _location.value = Location(lat, lon)
+    eventCreationUiState.value = eventCreationUiState.value.copy(location = Location(lat, lon))
   }
 
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
@@ -149,7 +150,7 @@ class EventCreationViewModel(
         uiStateValue.eventDateValid is ValidationState.Valid &&
         uiStateValue.eventTimeValid is ValidationState.Valid &&
         uiStateValue.eventDateTimeValid is ValidationState.Valid &&
-        validateLocation(_location.value) is ValidationState.Valid)
+        uiStateValue.eventLocationValid is ValidationState.Valid)
   }
 
   /**
@@ -278,7 +279,10 @@ class EventCreationViewModel(
           val internalTime = LocalTime.parse(uiStateEventCreation.value.time, timeFormatter)
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
-          val loc = requireNotNull(_location.value) { "Location must be set before saving the event" }
+          val loc =
+              requireNotNull(eventCreationUiState.value.location) {
+                "Location must be set before saving the event"
+              }
 
           eventTemporaryRepository.updateEvent(
               id = id,

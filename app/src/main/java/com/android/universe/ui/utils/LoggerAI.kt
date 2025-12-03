@@ -5,10 +5,11 @@ import android.util.Log
 /**
  * Centralized logger used for AI-related flows within the application.
  *
- * This utility wraps Android's [Log] API and standardizes all AI logging under
- * a single log tag (`"AIFlow"`).
+ * This utility wraps Android's [Log] API and standardizes all AI logging under a single log tag
+ * (`"AIFlow"`).
  *
  * ### Usage
+ *
  * ```
  * LoggerAI.d("AI request started")
  * LoggerAI.i("Prompt built successfully")
@@ -21,7 +22,6 @@ import android.util.Log
  * - [Log.i] for informational messages
  * - [Log.w] for warnings
  * - [Log.e] for errors (with optional throwable)
- *
  */
 object LoggerAI {
   private const val TAG = "AIFlow"
