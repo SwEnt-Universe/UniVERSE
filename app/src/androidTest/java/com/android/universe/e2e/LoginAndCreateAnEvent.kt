@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
@@ -57,6 +58,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     const val FAKE_EMAIL = UserTestData.bobEmail
     const val FAKE_PASS = UserTestData.bobPassword
     val FAKE_EVENT = EventTestData.futureEventNoTags
+    const val TIME_INPUT = "13:25"
   }
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -176,23 +178,15 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
 
-    // —————————————————————————————————————
-    // 2. SET LOCATION BY CLICKING ON MAP
-    // —————————————————————————————————————
-
-    composeTestRule
-        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
-        .performClick()
-
     // —————————————————————————————
-    // 3. OTHER PARAMETERS
+    // 2. OTHER PARAMETERS
     // —————————————————————————————
     composeTestRule.waitUntil(64_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.DATE_BUTTON).isDisplayed()
     }
 
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.DATE_BUTTON)
+        .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
         .assertIsDisplayed()
         .performClick()
     nextMonth(composeTestRule)
@@ -201,12 +195,8 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
     pressOKDate(composeTestRule)
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.TIME_BUTTON)
-        .assertIsDisplayed()
-        .performClick()
-    selectHour(composeTestRule, FAKE_EVENT.date.hour)
-    selectMinute(composeTestRule, FAKE_EVENT.date.minute)
-    pressOKTime(composeTestRule)
+        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+        .performTextInput(TIME_INPUT)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.title)
@@ -214,13 +204,17 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
 
-    composeTestRule.waitUntil(69_000L) {
-      composeTestRule
-          .onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON)
-          .assertIsDisplayed()
-          .isDisplayed()
-    }
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+
+		// —————————————————————————————————————
+		// 3. SET LOCATION BY CLICKING ON MAP
+		// —————————————————————————————————————
+
+		composeTestRule
+			.onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+			.performClick()
+		composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
 
@@ -229,7 +223,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
     }
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
-
     composeTestRule.waitUntil(5_000L) {
       composeTestRule
           .onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0", useUnmergedTree = true)
