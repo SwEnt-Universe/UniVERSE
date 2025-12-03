@@ -300,7 +300,7 @@ class ProfileValidatorsTest {
   fun descriptionIsValidEmpty() {
     val description = ""
     val result = validateDescription(description)
-    assert(result is ValidationState.Valid)
+    assert(result is ValidationState.Neutral)
   }
 
   @Test
