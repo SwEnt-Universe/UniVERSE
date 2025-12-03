@@ -121,7 +121,7 @@ fun MapScreen(
   // --- 2. Reactive Updates (Side Effects) ---
 
   // Sync Markers
-  LaunchedEffect(uiState.markers) { viewModel.syncEventMarkers(uiState.markers) }
+  LaunchedEffect(uiState.markers, uiState.isMapInteractive) { viewModel.syncEventMarkers(uiState.markers) }
 
   // Sync Selection
   LaunchedEffect(uiState.selectedLocation) {

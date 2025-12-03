@@ -33,6 +33,7 @@ import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMetho
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
+import com.tomtom.sdk.map.display.map.OnlineCachePolicy
 import com.tomtom.sdk.map.display.marker.Marker
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
@@ -102,6 +103,7 @@ class MapViewModel(
 ) : ViewModel() {
 
   @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
+  private val CACHE_SIZE = 50L * 1024 * 1024
 
   fun getMapInstance(): MapView {
     if (tomtomMapView == null) {
@@ -112,11 +114,11 @@ class MapViewModel(
                   StyleDescriptor(
                       "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
                           .toUri()),
+              onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
       tomtomMapView = MapView(applicationContext, mapOptions)
 
       tomtomMapView?.onCreate(null)
-      tomtomMapView?.onStart()
       tomtomMapView?.configureUiSettings()
       tomtomMapView?.getMapAsync { onMapReady(it) }
     }
@@ -277,21 +279,23 @@ class MapViewModel(
     this.markersFadingRange = IntRange(300, 500)
   }
 
-  suspend fun syncEventMarkers(
+ fun syncEventMarkers(
       markers: List<MapMarkerUiModel>,
   ) {
-    val map = tomTomMap ?: return
-    val (optionsToAdd, markersToRemove, eventForNewMarkers) =
-        withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
+    viewModelScope.launch {
+        val map = tomTomMap ?: return@launch
+        val (optionsToAdd, markersToRemove, eventForNewMarkers) =
+            withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
 
-    if (markersToRemove.isNotEmpty()) {
-      markersToRemove.forEach { markerToEvent.remove(it) }
-    }
-    if (optionsToAdd.isNotEmpty()) {
-      val addedMarkers = map.addMarkers(optionsToAdd)
-      addedMarkers.forEachIndexed { index, marker ->
-        markerToEvent[marker.tag!!] = eventForNewMarkers[index]
-      }
+        if (markersToRemove.isNotEmpty()) {
+            markersToRemove.forEach { markerToEvent.remove(it) }
+        }
+        if (optionsToAdd.isNotEmpty()) {
+            val addedMarkers = map.addMarkers(optionsToAdd)
+            addedMarkers.forEachIndexed { index, marker ->
+                markerToEvent[marker.tag!!] = eventForNewMarkers[index]
+            }
+        }
     }
   }
 
@@ -313,13 +317,16 @@ class MapViewModel(
     return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
   }
 
-  suspend fun syncSelectedLocationMarker(location: GeoPoint?) {
-    val map = tomTomMap ?: return
-    map.removeMarkers("selected_location")
-    location?.let { geoPoint ->
-      val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
-      map.addMarker(
-          MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
+  fun syncSelectedLocationMarker(location: GeoPoint?) {
+    viewModelScope.launch {
+        val map = tomTomMap ?: return@launch
+        map.removeMarkers("selected_location")
+        location?.let { geoPoint ->
+            val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
+            map.addMarker(
+                MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image)
+            )
+        }
     }
   }
 
