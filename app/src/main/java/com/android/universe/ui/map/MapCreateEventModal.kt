@@ -54,7 +54,7 @@ fun MapCreateEventModal(
                   .padding(
                       horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingLarge))
 
-      // OPTIONAL: description
+      // General description
       Text(
           text = "Choose how you want to create your event.",
           style = MaterialTheme.typography.bodyMedium,
