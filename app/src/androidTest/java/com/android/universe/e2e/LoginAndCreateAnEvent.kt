@@ -29,10 +29,7 @@ import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
-import com.android.universe.utils.pressOKTime
 import com.android.universe.utils.selectDayWithMonth
-import com.android.universe.utils.selectHour
-import com.android.universe.utils.selectMinute
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -56,6 +53,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     const val FAKE_EMAIL = UserTestData.bobEmail
     const val FAKE_PASS = UserTestData.bobPassword
     val FAKE_EVENT = EventTestData.futureEventNoTags
+    const val TIME_INPUT = "13:25"
   }
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -147,10 +145,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).assertIsDisplayed()
 
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.DATE_BUTTON)
+        .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
         .assertIsDisplayed()
         .performClick()
     nextMonth(composeTestRule)
@@ -159,12 +157,8 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
     pressOKDate(composeTestRule)
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.TIME_BUTTON)
-        .assertIsDisplayed()
-        .performClick()
-    selectHour(composeTestRule, FAKE_EVENT.date.hour)
-    selectMinute(composeTestRule, FAKE_EVENT.date.minute)
-    pressOKTime(composeTestRule)
+        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+        .performTextInput(TIME_INPUT)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.title)
@@ -172,7 +166,9 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
 
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SAVE_EVENT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
 
