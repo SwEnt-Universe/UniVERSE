@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -48,6 +50,7 @@ import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
@@ -163,22 +166,30 @@ fun Layout(
     bottomBar: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
-  Box(modifier = modifier.fillMaxSize()) {
-    LiquidBox(
-        modifier = Modifier.fillMaxHeight(FRACTION).align(Alignment.BottomCenter), shape = shape) {
-          Column(
-              modifier = Modifier.fillMaxSize().padding(Dimensions.PaddingExtraLarge),
-              verticalArrangement = Arrangement.Top,
-              horizontalAlignment = Alignment.CenterHorizontally) {
-                content()
-              }
-          Box(
-              modifier =
-                  Modifier.align(Alignment.BottomCenter).padding(Dimensions.PaddingExtraLarge)) {
-                bottomBar()
+  ScreenLayout(
+      bottomBar = {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(all = Dimensions.PaddingExtraLarge),
+            contentAlignment = Alignment.Center) {
+              bottomBar()
+            }
+      }) {
+        Box(modifier = modifier.fillMaxSize()) {
+          LiquidBox(
+              modifier = Modifier.wrapContentSize().align(Alignment.BottomCenter), shape = shape) {
+                Box(contentAlignment = Alignment.TopCenter) {
+                  Column(
+                      Modifier.fillMaxWidth().padding(Dimensions.PaddingExtraLarge),
+                      verticalArrangement = Arrangement.Top,
+                      horizontalAlignment = Alignment.CenterHorizontally) {
+                        content()
+                        Spacer(Modifier.imePadding())
+                      }
+                  Box(modifier = Modifier.fillMaxHeight(FRACTION))
+                }
               }
         }
-  }
+      }
 }
 
 /**
