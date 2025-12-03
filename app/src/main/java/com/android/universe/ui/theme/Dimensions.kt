@@ -67,6 +67,7 @@ object Dimensions {
 
   // Corner radii
   val RoundedCorner = 8.dp // General rounded corners
+  val RoundedCornerSmall = 16.dp
   val RoundedCornerMedium = 24.dp
   val RoundedCornerLarge = 30.dp // Cards, LiquidBoxes
 
