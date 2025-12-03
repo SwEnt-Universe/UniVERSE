@@ -9,6 +9,12 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.R
 import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.AIConfig.MAX_RADIUS_KM
+import com.android.universe.model.ai.AIEventGen
+import com.android.universe.model.ai.openai.OpenAIProvider
+import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.EventQuery
+import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
@@ -95,7 +101,8 @@ class MapViewModel(
     private val userRepository: UserRepository,
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
-    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io
+    private val ioDispatcher: CoroutineDispatcher = DefaultDP.io,
+    private val ai: AIEventGen = OpenAIProvider.eventGen,
 ) : ViewModel() {
 
   private val _uiState =
@@ -420,6 +427,39 @@ class MapViewModel(
               (bmp.width * Dimensions.ImageScale).toInt(),
               (bmp.height * Dimensions.ImageScale).toInt())
       BackgroundSnapshotRepository.updateSnapshot(scaled)
+    }
+  }
+
+  fun generateAiEventAroundUser(radiusKm: Int = MAX_RADIUS_KM, timeFrame: String = "today") {
+    val userLoc =
+        uiState.value.userLocation
+            ?: run {
+              _uiState.update { it.copy(error = "User location unavailable") }
+              return
+            }
+
+    viewModelScope.launch {
+      try {
+        val profile = userRepository.getUser(currentUserId)
+
+        val context =
+            ContextConfig(
+                location = null,
+                locationCoordinates = Pair(userLoc.latitude, userLoc.longitude),
+                radiusKm = radiusKm,
+                timeFrame = timeFrame)
+
+        val task = TaskConfig(eventCount = 1, requireRelevantTags = true)
+
+        val query = EventQuery(user = profile, task = task, context = context)
+
+        val events = ai.generateEvents(query)
+
+        eventRepository.persistAIEvents(events)
+        loadAllEvents()
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
+      }
     }
   }
 }

@@ -19,7 +19,6 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
-import com.tomtom.sdk.location.GeoPoint
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -84,16 +83,23 @@ class MapScreenTest {
           uid = uid,
           viewModel = viewModel,
           onTabSelected = {},
-          createEvent = { _, _ -> accessed = true })
+          onNavigateToEventCreation = { accessed = true })
     }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
-    viewModel.selectLocation(GeoPoint(commonLat, commonLng))
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_000) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
+    composeTestRule.waitUntil(3_000) {
+      composeTestRule
+          .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
+          .isDisplayed()
+    }
+    composeTestRule
+        .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
+        .performClick()
     composeTestRule.waitUntil(1_000L) { accessed }
   }
 
@@ -159,10 +165,13 @@ fun MapScreenTestWrapper(
     uid: String,
     viewModel: MapViewModel,
     onTabSelected: (Tab) -> Unit,
-    createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
+    onNavigateToEventCreation: () -> Unit = {}
 ) {
   Box {
     MapScreen(
-        uid = uid, viewModel = viewModel, onTabSelected = onTabSelected, createEvent = createEvent)
+        uid = uid,
+        viewModel = viewModel,
+        onTabSelected = onTabSelected,
+        onNavigateToEventCreation = onNavigateToEventCreation)
   }
 }

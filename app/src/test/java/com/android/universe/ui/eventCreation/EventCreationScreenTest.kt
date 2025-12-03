@@ -9,7 +9,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
-import com.android.universe.model.location.Location
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
 import com.android.universe.utils.selectDay
@@ -41,8 +40,7 @@ class EventCreationScreenTest {
   fun setUp() {
     viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContentWithStubBackdrop {
-      EventCreationScreen(
-          eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
+      EventCreationScreen(eventCreationViewModel = viewModel, onSelectLocation = {}, onSave = {})
     }
   }
 
@@ -51,7 +49,7 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_PICTURE_PICKER).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).assertIsDisplayed()
     composeTestRule
-        .onNodeWithTag(EventCreationTestTags.AI_BUTTON, useUnmergedTree = true)
+        .onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON, useUnmergedTree = true)
         .assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD).assertIsDisplayed()
     composeTestRule

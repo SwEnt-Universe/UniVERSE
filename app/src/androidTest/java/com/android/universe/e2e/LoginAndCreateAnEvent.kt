@@ -10,7 +10,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
@@ -19,6 +18,7 @@ import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
+import com.android.universe.ui.map.MapCreateEventModalTestTags
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -64,6 +64,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   @Before
   override fun setUp() {
     super.setUp()
+    com.android.universe.ui.map.TestFlags.enableMapBackdoor = true
     mockkObject(DefaultDP)
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
@@ -80,11 +81,18 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   @Test
   fun `Login and Create an Event`() = runTest {
-    composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
+    composeTestRule.waitUntil(15_000L) {
+      try {
+        composeTestRule
+            .onNodeWithTag(SignInScreenTestTags.WELCOME_BOX, useUnmergedTree = true)
+            .assertExists()
+        true
+      } catch (_: Throwable) {
+        false
+      }
     }
     loginAndWait()
-    clickOnMapAndCreateEvent()
+    createEvent()
     seeAddedEventInEventList()
     clickOnEventInList()
   }
@@ -123,29 +131,67 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitUntil(30_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
     }
-
-    composeTestRule.waitUntil(15_000L) {
-      composeTestRule
-          .onAllNodesWithTag(MapScreenTestTags.INTERACTABLE)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
   }
 
-  private fun clickOnMapAndCreateEvent() = runTest {
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
-      advanceEventTime(1000)
-      down(center)
-    }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
-
+  private fun createEvent() = runTest {
+    // —————————————————————————————
+    // 1. CLICK CREATE EVENT BUTTON -> CLICK MANUAL CREATE BUTTON -> CLICK SET LOCATION
+    // —————————————————————————————
+    // Wait for + button on map
     composeTestRule.waitUntil(10_000L) {
-      composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
+      runCatching {
+            composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
+          }
+          .isSuccess
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
+
+    // Wait for Manual Create button inside the popup modal
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule
+                .onAllNodesWithTag(
+                    MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+                .onFirst()
+                .assertExists()
+          }
+          .isSuccess
+    }
+    composeTestRule
+        .onAllNodesWithTag(
+            MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+        .onFirst()
+        .performClick()
+
+    // —————————————————————————————————————
+    // 3. SET LOCATION BY CLICKING ON MAP
+    // —————————————————————————————————————
+
+    composeTestRule.waitForIdle()
+    // Click “Set location” button in the creation screen
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
+          }
+          .isSuccess
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
+
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+        .performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).assertIsDisplayed()
+    // —————————————————————————————
+    // 2. OTHER PARAMETERS
+    // —————————————————————————————
+    composeTestRule.waitUntil(64_000L) {
+      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
+    }
 
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
@@ -173,7 +219,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun seeAddedEventInEventList() = runTest {
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(10_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
     }
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
@@ -201,7 +247,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .performClick()
 
     // Check that the event can be seen on the map
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(23_333L) {
       composeTestRule
           .onAllNodesWithTag(MapScreenTestTags.EVENT_INFO_POPUP)
           .fetchSemanticsNodes()

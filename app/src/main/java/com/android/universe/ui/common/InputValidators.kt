@@ -1,5 +1,6 @@
 package com.android.universe.ui.common
 
+import com.android.universe.model.location.Location
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -430,6 +431,20 @@ fun validateDateTime(date: LocalDate?, time: String): ValidationState {
     }
   } catch (e: DateTimeParseException) {
     return ValidationState.Valid
+  }
+}
+
+/**
+ * Validates that a location is selected for event creation.
+ *
+ * @param location The location object.
+ * @return [ValidationState.Valid] if the location is not null, otherwise [ValidationState.Invalid].
+ */
+fun validateLocation(location: Location?): ValidationState {
+  return if (location != null) {
+    ValidationState.Valid
+  } else {
+    ValidationState.Invalid("Location must be selected")
   }
 }
 
