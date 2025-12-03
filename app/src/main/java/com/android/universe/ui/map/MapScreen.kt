@@ -6,46 +6,36 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.BuildConfig
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.components.LiquidButton
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.tomtom.sdk.common.Uri
 import com.tomtom.sdk.location.GeoPoint
-import com.tomtom.sdk.map.display.MapOptions
-import com.tomtom.sdk.map.display.TomTomMap
-import com.tomtom.sdk.map.display.style.StyleDescriptor
-import com.tomtom.sdk.map.display.ui.MapView
-import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
-import com.tomtom.sdk.map.display.ui.logo.LogoView
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -86,6 +76,7 @@ fun MapScreen(
     createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
+          context,
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
@@ -94,8 +85,6 @@ fun MapScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
-
-  // Local cache for marker click handling (ID -> Event)
 
   // --- 1. Permissions & Initialization ---
 
@@ -113,7 +102,6 @@ fun MapScreen(
 
   LaunchedEffect(Unit) {
     viewModel.initData(uid) // Start polling, etc.
-
     val hasFine =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
@@ -155,109 +143,80 @@ fun MapScreen(
   }
 
   // --- 3. UI Structure ---
-  Scaffold(
-      containerColor = Color.Transparent,
+  ScreenLayout(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
         NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
       }) { padding ->
-        Box(
+        MapBox(uiState = uiState) {
+          // Create Event Button
+          uiState.selectedLocation?.let { CreateEventButton(padding, createEvent, uiState) }
+
+          // Overlays
+          if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier =
+                    Modifier.align(Alignment.Center).testTag(MapScreenTestTags.LOADING_INDICATOR))
+          }
+
+          uiState.error?.let { errorMessage ->
+            Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(padding)) {
+              Text(errorMessage)
+            }
+          }
+
+          selectedEvent?.let { event ->
+            EventInfoPopup(
+                modifier = Modifier.padding(bottom = padding.calculateBottomPadding()),
+                event = event,
+                isUserParticipant = viewModel.isUserParticipant(event),
+                onDismiss = { viewModel.selectEvent(null) },
+                onChatNavigate = onChatNavigate,
+                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+          }
+        }
+      }
+}
+
+@Composable
+private fun CreateEventButton(
+    padding: PaddingValues,
+    createEvent: (latitude: Double, longitude: Double) -> Unit,
+    uiState: MapUiState
+) {
+  Box(
+      modifier = Modifier.fillMaxSize().padding(padding),
+      contentAlignment = Alignment.BottomCenter) {
+        LiquidButton(
+            onClick = {
+              createEvent(uiState.selectedLocation!!.latitude, uiState.selectedLocation.longitude)
+            },
             modifier =
-                Modifier.fillMaxSize()
-                    .then(
-                        if (uiState.isMapInteractive)
-                            Modifier.testTag(MapScreenTestTags.INTERACTABLE)
-                        else Modifier)) {
-              if (uiState.selectedLocation != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.BottomCenter) {
-                      LiquidButton(
-                          onClick = {
-                            createEvent(
-                                uiState.selectedLocation!!.latitude,
-                                uiState.selectedLocation!!.longitude)
-                          },
-                          modifier =
-                              Modifier.padding(bottom = 96.dp)
-                                  .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                            Text(
-                                "Create your Event !",
-                                color = MaterialTheme.colorScheme.onBackground)
-                          }
-                    }
-              }
-              // Overlays
-              if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier.align(Alignment.Center)
-                            .testTag(MapScreenTestTags.LOADING_INDICATOR))
-              }
-
-              uiState.error?.let { errorMessage ->
-                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(padding)) {
-                  Text(errorMessage)
-                }
-              }
-
-              selectedEvent?.let { event ->
-                EventInfoPopup(
-                    modifier = Modifier.padding(padding),
-                    event = event,
-                    isUserParticipant = viewModel.isUserParticipant(event),
-                    onDismiss = { viewModel.selectEvent(null) },
-                    onChatNavigate = onChatNavigate,
-                    onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
-              }
+                Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+              Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
             }
       }
 }
 
-// --- HELPER COMPOSABLES & EXTENSIONS ---
-
 @Composable
-fun TomTomMapComposable(
+private fun MapBox(
     modifier: Modifier = Modifier,
-    onMapViewReady: (MapView) -> Unit,
-    onMapReady: (TomTomMap) -> Unit
+    contentAlignement: Alignment = Alignment.TopStart,
+    propagateMinConstraints: Boolean = false,
+    uiState: MapUiState,
+    content: @Composable (BoxScope.() -> Unit)
 ) {
-  val mapView = rememberMapViewWithLifecycle(onMapReady)
-  onMapViewReady(mapView)
-
-  AndroidView(
-      factory = { mapView.apply { configureUiSettings() } },
-      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
+  Box(
+      modifier =
+          modifier
+              .fillMaxSize()
+              .then(
+                  if (uiState.isMapInteractive) Modifier.testTag(MapScreenTestTags.INTERACTABLE)
+                  else Modifier),
+      contentAlignment = contentAlignement,
+      propagateMinConstraints = propagateMinConstraints,
+      content = content)
 }
-
-@Composable
-fun rememberMapViewWithLifecycle(onMapReady: (TomTomMap) -> Unit): MapView {
-  val context = LocalContext.current
-  val lifecycleOwner = LocalLifecycleOwner.current
-
-  val mapOptions = remember {
-    MapOptions(
-        mapKey = BuildConfig.TOMTOM_API_KEY,
-        mapStyle =
-            StyleDescriptor(
-                Uri.parse(
-                    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
-        renderToTexture = true)
-  }
-
-  val mapView = remember { MapView(context, mapOptions) }
-  return mapView
-}
-
-// --- MapView Extension Functions ---
-
-private fun MapView.configureUiSettings() {
-  this.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
-  this.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
-  this.scaleView.isVisible = false
-}
-
-// --- TomTomMap Extension Functions ---
 
 @Preview
 @Composable
