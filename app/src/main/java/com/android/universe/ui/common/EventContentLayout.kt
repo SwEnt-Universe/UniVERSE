@@ -122,16 +122,16 @@ fun EventContentLayout(
       }
     }
 
-    Spacer(Modifier.height(Dimensions.SpacerMedium))
+    Spacer(Modifier.height(Dimensions.SpacerLarge))
 
     Text(
         text = description ?: "No description available",
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodyLarge,
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
 
-    Spacer(Modifier.height(Dimensions.SpacerMedium))
+    Spacer(Modifier.height(Dimensions.SpacerLarge))
 
     EventCardActionsRow(
         eventId = eventId,

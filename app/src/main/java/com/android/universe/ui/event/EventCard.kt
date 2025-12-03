@@ -45,7 +45,7 @@ fun EventCard(
             title = event.title,
             description = event.description,
             date = event.date,
-            tags = emptyList(),
+            tags = event.tags,
             participants = event.participants,
             creator = event.creator,
             imageContent = {
