@@ -361,6 +361,7 @@ fun UniverseApp(
                   onBack = {
                     navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
                   },
+                  onConfirm = { navigationActions.navigateTo(NavigationScreens.Profile) },
                   onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
                   clear = {
                     credentialManager.clearCredentialState(request = ClearCredentialStateRequest())

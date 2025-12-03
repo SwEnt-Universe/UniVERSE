@@ -371,7 +371,7 @@ class SettingsViewModel(
    *
    * Errors are reflected in the [SettingsUiState] fields.
    */
-  fun saveProfile(uid: String) {
+  fun saveProfile(uid: String, onConfirm: () -> Unit = {}) {
     viewModelScope.launch {
       val state = _uiState.value
 
@@ -401,6 +401,7 @@ class SettingsViewModel(
         // ─── 3. Firebase Email update ──────────────────────────────
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (state.email != currentUser?.email) {
+          // TODO Mail update needs to be looked at
           currentUser?.updateEmail(state.email)?.addOnFailureListener { e ->
             _uiState.update { it.copy(errorMsg = "Failed to update email: ${e.message}") }
           }
@@ -412,6 +413,7 @@ class SettingsViewModel(
             _uiState.update { it.copy(errorMsg = "Failed to update password: ${e.message}") }
           }
         }
+        onConfirm()
       } catch (e: Exception) {
         _uiState.update { it.copy(errorMsg = "Failed to save profile: ${e.message}") }
       }

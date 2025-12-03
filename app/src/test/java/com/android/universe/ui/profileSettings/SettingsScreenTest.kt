@@ -63,12 +63,15 @@ class SettingsScreenTest {
 
   fun screenSetup(
       onBack: () -> Unit = {},
+      onConfirm: () -> Unit = {},
       onLogout: () -> Unit = {},
       onAddTag: () -> Unit = {},
       clear: suspend () -> Unit = {}
   ) {
     composeTestRule.setContentWithStubBackdrop {
-      UniverseTheme { SettingsScreen(user.uid, onBack, viewmodel, onLogout, onAddTag, clear) }
+      UniverseTheme {
+        SettingsScreen(user.uid, onBack, onConfirm, viewmodel, onLogout, onAddTag, clear)
+      }
     }
   }
 
@@ -156,8 +159,10 @@ class SettingsScreenTest {
     var navigated = false
     var added = false
     var onBack = false
+    var onConfirm = false
     screenSetup(
         onBack = { onBack = true },
+        onConfirm = { onConfirm = true },
         onLogout = { navigated = true },
         onAddTag = { added = true },
         clear = suspend { cleared = true })
@@ -170,6 +175,9 @@ class SettingsScreenTest {
     assertEquals(true, added)
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
     assertEquals(true, onBack)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    assertEquals(true, onConfirm)
   }
 
   @Test

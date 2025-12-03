@@ -47,7 +47,6 @@ import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.theme.Dimensions
 import java.time.LocalDate
 import java.time.ZoneId
-import kotlinx.coroutines.launch
 
 object SettingsScreenStyles {
   @Composable fun sectionTitleStyle() = MaterialTheme.typography.titleLarge
@@ -85,6 +84,7 @@ object FieldTitles {
 fun SettingsScreen(
     uid: String,
     onBack: () -> Unit = {},
+    onConfirm: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel { SettingsViewModel(uid) },
     onLogout: () -> Unit = {},
     onAddTag: () -> Unit = {},
@@ -290,10 +290,7 @@ fun SettingsScreen(
           listOf(
               FlowTab.Back(onClick = onBack),
               FlowTab.Confirm(
-                  onClick = {
-                    viewModel.saveProfile(uid)
-                    onBack()
-                  },
+                  onClick = { viewModel.saveProfile(uid, onConfirm) },
                   enabled =
                       uiState.dateValidation == ValidationState.Valid ||
                           uiState.dateValidation == ValidationState.Neutral),
