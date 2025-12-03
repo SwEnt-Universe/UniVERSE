@@ -230,8 +230,7 @@ fun UniverseApp(
                             .replace("{chatID}", chatID)
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
-              },
-              createEvent = { navController.navigate(NavigationScreens.EventCreation.route) })
+              })
         }
 
         composable(
@@ -259,8 +258,7 @@ fun UniverseApp(
                             .replace("{chatID}", chatID)
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
-                  },
-                  createEvent = { navController.navigate(NavigationScreens.EventCreation.route) })
+                  })
             }
       }
 

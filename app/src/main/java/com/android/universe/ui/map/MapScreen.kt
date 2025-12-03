@@ -99,10 +99,12 @@ object TestFlags {
  * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
  *   selected.
  * @param context The Android context, defaulting to the current LocalContext.
+ * @param onNavigateToEventCreation Invoked when the user chooses manual event creation.
  * @param preselectedEventId An optional event ID to preselect and focus on when the map loads.
  * @param preselectedLocation An optional location to preselect and focus on when the map loads.
  * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
  *   title as parameters.
+ * @param mode Determines how the map handles user interaction (`NORMAL` or `SELECT_LOCATION`).
  * @param createEvent A callback function invoked when creating a new event at specified latitude
  *   and longitude.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
@@ -119,7 +121,6 @@ fun MapScreen(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     mode: MapMode = MapMode.NORMAL,
     onLocationSelected: (Double, Double) -> Unit = { _, _ -> },
-    createEvent: () -> Unit = {},
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
