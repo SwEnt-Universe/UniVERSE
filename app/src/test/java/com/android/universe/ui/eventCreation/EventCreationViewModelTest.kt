@@ -7,8 +7,6 @@ import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
-import com.android.universe.model.tag.TagLocalTemporaryRepository
-import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
@@ -32,7 +30,6 @@ import org.junit.runner.RunWith
 class EventCreationViewModelTest {
   private lateinit var eventRepository: FakeEventRepository
   private lateinit var viewModel: EventCreationViewModel
-  private lateinit var tagRepository: TagTemporaryRepository
   private lateinit var eventTemporaryRepository: EventTemporaryRepository
   private val testDispatcher = StandardTestDispatcher()
 
@@ -48,8 +45,6 @@ class EventCreationViewModelTest {
     val BAD_SAMPLE_DATE: LocalDate = LocalDate.of(1900, 12, 12)
     const val SAMPLE_TIME = "12:12"
     const val BAD_SAMPLE_TIME = "23:78"
-
-    val sample_tags = setOf(Tag.METAL, Tag.HANDBALL)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,13 +52,10 @@ class EventCreationViewModelTest {
   fun setup() {
     Dispatchers.setMain(testDispatcher)
     eventRepository = FakeEventRepository()
-    tagRepository = TagLocalTemporaryRepository()
     eventTemporaryRepository = EventLocalTemporaryRepository()
     viewModel =
         EventCreationViewModel(
-            eventRepository = eventRepository,
-            tagRepository = tagRepository,
-            eventTemporaryRepository = eventTemporaryRepository)
+            eventRepository = eventRepository, eventTemporaryRepository = eventTemporaryRepository)
   }
 
   @Test
@@ -281,7 +273,6 @@ class EventCreationViewModelTest {
     val expectedDate = LocalDateTime.of(2030, 12, 12, 12, 12)
 
     assert(stockedEvent.date == expectedDate)
-    assertEquals(emptySet<Tag>(), tagRepository.getTags())
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
