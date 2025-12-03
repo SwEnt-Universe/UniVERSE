@@ -82,7 +82,6 @@ object EventCreationDefaults {
  * @param eventCreationViewModel the viewModel.
  * @param onSelectLocation triggers location selection flow
  * @param onSave the callBack to call when the user click on the 'Save Event' button.
- * @param onAiClick the callBack to call when the user click on the 'AI' button.
  * @param onBack the callBack to call when the user click on the back button of the bottom bar.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -91,7 +90,6 @@ fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
     onSelectLocation: () -> Unit,
     onSave: () -> Unit = {},
-    onAiClick: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
@@ -100,8 +98,6 @@ fun EventCreationScreen(
       if (uiState.value.date == null) "" else eventCreationViewModel.formatDate(uiState.value.date)
   val showDate = remember { mutableStateOf(false) }
   val flowTabBack = FlowTab.Back(onClick = { onBack() })
-
-  val selectedLocation by eventCreationViewModel.location.collectAsState()
 
   val flowTabContinue =
       FlowTab.Confirm(

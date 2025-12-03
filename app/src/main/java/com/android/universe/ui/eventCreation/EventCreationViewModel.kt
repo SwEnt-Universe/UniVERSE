@@ -19,6 +19,7 @@ import com.android.universe.ui.common.validateDateTime
 import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateEventDate
 import com.android.universe.ui.common.validateEventTitle
+import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
 import com.android.universe.ui.theme.Dimensions
 import java.io.ByteArrayOutputStream
@@ -139,15 +140,6 @@ class EventCreationViewModel(
     eventCreationUiState.value.onboardingState[state] = value
   }
 
-  fun validateAllWithLocation(): Boolean {
-    return (eventCreationUiState.value.titleError == null &&
-        eventCreationUiState.value.date != null &&
-        eventCreationUiState.value.dateError == null &&
-        eventCreationUiState.value.time != null &&
-        eventCreationUiState.value.timeError == null &&
-        _location.value != null)
-  }
-
   /** Check that all the parameters require to create an event are well input by the user. */
   fun validateAll(): Boolean {
     val uiStateValue = eventCreationUiState.value
@@ -156,7 +148,8 @@ class EventCreationViewModel(
             uiStateValue.eventDescriptionValid is ValidationState.Neutral) &&
         uiStateValue.eventDateValid is ValidationState.Valid &&
         uiStateValue.eventTimeValid is ValidationState.Valid &&
-        uiStateValue.eventDateTimeValid is ValidationState.Valid)
+        uiStateValue.eventDateTimeValid is ValidationState.Valid &&
+        validateLocation(_location.value) is ValidationState.Valid)
   }
 
   /**
@@ -273,16 +266,9 @@ class EventCreationViewModel(
   /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
-   * @param location the location of the event.
    * @param uid the uid of the Current User.
    */
   fun saveEvent(uid: String) {
-    val loc = _location.value
-
-    if (!validateAll() || loc == null) {
-      Log.e("EventCreationViewModel", "Cannot save event: invalid data or missing location")
-      return
-    }
     if (validateAll()) {
       viewModelScope.launch {
         try {
@@ -292,6 +278,7 @@ class EventCreationViewModel(
           val internalTime = LocalTime.parse(uiStateEventCreation.value.time, timeFormatter)
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
+          val loc = requireNotNull(_location.value) { "Location must be set before saving the event" }
 
           eventTemporaryRepository.updateEvent(
               id = id,
