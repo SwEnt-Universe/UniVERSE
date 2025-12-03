@@ -13,6 +13,7 @@ class MapViewModelFactory(private val context: Context) : ViewModelProvider.Fact
       @Suppress("UNCHECKED_CAST")
       return MapViewModel(
           // HERE IS HOW YOU GET IT:
+          applicationContext = context.applicationContext,
           prefs = context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           locationRepository = TomTomLocationRepository(context),
           eventRepository = EventRepositoryProvider.repository,

@@ -1,14 +1,12 @@
 package com.android.universe
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
@@ -23,30 +21,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.universe.background.BackgroundSnapshotRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.chat.ChatListScreen
 import com.android.universe.ui.chat.ChatScreen
+import com.android.universe.ui.common.RenderMapUnclickable
 import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
@@ -64,141 +57,47 @@ import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
-import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
-import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.tomtom.sdk.common.Uri
-import com.tomtom.sdk.map.display.MapOptions
-import com.tomtom.sdk.map.display.style.StyleDescriptor
-import com.tomtom.sdk.map.display.ui.MapView
-import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
-import com.tomtom.sdk.map.display.ui.logo.LogoView
+import com.tomtom.sdk.featuretoggle.FeatureToggleController
+import com.tomtom.sdk.featuretoggle.TomTomOrbisMapFeature
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
   private val mapViewModel by viewModels<MapViewModel> { MapViewModelFactory(this) }
-  private lateinit var mapView: MapView
-  private lateinit var composeViewForMap: ComposeView
-  private lateinit var composeView: ComposeView
-
-  private fun mapSetup(savedInstanceState: Bundle?) {
-    val mapOptions =
-      MapOptions(
-          mapKey = BuildConfig.TOMTOM_API_KEY,
-          mapStyle =
-              StyleDescriptor(
-                  Uri.parse(
-                      "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx")),
-          renderToTexture = true)
-    mapView = MapView(this, mapOptions)
-
-    composeViewForMap = ComposeView(this).apply {
-        setContent {
-            val backgroundColor = Color.Transparent
-            val backdrop = rememberLayerBackdrop {
-                drawRect(backgroundColor)
-                drawContent()
-            }
-            CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
-                AndroidView(
-                    factory = {
-                        mapView.apply {
-                            onCreate(savedInstanceState)
-                            onStart()
-                            configureUiSettings()
-                            getMapAsync(mapViewModel::onMapReady)
-                        }
-                    },
-                    update = { mapView.onResume() },
-                    modifier = Modifier.testTag("test").graphicsLayer {  }
-                )
-            }
-        }
-    }
-  }
-
-  private fun MapView.configureUiSettings() {
-    this.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
-    this.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
-    this.scaleView.isVisible = false
-  }
-
-  private fun composeSetup() {
-    composeView =
-        ComposeView(this).apply {
-          setContent {
-            UniverseTheme {
-              val backgroundColor = Color.Transparent
-              val backdrop = rememberLayerBackdrop {
-                drawRect(backgroundColor)
-                drawContent()
-              }
-              CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier =
-                        Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-                    color = Color.Transparent) {
-                      UniverseApp()
-                    }
-              }
-            }
-          }
-        }
-  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     WindowCompat.setDecorFitsSystemWindows(window, false)
     // Enable edge-to-edge with auto-contrast (icons adapt to content/theme)
     enableEdgeToEdge()
-
+    FeatureToggleController.enable(TomTomOrbisMapFeature)
     // Enable automatic index creation for Firestore (makes offline queries faster)
     Firebase.firestore.persistentCacheIndexManager?.apply { enableIndexAutoCreation() }
 
-    mapSetup(savedInstanceState)
-    composeSetup()
-    val rootLayout =
-        FrameLayout(this).apply {
-          layoutParams =
-              ViewGroup.LayoutParams(
-                  ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    setContent {
+      UniverseTheme {
+        val backgroundColor = Color.Transparent
+        val backdrop = rememberLayerBackdrop {
+          drawRect(backgroundColor)
+          drawContent()
         }
-
-    rootLayout.addView(composeViewForMap)
-    rootLayout.addView(composeView)
-
-    setContentView(rootLayout)
-  }
-
-  override fun onStart() {
-    super.onStart()
-  }
-
-  override fun onResume() {
-    super.onResume()
-  }
-
-  override fun onPause() {
-    super.onPause()
-  }
-
-  override fun onStop() {
-    super.onStop()
-  }
-
-  override fun onDestroy() {
-    super.onDestroy()
-  }
-
-  override fun onSaveInstanceState(outState: Bundle) {
-    super.onSaveInstanceState(outState)
+        CompositionLocalProvider(LocalLayerBackdrop provides backdrop) {
+          Surface(
+              modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+              color = Color.Transparent) {
+                UniverseBackgroundContainer(mapViewModel = mapViewModel) {
+                  UniverseApp(mapViewModel = mapViewModel)
+                }
+              }
+        }
+      }
+    }
   }
 }
 
@@ -210,6 +109,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UniverseApp(
     context: Context = LocalContext.current,
+    mapViewModel: MapViewModel = viewModel(factory = MapViewModelFactory(context)),
     credentialManager: CredentialManager = CredentialManager.create(context),
 ) {
   val authInstance = remember { FirebaseAuth.getInstance() }
@@ -217,14 +117,7 @@ fun UniverseApp(
   val navigationActions = NavigationActions(navController)
   val userRepository = UserRepositoryProvider.repository
   val mainActivityScope = rememberCoroutineScope()
-  BackgroundSnapshotRepository.loadInitialSnapshot(context)
-  val res = BitmapFactory.decodeResource(context.resources, R.drawable.map_snapshot2)
-  val bitmap =
-      BackgroundSnapshotRepository.currentSnapshot
-          ?: res.scale(
-                  (res.width * Dimensions.ImageScale).toInt(),
-                  (res.height * Dimensions.ImageScale).toInt())
-              .asImageBitmap()
+
   // Hold the start destination in state
   var startDestination by remember { mutableStateOf<NavigationScreens?>(null) }
   LaunchedEffect(Unit) {
@@ -232,9 +125,7 @@ fun UniverseApp(
   }
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
-    UniverseBackgroundContainer(bitmap = bitmap, contentAlignment = Alignment.Center) {
-      LinearProgressIndicator()
-    }
+    Box(contentAlignment = Alignment.Center) { LinearProgressIndicator() }
   } else {
 
     NavHost(navController = navController, startDestination = startDestination!!.name) {
@@ -248,8 +139,7 @@ fun UniverseApp(
           LaunchedEffect(navigateToDestination) {
             navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
-
-          UniverseBackgroundContainer(bitmap) {
+          RenderMapUnclickable {
             SignInScreen(
                 onSignedIn = {
                   mainActivityScope.launch {
@@ -265,17 +155,15 @@ fun UniverseApp(
           route = NavigationScreens.AddProfile.name,
       ) {
         composable(NavigationScreens.AddProfile.route) {
-          UniverseBackgroundContainer(bitmap) {
-            AddProfile(
-                uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
-                onBack = {
-                  // Navigate back to Sign In
-                  navController.navigate(NavigationScreens.SignIn.route) {
-                    popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-                  }
-                })
-          }
+          AddProfile(
+              uid = authInstance.currentUser!!.uid,
+              navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
+              onBack = {
+                // Navigate back to Sign In
+                navController.navigate(NavigationScreens.SignIn.route) {
+                  popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
+                }
+              })
         }
       }
 
@@ -290,16 +178,14 @@ fun UniverseApp(
             navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
 
-          UniverseBackgroundContainer(bitmap) {
-            EmailVerificationScreen(
-                user = authInstance.currentUser!!,
-                onSuccess = {
-                  mainActivityScope.launch {
-                    navigateToDestination = resolveUserDestinationScreen(userRepository)
-                  }
-                },
-                onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
-          }
+          EmailVerificationScreen(
+              user = authInstance.currentUser!!,
+              onSuccess = {
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
+                }
+              },
+              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
         }
       }
 
@@ -307,11 +193,9 @@ fun UniverseApp(
           route = NavigationScreens.SelectTagUser.name,
           startDestination = NavigationScreens.SelectTagUser.route) {
             composable(NavigationScreens.SelectTagUser.route) {
-              UniverseBackgroundContainer(bitmap) {
-                SelectTagScreen(
-                    uid = authInstance.currentUser!!.uid,
-                    navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
-              }
+              SelectTagScreen(
+                  uid = authInstance.currentUser!!.uid,
+                  navigateOnSave = { navigationActions.navigateTo(NavigationScreens.MapInstance) })
             }
           }
 
@@ -331,7 +215,8 @@ fun UniverseApp(
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
               },
-              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") })
+              createEvent = { lat, lng -> navController.navigate("eventCreation/$lat/$lng") },
+              viewModel = mapViewModel)
         }
 
         composable(
@@ -359,7 +244,8 @@ fun UniverseApp(
                   },
                   createEvent = { lat2, lng2 ->
                     navController.navigate("eventCreation/$lat2/$lng2")
-                  })
+                  },
+                  viewModel = mapViewModel)
             }
       }
 
@@ -368,26 +254,24 @@ fun UniverseApp(
           route = NavigationScreens.Event.name,
       ) {
         composable(NavigationScreens.Event.route) {
-          UniverseBackgroundContainer(bitmap) {
-            EventScreen(
-                onTabSelected,
-                uid = authInstance.currentUser!!.uid,
-                onChatNavigate = { chatID, chatName ->
-                  navController.navigate(
-                      route =
-                          NavigationScreens.ChatInstance.route
-                              .replace("{chatID}", chatID)
-                              .replace("{chatName}", chatName)
-                              .replace("{userID}", authInstance.currentUser!!.uid))
-                },
-                onCardClick = { eventId: String, eventLocation: Location ->
-                  navController.navigate(
-                      NavigationScreens.MapInstance.route
-                          .replace("{eventId}", eventId)
-                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
-                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
-                })
-          }
+          EventScreen(
+              onTabSelected,
+              uid = authInstance.currentUser!!.uid,
+              onChatNavigate = { chatID, chatName ->
+                navController.navigate(
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName)
+                            .replace("{userID}", authInstance.currentUser!!.uid))
+              },
+              onCardClick = { eventId: String, eventLocation: Location ->
+                navController.navigate(
+                    NavigationScreens.MapInstance.route
+                        .replace("{eventId}", eventId)
+                        .replace("{latitude}", eventLocation.latitude.toFloat().toString())
+                        .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
+              })
         }
       }
 
@@ -396,18 +280,16 @@ fun UniverseApp(
           route = NavigationScreens.Chat.name,
       ) {
         composable(NavigationScreens.Chat.route) {
-          UniverseBackgroundContainer(bitmap) {
-            ChatListScreen(
-                userID = authInstance.currentUser!!.uid,
-                onTabSelected = onTabSelected,
-                onChatSelected = { chatID, chatName ->
-                  navController.navigate(
-                      route =
-                          NavigationScreens.ChatInstance.route
-                              .replace("{chatID}", chatID)
-                              .replace("{chatName}", chatName))
-                })
-          }
+          ChatListScreen(
+              userID = authInstance.currentUser!!.uid,
+              onTabSelected = onTabSelected,
+              onChatSelected = { chatID, chatName ->
+                navController.navigate(
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName))
+              })
         }
 
         composable(
@@ -416,7 +298,7 @@ fun UniverseApp(
                 listOf(
                     navArgument("chatID") { type = NavType.StringType },
                     navArgument("chatName") { type = NavType.StringType })) {
-              UniverseBackgroundContainer(bitmap) {
+              RenderMapUnclickable {
                 ChatScreen(
                     chatID = it.arguments?.getString("chatID")!!,
                     chatName = it.arguments?.getString("chatName")!!,
@@ -432,46 +314,42 @@ fun UniverseApp(
           route = NavigationScreens.Profile.name,
       ) {
         composable(NavigationScreens.Profile.route) {
-          UniverseBackgroundContainer(bitmap) {
-            UserProfileScreen(
-                uid = authInstance.currentUser!!.uid,
-                onTabSelected = onTabSelected,
-                onEditProfileClick = { uid ->
-                  navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
-                },
-                onChatNavigate = { chatID, chatName ->
-                  navController.navigate(
-                      route =
-                          NavigationScreens.ChatInstance.route
-                              .replace("{chatID}", chatID)
-                              .replace("{chatName}", chatName)
-                              .replace("{userID}", authInstance.currentUser!!.uid))
-                },
-                onCardClick = { eventId: String, eventLocation: Location ->
-                  navController.navigate(
-                      NavigationScreens.MapInstance.route
-                          .replace("{eventId}", eventId)
-                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
-                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
-                })
-          }
+          UserProfileScreen(
+              uid = authInstance.currentUser!!.uid,
+              onTabSelected = onTabSelected,
+              onEditProfileClick = { uid ->
+                navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
+              },
+              onChatNavigate = { chatID, chatName ->
+                navController.navigate(
+                    route =
+                        NavigationScreens.ChatInstance.route
+                            .replace("{chatID}", chatID)
+                            .replace("{chatName}", chatName)
+                            .replace("{userID}", authInstance.currentUser!!.uid))
+              },
+              onCardClick = { eventId: String, eventLocation: Location ->
+                navController.navigate(
+                    NavigationScreens.MapInstance.route
+                        .replace("{eventId}", eventId)
+                        .replace("{latitude}", eventLocation.latitude.toFloat().toString())
+                        .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
+              })
         }
       }
       composable(
           route = NavigationScreens.Settings.route,
           arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry ->
             val uid = backStackEntry.arguments?.getString("uid") ?: "0"
-            UniverseBackgroundContainer(bitmap) {
-              SettingsScreen(
-                  uid = uid,
-                  onBack = {
-                    navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-                  },
-                  onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
-                  clear = {
-                    credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
-                  })
-            }
+            SettingsScreen(
+                uid = uid,
+                onBack = {
+                  navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
+                },
+                onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+                clear = {
+                  credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
+                })
           }
       navigation(
           startDestination = NavigationScreens.EventCreation.route,
@@ -486,25 +364,21 @@ fun UniverseApp(
               val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
               val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
 
-              UniverseBackgroundContainer(bitmap) {
-                EventCreationScreen(
-                    location = Location(latitude.toDouble(), longitude.toDouble()),
-                    onAddTag = { navController.navigate("selectTagEvent") },
-                    onSave = {
-                      navController.popBackStack(
-                          route = NavigationScreens.EventCreation.route, inclusive = true)
-                    })
-              }
+              EventCreationScreen(
+                  location = Location(latitude.toDouble(), longitude.toDouble()),
+                  onAddTag = { navController.navigate("selectTagEvent") },
+                  onSave = {
+                    navController.popBackStack(
+                        route = NavigationScreens.EventCreation.route, inclusive = true)
+                  })
             }
         composable(
             route = NavigationScreens.SelectTagEvent.route,
         ) {
-          UniverseBackgroundContainer(bitmap) {
-            SelectTagScreen(
-                selectTagMode = SelectTagMode.EVENT_CREATION,
-                uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navController.popBackStack() })
-          }
+          SelectTagScreen(
+              selectTagMode = SelectTagMode.EVENT_CREATION,
+              uid = authInstance.currentUser!!.uid,
+              navigateOnSave = { navController.popBackStack() })
         }
       }
     }

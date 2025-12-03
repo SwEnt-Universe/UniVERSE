@@ -1,10 +1,15 @@
 package com.android.universe.ui.map
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.SharedPreferences
+import android.view.ViewGroup
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.event.Event
@@ -22,6 +27,7 @@ import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
+import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
@@ -29,6 +35,10 @@ import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.marker.Marker
 import com.tomtom.sdk.map.display.marker.MarkerOptions
+import com.tomtom.sdk.map.display.style.StyleDescriptor
+import com.tomtom.sdk.map.display.ui.MapView
+import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
+import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -82,14 +92,45 @@ data class MapMarkerUiModel(
  * @property locationRepository Repository for accessing location data.
  * @property eventRepository Repository for accessing event data.
  * @property userRepository Repository for user profile data.
- * @property ioDispatcher Dispatcher for background operations.
  */
 class MapViewModel(
+    private val applicationContext: Context,
     private val prefs: SharedPreferences,
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
 ) : ViewModel() {
+
+  @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
+
+  fun getMapInstance(): MapView {
+    if (tomtomMapView == null) {
+      val mapOptions =
+          MapOptions(
+              mapKey = BuildConfig.TOMTOM_API_KEY,
+              mapStyle =
+                  StyleDescriptor(
+                      "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
+                          .toUri()),
+              renderToTexture = true)
+      tomtomMapView = MapView(applicationContext, mapOptions)
+
+      tomtomMapView?.onCreate(null)
+      tomtomMapView?.onStart()
+      tomtomMapView?.configureUiSettings()
+      tomtomMapView?.getMapAsync { onMapReady(it) }
+    }
+    return tomtomMapView!!
+  }
+
+  fun decoupleFromParent() {
+    tomtomMapView?.let { map ->
+      val parent = map.parent
+      if (parent != null && parent is ViewGroup) {
+        parent.removeView(map)
+      }
+    }
+  }
 
   private val _uiState =
       MutableStateFlow(
@@ -115,7 +156,7 @@ class MapViewModel(
   val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
 
   /** Provider for location services. */
-  val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
+  private val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
 
   // Jobs for tracking execution
   private var locationTrackingJob: Job? = null
@@ -141,8 +182,19 @@ class MapViewModel(
 
   override fun onCleared() {
     super.onCleared()
+
+    // The MapView get destroyed with the viewModel
+    tomtomMapView?.onDestroy()
+    tomtomMapView = null
+
     stopLocationTracking()
     stopEventPolling()
+  }
+
+  private fun MapView.configureUiSettings() {
+    this.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
+    this.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
+    this.scaleView.isVisible = false
   }
 
   @OptIn(ExperimentalMapSetAntialiasingMethodApi::class)
@@ -356,7 +408,7 @@ class MapViewModel(
   }
 
   /** Stops real-time location tracking. */
-  fun stopLocationTracking() {
+  private fun stopLocationTracking() {
     locationTrackingJob?.cancel()
     locationTrackingJob = null
   }
