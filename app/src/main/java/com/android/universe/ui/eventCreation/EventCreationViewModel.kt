@@ -8,11 +8,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.event.EventTemporaryRepository
+import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
-import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepositoryProvider
 import com.android.universe.ui.common.InputLimits
@@ -114,6 +114,8 @@ data class EventCreationUIState(
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
+    private val eventTemporaryRepository: EventTemporaryRepository =
+        EventTemporaryRepositoryProvider.repository
 ) : ViewModel() {
 
   companion object {
@@ -122,15 +124,6 @@ class EventCreationViewModel(
 
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
-  private val _eventTags = MutableStateFlow(emptySet<Tag>())
-  val eventTags = _eventTags.asStateFlow()
-
-  /** We launch a coroutine that will update the set of tag each time the tag repository change. */
-  init {
-    viewModelScope.launch {
-      tagRepository.tagsFlow.collect { newTags -> _eventTags.value = newTags }
-    }
-  }
 
   /**
    * Updates the onboarding state for a specific step in event creation.
@@ -171,15 +164,6 @@ class EventCreationViewModel(
   fun setEventDescription(description: String) {
     val finalDescription = description.take(InputLimits.DESCRIPTION + 1)
     eventCreationUiState.value = eventCreationUiState.value.copy(description = finalDescription)
-  }
-
-  /**
-   * Update the tags of the event. Only for test purposes.
-   *
-   * @param tags the new event's tags.
-   */
-  fun setEventTags(tags: Set<Tag>) {
-    viewModelScope.launch { tagRepository.updateTags(tags) }
   }
 
   /**
@@ -290,29 +274,19 @@ class EventCreationViewModel(
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
 
-          val event =
-              Event(
-                  id = id,
-                  title = eventCreationUiState.value.name,
-                  description = eventCreationUiState.value.description,
-                  date = eventDateTime,
-                  tags = _eventTags.value,
-                  creator = uid,
-                  participants = setOf(uid),
-                  location = location,
-                  eventPicture = eventCreationUiState.value.eventPicture)
-          eventRepository.addEvent(event)
-          // The event is saved, we can now delete the current tag Set for the event.
-          tagRepository.deleteAllTags()
+          eventTemporaryRepository.updateEvent(
+              id = id,
+              title = eventCreationUiState.value.name,
+              description = eventCreationUiState.value.description,
+              dateTime = eventDateTime,
+              creator = uid,
+              participants = setOf(uid),
+              location = location,
+              eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {
           Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
         }
       }
     }
-  }
-
-  /** Clear all the tags of the tagRepositoryProvider. */
-  fun clearTags() {
-    viewModelScope.launch { tagRepository.deleteAllTags() }
   }
 }
