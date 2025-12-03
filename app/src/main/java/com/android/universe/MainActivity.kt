@@ -385,7 +385,8 @@ fun UniverseApp(
                     location = Location(latitude.toDouble(), longitude.toDouble()),
                     onSave = {
                       navController.navigate(route = NavigationScreens.SelectTagEvent.route)
-                    })
+                    },
+                    onBack = { navigationActions.goBack() })
               }
             }
         composable(
