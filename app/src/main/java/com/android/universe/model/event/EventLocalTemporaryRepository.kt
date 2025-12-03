@@ -4,7 +4,7 @@ import com.android.universe.model.location.Location
 import java.time.LocalDateTime
 
 class EventLocalTemporaryRepository : EventTemporaryRepository {
-  var stockedEvent: Event? = null
+  private var stockedEvent: Event? = null
 
   /**
    * Update the current stocked event.
