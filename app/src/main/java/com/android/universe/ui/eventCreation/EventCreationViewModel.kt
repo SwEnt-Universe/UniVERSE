@@ -106,7 +106,8 @@ data class EventCreationUIState(
  * ViewModel of the EventCreationScreen. Manage the data of the Screen and save the Event in the
  * repository.
  *
- * @param eventRepository the repository for the event.
+ * @param eventRepository The repository for the event.
+ * @param eventTemporaryRepository The temporary repository fot the event.
  */
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
