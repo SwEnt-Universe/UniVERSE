@@ -8,13 +8,18 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.event.EventTemporaryRepository
+import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
-import com.android.universe.model.tag.Tag
-import com.android.universe.model.tag.TagTemporaryRepository
-import com.android.universe.model.tag.TagTemporaryRepositoryProvider
+import com.android.universe.ui.common.InputLimits
+import com.android.universe.ui.common.ValidationState
+import com.android.universe.ui.common.validateDateTime
+import com.android.universe.ui.common.validateDescription
+import com.android.universe.ui.common.validateEventDate
+import com.android.universe.ui.common.validateEventTitle
+import com.android.universe.ui.common.validateTime
 import com.android.universe.ui.theme.Dimensions
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -25,6 +30,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+enum class OnboardingState {
+  ENTER_EVENT_TITLE,
+  ENTER_DESCRIPTION,
+  ENTER_TIME
+}
 
 /**
  * Represent the UiSate of the EventCreationScreen.
@@ -42,6 +53,8 @@ import kotlinx.coroutines.withContext
  * @param dateError the error message for the date.
  * @param timeError the error message for the time.
  * @param eventPicture the picture of the event.
+ * @param onboardingState the map that give a boolean for each OnboardingState depending if the text
+ *   field has already been changed.
  */
 data class EventCreationUIState(
     val name: String = "",
@@ -52,89 +65,82 @@ data class EventCreationUIState(
     val hour: String = "",
     val minute: String = "",
     val date: LocalDate? = null,
-    val time: LocalTime? = null,
-    val titleError: String? = "Title cannot be empty",
+    val time: String = "",
+    val titleError: String? = null,
     val dateError: String? = null,
     val timeError: String? = null,
-    val eventPicture: ByteArray? = null
-)
+    val eventPicture: ByteArray? = null,
+    val onboardingState: MutableMap<OnboardingState, Boolean> =
+        mutableMapOf(
+            OnboardingState.ENTER_EVENT_TITLE to false,
+            OnboardingState.ENTER_DESCRIPTION to false,
+            OnboardingState.ENTER_TIME to false)
+) {
+  /** Keep the ValidationState of the event title. */
+  val eventTitleValid: ValidationState
+    get() = validateEventTitle(name)
 
-/**
- * Object that contains the different limit of character for the textFields in the Event creation
- * screen.
- */
-object EventInputLimits {
-  const val TITLE_MAX_LENGTH = 40
-  const val DESCRIPTION_MAX_LENGTH = 200
+  /** Keep the ValidationState of the event title. */
+  val eventDescriptionValid: ValidationState
+    get() =
+        if (description == null) {
+          ValidationState.Valid
+        } else {
+          validateDescription(description)
+        }
+
+  /** Keep the ValidationState of the event date. */
+  val eventDateValid: ValidationState
+    get() = validateEventDate(date)
+
+  /** Keep the ValidationState of the event time. */
+  val eventTimeValid: ValidationState
+    get() = validateTime(time)
+
+  /** Keep the ValidationState of the combination of the date and the time of the event */
+  val eventDateTimeValid: ValidationState
+    get() = validateDateTime(date, time)
 }
 
 /**
  * ViewModel of the EventCreationScreen. Manage the data of the Screen and save the Event in the
  * repository.
  *
- * @param eventRepository the repository for the event.
- * @param tagRepository The repository for the tags.
+ * @param eventRepository The repository for the event.
+ * @param eventTemporaryRepository The temporary repository fot the event.
  */
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
+    private val eventTemporaryRepository: EventTemporaryRepository =
+        EventTemporaryRepositoryProvider.repository
 ) : ViewModel() {
 
   companion object {
-    const val FUTURETIMETEXT = "Future time only"
-    const val FUTUREDATETEXT = "Future dates only"
-    const val MISSINGDATETEXT = "Please select a date"
-    const val MISSINGTIMETEXT = "Please select a time"
+    const val MISSING_DATE_TEXT = "Please select a date"
   }
 
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
-  private val _eventTags = MutableStateFlow(emptySet<Tag>())
-  val eventTags = _eventTags.asStateFlow()
-  val noDateText = "No date selected"
-  val noTimeText = "No time selected"
-
-  /** We launch a coroutine that will update the set of tag each time the tag repository change. */
-  init {
-    viewModelScope.launch {
-      tagRepository.tagsFlow.collect { newTags -> _eventTags.value = newTags }
-    }
-  }
 
   /**
-   * Update the title error message of the uiState.
+   * Updates the onboarding state for a specific step in event creation.
    *
-   * @param errorMessage the new message to display for the title textField.
+   * @param state The [OnboardingState] to update.
+   * @param value True if the step is active or completed, false otherwise.
    */
-  private fun setTitleError(errorMessage: String?) {
-    eventCreationUiState.value = eventCreationUiState.value.copy(titleError = errorMessage)
+  fun setOnboardingState(state: OnboardingState, value: Boolean) {
+    eventCreationUiState.value.onboardingState[state] = value
   }
 
-  /**
-   * Check that the new title input is not empty and respect a certain format.
-   *
-   * @param title the new title input.
-   */
-  private fun validateTitle(title: String): Boolean {
-    if (title.isEmpty()) {
-      setTitleError("Title cannot be empty")
-      return false
-    } else {
-      setTitleError(null)
-      return true
-    }
-  }
-
-  /**
-   * Check that all the parameters enter in the textFields are not empty and are well written. as
-   * well as checking that there is a date a no error
-   */
+  /** Check that all the parameters require to create an event are well input by the user. */
   fun validateAll(): Boolean {
-    return (eventCreationUiState.value.titleError == null &&
-        eventCreationUiState.value.date != null &&
-        eventCreationUiState.value.dateError == null &&
-        eventCreationUiState.value.time != null &&
-        eventCreationUiState.value.timeError == null)
+    val uiStateValue = eventCreationUiState.value
+    return (uiStateValue.eventTitleValid is ValidationState.Valid &&
+        (uiStateValue.eventDescriptionValid is ValidationState.Valid ||
+            uiStateValue.eventDescriptionValid is ValidationState.Neutral) &&
+        uiStateValue.eventDateValid is ValidationState.Valid &&
+        uiStateValue.eventTimeValid is ValidationState.Valid &&
+        uiStateValue.eventDateTimeValid is ValidationState.Valid)
   }
 
   /**
@@ -143,10 +149,8 @@ class EventCreationViewModel(
    * @param name the new event's name.
    */
   fun setEventName(name: String) {
-    if (name.length <= EventInputLimits.TITLE_MAX_LENGTH) {
-      eventCreationUiState.value = eventCreationUiState.value.copy(name = name)
-      validateTitle(name)
-    }
+    val finalName = name.take(InputLimits.TITLE_EVENT_MAX_LENGTH + 1)
+    eventCreationUiState.value = eventCreationUiState.value.copy(name = finalName)
   }
 
   /**
@@ -155,18 +159,8 @@ class EventCreationViewModel(
    * @param description the new event's description.
    */
   fun setEventDescription(description: String) {
-    if (description.length <= EventInputLimits.DESCRIPTION_MAX_LENGTH) {
-      eventCreationUiState.value = eventCreationUiState.value.copy(description = description)
-    }
-  }
-
-  /**
-   * Update the tags of the event. Only for test purposes.
-   *
-   * @param tags the new event's tags.
-   */
-  fun setEventTags(tags: Set<Tag>) {
-    viewModelScope.launch { tagRepository.updateTags(tags) }
+    val finalDescription = description.take(InputLimits.DESCRIPTION + 1)
+    eventCreationUiState.value = eventCreationUiState.value.copy(description = finalDescription)
   }
 
   /**
@@ -231,15 +225,7 @@ class EventCreationViewModel(
    */
   fun setDate(date: LocalDate?) {
     if (date == null) {
-      eventCreationUiState.value = eventCreationUiState.value.copy(dateError = MISSINGDATETEXT)
-    } else if (date.isBefore(LocalDate.now())) {
-      eventCreationUiState.value =
-          eventCreationUiState.value.copy(date = date, dateError = FUTUREDATETEXT)
-    } else if (eventCreationUiState.value.time != null &&
-        LocalDateTime.of(date, eventCreationUiState.value.time).isBefore(LocalDateTime.now())) {
-      eventCreationUiState.value =
-          eventCreationUiState.value.copy(
-              date = date, dateError = FUTUREDATETEXT, timeError = FUTURETIMETEXT)
+      eventCreationUiState.value = eventCreationUiState.value.copy(dateError = MISSING_DATE_TEXT)
     } else {
       eventCreationUiState.value =
           eventCreationUiState.value.copy(date = date, dateError = null, timeError = null)
@@ -251,18 +237,9 @@ class EventCreationViewModel(
    *
    * @param time the new event's time.
    */
-  fun setTime(time: LocalTime?) {
-    if (time == null) {
-      eventCreationUiState.value = eventCreationUiState.value.copy(timeError = MISSINGTIMETEXT)
-    } else if (eventCreationUiState.value.date != null &&
-        LocalDateTime.of(eventCreationUiState.value.date, time).isBefore(LocalDateTime.now())) {
-      eventCreationUiState.value =
-          eventCreationUiState.value.copy(
-              time = time, dateError = FUTUREDATETEXT, timeError = FUTURETIMETEXT)
-    } else {
-      eventCreationUiState.value =
-          eventCreationUiState.value.copy(time = time, timeError = null, dateError = null)
-    }
+  fun setTime(time: String) {
+    val finalTime = time.take(InputLimits.TIME_MAX_LENGTH)
+    eventCreationUiState.value = eventCreationUiState.value.copy(time = finalTime)
   }
 
   val formatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -278,15 +255,6 @@ class EventCreationViewModel(
   }
 
   /**
-   * Format the time to a string.
-   *
-   * @param time the time to format.
-   */
-  fun formatTime(time: LocalTime?): String {
-    return if (time == null) "Select time" else time.format(timeFormatter)
-  }
-
-  /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
    * @param location the location of the event.
@@ -299,33 +267,23 @@ class EventCreationViewModel(
           val id = eventRepository.getNewID()
 
           val internalDate = uiStateEventCreation.value.date
-          val internalTime = uiStateEventCreation.value.time
+          val internalTime = LocalTime.parse(uiStateEventCreation.value.time, timeFormatter)
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
 
-          val event =
-              Event(
-                  id = id,
-                  title = eventCreationUiState.value.name,
-                  description = eventCreationUiState.value.description,
-                  date = eventDateTime,
-                  tags = _eventTags.value,
-                  creator = uid,
-                  participants = setOf(uid),
-                  location = location,
-                  eventPicture = eventCreationUiState.value.eventPicture)
-          eventRepository.addEvent(event)
-          // The event is saved, we can now delete the current tag Set for the event.
-          tagRepository.deleteAllTags()
+          eventTemporaryRepository.updateEvent(
+              id = id,
+              title = eventCreationUiState.value.name,
+              description = eventCreationUiState.value.description,
+              dateTime = eventDateTime,
+              creator = uid,
+              participants = setOf(uid),
+              location = location,
+              eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {
           Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
         }
       }
     }
-  }
-
-  /** Clear all the tags of the tagRepositoryProvider. */
-  fun clearTags() {
-    viewModelScope.launch { tagRepository.deleteAllTags() }
   }
 }

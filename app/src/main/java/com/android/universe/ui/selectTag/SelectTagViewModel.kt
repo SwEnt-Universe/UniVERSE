@@ -3,6 +3,10 @@ package com.android.universe.ui.selectTag
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.event.EventTemporaryRepository
+import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepositoryProvider
@@ -30,10 +34,16 @@ enum class SelectTagMode {
  * @param userRepository The data source handling user-related operations. Defaults to
  *   UserRepositoryProvider.repository
  * @param tagRepository The repository for the tags. Used only if the mode is EVENT_CREATION.
+ * @param eventRepository The repository to save the event if the screen is in EVENT_CREATION mode.
+ * @param eventTemporaryRepository The temporary event repository to load the input of the user for
+ *   his event.
  */
 class SelectTagViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
+    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val eventTemporaryRepository: EventTemporaryRepository =
+        EventTemporaryRepositoryProvider.repository
 ) : ViewModel() {
   /** Backing field for [uiStateTags]. Mutable within the ViewModel only. */
   private val _selectedTags = MutableStateFlow<List<Tag>>(emptyList())
@@ -101,7 +111,7 @@ class SelectTagViewModel(
           val userProfile = userRepository.getUser(uid)
           _selectedTags.value = userProfile.tags.toList()
         }
-        SelectTagMode.EVENT_CREATION -> _selectedTags.value = tagRepository.getTags().toList()
+        SelectTagMode.EVENT_CREATION -> _selectedTags.value = emptyList()
         SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
       }
     }
@@ -120,7 +130,11 @@ class SelectTagViewModel(
           val newUserProfile = userProfile.copy(tags = _selectedTags.value.toSet())
           userRepository.updateUser(uid, newUserProfile)
         }
-        SelectTagMode.EVENT_CREATION -> tagRepository.updateTags(_selectedTags.value.toSet())
+        SelectTagMode.EVENT_CREATION -> {
+          eventRepository.addEvent(
+              eventTemporaryRepository.getEvent().copy(tags = _selectedTags.value.toSet()))
+          eventTemporaryRepository.deleteEvent()
+        }
         SelectTagMode.SETTINGS -> tagRepository.updateTags(_selectedTags.value.toSet())
       }
     }

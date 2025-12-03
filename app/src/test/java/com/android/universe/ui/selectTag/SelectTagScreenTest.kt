@@ -8,7 +8,13 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.event.EventLocalTemporaryRepository
+import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventTemporaryRepository
+import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.tag.Tag
+import com.android.universe.model.tag.TagLocalTemporaryRepository
+import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
@@ -26,6 +32,9 @@ class SelectTagScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
   private lateinit var userRepository: UserRepository
+  private lateinit var tagRepository: TagTemporaryRepository
+  private lateinit var eventTemporaryRepository: EventTemporaryRepository
+  private lateinit var eventRepository: EventRepository
   private lateinit var viewModel: SelectTagViewModel
 
   companion object {
@@ -45,8 +54,16 @@ class SelectTagScreenTest {
   @Before
   fun setUp() {
     userRepository = FakeUserRepository()
+    tagRepository = TagLocalTemporaryRepository()
+    eventRepository = FakeEventRepository()
+    eventTemporaryRepository = EventLocalTemporaryRepository()
     runTest { userRepository.addUser(dummyUser) }
-    viewModel = SelectTagViewModel(userRepository)
+    viewModel =
+        SelectTagViewModel(
+            userRepository = userRepository,
+            tagRepository = tagRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = eventTemporaryRepository)
   }
 
   @Test
@@ -127,16 +144,14 @@ class SelectTagScreenTest {
 
   @Test
   fun selectedTagsModeChange() {
-    val modeViewModel = SelectTagViewModel(userRepository)
-
     composeTestRule.setContentWithStubBackdrop {
       SelectTagScreen(
           selectTagMode = SelectTagMode.EVENT_CREATION,
-          selectedTagOverview = modeViewModel,
+          selectedTagOverview = viewModel,
           uid = dummyUser.uid)
     }
     composeTestRule.waitForIdle()
 
-    assertEquals(SelectTagMode.EVENT_CREATION, modeViewModel.mode)
+    assertEquals(SelectTagMode.EVENT_CREATION, viewModel.mode)
   }
 }

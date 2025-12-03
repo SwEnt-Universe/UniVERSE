@@ -383,11 +383,10 @@ fun UniverseApp(
               UniverseBackgroundContainer(bitmap) {
                 EventCreationScreen(
                     location = Location(latitude.toDouble(), longitude.toDouble()),
-                    onAddTag = { navController.navigate("selectTagEvent") },
                     onSave = {
-                      navController.popBackStack(
-                          route = NavigationScreens.EventCreation.route, inclusive = true)
-                    })
+                      navController.navigate(route = NavigationScreens.SelectTagEvent.route)
+                    },
+                    onBack = { navigationActions.goBack() })
               }
             }
         composable(
@@ -397,7 +396,7 @@ fun UniverseApp(
             SelectTagScreen(
                 selectTagMode = SelectTagMode.EVENT_CREATION,
                 uid = authInstance.currentUser!!.uid,
-                navigateOnSave = { navController.popBackStack() },
+                navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) },
                 onBack = { navigationActions.goBack() })
           }
         }

@@ -49,6 +49,8 @@ object Dimensions {
 
   // Image size
   val ProfilePictureSize = 256
+  val EventPictureHeight = 160.dp
+  val EventPictureWidth = 220.dp
 
   // LiquidImagePicker
   val LiquidImagePickerWidth = 200.dp

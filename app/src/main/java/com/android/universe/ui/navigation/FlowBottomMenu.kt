@@ -92,7 +92,12 @@ sealed class FlowTab(
           },
           label = "Confirm",
           testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
-          onClick = onClick)
+          onClick =
+              if (enabled) {
+                onClick
+              } else {
+                {}
+              })
 
   /**
    * Represents the "Google" authentication tab. This tab displays the Google logo and is used to
