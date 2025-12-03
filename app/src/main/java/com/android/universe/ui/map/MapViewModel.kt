@@ -279,23 +279,23 @@ class MapViewModel(
     this.markersFadingRange = IntRange(300, 500)
   }
 
- fun syncEventMarkers(
+  fun syncEventMarkers(
       markers: List<MapMarkerUiModel>,
   ) {
     viewModelScope.launch {
-        val map = tomTomMap ?: return@launch
-        val (optionsToAdd, markersToRemove, eventForNewMarkers) =
-            withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
+      val map = tomTomMap ?: return@launch
+      val (optionsToAdd, markersToRemove, eventForNewMarkers) =
+          withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
 
-        if (markersToRemove.isNotEmpty()) {
-            markersToRemove.forEach { markerToEvent.remove(it) }
+      if (markersToRemove.isNotEmpty()) {
+        markersToRemove.forEach { markerToEvent.remove(it) }
+      }
+      if (optionsToAdd.isNotEmpty()) {
+        val addedMarkers = map.addMarkers(optionsToAdd)
+        addedMarkers.forEachIndexed { index, marker ->
+          markerToEvent[marker.tag!!] = eventForNewMarkers[index]
         }
-        if (optionsToAdd.isNotEmpty()) {
-            val addedMarkers = map.addMarkers(optionsToAdd)
-            addedMarkers.forEachIndexed { index, marker ->
-                markerToEvent[marker.tag!!] = eventForNewMarkers[index]
-            }
-        }
+      }
     }
   }
 
@@ -319,14 +319,13 @@ class MapViewModel(
 
   fun syncSelectedLocationMarker(location: GeoPoint?) {
     viewModelScope.launch {
-        val map = tomTomMap ?: return@launch
-        map.removeMarkers("selected_location")
-        location?.let { geoPoint ->
-            val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
-            map.addMarker(
-                MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image)
-            )
-        }
+      val map = tomTomMap ?: return@launch
+      map.removeMarkers("selected_location")
+      location?.let { geoPoint ->
+        val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
+        map.addMarker(
+            MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
+      }
     }
   }
 

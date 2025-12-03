@@ -125,7 +125,9 @@ fun UniverseApp(
   }
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
   if (startDestination == null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LinearProgressIndicator() }
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      LinearProgressIndicator()
+    }
   } else {
 
     NavHost(navController = navController, startDestination = startDestination!!.name) {
