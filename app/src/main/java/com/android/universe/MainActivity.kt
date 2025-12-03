@@ -3,6 +3,7 @@ package com.android.universe
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     WindowCompat.setDecorFitsSystemWindows(window, false)
+    window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
     // Enable edge-to-edge with auto-contrast (icons adapt to content/theme)
     enableEdgeToEdge()
 

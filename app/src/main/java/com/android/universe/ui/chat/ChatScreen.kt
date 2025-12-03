@@ -1,7 +1,11 @@
 package com.android.universe.ui.chat
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,7 +68,7 @@ fun ChatScreen(
         Column(
             modifier =
                 Modifier.fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(top = paddingValues.calculateTopPadding())
                     .padding(horizontal = Dimensions.PaddingMedium)) {
               when (val state = uiState) {
                 is ChatUIViewModel.ChatUiState.Loading ->
@@ -78,6 +82,10 @@ fun ChatScreen(
                       modifier = Modifier.weight(weight = 1f),
                       vm = vm)
                   SendMessageInput(vm = vm)
+                  Box {
+                    Spacer(Modifier.height(height = paddingValues.calculateBottomPadding()))
+                    Spacer(Modifier.padding(top = Dimensions.PaddingMedium).imePadding())
+                  }
                 }
               }
             }
