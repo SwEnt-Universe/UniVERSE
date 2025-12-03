@@ -13,8 +13,6 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
-import com.android.universe.model.tag.TagTemporaryRepository
-import com.android.universe.model.tag.TagTemporaryRepositoryProvider
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.common.validateDateTime
@@ -109,11 +107,9 @@ data class EventCreationUIState(
  * repository.
  *
  * @param eventRepository the repository for the event.
- * @param tagRepository The repository for the tags.
  */
 class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
     private val eventTemporaryRepository: EventTemporaryRepository =
         EventTemporaryRepositoryProvider.repository
 ) : ViewModel() {
