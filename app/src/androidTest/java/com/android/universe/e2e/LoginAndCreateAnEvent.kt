@@ -93,7 +93,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         }
       }
       advanceUntilIdle()
-      composeTestRule.waitForIdle()
     }
   }
 
@@ -145,7 +144,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTagWithUnmergedTree(MapScreenTestTags.INTERACTABLE).isDisplayed()
     }
     advanceUntilIdle()
-    composeTestRule.waitForIdle()
   }
 
   private fun createEvent() = runTest {
@@ -219,6 +217,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    advanceUntilIdle()
   }
 
   private fun seeAddedEventInEventList() = runTest {
@@ -241,6 +240,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onAllNodesWithTag("${EventContentTestTags.EVENT_DESCRIPTION}_0", useUnmergedTree = true)
         .onFirst()
         .assertTextEquals(FAKE_EVENT.description!!)
+    advanceUntilIdle()
   }
 
   private fun clickOnEventInList() = runTest {
@@ -256,5 +256,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
+    advanceUntilIdle()
   }
 }
