@@ -250,7 +250,7 @@ fun ProfileEventList(
                   title = event.title,
                   description = event.description ?: "",
                   date = event.date,
-                  tags = event.tags.map { it.displayName },
+                  tags = event.tags.toList(),
                   creator = event.creator,
                   participants = event.participants.size,
                   index = event.id.hashCode(),

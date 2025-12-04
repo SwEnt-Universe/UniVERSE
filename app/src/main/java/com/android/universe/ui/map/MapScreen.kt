@@ -143,6 +143,7 @@ fun MapScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
+  val selectedCreator by viewModel.selectedCreator.collectAsState()
   val layerBackdrop = LocalLayerBackdrop.current
   var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
@@ -327,6 +328,7 @@ fun MapScreen(
                 EventInfoPopup(
                     modifier = Modifier.padding(padding),
                     event = event,
+                    creator = selectedCreator ?: "",
                     isUserParticipant = viewModel.isUserParticipant(event),
                     onDismiss = { viewModel.selectEvent(null) },
                     onChatNavigate = onChatNavigate,
