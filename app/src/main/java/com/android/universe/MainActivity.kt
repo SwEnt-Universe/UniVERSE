@@ -39,7 +39,6 @@ import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.resources.C
 import com.android.universe.ui.chat.ChatListScreen
 import com.android.universe.ui.chat.ChatScreen
-import com.android.universe.ui.common.RenderMapUnclickable
 import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
@@ -143,7 +142,6 @@ fun UniverseApp(
           LaunchedEffect(navigateToDestination) {
             navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
-          RenderMapUnclickable {
             SignInScreen(
                 onSignedIn = {
                   mainActivityScope.launch {
@@ -151,7 +149,6 @@ fun UniverseApp(
                   }
                 },
                 credentialManager = credentialManager)
-          }
         }
       }
       navigation(
@@ -305,14 +302,12 @@ fun UniverseApp(
                 listOf(
                     navArgument("chatID") { type = NavType.StringType },
                     navArgument("chatName") { type = NavType.StringType })) {
-              RenderMapUnclickable {
                 ChatScreen(
                     chatID = it.arguments?.getString("chatID")!!,
                     chatName = it.arguments?.getString("chatName")!!,
                     userID = authInstance.currentUser!!.uid,
                     onTabSelected = onTabSelected,
                     onBack = { navigationActions.goBack() })
-              }
             }
       }
 

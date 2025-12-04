@@ -14,6 +14,7 @@ import com.android.universe.ui.map.MapBackground
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
 
 object CommonBackground {
   const val BACKGROUND = "background"
@@ -36,25 +37,6 @@ fun UniverseBackgroundContainer(
     UniverseBackground(mapViewModel)
     content()
   }
-}
-
-@Composable
-fun RenderMapUnclickable(
-    modifier: Modifier = Modifier,
-    contentAlignment: Alignment = Alignment.TopStart,
-    propagateMinConstraints: Boolean = false,
-    content: @Composable BoxScope.() -> Unit
-) {
-  Box(
-      modifier =
-          modifier.clickable(
-              indication = null,
-              interactionSource = null,
-              onClick = {},
-          ),
-      contentAlignment = contentAlignment,
-      propagateMinConstraints = propagateMinConstraints,
-      content = content)
 }
 
 /**

@@ -134,12 +134,16 @@ class MapScreenTest {
 
   @Test
   fun multipleEventsCanBeLoadedAndSelected() {
+    val user1 = UserTestData.Bob
+    val user2 = UserTestData.Rocky
     val event1 = EventTestData.dummyEvent1
     val event2 = EventTestData.dummyEvent2
 
     runTest {
       fakeEventRepository.addEvent(event1)
       fakeEventRepository.addEvent(event2)
+      fakeUserRepository.addUser(user1)
+      fakeUserRepository.addUser(user2)
     }
 
     composeTestRule.setContentWithStubBackdrop {
