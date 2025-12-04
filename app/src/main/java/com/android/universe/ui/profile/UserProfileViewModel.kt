@@ -50,11 +50,16 @@ data class UserProfileUIState(
  * @param eventRepository The repository to fetch user events from.
  */
 class UserProfileViewModel(
+    private val uid: String,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository
 ) : ViewModel() {
   private val _userState = MutableStateFlow(UserProfileUIState())
   val userState: StateFlow<UserProfileUIState> = _userState.asStateFlow()
+
+  init {
+    loadUser()
+  }
 
   /**
    * Loads a user's profile from the repository.
@@ -62,7 +67,7 @@ class UserProfileViewModel(
    * @param uid The uid of the user to load. Silently fails if the user is not found which should
    *   never happen.
    */
-  fun loadUser(uid: String) {
+  private fun loadUser() {
     viewModelScope.launch {
       try {
         val userProfile = userRepository.getUser(uid)
@@ -71,7 +76,7 @@ class UserProfileViewModel(
             _userState.value.copy(
                 userProfile = userProfile, age = calculateAge(userProfile.dateOfBirth))
 
-        loadUserEvents(uid)
+        loadUserEvents()
       } catch (e: Exception) {
         Log.e("UserProfileViewModel", "User $uid not found", e)
         setErrorMsg("Username not Found")
@@ -84,7 +89,7 @@ class UserProfileViewModel(
    *
    * @param uid The unique identifier of the user.
    */
-  private suspend fun loadUserEvents(uid: String) {
+  private suspend fun loadUserEvents() {
     try {
       val rawEvents = eventRepository.getUserInvolvedEvents(uid)
       val now = LocalDateTime.now()
