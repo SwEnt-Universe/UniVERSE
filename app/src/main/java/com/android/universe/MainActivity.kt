@@ -1,5 +1,6 @@
 package com.android.universe
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -103,6 +104,7 @@ class MainActivity : ComponentActivity() {
  *
  * This composable sets up the navigation for the app using a [NavHost].
  */
+@SuppressLint("LocalContextResourcesRead")
 @Composable
 fun UniverseApp(
     context: Context = LocalContext.current,
@@ -382,7 +384,10 @@ fun UniverseApp(
 
             // --- Main Event Creation Screen ---
             composable(NavigationScreens.EventCreation.route) { entry ->
-              val vm: EventCreationViewModel = viewModel(entry)
+              val vm: EventCreationViewModel =
+                  viewModel(
+                      viewModelStoreOwner = entry,
+                      factory = EventCreationViewModel.provideFactory(context))
 
               UniverseBackgroundContainer(bitmap) {
                 EventCreationScreen(
@@ -403,7 +408,10 @@ fun UniverseApp(
                     navController.getBackStackEntry(NavigationScreens.EventCreation.route)
                   }
 
-              val vm: EventCreationViewModel = viewModel(parentEntry)
+              val vm: EventCreationViewModel =
+                  viewModel(
+                      viewModelStoreOwner = parentEntry,
+                      factory = EventCreationViewModel.provideFactory(context))
 
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
