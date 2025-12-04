@@ -9,9 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.universe.model.chat.Message
@@ -41,20 +39,19 @@ object MessageListTestTags {
 @Composable
 fun MessageList(userID: String, messages: List<Message>, modifier: Modifier, vm: ChatUIViewModel) {
   val listState = rememberLazyListState()
-  var isFirstLoad by remember { mutableStateOf(true) }
   val isScrolledToEnd by remember { derivedStateOf { listState.isScrolledToEnd() } }
 
   LaunchedEffect(messages.size) {
     val lastMessageIsFromUser = messages.lastOrNull()?.senderID == userID
-    if (messages.isNotEmpty() && (isScrolledToEnd || isFirstLoad || lastMessageIsFromUser)) {
-      listState.animateScrollToItem(index = messages.size - 1)
-      isFirstLoad = false
+    if (messages.isNotEmpty() && (isScrolledToEnd || lastMessageIsFromUser)) {
+      listState.animateScrollToItem(index = 0)
     }
   }
 
   LazyColumn(
       modifier = modifier.testTag(MessageListTestTags.LIST),
       state = listState,
+      reverseLayout = true,
       verticalArrangement = Arrangement.Bottom) {
         itemsIndexed(messages, key = { _, message -> message.messageID }) { _, message ->
           MessageItem(
@@ -89,6 +86,5 @@ fun timeStampToDisplayTime(timestamp: Timestamp): String {
  */
 private fun LazyListState.isScrolledToEnd(): Boolean {
   val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-  val totalItems = layoutInfo.totalItemsCount
-  return lastVisible >= totalItems - 2 // threshold of 1-2 items
+  return lastVisible <= 2 // threshold of 1-2 items
 }
