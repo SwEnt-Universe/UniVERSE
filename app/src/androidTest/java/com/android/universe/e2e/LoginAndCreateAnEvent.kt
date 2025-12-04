@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -189,8 +190,24 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
-
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
+        down(center)
+        advanceEventTime(1_000)
+    }
+    // We use up after the navigation to the event screen test is done
+    composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
+        up()
+    }
     composeTestRule.waitForIdle()
+
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
+    }
+
+
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).performClick()
 
     nextMonth(composeTestRule)
     composeTestRule.waitForIdle()

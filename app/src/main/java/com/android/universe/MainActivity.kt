@@ -388,10 +388,9 @@ fun UniverseApp(
                   }
 
               val vm: EventCreationViewModel = viewModel(parentEntry)
-
+              mapViewModel.setMapMode(MapMode.SELECT_LOCATION)
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
-                  mode = MapMode.SELECT_LOCATION,
                   onTabSelected = {},
                   onNavigateToEventCreation = {
                     navController.navigate(NavigationScreens.EventCreation.route)

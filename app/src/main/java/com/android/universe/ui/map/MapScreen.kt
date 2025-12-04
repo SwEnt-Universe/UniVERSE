@@ -7,9 +7,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +37,7 @@ import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
 import com.tomtom.sdk.location.GeoPoint
 
 object MapScreenTestTags {
@@ -72,9 +75,6 @@ enum class MapMode {
  * @param preselectedLocation An optional location to preselect and focus on when the map loads.
  * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
  *   title as parameters.
- * @param mode Determines how the map handles user interaction (`NORMAL` or `SELECT_LOCATION`).
- * @param createEvent A callback function invoked when creating a new event at specified latitude
- *   and longitude.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
  *   ViewModel instance initialized with necessary repositories.
  */
@@ -87,7 +87,6 @@ fun MapScreen(
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    mode: MapMode = MapMode.NORMAL,
     onLocationSelected: (Double, Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
@@ -111,13 +110,13 @@ fun MapScreen(
             val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
             val coarseLocationGranted =
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
-            if (fineLocationGranted && coarseLocationGranted) {
+            if (fineLocationGranted && coarseLocationGranted && uiState.isMapInteractive) {
               viewModel.onPermissionGranted()
             }
           })
 
-  LaunchedEffect(Unit) {
-    viewModel.initData(uid) // Start polling, etc.
+  LaunchedEffect(uiState.isMapInteractive) {
+    viewModel.init(uid, onLocationSelected) // Start polling, etc.
     val hasFine =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
@@ -125,7 +124,7 @@ fun MapScreen(
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
 
-    if (hasFine && hasCoarse) {
+    if (hasFine && hasCoarse && uiState.isMapInteractive) {
       viewModel.onPermissionGranted()
     } else {
       permissionLauncher.launch(
@@ -168,22 +167,7 @@ fun MapScreen(
       }) { padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
-          Box(
-              modifier =
-                  Modifier.align(Alignment.BottomStart)
-                      .padding(
-                          bottom = padding.calculateBottomPadding(),
-                          start = com.android.universe.ui.theme.Dimensions.PaddingExtraLarge)) {
-                LiquidButton(
-                    onClick = { showMapModal = true },
-                    height = 56f,
-                    width = 56f,
-                    modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                      Text(
-                          "+",
-                          color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
-                    }
-              }
+          AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
           // Overlays
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -236,6 +220,26 @@ private fun MapBox(
       contentAlignment = contentAlignment,
       propagateMinConstraints = propagateMinConstraints,
       content = content)
+}
+
+@Composable
+private fun AddEventButton(onClick: () -> Unit, boxScope: BoxScope, padding: PaddingValues) {
+  boxScope.apply {
+    Box(
+        modifier =
+            Modifier.align(Alignment.BottomStart)
+                .padding(
+                    bottom = padding.calculateBottomPadding(),
+                    start = Dimensions.PaddingExtraLarge)) {
+          LiquidButton(
+              onClick = onClick,
+              height = 56f,
+              width = 56f,
+              modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                Text("+", color = MaterialTheme.colorScheme.onBackground)
+              }
+        }
+  }
 }
 
 @Preview

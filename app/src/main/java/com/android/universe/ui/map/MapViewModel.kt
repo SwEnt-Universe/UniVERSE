@@ -76,6 +76,7 @@ data class MapUiState(
     val selectedLocation: GeoPoint? = null,
     val isLocationPermissionGranted: Boolean = false,
     val isMapInteractive: Boolean = false,
+    val mapMode: MapMode = MapMode.NORMAL,
 
     // Defaults to Lausanne
     val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
@@ -135,6 +136,10 @@ class MapViewModel(
 
   @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
   private val CACHE_SIZE = 50L * 1024 * 1024
+
+  fun setMapMode(mapMode: MapMode) {
+    _uiState.update { it.copy(mapMode = mapMode) }
+  }
 
   fun getMapInstance(): MapView {
     if (tomtomMapView == null) {
@@ -200,15 +205,21 @@ class MapViewModel(
   private lateinit var currentUserId: String
 
   /** Initializes data loading and starts event polling. */
-  fun initData(uid: String) {
+  fun init(uid: String, locationSelectedCallback: (Double, Double) -> Unit) {
     // Temporary until the filtering of event works well.
     currentUserId = uid
+    if (uiState.value.isMapInteractive)
+        tomTomMap!!.setMapLongClickListener(
+            mode = uiState.value.mapMode,
+            onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
+            onLocationSelected = locationSelectedCallback)
     loadAllEvents()
     startEventPolling()
   }
 
   /** Handles permission grant by loading location and starting tracking. */
   fun onPermissionGranted() {
+    tomTomMap!!.initLocationProvider(locationProvider)
     loadLastKnownLocation()
     startLocationTracking()
   }
@@ -237,8 +248,8 @@ class MapViewModel(
       setInitialCamera(uiState.value.cameraPosition, uiState.value.zoomLevel)
       setAntialiasingMethod(AntialiasingMethod.FastApproximateAntialiasing)
       setUpMapListeners(
+          mode = uiState.value.mapMode,
           onMapClick = { onMapClick() },
-          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
           onMarkerClick = { marker ->
             markerToEvent[marker.tag]?.let { event: Event ->
               onMarkerClick(event)
@@ -248,10 +259,6 @@ class MapViewModel(
           onCameraChange = { pos, zoom -> onCameraStateChange(pos, zoom) })
 
       setMarkerSettings()
-      if (uiState.value.isLocationPermissionGranted) {
-        enableLocationMarker(LocationMarkerOptions(type = LocationMarkerOptions.Type.Chevron))
-        initLocationProvider(locationProvider)
-      }
     }
 
     nowInteractable()
@@ -267,19 +274,19 @@ class MapViewModel(
   }
 
   private fun TomTomMap.setUpMapListeners(
+      mode: MapMode,
       onMapClick: () -> Unit,
-      onMapLongClick: (GeoPoint) -> Unit,
       onMarkerClick: (Marker) -> Boolean,
       onCameraChange: (GeoPoint, Double) -> Unit
   ) {
 
     this.addMapClickListener {
-      onMapClick()
-      true
-    }
-
-    this.addMapLongClickListener { geoPoint ->
-      onMapLongClick(geoPoint)
+      when (mode) {
+        MapMode.NORMAL -> onMapClick()
+        else -> {
+          /* Nothing */
+        }
+      }
       true
     }
 
@@ -287,6 +294,20 @@ class MapViewModel(
 
     this.addCameraSteadyListener {
       onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
+    }
+  }
+
+  private fun TomTomMap.setMapLongClickListener(
+      mode: MapMode,
+      onMapLongClick: (GeoPoint) -> Unit,
+      onLocationSelected: (Double, Double) -> Unit
+  ) {
+    this.addMapLongClickListener { geoPoint ->
+      when (mode) {
+        MapMode.NORMAL -> onMapLongClick(geoPoint)
+        MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+      }
+      true
     }
   }
 
