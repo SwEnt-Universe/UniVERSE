@@ -2,6 +2,7 @@ package com.android.universe.ui.profile
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -287,7 +289,9 @@ fun ProfileHeaderOverlay(
 ) {
   Column(
       modifier =
-          Modifier.fillMaxWidth().offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }) {
+          Modifier.fillMaxWidth()
+              .offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }
+              .pointerInput(Unit) { detectHorizontalDragGestures { _, _ -> } }) {
         Box(
             modifier =
                 Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->

@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import com.android.universe.di.DefaultDP
+import com.android.universe.ui.theme.Dimensions.Padding2XL
 import com.android.universe.ui.utils.toImageBitmap
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -61,7 +61,7 @@ fun ImageDisplay(
           imageVector = Icons.Outlined.Image,
           contentDescription = contentDescription,
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(48.dp))
+          modifier = Modifier.size(Padding2XL))
     }
   }
 }
