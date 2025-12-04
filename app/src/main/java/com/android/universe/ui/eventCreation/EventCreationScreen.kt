@@ -7,20 +7,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
-import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,7 +38,6 @@ import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
-import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.LiquidImagePicker
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
@@ -59,16 +54,12 @@ object EventCreationTestTags {
     const val EVENT_TIME_TEXT_FIELD = "EventTimeTextField"
     const val EVENT_PICTURE_PICKER = "EventPicturePicker"
     const val CREATION_EVENT_TITLE = "CreationEventTitle"
-    const val AI_BUTTON = "AiButton"
 }
 
 object EventCreationDefaults {
     val eventPictureBoxHeight = 270.dp
     val eventBoxCornerRadius = 24.dp
     val titleFontSize = 32.sp
-    const val AI_BUTTON_HEIGHT = 40f
-    const val AI_BUTTON_WIDTH = 40f
-    val aiIconSize = 20.dp
 }
 
 /**
@@ -145,33 +136,16 @@ fun EventCreationScreen(
                             Modifier.padding(
                                 vertical = Dimensions.PaddingMedium,
                                 horizontal = Dimensions.PaddingLarge)) {
-                        Row(
+                        Text(
                             modifier =
                                 Modifier.fillMaxWidth()
-                                    .padding(vertical = Dimensions.PaddingMedium)) {
-                            Text(
-                                modifier =
-                                    Modifier.weight(1f)
-                                        .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
-                                text = "Create an Event",
-                                style =
-                                    MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold),
-                                fontSize = EventCreationDefaults.titleFontSize)
-                            LiquidButton(
-                                onClick = { onAiClick() },
-                                height = EventCreationDefaults.AI_BUTTON_HEIGHT,
-                                width = EventCreationDefaults.AI_BUTTON_WIDTH,
-                                contentPadding = Dimensions.PaddingSmall) {
-                                Icon(
-                                    imageVector = Icons.Default.AutoFixHigh,
-                                    contentDescription = "IA event completion",
-                                    tint = MaterialTheme.colorScheme.onBackground,
-                                    modifier =
-                                        Modifier.size(EventCreationDefaults.aiIconSize)
-                                            .testTag(EventCreationTestTags.AI_BUTTON))
-                            }
-                        }
+                                    .padding(vertical = Dimensions.PaddingMedium)
+                                    .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
+                            text = "Create an Event",
+                            style =
+                                MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold),
+                            fontSize = EventCreationDefaults.titleFontSize)
                         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                         CustomTextField(
                             modifier =
