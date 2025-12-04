@@ -1,13 +1,13 @@
 package com.android.universe.ui.profileCreation
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
+import com.android.universe.di.DispatcherProvider
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -21,8 +21,6 @@ import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validateUsername
-import com.android.universe.ui.theme.Dimensions
-import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -103,14 +101,41 @@ data class AddProfileUIState(
  * It validates user input, handles error messages, and communicates with the [UserRepository] to
  * persist the new [UserProfile].
  *
- * UI should collect [uiState] to observe changes in real time.
- *
  * @param repository The data source handling user-related operations.
- * @constructor Creates a new instance with an injected [UserRepository].
+ * @param imageManager The manager used to resize and compress images.
+ * @param dispatcherProvider The provider for coroutine dispatchers.
  */
 open class AddProfileViewModel(
     private val repository: UserRepository = UserRepositoryProvider.repository,
+    private val imageManager: ImageBitmapManager,
+    private val dispatcherProvider: DispatcherProvider = DefaultDP
 ) : ViewModel() {
+
+  companion object {
+    /**
+     * Factory to create an instance of [AddProfileViewModel].
+     *
+     * This factory is required to inject the [Context] needed for [ImageBitmapManager] and the
+     * repositories into the ViewModel.
+     *
+     * @param context The context used to initialize the image manager.
+     * @param repository The repository for user storage.
+     */
+    fun provideFactory(
+        context: Context,
+        repository: UserRepository = UserRepositoryProvider.repository
+    ): ViewModelProvider.Factory =
+        object : ViewModelProvider.Factory {
+          @Suppress("UNCHECKED_CAST")
+          override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return AddProfileViewModel(
+                repository = repository,
+                imageManager = ImageBitmapManager(context.applicationContext),
+                dispatcherProvider = DefaultDP)
+                as T
+          }
+        }
+  }
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
   private val _uiState = MutableStateFlow(AddProfileUIState())
@@ -237,51 +262,32 @@ open class AddProfileViewModel(
     _uiState.update { it.copy(year = finalYear) }
   }
 
-  fun setProfilePicture(context: Context, uri: Uri?) {
+  /**
+   * Updates the user's profile picture in the UI state.
+   *
+   * If a non-null [uri] is provided, this method launches a coroutine on the IO dispatcher to
+   * resize and compress the image via [ImageBitmapManager]. The resulting [ByteArray] is then
+   * updated in the state on the main thread.
+   *
+   * If [uri] is `null`, the current profile picture is removed from the state immediately.
+   *
+   * @param uri The [Uri] of the selected image, or `null` to clear the current picture.
+   */
+  fun setProfilePicture(uri: Uri?) {
     if (uri == null) {
-      _uiState.value = uiState.value.copy(profilePicture = null)
+      _uiState.update { it.copy(profilePicture = null) }
     } else {
-      viewModelScope.launch(DefaultDP.io) {
-        // We redimension the image to have a 256256 image to reduce the space of the
-        // image.
-        val maxSize = Dimensions.ProfilePictureSize
-
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-
-        context.contentResolver.openInputStream(uri)?.use { input ->
-          BitmapFactory.decodeStream(input, null, options)
-        }
-
-        val (height: Int, width: Int) = options.run { outHeight to outWidth }
-        var inSampleSize = 1
-        if (height > maxSize || width > maxSize) {
-          val halfHeight = height / 2
-          val halfWidth = width / 2
-          while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
-            inSampleSize = 2
-          }
-        }
-
-        options.inSampleSize = inSampleSize
-        options.inJustDecodeBounds = false
-
-        val bitmap =
-            context.contentResolver.openInputStream(uri)?.use { input ->
-              BitmapFactory.decodeStream(input, null, options)
-            }
-
-        if (bitmap == null) {
-          Log.e("ImageError", "Failed to decode bitmap from URI $uri")
-        } else {
-          val stream = ByteArrayOutputStream()
-          // We compress the image with a low quality to reduce the space of the image.
-          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-          val byteArray = stream.toByteArray()
-          withContext(DefaultDP.main) {
-            _uiState.value = uiState.value.copy(profilePicture = byteArray)
-          }
+      viewModelScope.launch(dispatcherProvider.io) {
+        val byteArray = imageManager.resizeAndCompressImage(uri)
+        withContext(dispatcherProvider.main) {
+          _uiState.update { it.copy(profilePicture = byteArray) }
         }
       }
     }
+  }
+
+  /** Removes the current profile picture. */
+  fun deleteProfilePicture() {
+    _uiState.update { it.copy(profilePicture = null) }
   }
 }

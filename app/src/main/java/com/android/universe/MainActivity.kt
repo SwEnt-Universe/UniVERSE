@@ -56,6 +56,7 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.navigation.resolveUserDestinationScreen
 import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileCreation.AddProfile
+import com.android.universe.ui.profileCreation.AddProfileViewModel
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
@@ -163,6 +164,9 @@ fun UniverseApp(
           route = NavigationScreens.AddProfile.name,
       ) {
         composable(NavigationScreens.AddProfile.route) {
+          val vm: AddProfileViewModel =
+              viewModel(factory = AddProfileViewModel.provideFactory(context))
+
           UniverseBackgroundContainer(bitmap) {
             AddProfile(
                 uid = authInstance.currentUser!!.uid,
@@ -172,7 +176,8 @@ fun UniverseApp(
                   navController.navigate(NavigationScreens.SignIn.route) {
                     popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
                   }
-                })
+                },
+                viewModel = vm)
           }
         }
       }
