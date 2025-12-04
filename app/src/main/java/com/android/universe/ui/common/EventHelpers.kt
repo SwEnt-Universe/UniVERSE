@@ -120,7 +120,7 @@ fun ParticipantsAuthorColumn(
       HorizontalDivider(
           modifier = Modifier.padding(vertical = Dimensions.SpacerSmall).width(80.dp),
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          thickness = 1.8.dp)
+          thickness = Dimensions.CardDividerThickness)
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_CREATOR}_$eventId"),
           text = "by $creator",
@@ -139,7 +139,7 @@ fun ParticipantsAuthorColumn(
       VerticalDivider(
           modifier = Modifier.height(20.dp).padding(horizontal = Dimensions.SpacerSmall),
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          thickness = 1.8.dp)
+          thickness = Dimensions.CardDividerThickness)
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_CREATOR}_$eventId"),
           text = "by $creator",

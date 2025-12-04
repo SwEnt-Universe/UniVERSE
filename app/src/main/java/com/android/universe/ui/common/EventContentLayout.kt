@@ -26,6 +26,9 @@ import com.android.universe.ui.theme.Dimensions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+private val dateFormatter = DateTimeFormatter.ofPattern("dd MMM")
+private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
+
 /**
  * Displays the main content layout of an Event object (Card or Popup).
  *
@@ -80,7 +83,7 @@ fun EventContentLayout(
                 onClick = {}) {
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = date.format(DateTimeFormatter.ofPattern("dd MMM")),
+                        text = date.format(dateFormatter),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White,
                         maxLines = 1,
@@ -88,7 +91,7 @@ fun EventContentLayout(
                         modifier = Modifier.testTag("${EventContentTestTags.EVENT_DATE}_$eventId"))
                     Spacer(Modifier.width(Dimensions.SpacerSmall))
                     Text(
-                        text = date.format(DateTimeFormatter.ofPattern("hh:mm a")),
+                        text = date.format(timeFormatter),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White,
                         maxLines = 1,
