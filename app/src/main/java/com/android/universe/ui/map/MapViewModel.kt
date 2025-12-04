@@ -67,6 +67,8 @@ private const val KEY_CAMERA_LAT = "camera_latitude"
 private const val KEY_CAMERA_LON = "camera_longitude"
 private const val KEY_CAMERA_ZOOM = "camera_zoom"
 private const val CACHE_SIZE = 50L * 1024 * 1024
+private const val DEFAULT_ZOOM = 15.0
+private const val DEFAULT_TILT = 45.0
 
 /** UI state for the Map screen. */
 data class MapUiState(
@@ -267,8 +269,9 @@ class MapViewModel(
    * @param target Destination coordinates.
    * @param currentZoom Current zoom level to maintain or adjust.
    */
-  fun onCameraMoveRequest(target: GeoPoint, currentZoom: Double) {
-    viewModelScope.launch { _mapActions.send(MapAction.MoveCamera(target, currentZoom)) }
+  fun onCameraMoveRequest(target: GeoPoint) {
+      if (tomTomMap == null) return
+      tomTomMap!!.moveCamera(CameraOptions(target, zoom = DEFAULT_ZOOM, tilt = DEFAULT_TILT))
   }
 
   /**

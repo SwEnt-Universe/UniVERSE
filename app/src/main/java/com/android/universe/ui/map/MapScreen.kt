@@ -149,7 +149,7 @@ fun MapScreen(
   LaunchedEffect(preselectedEventId, preselectedLocation) {
     if (preselectedEventId != null && preselectedLocation != null) {
       val target = GeoPoint(preselectedLocation.latitude, preselectedLocation.longitude)
-      viewModel.onCameraMoveRequest(target, uiState.zoomLevel)
+      viewModel.onCameraMoveRequest(target)
 
       // --- Select event to show popup ---
       val matched = uiState.markers.firstOrNull { it.event.id == preselectedEventId }?.event

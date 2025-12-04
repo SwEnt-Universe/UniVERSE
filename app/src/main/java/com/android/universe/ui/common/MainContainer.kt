@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
 import com.android.universe.ui.common.CommonBackground.BACKGROUND
 import com.android.universe.ui.map.MapBackground
 import com.android.universe.ui.map.MapViewModel
@@ -15,7 +14,6 @@ import com.kyant.backdrop.backdrops.layerBackdrop
 
 object CommonBackground {
   const val BACKGROUND = "background"
-  val BLURVALUE = 8.dp
 }
 
 /**
