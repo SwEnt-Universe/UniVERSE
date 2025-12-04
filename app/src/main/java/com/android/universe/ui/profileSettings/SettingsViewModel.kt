@@ -1,16 +1,17 @@
 package com.android.universe.ui.profileSettings
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
+import com.android.universe.di.DispatcherProvider
 import com.android.universe.model.CountryData.countryToIsoCode
 import com.android.universe.model.authentication.AuthModel
 import com.android.universe.model.authentication.AuthModelFirebase
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.isoToCountryName
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagTemporaryRepository
@@ -29,9 +30,7 @@ import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
-import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
-import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -103,8 +102,46 @@ class SettingsViewModel(
     private val uid: String,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val authModel: AuthModel = AuthModelFirebase(),
-    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
+    private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
+    private val imageManager: ImageBitmapManager,
+    private val dispatcherProvider: DispatcherProvider = DefaultDP
 ) : ViewModel() {
+
+  companion object {
+    /**
+     * Factory to create an instance of [SettingsViewModel].
+     *
+     * This factory is required to inject the [Context] needed for [ImageBitmapManager] and the
+     * repositories into the ViewModel.
+     *
+     * @param context The context used to initialize the image manager.
+     * @param uid The user's unique identifier.
+     * @param userRepository The repository for user storage.
+     * @param authModel The authentication model for signing out.
+     * @param tagRepository The repository for tag storage.
+     */
+    fun provideFactory(
+        context: Context,
+        uid: String,
+        userRepository: UserRepository = UserRepositoryProvider.repository,
+        authModel: AuthModel = AuthModelFirebase(),
+        tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
+    ): ViewModelProvider.Factory =
+        object : ViewModelProvider.Factory {
+          @Suppress("UNCHECKED_CAST")
+          override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return SettingsViewModel(
+                uid = uid,
+                userRepository = userRepository,
+                authModel = authModel,
+                tagRepository = tagRepository,
+                imageManager = ImageBitmapManager(context.applicationContext),
+                dispatcherProvider = DefaultDP)
+                as T
+          }
+        }
+  }
+
   private val _uiState = MutableStateFlow(SettingsUiState())
   val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -165,50 +202,25 @@ class SettingsViewModel(
     _uiState.value = _uiState.value.copy(profilePicture = null)
   }
 
-  /** Taken as is from AddProfileViewmodel */
-  fun setProfilePicture(context: Context, uri: Uri?) {
+  /**
+   * Updates the user's profile picture in the UI state.
+   *
+   * If a non-null [uri] is provided, this method launches a coroutine on the IO dispatcher to
+   * resize and compress the image via [ImageBitmapManager]. The resulting [ByteArray] is then
+   * updated in the state on the main thread.
+   *
+   * If [uri] is `null`, the current profile picture is removed from the state immediately.
+   *
+   * @param uri The [Uri] of the selected image, or `null` to clear the current picture.
+   */
+  fun setProfilePicture(uri: Uri?) {
     if (uri == null) {
-      // do nothing
+      _uiState.update { it.copy(profilePicture = null) }
     } else {
-      viewModelScope.launch(DefaultDP.io) {
-        // We redimension the image to have a 256256 image to reduce the space of the
-        // image.
-        val maxSize = Dimensions.ProfilePictureSize
-
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-
-        context.contentResolver.openInputStream(uri)?.use { input ->
-          BitmapFactory.decodeStream(input, null, options)
-        }
-
-        val (height: Int, width: Int) = options.run { outHeight to outWidth }
-        var inSampleSize = 1
-        if (height > maxSize || width > maxSize) {
-          val halfHeight = height / 2
-          val halfWidth = width / 2
-          while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
-            inSampleSize = 2
-          }
-        }
-
-        options.inSampleSize = inSampleSize
-        options.inJustDecodeBounds = false
-
-        val bitmap =
-            context.contentResolver.openInputStream(uri)?.use { input ->
-              BitmapFactory.decodeStream(input, null, options)
-            }
-
-        if (bitmap == null) {
-          Log.e("ImageError", "Failed to decode bitmap from URI $uri")
-        } else {
-          val stream = ByteArrayOutputStream()
-          // We compress the image with a low quality to reduce the space of the image.
-          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-          val byteArray = stream.toByteArray()
-          withContext(DefaultDP.main) {
-            _uiState.value = uiState.value.copy(profilePicture = byteArray)
-          }
+      viewModelScope.launch(dispatcherProvider.io) {
+        val byteArray = imageManager.resizeAndCompressImage(uri)
+        withContext(dispatcherProvider.main) {
+          _uiState.value = uiState.value.copy(profilePicture = byteArray)
         }
       }
     }

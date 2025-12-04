@@ -58,6 +58,7 @@ import com.android.universe.ui.profile.UserProfileScreen
 import com.android.universe.ui.profileCreation.AddProfile
 import com.android.universe.ui.profileCreation.AddProfileViewModel
 import com.android.universe.ui.profileSettings.SettingsScreen
+import com.android.universe.ui.profileSettings.SettingsViewModel
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
@@ -367,9 +368,12 @@ fun UniverseApp(
           route = NavigationScreens.Settings.route,
           arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry ->
             val uid = backStackEntry.arguments?.getString("uid") ?: "0"
+            val vm: SettingsViewModel =
+                viewModel(factory = SettingsViewModel.provideFactory(context, uid))
             UniverseBackgroundContainer(bitmap) {
               SettingsScreen(
                   uid = uid,
+                  viewModel = vm,
                   onBack = {
                     navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
                   },

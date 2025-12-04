@@ -85,7 +85,8 @@ fun SettingsScreen(
     uid: String,
     onBack: () -> Unit = {},
     onConfirm: () -> Unit = {},
-    viewModel: SettingsViewModel = viewModel { SettingsViewModel(uid) },
+    viewModel: SettingsViewModel =
+        viewModel(factory = SettingsViewModel.provideFactory(LocalContext.current, uid)),
     onLogout: () -> Unit = {},
     onAddTag: () -> Unit = {},
     clear: suspend () -> Unit = {}
@@ -94,10 +95,9 @@ fun SettingsScreen(
   val tagState by viewModel.userTags.collectAsState()
   val time = LocalDate.now(ZoneId.of("Europe/Berlin"))
   val bottomSheetSize = 300.dp
-  val context = LocalContext.current
   val launcher =
       rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
-        viewModel.setProfilePicture(context, uri)
+        viewModel.setProfilePicture(uri)
       }
   val showDate = remember { mutableStateOf(false) }
 
