@@ -6,12 +6,12 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
-import filterEvents
 import java.time.LocalDateTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +42,7 @@ data class EventUIState(
     val title: String = "",
     val description: String = "",
     val date: LocalDateTime = LocalDateTime.now(),
-    val tags: List<String> = emptyList(),
+    val tags: List<Tag> = emptyList(),
     val creator: String = "",
     val participants: Int = 0,
     val location: Location = Location(0.0, 0.0),
@@ -212,7 +212,7 @@ class EventViewModel(
         title = title,
         description = description ?: "",
         date = date,
-        tags = tags.map { it.displayName }.take(3),
+        tags = tags.toList(),
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
         participants = participants.size,
         location = location,
@@ -257,18 +257,6 @@ class EventViewModel(
 
   fun setErrorMsg(err: String?) {
     _uiState.value = _uiState.value.copy(errormsg = err)
-  }
-
-  /**
-   * Formats a [UserProfile] into a full name string.
-   *
-   * comment: leaving this in case we want to show the creator on the event card in the future.
-   *
-   * @param user The [UserProfile] of the event creator.
-   * @return A string combining the first and last name.
-   */
-  private fun formatCreator(user: UserProfile): String {
-    return "${user.firstName} ${user.lastName}"
   }
 
   // private mutable flow
