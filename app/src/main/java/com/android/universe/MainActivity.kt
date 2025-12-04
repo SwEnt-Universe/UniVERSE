@@ -409,7 +409,8 @@ fun UniverseApp(
                   },
                   onLocationSelected = { lat, lng ->
                     navController.navigate("eventCreation/$lat/$lng")
-                  })
+                  },
+                  onBack = { navigationActions.goBack() })
             }
 
             // --- Add Tags Screen FOR EVENT---

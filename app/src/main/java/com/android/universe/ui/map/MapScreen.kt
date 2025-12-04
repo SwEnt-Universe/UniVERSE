@@ -19,7 +19,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -56,7 +58,10 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -119,8 +124,9 @@ enum class MapMode {
  * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
  *   title as parameters.
  * @param mode Determines how the map handles user interaction (`NORMAL` or `SELECT_LOCATION`).
- * @param createEvent A callback function invoked when creating a new event at specified latitude
- *   and longitude.
+ * @param onLocationSelected A callback to call when the user select a location during the event
+ *   creation flow.
+ * @param onBack A callback to call when the user click on the back button.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
  *   ViewModel instance initialized with necessary repositories.
  */
@@ -129,6 +135,7 @@ fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
     onNavigateToEventCreation: () -> Unit,
+    onBack: () -> Unit = {},
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
@@ -229,6 +236,14 @@ fun MapScreen(
     }
   }
 
+  val flowTabBack = FlowTab.Back(onClick = { onBack() })
+  val flowTabContinue =
+      FlowTab.Confirm(
+          onClick = {
+            onLocationSelected(
+                uiState.selectedLocation!!.latitude, uiState.selectedLocation!!.longitude)
+          },
+          enabled = uiState.selectedLocation != null)
   // --- 3. UI Structure ---
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
@@ -250,6 +265,8 @@ fun MapScreen(
                 }
                 onTabSelected(tab)
               })
+        } else {
+          FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue))
         }
       }) { padding ->
         Box(
@@ -272,7 +289,6 @@ fun MapScreen(
 
                     map.setUpMapListeners(
                         mode = mode,
-                        onLocationSelected = onLocationSelected,
                         onMapClick = { viewModel.onMapClick() },
                         onMapLongClick = { geo ->
                           viewModel.onMapLongClick(geo.latitude, geo.longitude)
@@ -289,16 +305,23 @@ fun MapScreen(
                     viewModel.nowInteractable()
                   })
               if (mode == MapMode.SELECT_LOCATION) {
-                Text(
-                    "Select you location with a long press",
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(
-                                vertical = Dimensions.PaddingExtraLarge + Dimensions.PaddingLarge,
-                                horizontal = Dimensions.PaddingMedium)
-                            .align(Alignment.TopCenter),
-                    fontSize = 40.sp,
-                    textAlign = TextAlign.Center)
+                LiquidBox(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Dimensions.RoundedCornerLarge),
+                    contentAlignment = Alignment.Center) {
+                      Text(
+                          "Select your location by clicking on the map",
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(
+                                      vertical =
+                                          Dimensions.PaddingExtraLarge + Dimensions.PaddingLarge,
+                                      horizontal = Dimensions.PaddingMedium)
+                                  .align(Alignment.TopCenter),
+                          fontSize = 36.sp,
+                          textAlign = TextAlign.Center,
+                          lineHeight = 40.sp)
+                    }
               }
 
               // TEST BACKDOOR
@@ -311,20 +334,22 @@ fun MapScreen(
                         })
               }
 
-              Box(
-                  modifier =
-                      Modifier.align(Alignment.BottomStart)
-                          .padding(
-                              bottom = padding.calculateBottomPadding(),
-                              start = Dimensions.PaddingExtraLarge)) {
-                    LiquidButton(
-                        onClick = { showMapModal = true },
-                        height = 56f,
-                        width = 56f,
-                        modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                          Text("+", color = MaterialTheme.colorScheme.onBackground)
-                        }
-                  }
+              if (mode == MapMode.NORMAL) {
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.BottomStart)
+                            .padding(
+                                bottom = padding.calculateBottomPadding(),
+                                start = Dimensions.PaddingExtraLarge)) {
+                      LiquidButton(
+                          onClick = { showMapModal = true },
+                          height = 56f,
+                          width = 56f,
+                          modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                            Text("+", color = MaterialTheme.colorScheme.onBackground)
+                          }
+                    }
+              }
 
               // Overlays
               if (uiState.isLoading) {
@@ -450,7 +475,6 @@ private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
 
 private fun TomTomMap.setUpMapListeners(
     mode: MapMode,
-    onLocationSelected: (Double, Double) -> Unit,
     onMapClick: () -> Unit,
     onMapLongClick: (GeoPoint) -> Unit,
     onMarkerClick: (Marker) -> Boolean,
@@ -464,11 +488,7 @@ private fun TomTomMap.setUpMapListeners(
   }
 
   this.addMapLongClickListener { geoPoint ->
-    if (mode == MapMode.SELECT_LOCATION) {
-      onLocationSelected(geoPoint.latitude, geoPoint.longitude)
-    } else {
-      onMapLongClick(geoPoint)
-    }
+    onMapLongClick(geoPoint)
     true
   }
 
