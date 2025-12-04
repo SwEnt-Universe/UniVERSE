@@ -221,7 +221,7 @@ fun UniverseApp(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               onNavigateToEventCreation = {
-                navController.navigate(NavigationScreens.EventCreation.route)
+                  navController.navigate(NavigationScreens.SelectLocation.route)
               },
               onChatNavigate = { chatID, chatName ->
                 navController.navigate(
@@ -248,7 +248,7 @@ fun UniverseApp(
                   uid = authInstance.currentUser!!.uid,
                   onTabSelected = onTabSelected,
                   onNavigateToEventCreation = {
-                    navController.navigate(NavigationScreens.EventCreation.route)
+                      navController.navigate(NavigationScreens.SelectLocation.route)
                   },
                   preselectedEventId = eventId,
                   preselectedLocation = Location(lat, lng),
@@ -381,40 +381,35 @@ fun UniverseApp(
           startDestination = NavigationScreens.EventCreation.route) {
 
             // --- Main Event Creation Screen ---
-            composable(NavigationScreens.EventCreation.route) { entry ->
-              val vm: EventCreationViewModel = viewModel(entry)
+          composable(
+              route = NavigationScreens.EventCreation.route,
+              arguments =
+                  listOf(
+                      navArgument("latitude") { type = NavType.FloatType },
+                      navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
+              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
 
               UniverseBackgroundContainer(bitmap) {
-                EventCreationScreen(
-                    eventCreationViewModel = vm,
-                    onSelectLocation = {
-                      navController.navigate(NavigationScreens.SelectLocation.route)
-                    },
-                    onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
-                    onBack = { navigationActions.goBack() })
+                  EventCreationScreen(
+                      location = Location(latitude.toDouble(), longitude.toDouble()),
+                      onSave = {
+                          navController.navigate(route = NavigationScreens.SelectTagEvent.route)
+                      },
+                      onBack = { navigationActions.goBack() })
               }
-            }
+          }
 
             // --- Location Picker Screen ---
             composable(NavigationScreens.SelectLocation.route) { backStackEntry ->
-              // IMPORTANT: Share parent VM
-              val parentEntry =
-                  remember(backStackEntry) {
-                    navController.getBackStackEntry(NavigationScreens.EventCreation.route)
-                  }
-
-              val vm: EventCreationViewModel = viewModel(parentEntry)
-
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
                   mode = MapMode.SELECT_LOCATION,
                   onTabSelected = {},
                   onNavigateToEventCreation = {
-                    navController.navigate(NavigationScreens.EventCreation.route)
+                      navController.navigate(NavigationScreens.SelectLocation.route)
                   },
-                  onLocationSelected = { lat, lon ->
-                    vm.setLocation(lat, lon)
-                    navController.popBackStack()
+                  onLocationSelected = { lat, lng -> navController.navigate("eventCreation/$lat/$lng")
                   })
             }
 

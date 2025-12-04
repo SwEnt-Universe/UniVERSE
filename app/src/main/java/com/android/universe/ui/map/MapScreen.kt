@@ -230,6 +230,7 @@ fun MapScreen(
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
+          if (mode == MapMode.NORMAL){
         NavigationBottomMenu(
             selectedTab = Tab.Map,
             onTabSelected = { tab ->
@@ -246,6 +247,7 @@ fun MapScreen(
               }
               onTabSelected(tab)
             })
+          }
       }) { padding ->
         Box(
             modifier =
