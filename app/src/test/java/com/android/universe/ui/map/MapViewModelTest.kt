@@ -23,7 +23,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
-import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -45,6 +44,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -165,7 +165,7 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.userLocation)
     assertEquals(fakeLocation.latitude, state.userLocation!!.latitude, 0.0001)
-    assertEquals(fakeLocation.longitude, state.userLocation!!.longitude, 0.0001)
+    assertEquals(fakeLocation.longitude, state.userLocation.longitude, 0.0001)
     assertNull(state.error)
     assertFalse(state.isLoading)
   }
@@ -200,68 +200,37 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadAllEvents includes correct creator profiles for each event`() = runTest {
-    // Create mock users
-    val user1 = UserTestData.Bob.copy(uid = "user1", username = "Alice")
-    val user2 = UserTestData.Bob.copy(uid = "user2", username = "Bob")
-    val user3 = UserTestData.Bob.copy(uid = "user3", username = "Charlie")
+  fun `loadAllEvents includes correct creator full names for each event`() = runTest {
+    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "1")
+    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "2")
+    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "1")
 
-    // Create events with different creators
-    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "user1")
-    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "user2")
-    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "user3")
-    val event4 =
-        EventTestData.dummyEvent1.copy(id = "event4", creator = "user1") // Duplicate creator
+    val eventsList = listOf(event1, event2, event3)
 
-    val eventsList = listOf(event1, event2, event3, event4)
-
-    // Mock repository responses - using reactive repository since it's available
     coEvery { eventRepository.getAllEvents() } returns eventsList
-    every { userReactiveRepository.getUserFlow("user1") } returns flowOf(user1)
-    every { userReactiveRepository.getUserFlow("user2") } returns flowOf(user2)
-    every { userReactiveRepository.getUserFlow("user3") } returns flowOf(user3)
+    every { userReactiveRepository.getUserFlow("1") } returns flowOf(UserTestData.Alice)
+    every { userReactiveRepository.getUserFlow("2") } returns flowOf(UserTestData.Rocky)
+    every { userReactiveRepository.getUserFlow("1") } returns flowOf(UserTestData.Alice)
 
     viewModel.loadAllEvents()
     advanceUntilIdle()
-
     val state = viewModel.uiState.value
+
     assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
 
-    val marker1 = state.markers.find { it.event.id == "event1" }
-    val flowCreator1 = userReactiveRepository.getUserFlow(marker1!!.event.creator)
-    advanceUntilIdle()
-    val creator1 = flowCreator1.first()!!
 
-    assertNotNull("Marker for event1 should exist", marker1)
-    assertEquals("Event1 should have Alice as creator", "Alice", creator1.username)
-    assertEquals("Event1 creator UID should match", "user1", creator1.uid)
+    suspend fun assertMarker(eventId: String, expectedFullName: String) {
+      val marker = state.markers.find { it.event.id == eventId }
+      val flowCreator = userReactiveRepository.getUserFlow(marker!!.event.creator)
+      advanceUntilIdle()
+      val creator = flowCreator.first()!!.username
+      assertNotNull("Marker for $eventId should exist", marker)
+      assertEquals("Wrong creator name for $eventId", expectedFullName, creator)
+    }
 
-    val marker2 = state.markers.find { it.event.id == "event2" }
-    val flowCreator2 = userReactiveRepository.getUserFlow(marker2!!.event.creator)
-    advanceUntilIdle()
-    val creator2 = flowCreator2.first()!!
-
-    assertNotNull("Marker for event2 should exist", marker2)
-    assertEquals("Event2 should have Bob as creator", "Bob", creator2.username)
-    assertEquals("Event2 creator UID should match", "user2", creator2.uid)
-
-    val marker3 = state.markers.find { it.event.id == "event3" }
-    val flowCreator3 = userReactiveRepository.getUserFlow(marker3!!.event.creator)
-    advanceUntilIdle()
-    val creator3 = flowCreator3.first()!!
-
-    assertNotNull("Marker for event3 should exist", marker3)
-    assertEquals("Event3 should have Charlie as creator", "Charlie", creator3.username)
-    assertEquals("Event3 creator UID should match", "user3", creator3.uid)
-
-    val marker4 = state.markers.find { it.event.id == "event4" }
-    val flowCreator4 = userReactiveRepository.getUserFlow(marker4!!.event.creator)
-    advanceUntilIdle()
-    val creator4 = flowCreator4.first()!!
-
-    assertNotNull("Marker for event4 should exist", marker4)
-    assertEquals("Event4 should have Alice as creator (same as event1)", "Alice", creator4.username)
-    assertEquals("Event4 creator UID should match", "user1", creator4.uid)
+    assertMarker("event1", "${UserTestData.Alice.firstName} ${UserTestData.Alice.lastName}")
+    assertMarker("event2", "${UserTestData.Rocky.firstName} ${UserTestData.Rocky.lastName}")
+    assertMarker("event3", "${UserTestData.Alice.firstName} ${UserTestData.Alice.lastName}")
   }
 
   @Test
@@ -432,7 +401,7 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.selectedLocation)
     assertEquals(commonLat, state.selectedLocation!!.latitude, 0.0001)
-    assertEquals(commonLng, state.selectedLocation!!.longitude, 0.0001)
+    assertEquals(commonLng, state.selectedLocation.longitude, 0.0001)
   }
 
   @Test

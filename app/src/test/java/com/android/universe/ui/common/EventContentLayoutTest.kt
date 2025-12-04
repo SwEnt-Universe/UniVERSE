@@ -10,11 +10,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.setContentWithStubBackdrop
-import java.time.LocalDateTime
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDateTime
 
 @RunWith(AndroidJUnit4::class)
 class EventContentLayoutTest {
@@ -34,8 +34,7 @@ class EventContentLayoutTest {
       eventId: String = defaultEventId,
       title: String = defaultTitle,
       description: String? = defaultDescription,
-      isUserParticipant: Boolean = true,
-      onLocationClick: (() -> Unit)? = null
+      isUserParticipant: Boolean = true
   ) {
     composeTestRule.setContentWithStubBackdrop {
       EventContentLayout(
@@ -45,6 +44,7 @@ class EventContentLayoutTest {
           date = defaultDate,
           tags = emptyList(),
           participants = defaultParticipants,
+          creator = "Test Creator",
           imageContent = { Box(Modifier.testTag("FAKE_IMAGE")) },
           isUserParticipant = isUserParticipant,
           onToggleEventParticipation = { participationClicked = true },
@@ -73,11 +73,23 @@ class EventContentLayoutTest {
         .assertExists()
 
     composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_DATE}_$defaultEventId")
+        .onNodeWithTag("${EventContentTestTags.EVENT_DATE}_$defaultEventId", useUnmergedTree = true)
         .assertExists()
 
     composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_TIME}_$defaultEventId")
+        .onNodeWithTag("${EventContentTestTags.EVENT_CREATOR}_$defaultEventId")
+        .assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${EventContentTestTags.EVENT_TIME}_$defaultEventId", useUnmergedTree = true)
+        .assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$defaultEventId")
+        .assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${EventContentTestTags.EVENT_TAGS}_$defaultEventId")
         .assertExists()
   }
 

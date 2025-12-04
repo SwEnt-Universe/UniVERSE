@@ -185,7 +185,6 @@ fun MapScreen(
             EventInfoPopup(
                 modifier = Modifier.padding(padding),
                 event = event,
-                isUserParticipant = viewModel.isUserParticipant(event),
                 onDismiss = { viewModel.selectEvent(null) },
                 onChatNavigate = onChatNavigate,
                 onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })

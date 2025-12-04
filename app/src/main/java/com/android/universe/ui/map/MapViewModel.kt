@@ -482,13 +482,21 @@ class MapViewModel(
 
           combine(
                   distinctCreators.map { uid ->
-                    userReactiveRepository.getUserFlow(uid).map { uid to it }
-                  }) {
-                    events.map { event -> mapEventToMarker(event) }
+                    userReactiveRepository.getUserFlow(uid).map { user ->
+                      uid to "${user?.firstName} ${user?.lastName}"
+                    }
+                  }) { userPairs ->
+                    val usersMap = userPairs.toMap()
+                    events.map { event -> mapEventToMarker(event, usersMap[event.creator]) }
                   }
               .collect { markers -> _uiState.update { it.copy(markers = markers) } }
         } else {
-          val markers = events.map { event -> mapEventToMarker(event) }
+          val markers =
+              events.map { event ->
+                val user = userRepository.getUser(event.creator)
+                val creatorName = "${user.firstName} ${user.lastName}"
+                mapEventToMarker(event, creatorName)
+              }
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
