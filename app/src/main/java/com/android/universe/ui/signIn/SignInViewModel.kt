@@ -22,6 +22,8 @@ import com.android.universe.model.authentication.SIGN_IN_FAILED_EXCEPTION_MESSAG
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.common.validateEmail
 import com.android.universe.ui.common.validatePassword
+import com.android.universe.ui.signIn.SignInErrorMessage.INVALID_PASSWORD
+import com.android.universe.ui.signIn.SignInErrorMessage.NO_INTERNET
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -51,6 +53,12 @@ enum class OnboardingState {
 object SignInMethod {
   const val GOOGLE = "google.com"
   const val EMAIL = "password"
+}
+
+/** Represents the different error messages present in sign in. */
+object SignInErrorMessage {
+  const val INVALID_PASSWORD = "Invalid password"
+  const val NO_INTERNET = "No internet connection"
 }
 
 /**
@@ -303,7 +311,7 @@ class SignInViewModel(
         _uiState.update { it.copy(errorMsg = tr.reason, isLoading = false) }
       }
       is FirebaseAuthInvalidCredentialsException -> {
-        _uiState.update { it.copy(errorMsg = "Invalid password", isLoading = false) }
+        _uiState.update { it.copy(errorMsg = INVALID_PASSWORD, isLoading = false) }
       }
       is InvalidEmailException -> {
         _uiState.update {
@@ -311,7 +319,7 @@ class SignInViewModel(
         }
       }
       is FirebaseNetworkException -> {
-        _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
+        _uiState.update { it.copy(errorMsg = NO_INTERNET, isLoading = false) }
       }
       else -> {
         Log.e(TAG, tr.localizedMessage, tr)
@@ -378,7 +386,7 @@ class SignInViewModel(
             }
         _uiState.update { it.copy(onboardingState = nextState, isLoading = false) }
       } catch (_: FirebaseNetworkException) {
-        _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
+        _uiState.update { it.copy(errorMsg = NO_INTERNET, isLoading = false) }
       }
     }
   }
