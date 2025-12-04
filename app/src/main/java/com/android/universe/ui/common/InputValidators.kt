@@ -1,6 +1,5 @@
 package com.android.universe.ui.common
 
-import com.android.universe.model.location.Location
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
