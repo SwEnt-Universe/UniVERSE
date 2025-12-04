@@ -31,6 +31,8 @@ enum class SelectTagMode {
  *
  * UI should collect [uiStateTags] to observe changes in real time.
  *
+ * @param uid The unique identifier of the user.
+ * @param mode The mode of the screen.
  * @param userRepository The data source handling user-related operations. Defaults to
  *   UserRepositoryProvider.repository
  * @param tagRepository The repository for the tags. Used only if the mode is EVENT_CREATION.
@@ -56,7 +58,7 @@ class SelectTagViewModel(
 
   init {
     eventTagRepositoryObserving()
-    loadTags(uid)
+    loadTags()
   }
 
   /**
@@ -109,10 +111,8 @@ class SelectTagViewModel(
   /**
    * Updates the selectedTags value by replacing it with the tags already selected in the
    * userProfile.
-   *
-   * @param uid the uid of the current user.
    */
-  private fun loadTags(uid: String) {
+  private fun loadTags() {
     viewModelScope.launch {
       when (mode) {
         SelectTagMode.USER_PROFILE -> {

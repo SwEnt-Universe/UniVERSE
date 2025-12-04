@@ -46,6 +46,7 @@ data class UserProfileUIState(
 /**
  * ViewModel for managing user profiles. Notably loading a user's profile from the repository.
  *
+ * @param uid The unique identifier of the user to load.
  * @param userRepository The repository to fetch user profiles from.
  * @param eventRepository The repository to fetch user events from.
  */
@@ -61,12 +62,7 @@ class UserProfileViewModel(
     loadUser()
   }
 
-  /**
-   * Loads a user's profile from the repository.
-   *
-   * @param uid The uid of the user to load. Silently fails if the user is not found which should
-   *   never happen.
-   */
+  /** Loads a user's profile from the repository. */
   private fun loadUser() {
     viewModelScope.launch {
       try {
