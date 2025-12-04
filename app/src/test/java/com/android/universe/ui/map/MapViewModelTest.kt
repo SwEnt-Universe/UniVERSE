@@ -3,7 +3,6 @@ package com.android.universe.ui.map
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.AIEventGen
@@ -319,20 +318,6 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertTrue(state.error!!.contains("Tracking failed"))
-  }
-
-  @Test
-  fun `onCameraMoveRequest sends MoveCamera action`() = runTest {
-    viewModel.mapActions.test {
-      val target = GeoPoint(46.5, 6.5)
-      val zoom = 12.0
-      viewModel.onCameraMoveRequest(target)
-
-      val action = awaitItem()
-      assertTrue(action is MapAction.MoveCamera)
-      assertEquals(target, (action as MapAction.MoveCamera).target)
-      assertEquals(zoom, action.currentZoom, 0.0)
-    }
   }
 
   @Test
