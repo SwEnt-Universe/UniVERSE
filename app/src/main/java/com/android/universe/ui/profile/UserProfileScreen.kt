@@ -268,7 +268,6 @@ fun ProfileEventList(
  * @param headerOffsetPx The current vertical offset (in pixels) calculated by the parent
  *   controller.
  * @param userProfile The user data model.
- * @param userImage The bitmap of the user's profile picture.
  * @param pagerState The state of the pager (passed to the tabs).
  * @param gapHeightDp The spacing between the profile info and the tabs.
  * @param onProfileHeightMeasured Callback to report the height of the profile info block to the
