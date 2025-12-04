@@ -1,4 +1,5 @@
-import com.android.universe.ui.event.EventUIState
+package com.android.universe.ui.event
+
 import com.android.universe.ui.search.SearchEngine
 
 /**
@@ -25,7 +26,8 @@ internal fun filterEvents(events: List<EventUIState>, query: String): List<Event
   if (query.isBlank()) return events
 
   return events.filter { event ->
-    val fields = listOf(event.title, event.description, event.creator) + event.tags
+    val fields =
+        listOf(event.title, event.description, event.creator) + event.tags.map { it.displayName }
     fields.any { field ->
       field.contains(query, ignoreCase = true) || SearchEngine.fuzzyMatch(field, query)
     }

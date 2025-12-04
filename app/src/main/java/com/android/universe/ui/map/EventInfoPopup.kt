@@ -33,6 +33,7 @@ import java.time.LocalDateTime
  * inside a LiquidBottomSheet with slide-in/out animations.
  *
  * @param event The [Event] object containing event details to be displayed.
+ * @param creator The name of the event creator.
  * @param isUserParticipant Boolean indicating if the user is a participant of the event.
  * @param onDismiss Callback function invoked when the popup is dismissed.
  * @param onToggleEventParticipation Callback function invoked when the user toggles their
@@ -43,6 +44,7 @@ import java.time.LocalDateTime
 fun EventInfoPopup(
     modifier: Modifier = Modifier,
     event: Event,
+    creator: String,
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
@@ -73,6 +75,7 @@ fun EventInfoPopup(
                         date = event.date,
                         tags = event.tags.toList(),
                         participants = event.participants.size,
+                        creator = creator,
                         imageContent = { EventImageHelper(eventImage = event.eventPicture) },
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,
@@ -100,6 +103,7 @@ private fun EventInfoPopUpPreview() {
   CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) {
     EventInfoPopup(
         event = previewEvent,
+        creator = "",
         isUserParticipant = true,
         onDismiss = {},
         onChatNavigate = { _, _ -> }) {}

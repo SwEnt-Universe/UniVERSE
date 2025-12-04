@@ -1,7 +1,6 @@
 package com.android.universe.ui.event
 
 import com.android.universe.ui.search.SearchEngine
-import filterEvents
 import io.mockk.every
 import io.mockk.mockkObject
 import org.junit.Assert.assertEquals
