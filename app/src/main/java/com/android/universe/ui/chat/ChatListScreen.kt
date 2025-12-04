@@ -80,7 +80,7 @@ fun ChatListScreen(
               horizontalAlignment = CenterHorizontally,
               modifier =
                   Modifier.fillMaxSize()
-                      .padding(top = Dimensions.SpacerExtraLarge * 3)
+                      .padding(top = paddingValues.calculateTopPadding())
                       .testTag(CHAT_LIST_COLUMN),
           ) {
             items(items = chatPreviews, key = { it.chatID }) { chatPreview ->

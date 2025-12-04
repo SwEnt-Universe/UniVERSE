@@ -30,7 +30,7 @@ class ScreenLayoutTest {
       MaterialTheme {
         ScreenLayout(
             topBar = { Box(Modifier.testTag("FakeTopBar").height(topBarHeightDp)) },
-            bottomBar = null) { padding ->
+            bottomBar = {}) { padding ->
               receivedPadding = padding.calculateTopPadding()
             }
       }
@@ -93,7 +93,7 @@ class ScreenLayoutTest {
 
     composeTestRule.setContent {
       MaterialTheme {
-        ScreenLayout(topBar = null, bottomBar = null) { padding ->
+        ScreenLayout(topBar = {}, bottomBar = {}) { padding ->
           receivedTop = padding.calculateTopPadding()
           receivedBottom = padding.calculateBottomPadding()
         }
