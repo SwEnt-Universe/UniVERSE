@@ -61,7 +61,7 @@ class Chat(
    * Handles the addition of a new message to the chat.
    *
    * This function is called when the underlying data source signals that a new message has been
-   * added. It appends the new message to the internal `_messages` list, which triggers UI updates
+   * added. It prepends the new message to the internal `_messages` list, which triggers UI updates
    * for observers of the public `messages` property. It also updates the `lastMessage` reference to
    * reflect the most recent message in the conversation.
    *
