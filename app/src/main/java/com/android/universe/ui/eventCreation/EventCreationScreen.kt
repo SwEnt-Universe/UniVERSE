@@ -6,7 +6,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -73,10 +72,8 @@ object EventCreationDefaults {
  * @param eventCreationViewModel the viewModel.
  * @param location the location of the event.
  * @param onSave the callBack to call when the user click on the 'Save Event' button.
- * @param onAiClick the callBack to call when the user click on the 'AI' button.
  * @param onBack the callBack to call when the user click on the back button of the bottom bar.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
