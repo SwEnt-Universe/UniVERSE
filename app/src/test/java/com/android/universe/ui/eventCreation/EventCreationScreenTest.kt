@@ -9,13 +9,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
+import com.android.universe.model.location.Location
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
 import com.android.universe.utils.selectDay
 import com.android.universe.utils.selectYear
 import com.android.universe.utils.setContentWithStubBackdrop
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,7 +40,8 @@ class EventCreationScreenTest {
   fun setUp() {
     viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
     composeTestRule.setContentWithStubBackdrop {
-      EventCreationScreen(eventCreationViewModel = viewModel, onSelectLocation = {}, onSave = {})
+      EventCreationScreen(
+          eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
     }
   }
 
@@ -48,9 +49,6 @@ class EventCreationScreenTest {
   fun eventCreationScreen_displayedCorrectly() {
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_PICTURE_PICKER).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON, useUnmergedTree = true)
-        .assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD).assertIsDisplayed()
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
@@ -94,7 +92,6 @@ class EventCreationScreenTest {
 
   @Test
   fun eventCreationScreen_canEnterDate() {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsDisplayed()

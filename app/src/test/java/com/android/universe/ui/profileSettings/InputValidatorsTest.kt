@@ -22,7 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class ProfileValidatorsTest {
+class InputValidatorsTest {
 
   // A mock map to test country validation
   private val mockCountryMap = mapOf("Switzerland" to "CH", "France" to "FR", "Germany" to "DE")

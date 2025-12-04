@@ -6,27 +6,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
-import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,11 +32,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.location.Location
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
-import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.LiquidImagePicker
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
@@ -59,16 +53,12 @@ object EventCreationTestTags {
   const val EVENT_TIME_TEXT_FIELD = "EventTimeTextField"
   const val EVENT_PICTURE_PICKER = "EventPicturePicker"
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
-  const val SET_LOCATION_BUTTON = "SetLocationButton"
 }
 
 object EventCreationDefaults {
   val eventPictureBoxHeight = 270.dp
   val eventBoxCornerRadius = 24.dp
   val titleFontSize = 32.sp
-  const val SET_LOCATION_BUTTON_HEIGHT = 40f
-  const val SET_LOCATION_BUTTON_WIDTH = 40f
-  val locIconSize = 20.dp
 }
 
 /**
@@ -80,15 +70,14 @@ object EventCreationDefaults {
  * button to save the Event with the parameters that have been selected
  *
  * @param eventCreationViewModel the viewModel.
- * @param onSelectLocation triggers location selection flow
+ * @param location the location of the event.
  * @param onSave the callBack to call when the user click on the 'Save Event' button.
  * @param onBack the callBack to call when the user click on the back button of the bottom bar.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
-    onSelectLocation: () -> Unit,
+    location: Location,
     onSave: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
@@ -98,13 +87,12 @@ fun EventCreationScreen(
       if (uiState.value.date == null) "" else eventCreationViewModel.formatDate(uiState.value.date)
   val showDate = remember { mutableStateOf(false) }
   val flowTabBack = FlowTab.Back(onClick = { onBack() })
-
   val flowTabContinue =
       FlowTab.Confirm(
           onClick = {
             val currentUser = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUser != null) {
-              eventCreationViewModel.saveEvent(uid = currentUser)
+              eventCreationViewModel.saveEvent(location = location, uid = currentUser)
               onSave()
             }
           },
@@ -144,33 +132,16 @@ fun EventCreationScreen(
                         Modifier.padding(
                             vertical = Dimensions.PaddingMedium,
                             horizontal = Dimensions.PaddingLarge)) {
-                      Row(
+                      Text(
                           modifier =
                               Modifier.fillMaxWidth()
-                                  .padding(vertical = Dimensions.PaddingMedium)) {
-                            Text(
-                                modifier =
-                                    Modifier.weight(1f)
-                                        .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
-                                text = "Create an Event",
-                                style =
-                                    MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold),
-                                fontSize = EventCreationDefaults.titleFontSize)
-                            LiquidButton(
-                                onClick = { onSelectLocation() },
-                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
-                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
-                                contentPadding = Dimensions.PaddingSmall,
-                                modifier =
-                                    Modifier.testTag(EventCreationTestTags.SET_LOCATION_BUTTON)) {
-                                  Icon(
-                                      imageVector = Icons.Default.AddLocationAlt,
-                                      contentDescription = "Set location",
-                                      tint = MaterialTheme.colorScheme.onBackground,
-                                      modifier = Modifier.size(EventCreationDefaults.locIconSize))
-                                }
-                          }
+                                  .padding(vertical = Dimensions.PaddingMedium)
+                                  .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
+                          text = "Create an Event",
+                          style =
+                              MaterialTheme.typography.labelLarge.copy(
+                                  fontWeight = FontWeight.Bold),
+                          fontSize = EventCreationDefaults.titleFontSize)
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                       CustomTextField(
                           modifier =

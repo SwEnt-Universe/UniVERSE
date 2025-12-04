@@ -134,64 +134,32 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun createEvent() = runTest {
-    // —————————————————————————————
-    // 1. CLICK CREATE EVENT BUTTON -> CLICK MANUAL CREATE BUTTON -> CLICK SET LOCATION
-    // —————————————————————————————
-    // Wait for + button on map
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
-          }
-          .isSuccess
-    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
+
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
 
-    // Wait for Manual Create button inside the popup modal
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule
-                .onAllNodesWithTag(
-                    MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
-                .onFirst()
-                .assertExists()
-          }
-          .isSuccess
-    }
+    composeTestRule.waitForIdle()
+
+    composeTestRule
+        .onAllNodesWithTag(
+            MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+        .onFirst()
+        .assertExists()
+
     composeTestRule
         .onAllNodesWithTag(
             MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
         .onFirst()
         .performClick()
 
-    // —————————————————————————————————————
-    // 3. SET LOCATION BY CLICKING ON MAP
-    // —————————————————————————————————————
-
-    composeTestRule.waitForIdle()
-    // Click “Set location” button in the creation screen
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
-          }
-          .isSuccess
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
-
     composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
         .performClick()
-    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-    composeTestRule.waitForIdle()
 
-    // —————————————————————————————
-    // 2. OTHER PARAMETERS
-    // —————————————————————————————
-    composeTestRule.waitUntil(64_000L) {
-      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
-    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
 
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
@@ -212,8 +180,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
         .performTextInput(FAKE_EVENT.description!!)
 
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
+
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }

@@ -181,7 +181,6 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
-    viewModel.setLocation(0.0, 0.0)
 
     assertTrue(viewModel.validateAll())
   }
@@ -246,18 +245,6 @@ class EventCreationViewModelTest {
     assertFalse(viewModel.validateAll())
   }
 
-  @Test
-  fun validateAllFailsWithoutLocation() {
-    viewModel.setEventName(SAMPLE_TITLE)
-    viewModel.setEventDescription(SAMPLE_DESCRIPTION)
-    viewModel.setDate(SAMPLE_DATE)
-    viewModel.setTime(SAMPLE_TIME)
-
-    // No location set here
-
-    assertFalse(viewModel.validateAll())
-  }
-
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSaveEvent() = runTest {
@@ -267,14 +254,13 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
-    viewModel.setLocation(0.0, 0.0)
 
     assertEquals(
         viewModel.formatDate(viewModel.uiStateEventCreation.value.date), SAMPLE_DATE_FORMAT)
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123")
+    viewModel.saveEvent(location = Location(0.0, 0.0), uid = "user123")
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
     assert(stockedEvent.title == SAMPLE_TITLE)
