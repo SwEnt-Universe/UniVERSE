@@ -114,14 +114,10 @@ class SelectTagViewModel(
    */
   private fun loadTags() {
     viewModelScope.launch {
-      when (mode) {
-        SelectTagMode.USER_PROFILE -> {
-          val userProfile = userRepository.getUser(uid)
-          _selectedTags.value = userProfile.tags.toList()
-        }
-        SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
-        else -> {}
-      }
+      if (mode == SelectTagMode.USER_PROFILE)
+          _selectedTags.value = userRepository.getUser(uid).tags.toList()
+      else if (mode == SelectTagMode.SETTINGS)
+          _selectedTags.value = tagRepository.getTags().toList()
     }
   }
 
