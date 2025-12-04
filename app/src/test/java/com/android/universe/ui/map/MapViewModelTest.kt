@@ -218,11 +218,10 @@ class MapViewModelTest {
 
     assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
 
-    suspend fun assertMarker(eventId: String, expectedFullName: String) {
+    suspend fun assertMarker(eventId: String, expectedFullName: String) = this.apply{
       val marker = state.markers.find { it.event.id == eventId }
-      val flowCreator = userReactiveRepository.getUserFlow(marker!!.event.creator)
-      advanceUntilIdle()
-      val creator = flowCreator.first()!!.username
+      val flowCreator = userReactiveRepository.getUserFlow(marker!!.event.creator).first()
+      val creator = flowCreator!!.firstName + " " + flowCreator.lastName
       assertNotNull("Marker for $eventId should exist", marker)
       assertEquals("Wrong creator name for $eventId", expectedFullName, creator)
     }
