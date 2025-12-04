@@ -435,20 +435,6 @@ fun validateDateTime(date: LocalDate?, time: String): ValidationState {
 }
 
 /**
- * Validates that a location is selected for event creation.
- *
- * @param location The location object.
- * @return [ValidationState.Valid] if the location is not null, otherwise [ValidationState.Invalid].
- */
-fun validateLocation(location: Location?): ValidationState {
-  return if (location != null) {
-    ValidationState.Valid
-  } else {
-    ValidationState.Invalid("Location must be selected")
-  }
-}
-
-/**
  * Sanitizes a string by replacing multiple whitespace characters with a single space and trimming
  * leading/trailing whitespace.
  *
