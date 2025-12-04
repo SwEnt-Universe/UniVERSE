@@ -1,8 +1,6 @@
 package com.android.universe.ui.common
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,7 +12,6 @@ import com.android.universe.ui.map.MapBackground
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
 
 object CommonBackground {
   const val BACKGROUND = "background"

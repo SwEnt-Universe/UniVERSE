@@ -142,13 +142,13 @@ fun UniverseApp(
           LaunchedEffect(navigateToDestination) {
             navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
           }
-            SignInScreen(
-                onSignedIn = {
-                  mainActivityScope.launch {
-                    navigateToDestination = resolveUserDestinationScreen(userRepository)
-                  }
-                },
-                credentialManager = credentialManager)
+          SignInScreen(
+              onSignedIn = {
+                mainActivityScope.launch {
+                  navigateToDestination = resolveUserDestinationScreen(userRepository)
+                }
+              },
+              credentialManager = credentialManager)
         }
       }
       navigation(
@@ -302,12 +302,12 @@ fun UniverseApp(
                 listOf(
                     navArgument("chatID") { type = NavType.StringType },
                     navArgument("chatName") { type = NavType.StringType })) {
-                ChatScreen(
-                    chatID = it.arguments?.getString("chatID")!!,
-                    chatName = it.arguments?.getString("chatName")!!,
-                    userID = authInstance.currentUser!!.uid,
-                    onTabSelected = onTabSelected,
-                    onBack = { navigationActions.goBack() })
+              ChatScreen(
+                  chatID = it.arguments?.getString("chatID")!!,
+                  chatName = it.arguments?.getString("chatName")!!,
+                  userID = authInstance.currentUser!!.uid,
+                  onTabSelected = onTabSelected,
+                  onBack = { navigationActions.goBack() })
             }
       }
 
