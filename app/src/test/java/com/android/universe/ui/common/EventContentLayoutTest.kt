@@ -73,7 +73,7 @@ class EventContentLayoutTest {
         .assertExists()
 
     composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_DATE}_$defaultEventId")
+        .onNodeWithTag("${EventContentTestTags.EVENT_DATE}_$defaultEventId", useUnmergedTree = true)
         .assertExists()
 
     composeTestRule
@@ -81,7 +81,15 @@ class EventContentLayoutTest {
         .assertExists()
 
     composeTestRule
-        .onNodeWithTag("${EventContentTestTags.EVENT_TIME}_$defaultEventId")
+        .onNodeWithTag("${EventContentTestTags.EVENT_TIME}_$defaultEventId", useUnmergedTree = true)
+        .assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$defaultEventId")
+        .assertExists()
+
+    composeTestRule
+        .onNodeWithTag("${EventContentTestTags.EVENT_TAGS}_$defaultEventId")
         .assertExists()
   }
 

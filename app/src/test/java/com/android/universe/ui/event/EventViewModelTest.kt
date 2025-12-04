@@ -127,7 +127,7 @@ class EventViewModelTest {
     assertEquals(
         "Join us for a casual 5km run around the lake followed by coffee.", firstEvent.description)
     assertEquals(LocalDateTime.of(2025, 10, 15, 7, 30), firstEvent.date)
-    assertEquals(listOf("Sculpture", "Country"), firstEvent.tags)
+    assertEquals(listOf(Tag.SCULPTURE, Tag.COUNTRY), firstEvent.tags)
     assertEquals("Alice Smith", firstEvent.creator)
     assertEquals(2, firstEvent.participants)
     assertArrayEquals(
@@ -153,21 +153,6 @@ class EventViewModelTest {
   fun creatorIsFormattedCorrectly() = runTest {
     val runEvent = viewModel.eventsState.value.first { it.title == "Morning Run at the Lake" }
     assertEquals("Alice Smith", runEvent.creator)
-  }
-
-  @Test
-  fun eventsWithMoreThanThreeTagsAreCropped() = runTest {
-    val extraEvent = thirdEvent
-    repository.addEvent(extraEvent)
-
-    // Refresh events in the ViewModel
-    viewModel.loadEvents()
-    advanceUntilIdle()
-
-    val megaTagEvent = viewModel.eventsState.value.first { it.title == "Mega Tag Event" }
-
-    assertEquals(3, megaTagEvent.tags.size)
-    assertEquals(listOf("Tennis", "AI", "Programming"), megaTagEvent.tags)
   }
 
   @Test

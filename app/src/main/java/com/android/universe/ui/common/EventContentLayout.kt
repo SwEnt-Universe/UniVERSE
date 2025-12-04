@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
@@ -77,7 +76,7 @@ fun EventContentLayout(
                 enabled = false,
                 isInteractive = false,
                 height = Dimensions.CardImageTagOverlayHeight,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 onClick = {}) {
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -114,8 +113,7 @@ fun EventContentLayout(
             tags = tags,
             isSelectable = false,
             isSelected = { false },
-            background = true,
-            heightList = 260.dp,
+            heightList = Dimensions.CardImageHeight,
             modifierBox =
                 Modifier.testTag("${EventContentTestTags.EVENT_TAGS}_${eventId}")
                     .padding(start = Dimensions.PaddingLarge))
