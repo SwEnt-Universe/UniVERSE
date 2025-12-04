@@ -26,6 +26,7 @@ import io.mockk.mockkObject
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -224,31 +225,43 @@ class MapViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-
     assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
 
     val marker1 = state.markers.find { it.event.id == "event1" }
+    val flowCreator1 = userReactiveRepository.getUserFlow(marker1!!.event.creator)
+    advanceUntilIdle()
+    val creator1 = flowCreator1.first()!!
+
     assertNotNull("Marker for event1 should exist", marker1)
-    assertEquals("Event1 should have Alice as creator", "Alice", marker1!!.creator?.username)
-    assertEquals("Event1 creator UID should match", "user1", marker1.creator?.uid)
+    assertEquals("Event1 should have Alice as creator", "Alice", creator1.username)
+    assertEquals("Event1 creator UID should match", "user1", creator1.uid)
 
     val marker2 = state.markers.find { it.event.id == "event2" }
+    val flowCreator2 = userReactiveRepository.getUserFlow(marker2!!.event.creator)
+    advanceUntilIdle()
+    val creator2 = flowCreator2.first()!!
+
     assertNotNull("Marker for event2 should exist", marker2)
-    assertEquals("Event2 should have Bob as creator", "Bob", marker2!!.creator?.username)
-    assertEquals("Event2 creator UID should match", "user2", marker2.creator?.uid)
+    assertEquals("Event2 should have Bob as creator", "Bob", creator2.username)
+    assertEquals("Event2 creator UID should match", "user2", creator2.uid)
 
     val marker3 = state.markers.find { it.event.id == "event3" }
+    val flowCreator3 = userReactiveRepository.getUserFlow(marker3!!.event.creator)
+    advanceUntilIdle()
+    val creator3 = flowCreator3.first()!!
+
     assertNotNull("Marker for event3 should exist", marker3)
-    assertEquals("Event3 should have Charlie as creator", "Charlie", marker3!!.creator?.username)
-    assertEquals("Event3 creator UID should match", "user3", marker3.creator?.uid)
+    assertEquals("Event3 should have Charlie as creator", "Charlie", creator3.username)
+    assertEquals("Event3 creator UID should match", "user3", creator3.uid)
 
     val marker4 = state.markers.find { it.event.id == "event4" }
+    val flowCreator4 = userReactiveRepository.getUserFlow(marker4!!.event.creator)
+    advanceUntilIdle()
+    val creator4 = flowCreator4.first()!!
+
     assertNotNull("Marker for event4 should exist", marker4)
-    assertEquals(
-        "Event4 should have Alice as creator (same as event1)",
-        "Alice",
-        marker4!!.creator?.username)
-    assertEquals("Event4 creator UID should match", "user1", marker4.creator?.uid)
+    assertEquals("Event4 should have Alice as creator (same as event1)", "Alice", creator4.username)
+    assertEquals("Event4 creator UID should match", "user1", creator4.uid)
   }
 
   @Test

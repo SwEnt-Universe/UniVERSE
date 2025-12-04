@@ -30,7 +30,6 @@ import com.android.universe.model.tag.Tag.Category.SPORT
 import com.android.universe.model.tag.Tag.Category.TECHNOLOGY
 import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
-import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
@@ -463,17 +462,12 @@ class MapViewModel(
           combine(
                   distinctCreators.map { uid ->
                     userReactiveRepository.getUserFlow(uid).map { uid to it }
-                  }) { userPairs ->
-                    val usersMap = userPairs.toMap()
-                    events.map { event -> mapEventToMarker(event, usersMap[event.creator]) }
+                  }) {
+                    events.map { event -> mapEventToMarker(event) }
                   }
               .collect { markers -> _uiState.update { it.copy(markers = markers) } }
         } else {
-          val markers =
-              events.map { event ->
-                val user = userRepository.getUser(event.creator)
-                mapEventToMarker(event, user)
-              }
+          val markers = events.map { event -> mapEventToMarker(event) }
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
@@ -498,13 +492,13 @@ class MapViewModel(
   }
 
   /** Maps an Event and its creator UserProfile to a MapMarkerUiModel with appropriate icon. */
-  private fun mapEventToMarker(event: Event, user: UserProfile?): MapMarkerUiModel {
+  private fun mapEventToMarker(event: Event): MapMarkerUiModel {
     val category = event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
 
     val drawable = getCategoryDrawable(category)
 
     return MapMarkerUiModel(
-        event = event, creator = user, position = event.location.toGeoPoint(), iconResId = drawable)
+        event = event, position = event.location.toGeoPoint(), iconResId = drawable)
   }
 
   /** Loads events suggested for the current user. */
