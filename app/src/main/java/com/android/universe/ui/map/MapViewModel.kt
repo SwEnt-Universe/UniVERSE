@@ -485,7 +485,7 @@ class MapViewModel(
         if (userReactiveRepository != null) {
           val distinctCreators = events.map { it.creator }.distinct()
 
-          if (distinctCreators.isEmpty()) {
+          if (distinctCreators.isEmpty() || events.isEmpty()) {
             _uiState.update { it.copy(markers = emptyList()) }
             return@launch
           }
