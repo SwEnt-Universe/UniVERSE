@@ -191,20 +191,18 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
-        down(center)
-        advanceEventTime(1_000)
+      down(center)
+      advanceEventTime(1_000)
     }
     // We use up after the navigation to the event screen test is done
     composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
-        up()
+      up()
     }
     composeTestRule.waitForIdle()
-
 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
     }
-
 
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).performClick()
