@@ -16,7 +16,6 @@ import com.android.universe.utils.selectDay
 import com.android.universe.utils.selectYear
 import com.android.universe.utils.setContentWithStubBackdrop
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
