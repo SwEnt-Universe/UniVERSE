@@ -22,6 +22,7 @@ import com.android.universe.ui.common.validateEventDate
 import com.android.universe.ui.common.validateEventTitle
 import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
+import com.android.universe.ui.utils.viewModelFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -133,23 +134,13 @@ class EventCreationViewModel(
      * @param eventRepository The repository for persistent event storage.
      * @param eventTemporaryRepository The repository for temporary event storage.
      */
-    fun provideFactory(
-        context: Context,
-        eventRepository: EventRepository = EventRepositoryProvider.repository,
-        eventTemporaryRepository: EventTemporaryRepository =
-            EventTemporaryRepositoryProvider.repository
-    ): ViewModelProvider.Factory =
-        object : ViewModelProvider.Factory {
-          @Suppress("UNCHECKED_CAST")
-          override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return EventCreationViewModel(
-                ImageBitmapManager(context.applicationContext),
-                eventRepository,
-                eventTemporaryRepository,
-                DefaultDP)
-                as T
-          }
-        }
+    fun provideFactory(context: Context): ViewModelProvider.Factory = viewModelFactory {
+      EventCreationViewModel(
+          imageManager = ImageBitmapManager(context.applicationContext),
+          eventRepository = EventRepositoryProvider.repository,
+          eventTemporaryRepository = EventTemporaryRepositoryProvider.repository,
+          dispatcherProvider = DefaultDP)
+    }
   }
 
   fun setLocation(lat: Double, lon: Double) {

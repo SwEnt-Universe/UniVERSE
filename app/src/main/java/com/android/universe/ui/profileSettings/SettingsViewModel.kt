@@ -30,6 +30,7 @@ import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
+import com.android.universe.ui.utils.viewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import java.time.Period
@@ -116,29 +117,16 @@ class SettingsViewModel(
      *
      * @param context The context used to initialize the image manager.
      * @param uid The user's unique identifier.
-     * @param userRepository The repository for user storage.
-     * @param authModel The authentication model for signing out.
-     * @param tagRepository The repository for tag storage.
      */
-    fun provideFactory(
-        context: Context,
-        uid: String,
-        userRepository: UserRepository = UserRepositoryProvider.repository,
-        authModel: AuthModel = AuthModelFirebase(),
-        tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository
-    ): ViewModelProvider.Factory =
-        object : ViewModelProvider.Factory {
-          @Suppress("UNCHECKED_CAST")
-          override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SettingsViewModel(
-                uid = uid,
-                userRepository = userRepository,
-                authModel = authModel,
-                tagRepository = tagRepository,
-                imageManager = ImageBitmapManager(context.applicationContext),
-                dispatcherProvider = DefaultDP)
-                as T
-          }
+    fun provideFactory(context: Context, uid: String): ViewModelProvider.Factory =
+        viewModelFactory {
+          SettingsViewModel(
+              uid = uid,
+              userRepository = UserRepositoryProvider.repository,
+              authModel = AuthModelFirebase(),
+              tagRepository = TagTemporaryRepositoryProvider.repository,
+              imageManager = ImageBitmapManager(context.applicationContext),
+              dispatcherProvider = DefaultDP)
         }
   }
 
