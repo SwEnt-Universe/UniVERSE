@@ -317,7 +317,7 @@ fun ProfileHeaderOverlay(
                   following = 0,
                   heightTagList = 200.dp,
                   onChatClick = {},
-                  onAddClick = {},
+                  onToggleFollowing = {},
                   onSettingsClick = onEditProfileClick)
             }
 

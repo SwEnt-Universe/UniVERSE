@@ -138,7 +138,7 @@ fun ProfileImageBox(
  * @param followers The number of followers the user has.
  * @param following The number of users the user is following.
  * @param onChatClick A lambda function that is called when the "Chat" button is clicked.
- * @param onAddClick A lambda function that is called when the "Add" button is clicked.
+ * @param onToggleFollowing A lambda function that is called when the "Add" button is clicked.
  * @param modifier The modifier to be applied to the row.
  */
 @Composable
@@ -147,7 +147,7 @@ fun ProfileCardActionsRow(
     followers: Int,
     following: Int,
     onChatClick: () -> Unit,
-    onAddClick: () -> Unit,
+    onToggleFollowing: () -> Unit,
     modifier: Modifier
 ) {
   Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -211,7 +211,7 @@ fun ProfileCardActionsRow(
     Spacer(Modifier.width(Dimensions.SpacerSmall))
 
     LiquidButton(
-        onClick = onAddClick,
+        onClick = onToggleFollowing,
         height = Dimensions.CardButtonHeight,
         width = Dimensions.CardButtonWidth,
         modifier = Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
