@@ -270,8 +270,8 @@ class MapViewModel(
    * @param currentZoom Current zoom level to maintain or adjust.
    */
   fun onCameraMoveRequest(target: GeoPoint) {
-      if (tomTomMap == null) return
-      tomTomMap!!.moveCamera(CameraOptions(target, zoom = DEFAULT_ZOOM, tilt = DEFAULT_TILT))
+    if (tomTomMap == null) return
+    tomTomMap!!.moveCamera(CameraOptions(target, zoom = DEFAULT_ZOOM, tilt = DEFAULT_TILT))
   }
 
   /**
