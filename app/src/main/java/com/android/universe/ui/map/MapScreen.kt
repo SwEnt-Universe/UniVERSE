@@ -75,6 +75,9 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.text.style.TextAlign
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -285,6 +288,9 @@ fun MapScreen(
                     map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
                     viewModel.nowInteractable()
                   })
+            if (mode == MapMode.SELECT_LOCATION){
+                Text("Select you location with a long press", modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.PaddingExtraLarge + Dimensions.PaddingLarge, horizontal = Dimensions.PaddingMedium).align(Alignment.TopCenter), fontSize = 40.sp, textAlign = TextAlign.Center)
+            }
 
               // TEST BACKDOOR
               if (TestFlags.enableMapBackdoor) {
