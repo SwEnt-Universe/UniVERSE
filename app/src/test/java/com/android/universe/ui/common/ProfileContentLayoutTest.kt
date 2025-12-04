@@ -24,9 +24,6 @@ class ProfileContentLayoutTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private val testUserProfile = UserTestData.SomeTagsUser
-  val testBitmap = createBitmap(100, 100, android.graphics.Bitmap.Config.ARGB_8888)
-  val testImage: ImageBitmap = testBitmap.asImageBitmap()
-
   private fun setProfileContent(
       onChatClick: () -> Unit = {},
       onAddClick: () -> Unit = {},
@@ -39,7 +36,6 @@ class ProfileContentLayoutTest {
       ProfileContentLayout(
           modifier = Modifier.fillMaxSize(),
           userProfile = testUserProfile,
-          userProfileImage = testImage,
           followers = followers,
           following = following,
           heightTagList = 260.dp,
