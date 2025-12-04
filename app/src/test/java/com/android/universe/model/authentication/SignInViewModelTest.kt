@@ -8,12 +8,16 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.common.ValidationState
+import com.android.universe.ui.signIn.OnboardingState
+import com.android.universe.ui.signIn.SignInErrorMessage
+import com.android.universe.ui.signIn.SignInMethod
 import com.android.universe.ui.signIn.SignInViewModel
 import com.android.universe.utils.MainCoroutineRule
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.SignInMethodQueryResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -482,5 +486,126 @@ class SignInViewModelTest {
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
     assertEquals(SIGN_IN_FAILED_EXCEPTION_MESSAGE, state.errorMsg)
+  }
+
+  @Test
+  fun `viewModel updates onBoardingState`() = runTest {
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+
+    viewModel.onJoinUniverse()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+
+    viewModel.onBack()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+
+    viewModel.onSignUpWithPassword()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.SIGN_IN_PASSWORD)
+
+    viewModel.onBack()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+  }
+
+  @Test
+  fun `viewModel signInMethods is null`() = runTest {
+    val mockQueryResponse: SignInMethodQueryResult = mockk(relaxed = true)
+    coEvery { mockAuthModel.fetchSignInMethodsForEmail(validEmail) } returns mockQueryResponse
+    coEvery { mockQueryResponse.signInMethods } returns null
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+    viewModel.onJoinUniverse()
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+    viewModel.setEmail(validEmail)
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.confirmEmailEnabled)
+    viewModel.confirmEmail()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.CHOOSE_AUTH_METHOD)
+  }
+
+  @Test
+  fun `viewModel signInMethods throws error`() = runTest {
+    coEvery { mockAuthModel.fetchSignInMethodsForEmail(validEmail) } throws
+        FirebaseNetworkException("test")
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+    viewModel.onJoinUniverse()
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+    viewModel.setEmail(validEmail)
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.confirmEmailEnabled)
+    viewModel.confirmEmail()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.errorMsg == SignInErrorMessage.NO_INTERNET)
+  }
+
+  @Test
+  fun `viewModel signInMethods is Google and Email`() = runTest {
+    val mockQueryResponse: SignInMethodQueryResult = mockk(relaxed = true)
+    coEvery { mockAuthModel.fetchSignInMethodsForEmail(validEmail) } returns mockQueryResponse
+    coEvery { mockQueryResponse.signInMethods } returns
+        listOf(SignInMethod.GOOGLE, SignInMethod.EMAIL)
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+    viewModel.onJoinUniverse()
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+    viewModel.setEmail(validEmail)
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.confirmEmailEnabled)
+    viewModel.confirmEmail()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.CHOOSE_AUTH_METHOD)
+  }
+
+  @Test
+  fun `viewModel signInMethods is Google`() = runTest {
+    val mockQueryResponse: SignInMethodQueryResult = mockk(relaxed = true)
+    coEvery { mockAuthModel.fetchSignInMethodsForEmail(validEmail) } returns mockQueryResponse
+    coEvery { mockQueryResponse.signInMethods } returns listOf(SignInMethod.GOOGLE)
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+    viewModel.onJoinUniverse()
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+    viewModel.setEmail(validEmail)
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.confirmEmailEnabled)
+    viewModel.confirmEmail()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.SIGN_IN_GOOGLE)
+  }
+
+  @Test
+  fun `viewModel signInMethods is Email`() = runTest {
+    val mockQueryResponse: SignInMethodQueryResult = mockk(relaxed = true)
+    coEvery { mockAuthModel.fetchSignInMethodsForEmail(validEmail) } returns mockQueryResponse
+    coEvery { mockQueryResponse.signInMethods } returns listOf(SignInMethod.EMAIL)
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.WELCOME)
+    viewModel.onJoinUniverse()
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.ENTER_EMAIL)
+    viewModel.setEmail(validEmail)
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.confirmEmailEnabled)
+    viewModel.confirmEmail()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.onboardingState == OnboardingState.SIGN_IN_PASSWORD)
   }
 }
