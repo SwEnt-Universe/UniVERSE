@@ -206,4 +206,60 @@ class UserRepositoryFirestoreTest : FirestoreUserTest() {
     assertEquals(expectedFollowingSet, currentUSer.following)
     assertEquals(expectedFollowerSet, targetUser.followers)
   }
+
+  @Test
+  fun getFollowersReturnsCorrectUsers() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.addUser(userProfile3)
+
+    userRepository.followUser(userProfile2.uid, userProfile1.uid)
+    userRepository.followUser(userProfile3.uid, userProfile1.uid)
+
+    val followers = userRepository.getFollowers(userProfile1.uid).toSet()
+
+    assertEquals(setOf(userProfile2.uid, userProfile3.uid), followers.map { it.uid }.toSet())
+  }
+
+  @Test
+  fun getFollowersWhenNoFollowersExist() = runTest {
+    userRepository.addUser(userProfile1)
+    val followers = userRepository.getFollowers(userProfile1.uid)
+    assertTrue(followers.isEmpty())
+  }
+
+  @Test
+  fun getFollowingReturnsCorrectUsers() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.addUser(userProfile3)
+
+    userRepository.followUser(userProfile1.uid, userProfile2.uid)
+    userRepository.followUser(userProfile1.uid, userProfile3.uid)
+
+    val following = userRepository.getFollowing(userProfile1.uid).toSet()
+
+    assertEquals(setOf(userProfile2.uid, userProfile3.uid), following.map { it.uid }.toSet())
+  }
+
+  @Test
+  fun getFollowingWhenNoFollowingExist() = runTest {
+    userRepository.addUser(userProfile1)
+    val following = userRepository.getFollowing(userProfile1.uid)
+    assertTrue(following.isEmpty())
+  }
+
+  @Test
+  fun getFollowingRecommendationsReturnsCorrectUsers() = runTest {
+    userRepository.addUser(userProfile1)
+    userRepository.addUser(userProfile2)
+    userRepository.addUser(userProfile3)
+
+    userRepository.followUser(userProfile1.uid, userProfile2.uid)
+
+    val recommendations = userRepository.getFollowRecommendations(userProfile1.uid).toSet()
+    val expectedRecommendations = setOf(userProfile3)
+
+    assertEquals(expectedRecommendations, recommendations)
+  }
 }

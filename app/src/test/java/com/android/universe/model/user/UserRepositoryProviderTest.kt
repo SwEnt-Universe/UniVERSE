@@ -38,6 +38,18 @@ class UserRepositoryProviderTest {
           override suspend fun followUser(currentUserId: String, targetUserId: String) {}
 
           override suspend fun unfollowUser(currentUserId: String, targetUserId: String) {}
+
+          override suspend fun getFollowers(currentUserId: String): List<UserProfile> {
+            return emptyList()
+          }
+
+          override suspend fun getFollowing(currentUserId: String): List<UserProfile> {
+            return emptyList()
+          }
+
+          override suspend fun getFollowRecommendations(currentUserId: String): List<UserProfile> {
+            return emptyList()
+          }
         }
 
     // Swap repository

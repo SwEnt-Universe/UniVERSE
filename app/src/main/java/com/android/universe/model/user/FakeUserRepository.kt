@@ -115,4 +115,39 @@ class FakeUserRepository : UserRepository {
       updateUser(targetUserId, targetUser.copy(followers = targetUser.followers - currentUserId))
     }
   }
+
+  /**
+   * Retrieves the list of followers for the current user.
+   *
+   * @param currentUserId the uid of the user whose followers are to be retrieved.
+   * @return a list of [UserProfile] objects representing the followers of the current user.
+   */
+  override suspend fun getFollowers(currentUserId: String): List<UserProfile> {
+    val user = getUser(currentUserId)
+    return user.followers.map { followerId -> getUser(followerId) }
+  }
+
+  /**
+   * Retrieves the list of users that the current user is following.
+   *
+   * @param currentUserId the uid of the user whose following list is to be retrieved.
+   * @return a list of [UserProfile] objects representing the users being followed by the current
+   *   user.
+   */
+  override suspend fun getFollowing(currentUserId: String): List<UserProfile> {
+    val user = getUser(currentUserId)
+    return user.following.map { followingId -> getUser(followingId) }
+  }
+
+  /**
+   * Retrieves a list of recommended users for the current user to follow.
+   *
+   * @param currentUserId the uid of the user for whom to get follow recommendations.
+   * @return a list of [UserProfile] objects representing the recommended users to follow.
+   */
+  override suspend fun getFollowRecommendations(currentUserId: String): List<UserProfile> {
+    val currentUser = getUser(currentUserId)
+    val followingSet = currentUser.following.toSet() + currentUserId
+    return users.filter { it.uid !in followingSet }.take(5)
+  }
 }
