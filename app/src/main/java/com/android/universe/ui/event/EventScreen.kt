@@ -28,7 +28,6 @@ import com.android.universe.ui.components.LiquidSearchBarTestTags
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
-import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
 
 object EventScreenTestTags {
@@ -82,8 +81,7 @@ fun EventScreen(
   Scaffold(
       containerColor = Color.Transparent,
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
-      contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
-      bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { _ ->
+      bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { paddingValues ->
         Column(
             modifier =
                 Modifier.fillMaxSize().padding(horizontal = PaddingMedium).clickable(
@@ -96,7 +94,7 @@ fun EventScreen(
                   onQueryChange = viewModel::updateSearchQuery,
                   modifier =
                       Modifier.padding(
-                              top = Dimensions.PaddingPutBelowStatusbar,
+                              top = paddingValues.calculateTopPadding(),
                               bottom = PaddingMedium,
                               start = PaddingMedium,
                               end = PaddingMedium)
