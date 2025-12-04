@@ -77,7 +77,8 @@ data class AddProfileUIState(
         userNameValid is ValidationState.Valid &&
             firstNameValid is ValidationState.Valid &&
             lastNameValid is ValidationState.Valid &&
-            descriptionValid is ValidationState.Valid &&
+            (descriptionValid is ValidationState.Valid ||
+                descriptionValid is ValidationState.Neutral) &&
             dateOfBirthValid is ValidationState.Valid
 
   val userNameValid: ValidationState

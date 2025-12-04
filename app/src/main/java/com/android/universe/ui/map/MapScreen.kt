@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
@@ -57,6 +57,7 @@ import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
+import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.tomtom.sdk.common.Bundle
@@ -84,6 +85,21 @@ object MapScreenTestTags {
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
+object TestFlags {
+  var enableMapBackdoor = false
+}
+
+/**
+ * Defines the interaction mode of the map UI.
+ * - `NORMAL`: Standard browsing mode where users can pan/zoom the map and view events.
+ * - `SELECT_LOCATION`: Special mode used when creating an event, allowing the user to pick a
+ *   specific location by clicking on the map.
+ */
+enum class MapMode {
+  NORMAL,
+  SELECT_LOCATION
+}
+
 /**
  * The main screen composable for displaying a map with event markers.
  *
@@ -94,10 +110,12 @@ object MapScreenTestTags {
  * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
  *   selected.
  * @param context The Android context, defaulting to the current LocalContext.
+ * @param onNavigateToEventCreation Invoked when the user chooses manual event creation.
  * @param preselectedEventId An optional event ID to preselect and focus on when the map loads.
  * @param preselectedLocation An optional location to preselect and focus on when the map loads.
  * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
  *   title as parameters.
+ * @param mode Determines how the map handles user interaction (`NORMAL` or `SELECT_LOCATION`).
  * @param createEvent A callback function invoked when creating a new event at specified latitude
  *   and longitude.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
@@ -107,11 +125,13 @@ object MapScreenTestTags {
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
+    onNavigateToEventCreation: () -> Unit,
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
+    mode: MapMode = MapMode.NORMAL,
+    onLocationSelected: (Double, Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
@@ -127,6 +147,7 @@ fun MapScreen(
   val layerBackdrop = LocalLayerBackdrop.current
   var mapViewInstance by remember { mutableStateOf<MapView?>(null) }
   var tomTomMap by remember { mutableStateOf<TomTomMap?>(null) }
+  var showMapModal by remember { mutableStateOf(false) }
 
   // Local cache for marker click handling (ID -> Event)
   val markerToEvent = remember { mutableMapOf<String, Event>() }
@@ -246,9 +267,11 @@ fun MapScreen(
                     map.setMarkerSettings()
 
                     map.setUpMapListeners(
+                        mode = mode,
+                        onLocationSelected = onLocationSelected,
                         onMapClick = { viewModel.onMapClick() },
-                        onMapLongClick = { pos ->
-                          viewModel.onMapLongClick(pos.latitude, pos.longitude)
+                        onMapLongClick = { geo ->
+                          viewModel.onMapLongClick(geo.latitude, geo.longitude)
                         },
                         onMarkerClick = { marker ->
                           markerToEvent[marker.tag]?.let { event ->
@@ -262,33 +285,31 @@ fun MapScreen(
                     viewModel.nowInteractable()
                   })
 
-              if (uiState.selectedLocation != null) {
+              // TEST BACKDOOR
+              if (TestFlags.enableMapBackdoor) {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.BottomCenter) {
-                      LiquidButton(
-                          onClick = {
-                            val view = mapViewInstance
-                            if (!uiState.isLoading && uiState.isMapInteractive && view != null) {
-                              view.takeSnapshot { bmp ->
-                                if (bmp != null) {
-                                  viewModel.onSnapshotAvailable(bmp)
-                                }
-                              }
-                            }
-                            createEvent(
-                                uiState.selectedLocation!!.latitude,
-                                uiState.selectedLocation!!.longitude)
-                          },
-                          modifier =
-                              Modifier.padding(bottom = 96.dp)
-                                  .testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                            Text(
-                                "Create your Event !",
-                                color = MaterialTheme.colorScheme.onBackground)
-                          }
-                    }
+                    modifier =
+                        Modifier.fillMaxSize().testTag("test_select_location_backdoor").clickable {
+                          val cam = tomTomMap?.cameraPosition?.position
+                          onLocationSelected(cam?.latitude ?: 46.52, cam?.longitude ?: 6.63)
+                        })
               }
+
+              Box(
+                  modifier =
+                      Modifier.align(Alignment.BottomStart)
+                          .padding(
+                              bottom = padding.calculateBottomPadding(),
+                              start = Dimensions.PaddingExtraLarge)) {
+                    LiquidButton(
+                        onClick = { showMapModal = true },
+                        height = 56f,
+                        width = 56f,
+                        modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                          Text("+", color = MaterialTheme.colorScheme.onBackground)
+                        }
+                  }
+
               // Overlays
               if (uiState.isLoading) {
                 CircularProgressIndicator(
@@ -313,6 +334,14 @@ fun MapScreen(
                     onChatNavigate = onChatNavigate,
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
               }
+              MapCreateEventModal(
+                  isPresented = showMapModal,
+                  onDismissRequest = { showMapModal = false },
+                  onAiCreate = { viewModel.generateAiEventAroundUser() },
+                  onManualCreate = {
+                    onNavigateToEventCreation()
+                    showMapModal = false
+                  })
             }
       }
 }
@@ -405,19 +434,26 @@ private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
 }
 
 private fun TomTomMap.setUpMapListeners(
+    mode: MapMode,
+    onLocationSelected: (Double, Double) -> Unit,
     onMapClick: () -> Unit,
     onMapLongClick: (GeoPoint) -> Unit,
     onMarkerClick: (Marker) -> Boolean,
     onCameraChange: (GeoPoint, Double) -> Unit
 ) {
-
   this.addMapClickListener {
-    onMapClick()
+    if (mode != MapMode.SELECT_LOCATION) {
+      onMapClick()
+    }
     true
   }
 
   this.addMapLongClickListener { geoPoint ->
-    onMapLongClick(geoPoint)
+    if (mode == MapMode.SELECT_LOCATION) {
+      onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+    } else {
+      onMapLongClick(geoPoint)
+    }
     true
   }
 

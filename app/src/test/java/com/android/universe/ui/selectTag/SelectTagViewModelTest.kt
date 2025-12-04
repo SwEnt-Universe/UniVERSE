@@ -1,6 +1,12 @@
 package com.android.universe.ui.selectTag
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.event.Event
+import com.android.universe.model.event.EventLocalTemporaryRepository
+import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventTemporaryRepository
+import com.android.universe.model.event.FakeEventRepository
+import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.TagLocalTemporaryRepository
 import com.android.universe.model.tag.TagTemporaryRepository
@@ -8,6 +14,7 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.MainCoroutineRule
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -23,27 +30,46 @@ class SelectTagViewModelTest {
   // Define the parameters for the tests.
   @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
-  private lateinit var repository: FakeUserRepository
+  private lateinit var userRepository: FakeUserRepository
   private lateinit var tagRepository: TagTemporaryRepository
-  private lateinit var viewModelUser: SelectTagViewModel
-  private lateinit var viewModelEvent: SelectTagViewModel
+  private lateinit var eventTemporaryRepository: EventTemporaryRepository
+  private lateinit var eventRepository: EventRepository
+  private lateinit var viewModel: SelectTagViewModel
 
   val tags = setOf(Tag.HANDBALL, Tag.METAL, Tag.DND)
 
+  object SelectTagViewModelTestValues {
+    val temporaryEvent =
+        Event(
+            id = "test",
+            title = "Title",
+            description = "description",
+            date = LocalDateTime.now(),
+            tags = emptySet(),
+            creator = "Test user",
+            participants = setOf("Test user"),
+            location = Location(0.0, 0.0),
+            eventPicture = null)
+  }
+
   @Before
   fun setup() {
-    repository = FakeUserRepository()
+    userRepository = FakeUserRepository()
     tagRepository = TagLocalTemporaryRepository()
-    viewModelUser = SelectTagViewModel(repository)
-    viewModelEvent = SelectTagViewModel(repository, tagRepository)
-    viewModelEvent.mode = SelectTagMode.EVENT_CREATION
-    viewModelEvent.eventTagRepositoryObserving()
+    eventTemporaryRepository = EventLocalTemporaryRepository()
+    eventRepository = FakeEventRepository()
+    viewModel =
+        SelectTagViewModel(
+            userRepository = userRepository,
+            tagRepository = tagRepository,
+            eventTemporaryRepository = eventTemporaryRepository,
+            eventRepository = eventRepository)
   }
 
   @Test
   fun uiStateTags_initiallyEmpty() = runTest {
     // Check that the selected tags are initially empty.
-    val state = viewModelUser.selectedTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -51,8 +77,8 @@ class SelectTagViewModelTest {
   fun addTag_addsMusicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.MUSIC
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.MUSIC), state)
   }
 
@@ -60,8 +86,8 @@ class SelectTagViewModelTest {
   fun addTag_addsSportTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.JUDO
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.JUDO), state)
   }
 
@@ -69,8 +95,8 @@ class SelectTagViewModelTest {
   fun addTag_addsFoodTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.BAKING
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.BAKING), state)
   }
 
@@ -78,8 +104,8 @@ class SelectTagViewModelTest {
   fun addTag_addsArtTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.LITERATURE
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.LITERATURE), state)
   }
 
@@ -87,8 +113,8 @@ class SelectTagViewModelTest {
   fun addTag_addsTravelTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.GROUP_TRAVEL
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.GROUP_TRAVEL), state)
   }
 
@@ -96,8 +122,8 @@ class SelectTagViewModelTest {
   fun addTag_addsGamesTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.DND
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.DND), state)
   }
 
@@ -105,8 +131,8 @@ class SelectTagViewModelTest {
   fun addTag_addsTechnologyTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.MACHINE_LEARNING
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.MACHINE_LEARNING), state)
   }
 
@@ -114,8 +140,8 @@ class SelectTagViewModelTest {
   fun addTag_addsTopicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we add a tag.
     val tag = Tag.PHYSICS
-    viewModelUser.addTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(listOf(Tag.PHYSICS), state)
   }
 
@@ -135,9 +161,9 @@ class SelectTagViewModelTest {
             Tag.MUSIC,
             Tag.DND)
     for (tag in tags) {
-      viewModelUser.addTag(tag)
+      viewModel.addTag(tag)
     }
-    val state = viewModelUser.selectedTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(tags, state)
   }
 
@@ -146,9 +172,9 @@ class SelectTagViewModelTest {
     // Check that the function addTag throws an exception when we select a tag that is already
     // selected.
     val tag = Tag.METAL
-    viewModelUser.addTag(tag)
+    viewModel.addTag(tag)
     try {
-      viewModelUser.addTag(tag)
+      viewModel.addTag(tag)
       assert(false) { "Expected an exception" }
     } catch (e: IllegalArgumentException) {
       assert(true)
@@ -161,9 +187,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesMusicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.METAL
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -171,9 +197,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesSportTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.JUDO
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -181,9 +207,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesFoodTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.BAKING
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -191,9 +217,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesArtTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.LITERATURE
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -201,9 +227,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesTravelTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.SAFARI
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -211,9 +237,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesGamesTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.DND
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -221,9 +247,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesTechnologyTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.MACHINE_LEARNING
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -231,9 +257,9 @@ class SelectTagViewModelTest {
   fun deleteTag_removesTopicTagSuccessfully() = runTest {
     // Check that the uiStateTag changes when we remove a tag.
     val tag = Tag.PHYSICS
-    viewModelUser.addTag(tag)
-    viewModelUser.deleteTag(tag)
-    val state = viewModelUser.selectedTags.value
+    viewModel.addTag(tag)
+    viewModel.deleteTag(tag)
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -243,7 +269,7 @@ class SelectTagViewModelTest {
     // already selected.
     val tag = Tag.METAL
     try {
-      viewModelUser.deleteTag(tag)
+      viewModel.deleteTag(tag)
       assert(false) { "Expected an exception" }
     } catch (e: IllegalArgumentException) {
       assert(true)
@@ -268,12 +294,12 @@ class SelectTagViewModelTest {
             Tag.MUSIC,
             Tag.DND)
     for (tag in tags) {
-      viewModelUser.addTag(tag)
+      viewModel.addTag(tag)
     }
     for (tag in tags) {
-      viewModelUser.deleteTag(tag)
+      viewModel.deleteTag(tag)
     }
-    val state = viewModelUser.selectedTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(emptyList<Tag>(), state)
   }
 
@@ -295,15 +321,15 @@ class SelectTagViewModelTest {
             Tag.MUSIC,
             Tag.DND)
     for (tag in tags) {
-      viewModelUser.addTag(tag)
+      viewModel.addTag(tag)
     }
-    viewModelUser.deleteTag(Tag.BAKING)
-    viewModelUser.deleteTag(Tag.CYCLING)
-    viewModelUser.deleteTag(Tag.KARATE)
+    viewModel.deleteTag(Tag.BAKING)
+    viewModel.deleteTag(Tag.CYCLING)
+    viewModel.deleteTag(Tag.KARATE)
 
     val expectedTags =
         listOf(Tag.SAFARI, Tag.METAL, Tag.ROCK, Tag.JUDO, Tag.HANDBALL, Tag.MUSIC, Tag.DND)
-    val state = viewModelUser.selectedTags.value
+    val state = viewModel.selectedTags.value
     assertEquals(expectedTags, state)
   }
 
@@ -320,11 +346,11 @@ class SelectTagViewModelTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.KARATE))
-    repository.addUser(userProfile)
+    userRepository.addUser(userProfile)
     advanceUntilIdle()
-    viewModelUser.loadTags("0")
+    viewModel.loadTags("0")
     advanceUntilIdle()
-    assertEquals(listOf(Tag.METAL, Tag.KARATE), viewModelUser.selectedTags.value)
+    assertEquals(listOf(Tag.METAL, Tag.KARATE), viewModel.selectedTags.value)
   }
 
   @Test
@@ -332,12 +358,12 @@ class SelectTagViewModelTest {
     // Check that if we select tags and deselect them, the selected tags remain in the correct
     // order, matching the sequence they
     // were clicked.
-    viewModelUser.addTag(Tag.METAL)
-    viewModelUser.addTag(Tag.HANDBALL)
-    viewModelUser.addTag(Tag.KARATE)
-    viewModelUser.deleteTag(Tag.HANDBALL)
+    viewModel.addTag(Tag.METAL)
+    viewModel.addTag(Tag.HANDBALL)
+    viewModel.addTag(Tag.KARATE)
+    viewModel.deleteTag(Tag.HANDBALL)
 
-    assertEquals(listOf(Tag.METAL, Tag.KARATE), viewModelUser.selectedTags.value)
+    assertEquals(listOf(Tag.METAL, Tag.KARATE), viewModel.selectedTags.value)
   }
 
   @Test
@@ -353,7 +379,7 @@ class SelectTagViewModelTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = emptySet())
-    repository.addUser(userProfile)
+    userRepository.addUser(userProfile)
     advanceUntilIdle()
     val tags =
         listOf(
@@ -368,9 +394,9 @@ class SelectTagViewModelTest {
             Tag.MUSIC,
             Tag.DND)
     for (tag in tags) {
-      viewModelUser.addTag(tag)
+      viewModel.addTag(tag)
     }
-    viewModelUser.saveTags("0")
+    viewModel.saveTags("0")
     advanceUntilIdle()
     val expectedTags =
         setOf(
@@ -394,7 +420,7 @@ class SelectTagViewModelTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = expectedTags)
-    val actual = repository.getUser("0")
+    val actual = userRepository.getUser("0")
     advanceUntilIdle()
     assertEquals(expectedUserProfile, actual)
   }
@@ -413,14 +439,14 @@ class SelectTagViewModelTest {
             description = null,
             dateOfBirth = LocalDate.of(2000, 8, 11),
             tags = setOf(Tag.METAL, Tag.KARATE))
-    repository.addUser(userProfile)
+    userRepository.addUser(userProfile)
     advanceUntilIdle()
-    viewModelUser.loadTags("0")
+    viewModel.loadTags("0")
     advanceUntilIdle()
-    viewModelUser.addTag(Tag.HANDBALL)
-    viewModelUser.saveTags("0")
+    viewModel.addTag(Tag.HANDBALL)
+    viewModel.saveTags("0")
     advanceUntilIdle()
-    val updatedUser = repository.getUser("0")
+    val updatedUser = userRepository.getUser("0")
     advanceUntilIdle()
     assertEquals(setOf(Tag.METAL, Tag.KARATE, Tag.HANDBALL), updatedUser.tags)
   }
@@ -429,8 +455,11 @@ class SelectTagViewModelTest {
   fun loadTagsEventCreation() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
-    viewModelEvent.loadTags("0")
-    val resultTags = viewModelEvent.selectedTags.value.toSet()
+    viewModel.mode = SelectTagMode.EVENT_CREATION
+    viewModel.eventTagRepositoryObserving()
+    advanceUntilIdle()
+    viewModel.loadTags("0")
+    val resultTags = viewModel.selectedTags.value.toSet()
     assertEquals(tags, resultTags)
   }
 
@@ -438,16 +467,31 @@ class SelectTagViewModelTest {
   fun loadTagsWhenRepositoryChange() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
-    val resultTags = viewModelEvent.selectedTags.value.toSet()
+    viewModel.mode = SelectTagMode.EVENT_CREATION
+    viewModel.eventTagRepositoryObserving()
+    advanceUntilIdle()
+    val resultTags = viewModel.selectedTags.value.toSet()
     assertEquals(tags, resultTags)
   }
 
   @Test
   fun saveTagsEventCreation() = runTest {
-    tags.forEach { tag -> viewModelEvent.addTag(tag) }
-    viewModelEvent.saveTags("0")
+    viewModel.mode = SelectTagMode.EVENT_CREATION
+    tags.forEach { tag -> viewModel.addTag(tag) }
     advanceUntilIdle()
-    val resultTags = tagRepository.getTags()
-    assertEquals(tags, resultTags)
+    val fakeEvent = SelectTagViewModelTestValues.temporaryEvent
+    eventTemporaryRepository.updateEvent(
+        id = fakeEvent.id,
+        title = fakeEvent.title,
+        description = fakeEvent.description,
+        dateTime = fakeEvent.date,
+        creator = fakeEvent.creator,
+        participants = fakeEvent.participants,
+        location = fakeEvent.location,
+        eventPicture = fakeEvent.eventPicture)
+    viewModel.saveTags("0")
+    advanceUntilIdle()
+    val resultEventTags = eventRepository.getEvent("test")
+    assertEquals(fakeEvent.copy(tags = tags), resultEventTags)
   }
 }

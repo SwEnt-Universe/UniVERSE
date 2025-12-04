@@ -4,7 +4,11 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
@@ -84,31 +88,45 @@ class PromptBuilderTest {
     val txt = PromptBuilder.buildUserMessage(profile, task, ctx)
     val root = Json.parseToJsonElement(txt).jsonObject
 
-    // --- Task ---
+    // ------------------------------------------------------------
+    // TASK
+    // ------------------------------------------------------------
     val taskObj = root["task"]!!.jsonObject
+
     assertEquals(
-        "generate realistic public events matching the user's interests",
-        taskObj["goal"]!!.toString().trim('"'))
-    assertEquals(3, taskObj["eventsToGenerate"]!!.toString().toInt())
-    assertEquals(true, taskObj["requireRelevantTags"]!!.toString().toBoolean())
+        "generate public, drop-in, realistic events that match the environment and the user's interests when feasible.",
+        taskObj["goal"]!!.jsonPrimitive.content)
 
-    // --- User ---
+    assertEquals(3, taskObj["eventsToGenerate"]!!.jsonPrimitive.int)
+    assertEquals(true, taskObj["requireRelevantTags"]!!.jsonPrimitive.boolean)
+
+    // ------------------------------------------------------------
+    // USER
+    // ------------------------------------------------------------
     val userObj = root["user"]!!.jsonObject
-    assertEquals(profile.uid, userObj["uid"]!!.toString().trim('"'))
-    assertEquals("John Doe", userObj["name"]!!.toString().trim('"'))
-    assertEquals("Example description", userObj["description"]!!.toString().trim('"'))
-    assertTrue(userObj["interests"].toString().contains("Rock"))
-    assertTrue(userObj["interests"].toString().contains("Music"))
 
-    // --- Context ---
+    assertEquals(profile.uid, userObj["uid"]!!.jsonPrimitive.content)
+    assertEquals("John Doe", userObj["name"]!!.jsonPrimitive.content)
+    assertEquals("Example description", userObj["description"]!!.jsonPrimitive.content)
+
+    val interestsJson = userObj["interests"]!!.jsonArray.toString()
+    assertTrue(interestsJson.contains("Rock"))
+    assertTrue(interestsJson.contains("Music"))
+
+    // ------------------------------------------------------------
+    // CONTEXT
+    // ------------------------------------------------------------
     val ctxObj = root["context"]!!.jsonObject
-    assertEquals("Geneva", ctxObj["location"]!!.toString().trim('"'))
+
+    assertEquals("Geneva", ctxObj["location"]!!.jsonPrimitive.content)
 
     val coords = ctxObj["coordinates"]!!.jsonObject
-    assertEquals("47.0", coords["lat"]!!.toString().trim('"'))
-    assertEquals("8.0", coords["lon"]!!.toString().trim('"'))
+    assertEquals("47.0", coords["lat"]!!.jsonPrimitive.content)
+    assertEquals("8.0", coords["lon"]!!.jsonPrimitive.content)
 
-    assertEquals("15", ctxObj["radiusKm"]!!.toString().trim('"'))
-    assertEquals("this-week", ctxObj["timeFrame"]!!.toString().trim('"'))
+    assertEquals("15", ctxObj["radiusKm"]!!.jsonPrimitive.content)
+    assertEquals("this-week", ctxObj["timeFrame"]!!.jsonPrimitive.content)
+
+    assertEquals(ctx.currentDate.toString(), ctxObj["currentDate"]!!.jsonPrimitive.content)
   }
 }
