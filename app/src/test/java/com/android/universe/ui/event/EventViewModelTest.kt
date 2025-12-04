@@ -7,6 +7,8 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
+import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -17,8 +19,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)

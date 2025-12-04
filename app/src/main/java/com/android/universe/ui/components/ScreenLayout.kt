@@ -56,10 +56,9 @@ fun ScreenLayout(
   }
 }
 
-
 object ScreenLayoutTestTags {
-    const val TOP_BAR = "topBar"
-    const val BOTTOM_BAR = "bottomBar"
+  const val TOP_BAR = "topBar"
+  const val BOTTOM_BAR = "bottomBar"
 }
 
 @Composable
@@ -69,39 +68,39 @@ fun ScreenLayoutWithBox(
     bottomBar: @Composable (() -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        var topBarHeight by remember { mutableIntStateOf(0) }
-        var bottomBarHeight by remember { mutableIntStateOf(0) }
-        // Main content fills the screen
-        Box(modifier = Modifier.fillMaxSize().imePadding()) {
-            content(
-                PaddingValues(
-                    top = with(LocalDensity.current) { topBarHeight.toDp() },
-                    bottom = with(LocalDensity.current) { bottomBarHeight.toDp() }))
-        }
-
-        // Floating top bar
-        if (topBar != null) {
-            Box(
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .onSizeChanged { topBarHeight = it.height }
-                        .align(Alignment.TopCenter)
-                        .testTag(ScreenLayoutTestTags.TOP_BAR)) {
-                topBar()
-            }
-        }
-
-        // Floating bottom bar
-        if (bottomBar != null) {
-            Box(
-                modifier =
-                    Modifier.wrapContentSize()
-                        .onSizeChanged { bottomBarHeight = it.height }
-                        .align(Alignment.BottomCenter)
-                        .testTag(ScreenLayoutTestTags.BOTTOM_BAR)) {
-                bottomBar()
-            }
-        }
+  Box(modifier = modifier.fillMaxSize()) {
+    var topBarHeight by remember { mutableIntStateOf(0) }
+    var bottomBarHeight by remember { mutableIntStateOf(0) }
+    // Main content fills the screen
+    Box(modifier = Modifier.fillMaxSize().imePadding()) {
+      content(
+          PaddingValues(
+              top = with(LocalDensity.current) { topBarHeight.toDp() },
+              bottom = with(LocalDensity.current) { bottomBarHeight.toDp() }))
     }
+
+    // Floating top bar
+    if (topBar != null) {
+      Box(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .onSizeChanged { topBarHeight = it.height }
+                  .align(Alignment.TopCenter)
+                  .testTag(ScreenLayoutTestTags.TOP_BAR)) {
+            topBar()
+          }
+    }
+
+    // Floating bottom bar
+    if (bottomBar != null) {
+      Box(
+          modifier =
+              Modifier.wrapContentSize()
+                  .onSizeChanged { bottomBarHeight = it.height }
+                  .align(Alignment.BottomCenter)
+                  .testTag(ScreenLayoutTestTags.BOTTOM_BAR)) {
+            bottomBar()
+          }
+    }
+  }
 }

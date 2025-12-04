@@ -65,8 +65,8 @@ import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.toImageBitmap
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {

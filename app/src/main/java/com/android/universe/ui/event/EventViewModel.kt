@@ -12,6 +12,7 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import java.time.LocalDateTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 
 /**
  * UI state for an event item.

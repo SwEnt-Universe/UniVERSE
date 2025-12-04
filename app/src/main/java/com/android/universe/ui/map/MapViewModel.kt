@@ -224,15 +224,15 @@ class MapViewModel(
     startLocationTracking()
   }
 
-    fun getEventCreatorUsername(uid: String): String {
-        var username = ""
-        viewModelScope.launch {
-            val user = userRepository.getUser(uid)
-            username = user.username
-            return@launch
-        }
-        return username
+  fun getEventCreatorUsername(uid: String): String {
+    var username = ""
+    viewModelScope.launch {
+      val user = userRepository.getUser(uid)
+      username = user.username
+      return@launch
     }
+    return username
+  }
 
   override fun onCleared() {
     super.onCleared()
@@ -496,14 +496,11 @@ class MapViewModel(
                       uid to "${user?.firstName} ${user?.lastName}"
                     }
                   }) {
-              events.map { event -> mapEventToMarker(event) }
+                    events.map { event -> mapEventToMarker(event) }
                   }
               .collect { markers -> _uiState.update { it.copy(markers = markers) } }
         } else {
-          val markers =
-              events.map { event ->
-                mapEventToMarker(event)
-              }
+          val markers = events.map { event -> mapEventToMarker(event) }
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {

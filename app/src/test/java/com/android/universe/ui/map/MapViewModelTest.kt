@@ -23,6 +23,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -44,7 +45,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -217,7 +217,6 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
 
     assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
-
 
     suspend fun assertMarker(eventId: String, expectedFullName: String) {
       val marker = state.markers.find { it.event.id == eventId }
