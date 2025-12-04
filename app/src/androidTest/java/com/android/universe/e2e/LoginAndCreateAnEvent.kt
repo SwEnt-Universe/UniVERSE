@@ -134,24 +134,19 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun createEvent() = runTest {
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
-          }
-          .isSuccess
-    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
+
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
 
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule
-                .onAllNodesWithTag(
-                    MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
-                .onFirst()
-                .assertExists()
-          }
-          .isSuccess
-    }
+    composeTestRule.waitForIdle()
+
+    composeTestRule
+        .onAllNodesWithTag(
+            MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+        .onFirst()
+        .assertExists()
+
     composeTestRule
         .onAllNodesWithTag(
             MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
@@ -164,9 +159,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .performClick()
 
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(64_000L) {
-      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
-    }
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
 
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
