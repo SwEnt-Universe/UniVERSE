@@ -90,29 +90,23 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
           }
         }
       }
-      composeTestRule.waitForIdle()
       advanceUntilIdle()
+      composeTestRule.waitForIdle()
     }
   }
 
   @Test
   fun `profile login and creation works`() {
-    println("loginAndWait")
     loginAndWait()
 
-    println("fillProfileDetailAndWait")
     fillProfileDetailAndWait()
 
-    println("selectTagAndWait")
     selectTagAndWait()
 
-    println("compareCreatedProfile")
     compareCreatedProfile()
 
-    println("tabNavigationAndPrepareForEdit")
     tabNavigationAndPrepareForEdit()
 
-    println("changeNameToBobAndVerify")
     changeNameToBobAndVerify()
   }
 
@@ -133,6 +127,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_TEXT).assertTextContains("Bob")
+    advanceUntilIdle()
   }
 
   private fun tabNavigationAndPrepareForEdit() = runTest {
@@ -144,7 +139,6 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
-    composeTestRule.waitForIdle()
     val uid = Firebase.auth.currentUser!!.uid
     composeTestRule.onNodeWithTag("${ProfileContentTestTags.FULL_NAME}_$uid").assertIsDisplayed()
 
@@ -153,6 +147,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_$uid")
         .assertIsDisplayed()
+    advanceUntilIdle()
   }
 
   private fun compareCreatedProfile() = runTest {
@@ -164,7 +159,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     assertEquals(userTest.copy(uid = createdUser.uid), createdUserProfile.copy(country = "FR"))
   }
 
-  private fun selectTagAndWait() {
+  private fun selectTagAndWait() = runTest {
     userTest.tags.forEach { tag ->
       val tagTestTag = SelectTagsScreenTestTags.tagItem(tag)
 
@@ -195,6 +190,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).isDisplayed()
     }
+    advanceUntilIdle()
   }
 
   private fun fillProfileDetailAndWait() = runTest {
@@ -232,6 +228,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.LAZY_COLUMN).isDisplayed()
     }
+    advanceUntilIdle()
   }
 
   private fun loginAndWait() = runTest {
@@ -244,14 +241,12 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
         .assertIsDisplayed()
         .performClick()
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FormTestTags.EMAIL_FIELD)
         .assertIsDisplayed()
         .performClick()
         .performTextInput(FAKE_EMAIL)
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
@@ -262,14 +257,12 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     }
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.PASSWORD_BUTTON).performClick()
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FormTestTags.PASSWORD_FIELD)
         .assertIsDisplayed()
         .performClick()
         .performTextInput(FAKE_PASSWORD)
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
@@ -280,5 +273,6 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.waitUntil(60_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN).isDisplayed()
     }
+    advanceUntilIdle()
   }
 }

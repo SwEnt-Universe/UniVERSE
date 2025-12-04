@@ -87,13 +87,14 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       fakeUser = fakeUser.copy(uid = uid)
       Firebase.auth.signOut()
       advanceUntilIdle()
-    }
-    composeTestRule.setContentWithStubBackdrop {
-      UniverseTheme {
-        UniverseBackgroundContainer(mapViewModel) { UniverseApp(mapViewModel = mapViewModel) }
+      composeTestRule.setContentWithStubBackdrop {
+        UniverseTheme {
+          UniverseBackgroundContainer(mapViewModel) { UniverseApp(mapViewModel = mapViewModel) }
+        }
       }
+      advanceUntilIdle()
+      composeTestRule.waitForIdle()
     }
-    composeTestRule.waitForIdle()
   }
 
   @Test
@@ -113,13 +114,11 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .assertIsDisplayed()
         .performClick()
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTagWithUnmergedTree(FormTestTags.EMAIL_FIELD)
         .performClick()
         .performTextInput(FAKE_EMAIL)
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
@@ -134,7 +133,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .performClick()
         .performTextInput(FAKE_PASS)
 
-    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 
     // Wait max 30 seconds, we should arrive on the MapScreen
@@ -146,6 +144,8 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.waitUntil(15_000L) {
       composeTestRule.onNodeWithTagWithUnmergedTree(MapScreenTestTags.INTERACTABLE).isDisplayed()
     }
+    advanceUntilIdle()
+    composeTestRule.waitForIdle()
   }
 
   private fun createEvent() = runTest {
@@ -179,7 +179,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // 3. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
 
-    composeTestRule.waitForIdle()
     // Click “Set location” button in the creation screen
     composeTestRule.waitUntil(10_000L) {
       runCatching {
@@ -188,7 +187,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
           .isSuccess
     }
 
-    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
       down(center)
@@ -198,7 +196,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
       up()
     }
-    composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
@@ -208,9 +205,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).performClick()
 
     nextMonth(composeTestRule)
-    composeTestRule.waitForIdle()
     selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
-    composeTestRule.waitForIdle()
     pressOKDate(composeTestRule)
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
@@ -223,9 +218,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .performTextInput(FAKE_EVENT.description!!)
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-    composeTestRule.waitForIdle()
   }
 
   private fun seeAddedEventInEventList() = runTest {
