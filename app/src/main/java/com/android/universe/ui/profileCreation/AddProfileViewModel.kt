@@ -22,14 +22,14 @@ import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.theme.Dimensions
+import java.io.ByteArrayOutputStream
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.time.LocalDate
 
 enum class OnboardingState {
   WELCOME,

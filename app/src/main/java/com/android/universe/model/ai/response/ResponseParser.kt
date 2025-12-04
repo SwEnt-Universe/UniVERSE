@@ -5,12 +5,12 @@ import com.android.universe.model.event.EventDTO
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.utils.LoggerAI
+import java.time.LocalDateTime
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
-import java.time.LocalDateTime
 
 object ResponseParser {
 

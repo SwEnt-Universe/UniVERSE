@@ -101,7 +101,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
     loginAndWait()
-    clickOnMapAndCreateEvent()
+    createEvent()
     seeAddedEventInEventList()
     clickOnEventInList()
   }
@@ -191,10 +191,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
 
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.DATE_BUTTON)
-        .assertIsDisplayed()
-        .performClick()
+
     nextMonth(composeTestRule)
     composeTestRule.waitForIdle()
     selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())

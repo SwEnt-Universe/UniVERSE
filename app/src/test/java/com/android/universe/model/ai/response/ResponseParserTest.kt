@@ -2,9 +2,9 @@ package com.android.universe.model.ai.response
 
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
+import java.time.LocalDateTime
 import org.junit.Assert
 import org.junit.Test
-import java.time.LocalDateTime
 
 class ResponseParserTest {
 

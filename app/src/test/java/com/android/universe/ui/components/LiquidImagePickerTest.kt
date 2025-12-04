@@ -13,13 +13,13 @@ import com.android.universe.ui.components.LiquidImagePickerDefaults.NoImage
 import com.android.universe.ui.components.LiquidImagePickerDefaults.SelectedImage
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.setContentWithStubBackdrop
+import java.io.ByteArrayOutputStream
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.ByteArrayOutputStream
 
 @RunWith(AndroidJUnit4::class)
 class LiquidImagePickerTest {

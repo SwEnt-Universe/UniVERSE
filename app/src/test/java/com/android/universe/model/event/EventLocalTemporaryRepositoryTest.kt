@@ -2,13 +2,13 @@ package com.android.universe.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.location.Location
+import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDateTime
 
 @RunWith(AndroidJUnit4::class)
 class EventLocalTemporaryRepositoryTest {

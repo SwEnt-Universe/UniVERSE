@@ -2,6 +2,7 @@ package com.android.universe.model.ai.prompt
 
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
+import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.int
@@ -12,7 +13,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Test
-import java.time.LocalDate
 
 class PromptBuilderTest {
 

@@ -22,15 +22,15 @@ import com.android.universe.ui.common.validateEventTitle
 import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
 import com.android.universe.ui.theme.Dimensions
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class OnboardingState {
   ENTER_EVENT_TITLE,

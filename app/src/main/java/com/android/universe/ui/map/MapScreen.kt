@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,7 +45,6 @@ object MapScreenTestTags {
   const val EVENT_INFO_POPUP = "event_info_popup"
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
-
 
 /**
  * Defines the interaction mode of the map UI.
@@ -98,11 +100,7 @@ fun MapScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
-  val layerBackdrop = LocalLayerBackdrop.current
   var showMapModal by remember { mutableStateOf(false) }
-
-  // Local cache for marker click handling (ID -> Event)
-  val markerToEvent = remember { mutableMapOf<String, Event>() }
 
   // --- 1. Permissions & Initialization ---
 
@@ -170,20 +168,22 @@ fun MapScreen(
       }) { padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
-            Box(
-                modifier =
-                    Modifier.align(Alignment.BottomStart)
-                        .padding(
-                            bottom = padding.calculateBottomPadding(),
-                            start = com.android.universe.ui.theme.Dimensions.PaddingExtraLarge)) {
+          Box(
+              modifier =
+                  Modifier.align(Alignment.BottomStart)
+                      .padding(
+                          bottom = padding.calculateBottomPadding(),
+                          start = com.android.universe.ui.theme.Dimensions.PaddingExtraLarge)) {
                 LiquidButton(
                     onClick = { showMapModal = true },
                     height = 56f,
                     width = 56f,
                     modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                    Text("+", color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
-                }
-            }
+                      Text(
+                          "+",
+                          color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
+                    }
+              }
           // Overlays
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -197,27 +197,26 @@ fun MapScreen(
             }
           }
 
-              selectedEvent?.let { event ->
-                EventInfoPopup(
-                    modifier = Modifier.padding(padding),
-                    event = event,
-                    isUserParticipant = viewModel.isUserParticipant(event),
-                    onDismiss = { viewModel.selectEvent(null) },
-                    onChatNavigate = onChatNavigate,
-                    onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
-              }
-              MapCreateEventModal(
-                  isPresented = showMapModal,
-                  onDismissRequest = { showMapModal = false },
-                  onAiCreate = { viewModel.generateAiEventAroundUser() },
-                  onManualCreate = {
-                    onNavigateToEventCreation()
-                    showMapModal = false
-                  })
-            }
+          selectedEvent?.let { event ->
+            EventInfoPopup(
+                modifier = Modifier.padding(padding),
+                event = event,
+                isUserParticipant = viewModel.isUserParticipant(event),
+                onDismiss = { viewModel.selectEvent(null) },
+                onChatNavigate = onChatNavigate,
+                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+          }
+          MapCreateEventModal(
+              isPresented = showMapModal,
+              onDismissRequest = { showMapModal = false },
+              onAiCreate = { viewModel.generateAiEventAroundUser() },
+              onManualCreate = {
+                onNavigateToEventCreation()
+                showMapModal = false
+              })
+        }
       }
 }
-
 
 @Composable
 private fun MapBox(

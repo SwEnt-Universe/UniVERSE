@@ -25,13 +25,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDate
 
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {

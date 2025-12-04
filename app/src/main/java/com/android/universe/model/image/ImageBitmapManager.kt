@@ -8,9 +8,9 @@ import android.util.Log
 import com.android.universe.di.DefaultDP
 import com.android.universe.di.DispatcherProvider
 import com.android.universe.ui.theme.Dimensions
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import kotlinx.coroutines.withContext
 
 /**
  * Manages the processing, resizing, and compression of image bitmaps.

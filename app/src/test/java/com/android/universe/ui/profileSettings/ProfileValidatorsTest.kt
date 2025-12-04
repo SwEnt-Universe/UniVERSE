@@ -16,10 +16,10 @@ import com.android.universe.ui.common.validateMonth
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.common.validateYear
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDate
 
 @RunWith(AndroidJUnit4::class)
 class ProfileValidatorsTest {

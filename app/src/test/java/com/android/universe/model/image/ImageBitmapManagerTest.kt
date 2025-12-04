@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.android.universe.di.DispatcherProvider
+import java.io.ByteArrayInputStream
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.CoroutineDispatcher
@@ -16,7 +17,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
-import java.io.ByteArrayInputStream
 
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
