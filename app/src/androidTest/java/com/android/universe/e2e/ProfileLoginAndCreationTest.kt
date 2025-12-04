@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.FormTestTags
@@ -122,16 +123,16 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).performClick()
     composeTestRule
-        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.FIRST_NAME_FIELD))
+        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.CUSTOMFIELD))
         .performClick()
         .performTextClearance()
     composeTestRule
-        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.FIRST_NAME_FIELD))
+        .onNode(hasSetTextAction() and hasTestTag(SettingsTestTags.CUSTOMFIELD))
         .performTextInput("Bob")
 
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
 
-    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_BUTTON).assertTextContains("Bob")
+    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_TEXT).assertTextContains("Bob")
   }
 
   private fun tabNavigationAndPrepareForEdit() = runTest {
@@ -164,15 +165,31 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
   }
 
   private fun selectTagAndWait() {
-    userTest.tags.forEach {
-      val tagTestTag = SelectTagsScreenTestTags.TAG_BUTTON_PREFIX + it.displayName
+    userTest.tags.forEach { tag ->
+      val tagTestTag = SelectTagsScreenTestTags.tagItem(tag)
+
+      val categoryTestTag =
+          when (tag.category) {
+            Tag.Category.MUSIC -> SelectTagsScreenTestTags.MUSIC_TAGS
+            Tag.Category.SPORT -> SelectTagsScreenTestTags.SPORT_TAGS
+            Tag.Category.FOOD -> SelectTagsScreenTestTags.FOOD_TAGS
+            Tag.Category.ART -> SelectTagsScreenTestTags.ART_TAGS
+            Tag.Category.TRAVEL -> SelectTagsScreenTestTags.TRAVEL_TAGS
+            Tag.Category.GAMES -> SelectTagsScreenTestTags.GAMES_TAGS
+            Tag.Category.TECHNOLOGY -> SelectTagsScreenTestTags.TECHNOLOGY_TAGS
+            Tag.Category.TOPIC -> SelectTagsScreenTestTags.TOPIC_TAGS
+          }
+
       composeTestRule
           .onNodeWithTag(SelectTagsScreenTestTags.LAZY_COLUMN)
-          .performScrollToNode(hasTestTag(tagTestTag))
+          .performScrollToNode(hasTestTag(categoryTestTag))
+
+      composeTestRule.onNodeWithTag(categoryTestTag).performScrollToNode(hasTestTag(tagTestTag))
+
       composeTestRule.onNodeWithTag(tagTestTag).performClick()
     }
 
-    composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVE_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
     composeTestRule.waitUntil(5_000L) {
@@ -213,7 +230,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.SAVE_BUTTON).isDisplayed()
+      composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.LAZY_COLUMN).isDisplayed()
     }
   }
 

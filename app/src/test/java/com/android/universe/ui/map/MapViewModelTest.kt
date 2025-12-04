@@ -6,11 +6,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.AIEventGen
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
+import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserRepository
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
@@ -58,6 +60,8 @@ class MapViewModelTest {
   private lateinit var locationRepository: LocationRepository
   private lateinit var eventRepository: EventRepository
   private lateinit var userRepository: UserRepository
+  private lateinit var userReactiveRepository: UserReactiveRepository
+  private lateinit var ai: AIEventGen
 
   @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
@@ -90,6 +94,14 @@ class MapViewModelTest {
               creator = UserTestData.Alice.uid,
               location = Location(latitude = 47.3769, longitude = 8.5417)))
 
+  private fun setUserLocation(lat: Double = 46.5, lon: Double = 6.5) {
+    every { locationRepository.getLastKnownLocation(any(), any()) } answers
+        {
+          firstArg<(Location) -> Unit>().invoke(Location(lat, lon))
+        }
+    viewModel.loadLastKnownLocation()
+  }
+
   @Before
   fun setup() = runTest {
     appContext = ApplicationProvider.getApplicationContext()
@@ -97,6 +109,12 @@ class MapViewModelTest {
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
     userRepository = mockk(relaxed = true)
+    userReactiveRepository = mockk(relaxed = true)
+    ai = mockk(relaxed = true)
+
+    val defaultUser = UserTestData.Bob.copy(uid = "default", username = "DefaultUser")
+    every { userReactiveRepository.getUserFlow(any()) } returns flowOf(defaultUser)
+
     mockkObject(DefaultDP)
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns mainCoroutineRule.dispatcher
@@ -111,11 +129,13 @@ class MapViewModelTest {
             locationRepository = locationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository,
-        )
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
     viewModel.javaClass.getDeclaredField("currentUserId").apply {
       isAccessible = true
       set(viewModel, userId)
     }
+
   }
 
   @After
@@ -177,6 +197,59 @@ class MapViewModelTest {
     assertEquals(46.6, state.userLocation?.latitude)
     assertEquals(6.6, state.userLocation?.longitude)
     assertNull(state.error)
+  }
+
+  @Test
+  fun `loadAllEvents includes correct creator profiles for each event`() = runTest {
+    // Create mock users
+    val user1 = UserTestData.Bob.copy(uid = "user1", username = "Alice")
+    val user2 = UserTestData.Bob.copy(uid = "user2", username = "Bob")
+    val user3 = UserTestData.Bob.copy(uid = "user3", username = "Charlie")
+
+    // Create events with different creators
+    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "user1")
+    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "user2")
+    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "user3")
+    val event4 =
+        EventTestData.dummyEvent1.copy(id = "event4", creator = "user1") // Duplicate creator
+
+    val eventsList = listOf(event1, event2, event3, event4)
+
+    // Mock repository responses - using reactive repository since it's available
+    coEvery { eventRepository.getAllEvents() } returns eventsList
+    every { userReactiveRepository.getUserFlow("user1") } returns flowOf(user1)
+    every { userReactiveRepository.getUserFlow("user2") } returns flowOf(user2)
+    every { userReactiveRepository.getUserFlow("user3") } returns flowOf(user3)
+
+    viewModel.loadAllEvents()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+
+    assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
+
+    val marker1 = state.markers.find { it.event.id == "event1" }
+    assertNotNull("Marker for event1 should exist", marker1)
+    assertEquals("Event1 should have Alice as creator", "Alice", marker1!!.creator?.username)
+    assertEquals("Event1 creator UID should match", "user1", marker1.creator?.uid)
+
+    val marker2 = state.markers.find { it.event.id == "event2" }
+    assertNotNull("Marker for event2 should exist", marker2)
+    assertEquals("Event2 should have Bob as creator", "Bob", marker2!!.creator?.username)
+    assertEquals("Event2 creator UID should match", "user2", marker2.creator?.uid)
+
+    val marker3 = state.markers.find { it.event.id == "event3" }
+    assertNotNull("Marker for event3 should exist", marker3)
+    assertEquals("Event3 should have Charlie as creator", "Charlie", marker3!!.creator?.username)
+    assertEquals("Event3 creator UID should match", "user3", marker3.creator?.uid)
+
+    val marker4 = state.markers.find { it.event.id == "event4" }
+    assertNotNull("Marker for event4 should exist", marker4)
+    assertEquals(
+        "Event4 should have Alice as creator (same as event1)",
+        "Alice",
+        marker4!!.creator?.username)
+    assertEquals("Event4 creator UID should match", "user1", marker4.creator?.uid)
   }
 
   @Test
@@ -468,4 +541,51 @@ class MapViewModelTest {
 
     assertTrue(viewModel.uiState.value.isMapInteractive)
   }
+
+  @Test
+  fun `generateAiEventAroundUser sets error and returns early when userLocation is null`() =
+      runTest {
+        // userLocation is null by default in initial MapUiState
+
+        viewModel.generateAiEventAroundUser()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("User location unavailable", state.error)
+
+        coVerify(exactly = 0) { userRepository.getUser(any()) }
+        coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
+        coVerify(exactly = 0) { eventRepository.getAllEvents() }
+      }
+
+  @Test
+  fun `generateAiEventAroundUser invokes AI generateEvents then persists and reloads events`() =
+      runTest {
+        // Arrange
+        setUserLocation(46.5, 6.5)
+
+        val fakeUser = UserTestData.Bob.copy(uid = userId)
+        coEvery { userRepository.getUser(userId) } returns fakeUser
+
+        val generatedEvents = listOf(EventTestData.dummyEvent1.copy(id = "ai-event"))
+        coEvery { ai.generateEvents(any()) } returns generatedEvents
+
+        // FIX: persistAIEvents must return List<Event>
+        coEvery { eventRepository.persistAIEvents(generatedEvents) } returns generatedEvents
+
+        // loadAllEvents → repository.getAllEvents()
+        coEvery { eventRepository.getAllEvents() } returns generatedEvents
+
+        // Act
+        viewModel.generateAiEventAroundUser(radiusKm = 42, timeFrame = "tonight")
+        advanceUntilIdle()
+
+        // Assert
+        coVerify(exactly = 1) { userRepository.getUser(userId) }
+        coVerify(exactly = 1) { ai.generateEvents(any()) }
+        coVerify(exactly = 1) { eventRepository.persistAIEvents(generatedEvents) }
+        coVerify(exactly = 1) { eventRepository.getAllEvents() }
+
+        assertNull(viewModel.uiState.value.error)
+      }
 }

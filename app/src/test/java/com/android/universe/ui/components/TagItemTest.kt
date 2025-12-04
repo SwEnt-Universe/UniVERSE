@@ -1,7 +1,7 @@
 package com.android.universe.ui.components
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -21,7 +21,6 @@ class TagItemTest {
     val tag = Tag.METAL
     const val TAG_BUTTON = "ButtonMetal"
     const val TAG_TEXT = "TextMetal"
-    const val TAG_ICON = "IconMetal"
   }
 
   fun setUp(
@@ -45,13 +44,6 @@ class TagItemTest {
     setUp(isSelectable = true, isSelected = false, onSelect = {}, onDeSelect = {})
     composeTestRule.onNodeWithTag(TAG_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(TAG_TEXT, useUnmergedTree = true).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(TAG_ICON, useUnmergedTree = true).assertIsNotDisplayed()
-  }
-
-  @Test
-  fun selectedTagDisplayIcon() {
-    setUp(isSelectable = true, isSelected = true, onSelect = {}, onDeSelect = {})
-    composeTestRule.onNodeWithTag(TAG_ICON, useUnmergedTree = true).assertIsDisplayed()
   }
 
   @Test
@@ -79,5 +71,20 @@ class TagItemTest {
     composeTestRule.onNodeWithTag(TAG_BUTTON).performClick()
     assertEquals(1, tags.size)
     assertEquals(Tag.DND, tags[0])
+  }
+
+  @Test
+  fun disabledTagIsNotClickable() {
+    var callbackCalled = false
+    setUp(
+        isSelectable = false,
+        isSelected = false,
+        onSelect = { callbackCalled = true },
+        onDeSelect = { callbackCalled = true })
+
+    composeTestRule.onNodeWithTag(TAG_BUTTON).assertIsNotEnabled()
+
+    composeTestRule.onNodeWithTag(TAG_BUTTON).performClick()
+    assertEquals(false, callbackCalled)
   }
 }

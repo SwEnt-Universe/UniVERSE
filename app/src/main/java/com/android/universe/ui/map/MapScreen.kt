@@ -7,11 +7,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.event.EventRepositoryProvider
@@ -46,6 +43,18 @@ object MapScreenTestTags {
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
 }
 
+
+/**
+ * Defines the interaction mode of the map UI.
+ * - `NORMAL`: Standard browsing mode where users can pan/zoom the map and view events.
+ * - `SELECT_LOCATION`: Special mode used when creating an event, allowing the user to pick a
+ *   specific location by clicking on the map.
+ */
+enum class MapMode {
+  NORMAL,
+  SELECT_LOCATION
+}
+
 /**
  * The main screen composable for displaying a map with event markers.
  *
@@ -56,10 +65,12 @@ object MapScreenTestTags {
  * @param onTabSelected A callback function invoked when a tab in the bottom navigation menu is
  *   selected.
  * @param context The Android context, defaulting to the current LocalContext.
+ * @param onNavigateToEventCreation Invoked when the user chooses manual event creation.
  * @param preselectedEventId An optional event ID to preselect and focus on when the map loads.
  * @param preselectedLocation An optional location to preselect and focus on when the map loads.
  * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
  *   title as parameters.
+ * @param mode Determines how the map handles user interaction (`NORMAL` or `SELECT_LOCATION`).
  * @param createEvent A callback function invoked when creating a new event at specified latitude
  *   and longitude.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
@@ -69,11 +80,13 @@ object MapScreenTestTags {
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
+    onNavigateToEventCreation: () -> Unit,
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    createEvent: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
+    mode: MapMode = MapMode.NORMAL,
+    onLocationSelected: (Double, Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context,
@@ -85,6 +98,11 @@ fun MapScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
+  val layerBackdrop = LocalLayerBackdrop.current
+  var showMapModal by remember { mutableStateOf(false) }
+
+  // Local cache for marker click handling (ID -> Event)
+  val markerToEvent = remember { mutableMapOf<String, Event>() }
 
   // --- 1. Permissions & Initialization ---
 
@@ -152,8 +170,20 @@ fun MapScreen(
       }) { padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
-          uiState.selectedLocation?.let { CreateEventButton(padding, createEvent, uiState) }
-
+            Box(
+                modifier =
+                    Modifier.align(Alignment.BottomStart)
+                        .padding(
+                            bottom = padding.calculateBottomPadding(),
+                            start = com.android.universe.ui.theme.Dimensions.PaddingExtraLarge)) {
+                LiquidButton(
+                    onClick = { showMapModal = true },
+                    height = 56f,
+                    width = 56f,
+                    modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
+                    Text("+", color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground)
+                }
+            }
           // Overlays
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -167,38 +197,27 @@ fun MapScreen(
             }
           }
 
-          selectedEvent?.let { event ->
-            EventInfoPopup(
-                modifier = Modifier.padding(bottom = padding.calculateBottomPadding()),
-                event = event,
-                isUserParticipant = viewModel.isUserParticipant(event),
-                onDismiss = { viewModel.selectEvent(null) },
-                onChatNavigate = onChatNavigate,
-                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
-          }
-        }
-      }
-}
-
-@Composable
-private fun CreateEventButton(
-    padding: PaddingValues,
-    createEvent: (latitude: Double, longitude: Double) -> Unit,
-    uiState: MapUiState
-) {
-  Box(
-      modifier = Modifier.fillMaxSize().padding(padding),
-      contentAlignment = Alignment.BottomCenter) {
-        LiquidButton(
-            onClick = {
-              createEvent(uiState.selectedLocation!!.latitude, uiState.selectedLocation.longitude)
-            },
-            modifier =
-                Modifier.padding(bottom = 96.dp).testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-              Text("Create your Event !", color = MaterialTheme.colorScheme.onBackground)
+              selectedEvent?.let { event ->
+                EventInfoPopup(
+                    modifier = Modifier.padding(padding),
+                    event = event,
+                    isUserParticipant = viewModel.isUserParticipant(event),
+                    onDismiss = { viewModel.selectEvent(null) },
+                    onChatNavigate = onChatNavigate,
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+              }
+              MapCreateEventModal(
+                  isPresented = showMapModal,
+                  onDismissRequest = { showMapModal = false },
+                  onAiCreate = { viewModel.generateAiEventAroundUser() },
+                  onManualCreate = {
+                    onNavigateToEventCreation()
+                    showMapModal = false
+                  })
             }
       }
 }
+
 
 @Composable
 private fun MapBox(

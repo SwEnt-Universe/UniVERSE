@@ -12,6 +12,12 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.AIConfig.MAX_RADIUS_KM
+import com.android.universe.model.ai.AIEventGen
+import com.android.universe.model.ai.openai.OpenAIProvider
+import com.android.universe.model.ai.prompt.ContextConfig
+import com.android.universe.model.ai.prompt.EventQuery
+import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
@@ -24,6 +30,9 @@ import com.android.universe.model.tag.Tag.Category.SPORT
 import com.android.universe.model.tag.Tag.Category.TECHNOLOGY
 import com.android.universe.model.tag.Tag.Category.TOPIC
 import com.android.universe.model.tag.Tag.Category.TRAVEL
+import com.android.universe.model.user.UserProfile
+import com.android.universe.model.user.UserReactiveRepository
+import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
@@ -47,6 +56,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -118,6 +129,9 @@ class MapViewModel(
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
     private val userRepository: UserRepository,
+    private val userReactiveRepository: UserReactiveRepository? =
+        UserReactiveRepositoryProvider.repository,
+    private val ai: AIEventGen = OpenAIProvider.eventGen,
 ) : ViewModel() {
 
   @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
@@ -419,35 +433,78 @@ class MapViewModel(
     locationTrackingJob = null
   }
 
-  /** Loads all events from repository and updates markers. */
+  /**
+   * Loads all events from the repository and converts them to map markers with appropriate icons.
+   *
+   * This function:
+   * 1. Fetches all events from the repository
+   * 2. Retrieves user profiles for each event creator (reactively if available)
+   * 3. Determines the primary category for each event based on its tags
+   * 4. Assigns a colored pin drawable based on the event's primary category
+   * 5. Creates MapMarkerUiModel objects containing event, creator, location, and icon data
+   *
+   * Uses reactive Flow-based user fetching when userReactiveRepository is available, otherwise
+   * falls back to synchronous repository calls.
+   */
   fun loadAllEvents() {
     viewModelScope.launch {
       try {
         val events = eventRepository.getAllEvents()
         _eventMarkers.value = events
-        val markers =
-            events.map { event ->
-              val category: Category? =
-                  event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
-              val drawableBasedOnCategory =
-                  when (category) {
-                    MUSIC -> R.drawable.violet_pin
-                    SPORT -> R.drawable.sky_blue_pin
-                    FOOD -> R.drawable.yellow_pin
-                    ART -> R.drawable.red_pin
-                    TRAVEL -> R.drawable.brown_pin
-                    GAMES -> R.drawable.orange_pin
-                    TECHNOLOGY -> R.drawable.grey_pin
-                    TOPIC -> R.drawable.pink_pin
-                    null -> R.drawable.base_pin
+
+        if (userReactiveRepository != null) {
+          val distinctCreators = events.map { it.creator }.distinct()
+
+          if (distinctCreators.isEmpty()) {
+            _uiState.update { it.copy(markers = emptyList()) }
+            return@launch
+          }
+
+          combine(
+                  distinctCreators.map { uid ->
+                    userReactiveRepository.getUserFlow(uid).map { uid to it }
+                  }) { userPairs ->
+                    val usersMap = userPairs.toMap()
+                    events.map { event -> mapEventToMarker(event, usersMap[event.creator]) }
                   }
-              MapMarkerUiModel(event, event.location.toGeoPoint(), drawableBasedOnCategory)
-            }
-        _uiState.update { it.copy(markers = markers) }
+              .collect { markers -> _uiState.update { it.copy(markers = markers) } }
+        } else {
+          val markers =
+              events.map { event ->
+                val user = userRepository.getUser(event.creator)
+                mapEventToMarker(event, user)
+              }
+          _uiState.update { it.copy(markers = markers) }
+        }
       } catch (e: Exception) {
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
+  }
+
+  /** Returns the drawable resource ID for a given event category. */
+  private fun getCategoryDrawable(category: Category?): Int {
+    return when (category) {
+      MUSIC -> R.drawable.violet_pin
+      SPORT -> R.drawable.sky_blue_pin
+      FOOD -> R.drawable.yellow_pin
+      ART -> R.drawable.red_pin
+      TRAVEL -> R.drawable.brown_pin
+      GAMES -> R.drawable.orange_pin
+      TECHNOLOGY -> R.drawable.grey_pin
+      TOPIC -> R.drawable.pink_pin
+      null -> R.drawable.base_pin
+    }
+  }
+
+  /** Maps an Event and its creator UserProfile to a MapMarkerUiModel with appropriate icon. */
+  private fun mapEventToMarker(event: Event, user: UserProfile?): MapMarkerUiModel {
+    val category = event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
+
+    val drawable = getCategoryDrawable(category)
+
+    return MapMarkerUiModel(
+        event = event, creator = user, position = event.location.toGeoPoint(), iconResId = drawable)
   }
 
   /** Loads events suggested for the current user. */
@@ -545,5 +602,38 @@ class MapViewModel(
    */
   fun isUserParticipant(event: Event): Boolean {
     return event.participants.contains(currentUserId)
+  }
+
+  fun generateAiEventAroundUser(radiusKm: Int = MAX_RADIUS_KM, timeFrame: String = "today") {
+    val userLoc =
+        uiState.value.userLocation
+            ?: run {
+              _uiState.update { it.copy(error = "User location unavailable") }
+              return
+            }
+
+    viewModelScope.launch {
+      try {
+        val profile = userRepository.getUser(currentUserId)
+
+        val context =
+            ContextConfig(
+                location = null,
+                locationCoordinates = Pair(userLoc.latitude, userLoc.longitude),
+                radiusKm = radiusKm,
+                timeFrame = timeFrame)
+
+        val task = TaskConfig(eventCount = 1, requireRelevantTags = true)
+
+        val query = EventQuery(user = profile, task = task, context = context)
+
+        val events = ai.generateEvents(query)
+
+        eventRepository.persistAIEvents(events)
+        loadAllEvents()
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
+      }
+    }
   }
 }
