@@ -326,7 +326,7 @@ class MapViewModelTest {
     viewModel.mapActions.test {
       val target = GeoPoint(46.5, 6.5)
       val zoom = 12.0
-      viewModel.onCameraMoveRequest(target, zoom)
+      viewModel.onCameraMoveRequest(target)
 
       val action = awaitItem()
       assertTrue(action is MapAction.MoveCamera)
