@@ -39,24 +39,32 @@ enum class SelectTagMode {
  *   his event.
  */
 class SelectTagViewModel(
+    private val uid: String,
+    private val mode: SelectTagMode,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val tagRepository: TagTemporaryRepository = TagTemporaryRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val eventTemporaryRepository: EventTemporaryRepository =
         EventTemporaryRepositoryProvider.repository
 ) : ViewModel() {
+
   /** Backing field for [uiStateTags]. Mutable within the ViewModel only. */
   private val _selectedTags = MutableStateFlow<List<Tag>>(emptyList())
-  var mode = SelectTagMode.USER_PROFILE
+
   /** Publicly exposed state of the selected tags. */
   val selectedTags = _selectedTags.asStateFlow()
+
+  init {
+    eventTagRepositoryObserving()
+    loadTags(uid)
+  }
 
   /**
    * We launch a coroutine that will update the set of tag each time the tag repository change. This
    * allow the user to see the tag he already selected if he returns to the screen. This function
    * should be launched only in a launched Effect of the invoking screen
    */
-  fun eventTagRepositoryObserving() {
+  private fun eventTagRepositoryObserving() {
     if (mode == SelectTagMode.EVENT_CREATION) {
       viewModelScope.launch {
         tagRepository.tagsFlow.collect { newTags -> _selectedTags.value = newTags.toList() }
@@ -104,25 +112,21 @@ class SelectTagViewModel(
    *
    * @param uid the uid of the current user.
    */
-  fun loadTags(uid: String) {
+  private fun loadTags(uid: String) {
     viewModelScope.launch {
       when (mode) {
         SelectTagMode.USER_PROFILE -> {
           val userProfile = userRepository.getUser(uid)
           _selectedTags.value = userProfile.tags.toList()
         }
-        SelectTagMode.EVENT_CREATION -> _selectedTags.value = emptyList()
         SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
+        else -> {}
       }
     }
   }
 
-  /**
-   * Saves the selected tags to the userProfile of the current User.
-   *
-   * @param uid the uid of the current user.
-   */
-  fun saveTags(uid: String) {
+  /** Saves the selected tags to the userProfile of the current User. */
+  fun saveTags() {
     viewModelScope.launch {
       when (mode) {
         SelectTagMode.USER_PROFILE -> {

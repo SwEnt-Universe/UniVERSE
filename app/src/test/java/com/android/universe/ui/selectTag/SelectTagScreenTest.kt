@@ -21,7 +21,6 @@ import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -60,6 +59,8 @@ class SelectTagScreenTest {
     runTest { userRepository.addUser(dummyUser) }
     viewModel =
         SelectTagViewModel(
+            uid = dummyUser.uid,
+            mode = SelectTagMode.USER_PROFILE,
             userRepository = userRepository,
             tagRepository = tagRepository,
             eventRepository = eventRepository,
@@ -140,18 +141,5 @@ class SelectTagScreenTest {
     launchDefaultScreen()
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-  }
-
-  @Test
-  fun selectedTagsModeChange() {
-    composeTestRule.setContentWithStubBackdrop {
-      SelectTagScreen(
-          selectTagMode = SelectTagMode.EVENT_CREATION,
-          selectedTagOverview = viewModel,
-          uid = dummyUser.uid)
-    }
-    composeTestRule.waitForIdle()
-
-    assertEquals(SelectTagMode.EVENT_CREATION, viewModel.mode)
   }
 }

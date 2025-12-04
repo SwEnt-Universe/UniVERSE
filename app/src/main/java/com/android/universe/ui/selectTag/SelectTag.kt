@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -80,17 +79,12 @@ fun SectionDivider() {
  */
 @Composable
 fun SelectTagScreen(
-    selectTagMode: SelectTagMode = SelectTagMode.USER_PROFILE,
-    selectedTagOverview: SelectTagViewModel = viewModel(),
     uid: String,
+    selectTagMode: SelectTagMode = SelectTagMode.USER_PROFILE,
     onBack: () -> Unit = {},
-    navigateOnSave: () -> Unit = {}
+    navigateOnSave: () -> Unit = {},
+    selectedTagOverview: SelectTagViewModel = viewModel { SelectTagViewModel(uid, selectTagMode) },
 ) {
-  LaunchedEffect(uid) {
-    selectedTagOverview.mode = selectTagMode
-    selectedTagOverview.eventTagRepositoryObserving()
-    selectedTagOverview.loadTags(uid)
-  }
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()
 
   Scaffold(
@@ -103,7 +97,7 @@ fun SelectTagScreen(
                     FlowTab.Back(onClick = onBack),
                     FlowTab.Confirm(
                         onClick = {
-                          selectedTagOverview.saveTags(uid)
+                          selectedTagOverview.saveTags()
                           navigateOnSave()
                         },
                         enabled = true)))
