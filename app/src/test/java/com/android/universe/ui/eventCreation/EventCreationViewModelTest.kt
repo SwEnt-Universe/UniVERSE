@@ -54,8 +54,8 @@ class EventCreationViewModelTest {
     eventRepository = FakeEventRepository()
     eventTemporaryRepository = EventLocalTemporaryRepository()
     viewModel =
-      EventCreationViewModel(
-        eventRepository = eventRepository, eventTemporaryRepository = eventTemporaryRepository)
+        EventCreationViewModel(
+            eventRepository = eventRepository, eventTemporaryRepository = eventTemporaryRepository)
   }
 
   @Test
@@ -72,8 +72,8 @@ class EventCreationViewModelTest {
     val state = viewModel.uiStateEventCreation.value
     assert(state.name == BAD_SAMPLE_TITLE.take(InputLimits.TITLE_EVENT_MAX_LENGTH + 1))
     assert(
-      state.eventTitleValid ==
-              ValidationState.Invalid(
+        state.eventTitleValid ==
+            ValidationState.Invalid(
                 ErrorMessages.TITLE_EVENT_TOO_LONG.format(InputLimits.TITLE_EVENT_MAX_LENGTH)))
   }
 
@@ -99,8 +99,8 @@ class EventCreationViewModelTest {
     val state = viewModel.uiStateEventCreation.value
     assert(state.description == BAD_SAMPLE_DESCRIPTION.take(InputLimits.DESCRIPTION + 1))
     assert(
-      state.eventDescriptionValid ==
-              ValidationState.Invalid(
+        state.eventDescriptionValid ==
+            ValidationState.Invalid(
                 ErrorMessages.DESCRIPTION_TOO_LONG.format(InputLimits.DESCRIPTION)))
   }
 
@@ -155,22 +155,22 @@ class EventCreationViewModelTest {
   fun setOnboardingState() {
     viewModel.setOnboardingState(OnboardingState.ENTER_EVENT_TITLE, true)
     assertTrue(
-      viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
-              true)
+        viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
+            true)
 
     viewModel.setOnboardingState(OnboardingState.ENTER_EVENT_TITLE, false)
     assertTrue(
-      viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
-              false)
+        viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
+            false)
 
     viewModel.setOnboardingState(OnboardingState.ENTER_DESCRIPTION, true)
     assertTrue(
-      viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
-              true)
+        viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
+            true)
 
     viewModel.setOnboardingState(OnboardingState.ENTER_TIME, true)
     assertTrue(
-      viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_TIME] == true)
+        viewModel.uiStateEventCreation.value.onboardingState[OnboardingState.ENTER_TIME] == true)
   }
 
   @Test
@@ -256,7 +256,7 @@ class EventCreationViewModelTest {
     viewModel.setTime(SAMPLE_TIME)
 
     assertEquals(
-      viewModel.formatDate(viewModel.uiStateEventCreation.value.date), SAMPLE_DATE_FORMAT)
+        viewModel.formatDate(viewModel.uiStateEventCreation.value.date), SAMPLE_DATE_FORMAT)
 
     testDispatcher.scheduler.advanceUntilIdle()
 

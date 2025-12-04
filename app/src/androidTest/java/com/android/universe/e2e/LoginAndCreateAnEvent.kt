@@ -159,38 +159,37 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .performClick()
 
     composeTestRule.waitForIdle()
-      composeTestRule
-          .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
-          .performClick()
+    composeTestRule
+        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+        .performClick()
 
-      composeTestRule.waitForIdle()
-      composeTestRule.waitUntil(64_000L) {
-          composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
-      }
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(64_000L) {
+      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
+    }
 
-      composeTestRule
-          .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
-          .assertIsDisplayed()
-          .performClick()
-      nextMonth(composeTestRule)
-      composeTestRule.waitForIdle()
-      selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
-      composeTestRule.waitForIdle()
-      pressOKDate(composeTestRule)
-      composeTestRule
-          .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
-          .performTextInput(TIME_INPUT)
-      composeTestRule
-          .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-          .performTextInput(FAKE_EVENT.title)
-      composeTestRule
-          .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-          .performTextInput(FAKE_EVENT.description!!)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
+        .assertIsDisplayed()
+        .performClick()
+    nextMonth(composeTestRule)
+    composeTestRule.waitForIdle()
+    selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
+    composeTestRule.waitForIdle()
+    pressOKDate(composeTestRule)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+        .performTextInput(TIME_INPUT)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+        .performTextInput(FAKE_EVENT.title)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+        .performTextInput(FAKE_EVENT.description!!)
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
-
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()

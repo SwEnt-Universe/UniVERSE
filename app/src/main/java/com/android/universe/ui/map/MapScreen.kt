@@ -18,6 +18,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
@@ -75,9 +78,6 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlinx.coroutines.withContext
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.ui.text.style.TextAlign
 
 object MapScreenTestTags {
   const val MAP_VIEW = "map_view"
@@ -233,24 +233,24 @@ fun MapScreen(
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
-          if (mode == MapMode.NORMAL){
-        NavigationBottomMenu(
-            selectedTab = Tab.Map,
-            onTabSelected = { tab ->
-              val view = mapViewInstance
-              if (!uiState.isLoading &&
-                  uiState.isMapInteractive &&
-                  view != null &&
-                  tab != Tab.Map) {
-                view.takeSnapshot { bmp ->
-                  if (bmp != null) {
-                    viewModel.onSnapshotAvailable(bmp)
+        if (mode == MapMode.NORMAL) {
+          NavigationBottomMenu(
+              selectedTab = Tab.Map,
+              onTabSelected = { tab ->
+                val view = mapViewInstance
+                if (!uiState.isLoading &&
+                    uiState.isMapInteractive &&
+                    view != null &&
+                    tab != Tab.Map) {
+                  view.takeSnapshot { bmp ->
+                    if (bmp != null) {
+                      viewModel.onSnapshotAvailable(bmp)
+                    }
                   }
                 }
-              }
-              onTabSelected(tab)
-            })
-          }
+                onTabSelected(tab)
+              })
+        }
       }) { padding ->
         Box(
             modifier =
@@ -288,9 +288,18 @@ fun MapScreen(
                     map.setInitialCamera(uiState.cameraPosition, uiState.zoomLevel)
                     viewModel.nowInteractable()
                   })
-            if (mode == MapMode.SELECT_LOCATION){
-                Text("Select you location with a long press", modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.PaddingExtraLarge + Dimensions.PaddingLarge, horizontal = Dimensions.PaddingMedium).align(Alignment.TopCenter), fontSize = 40.sp, textAlign = TextAlign.Center)
-            }
+              if (mode == MapMode.SELECT_LOCATION) {
+                Text(
+                    "Select you location with a long press",
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(
+                                vertical = Dimensions.PaddingExtraLarge + Dimensions.PaddingLarge,
+                                horizontal = Dimensions.PaddingMedium)
+                            .align(Alignment.TopCenter),
+                    fontSize = 40.sp,
+                    textAlign = TextAlign.Center)
+              }
 
               // TEST BACKDOOR
               if (TestFlags.enableMapBackdoor) {

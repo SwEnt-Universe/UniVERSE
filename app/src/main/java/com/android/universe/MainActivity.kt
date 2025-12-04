@@ -29,7 +29,6 @@ import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,7 +45,6 @@ import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
-import com.android.universe.ui.eventCreation.EventCreationViewModel
 import com.android.universe.ui.map.MapMode
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.navigation.NavigationActions
@@ -221,7 +219,7 @@ fun UniverseApp(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
               onNavigateToEventCreation = {
-                  navController.navigate(NavigationScreens.SelectLocation.route)
+                navController.navigate(NavigationScreens.SelectLocation.route)
               },
               onChatNavigate = { chatID, chatName ->
                 navController.navigate(
@@ -248,7 +246,7 @@ fun UniverseApp(
                   uid = authInstance.currentUser!!.uid,
                   onTabSelected = onTabSelected,
                   onNavigateToEventCreation = {
-                      navController.navigate(NavigationScreens.SelectLocation.route)
+                    navController.navigate(NavigationScreens.SelectLocation.route)
                   },
                   preselectedEventId = eventId,
                   preselectedLocation = Location(lat, lng),
@@ -381,24 +379,24 @@ fun UniverseApp(
           startDestination = NavigationScreens.EventCreation.route) {
 
             // --- Main Event Creation Screen ---
-          composable(
-              route = NavigationScreens.EventCreation.route,
-              arguments =
-                  listOf(
-                      navArgument("latitude") { type = NavType.FloatType },
-                      navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
-              val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
-              val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
+            composable(
+                route = NavigationScreens.EventCreation.route,
+                arguments =
+                    listOf(
+                        navArgument("latitude") { type = NavType.FloatType },
+                        navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+                  val latitude = backStackEntry.arguments?.getFloat("latitude") ?: 0f
+                  val longitude = backStackEntry.arguments?.getFloat("longitude") ?: 0f
 
-              UniverseBackgroundContainer(bitmap) {
-                  EventCreationScreen(
-                      location = Location(latitude.toDouble(), longitude.toDouble()),
-                      onSave = {
+                  UniverseBackgroundContainer(bitmap) {
+                    EventCreationScreen(
+                        location = Location(latitude.toDouble(), longitude.toDouble()),
+                        onSave = {
                           navController.navigate(route = NavigationScreens.SelectTagEvent.route)
-                      },
-                      onBack = { navigationActions.goBack() })
-              }
-          }
+                        },
+                        onBack = { navigationActions.goBack() })
+                  }
+                }
 
             // --- Location Picker Screen ---
             composable(NavigationScreens.SelectLocation.route) { backStackEntry ->
@@ -407,9 +405,10 @@ fun UniverseApp(
                   mode = MapMode.SELECT_LOCATION,
                   onTabSelected = {},
                   onNavigateToEventCreation = {
-                      navController.navigate(NavigationScreens.SelectLocation.route)
+                    navController.navigate(NavigationScreens.SelectLocation.route)
                   },
-                  onLocationSelected = { lat, lng -> navController.navigate("eventCreation/$lat/$lng")
+                  onLocationSelected = { lat, lng ->
+                    navController.navigate("eventCreation/$lat/$lng")
                   })
             }
 

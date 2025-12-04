@@ -23,83 +23,83 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class EventCreationScreenTest {
-    private lateinit var viewModel: EventCreationViewModel
-    @get:Rule val composeTestRule = createComposeRule()
+  private lateinit var viewModel: EventCreationViewModel
+  @get:Rule val composeTestRule = createComposeRule()
 
-    companion object {
-        const val SAMPLE_TEXT_INPUT = "Text"
-        const val SAMPLE_MINUTE = 25
-        const val SAMPLE_HOUR = 17
-        const val FORMATTED_TIME = "$SAMPLE_HOUR:$SAMPLE_MINUTE"
-        const val SAMPLE_YEAR = 2027
-        const val SAMPLE_DAY = 17
-        val SAMPLE_DATE: LocalDate = LocalDate.of(SAMPLE_YEAR, LocalDate.now().month, SAMPLE_DAY)
+  companion object {
+    const val SAMPLE_TEXT_INPUT = "Text"
+    const val SAMPLE_MINUTE = 25
+    const val SAMPLE_HOUR = 17
+    const val FORMATTED_TIME = "$SAMPLE_HOUR:$SAMPLE_MINUTE"
+    const val SAMPLE_YEAR = 2027
+    const val SAMPLE_DAY = 17
+    val SAMPLE_DATE: LocalDate = LocalDate.of(SAMPLE_YEAR, LocalDate.now().month, SAMPLE_DAY)
+  }
+
+  @Before
+  fun setUp() {
+    viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
+    composeTestRule.setContentWithStubBackdrop {
+      EventCreationScreen(
+          eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
     }
+  }
 
-    @Before
-    fun setUp() {
-        viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
-        composeTestRule.setContentWithStubBackdrop {
-            EventCreationScreen(
-                eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
-        }
-    }
+  @Test
+  fun eventCreationScreen_displayedCorrectly() {
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_PICTURE_PICKER).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD).assertIsDisplayed()
+  }
 
-    @Test
-    fun eventCreationScreen_displayedCorrectly() {
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_PICTURE_PICKER).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD).assertIsDisplayed()
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsNotDisplayed()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD).assertIsDisplayed()
-    }
+  @Test
+  fun eventCreationScreen_canEnterTitle() {
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+        .performTextInput(SAMPLE_TEXT_INPUT)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+        .assertTextContains(SAMPLE_TEXT_INPUT)
+  }
 
-    @Test
-    fun eventCreationScreen_canEnterTitle() {
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-            .performTextInput(SAMPLE_TEXT_INPUT)
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-            .assertTextContains(SAMPLE_TEXT_INPUT)
-    }
+  @Test
+  fun eventCreationScreen_canEnterDescription() {
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+        .performTextInput(SAMPLE_TEXT_INPUT)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+        .assertTextContains(SAMPLE_TEXT_INPUT)
+  }
 
-    @Test
-    fun eventCreationScreen_canEnterDescription() {
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-            .performTextInput(SAMPLE_TEXT_INPUT)
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-            .assertTextContains(SAMPLE_TEXT_INPUT)
-    }
+  @Test
+  fun eventCreationScreen_canEnterTime() {
 
-    @Test
-    fun eventCreationScreen_canEnterTime() {
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+        .performTextInput(FORMATTED_TIME)
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+        .assertTextContains(FORMATTED_TIME)
+  }
 
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
-            .performTextInput(FORMATTED_TIME)
-        composeTestRule.waitForIdle()
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
-            .assertTextContains(FORMATTED_TIME)
-    }
-
-    @Test
-    fun eventCreationScreen_canEnterDate() {
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsDisplayed()
-        selectYear(composeTestRule, SAMPLE_YEAR)
-        nextMonth(composeTestRule)
-        composeTestRule.waitForIdle()
-        selectDay(composeTestRule, SAMPLE_DATE)
-        pressOKDate(composeTestRule)
-        // composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE)).assertIsDisplayed()
-    }
+  @Test
+  fun eventCreationScreen_canEnterDate() {
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsDisplayed()
+    selectYear(composeTestRule, SAMPLE_YEAR)
+    nextMonth(composeTestRule)
+    composeTestRule.waitForIdle()
+    selectDay(composeTestRule, SAMPLE_DATE)
+    pressOKDate(composeTestRule)
+    // composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE)).assertIsDisplayed()
+  }
 }
