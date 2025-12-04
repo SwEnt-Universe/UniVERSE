@@ -1,13 +1,23 @@
 package com.android.universe.ui.chat
 
+import android.app.Activity
+import android.view.Window
+import android.view.WindowManager
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.chat.ChatScreenTestTags.ERROR
@@ -53,6 +63,14 @@ fun ChatScreen(
     onBack: () -> Unit = {},
     vm: ChatUIViewModel = viewModel { ChatUIViewModel(chatID, userID) }
 ) {
+  val activity = LocalContext.current as? Activity
+  val window: Window? = activity?.window
+  LaunchedEffect(window) {
+    window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+  }
+  DisposableEffect(window) {
+    onDispose { window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN) }
+  }
 
   val uiState by vm.uiState.collectAsState()
   ScreenLayout(
@@ -64,7 +82,7 @@ fun ChatScreen(
         Column(
             modifier =
                 Modifier.fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(top = paddingValues.calculateTopPadding())
                     .padding(horizontal = Dimensions.PaddingMedium)) {
               when (val state = uiState) {
                 is ChatUIViewModel.ChatUiState.Loading ->
@@ -78,6 +96,10 @@ fun ChatScreen(
                       modifier = Modifier.weight(weight = 1f),
                       vm = vm)
                   SendMessageInput(vm = vm)
+                  Box {
+                    Spacer(Modifier.height(height = paddingValues.calculateBottomPadding()))
+                    Spacer(Modifier.padding(top = Dimensions.PaddingMedium).imePadding())
+                  }
                 }
               }
             }
