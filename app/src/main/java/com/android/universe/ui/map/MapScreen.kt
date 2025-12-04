@@ -33,7 +33,7 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.components.LiquidButton
-import com.android.universe.ui.components.ScreenLayout
+import com.android.universe.ui.components.ScreenLayoutWithBox
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -160,7 +160,7 @@ fun MapScreen(
   }
 
   // --- 3. UI Structure ---
-  ScreenLayout(
+  ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
         NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
