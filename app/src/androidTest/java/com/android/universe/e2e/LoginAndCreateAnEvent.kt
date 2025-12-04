@@ -134,10 +134,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun createEvent() = runTest {
-    // —————————————————————————————
-    // 1. CLICK CREATE EVENT BUTTON -> CLICK MANUAL CREATE BUTTON -> CLICK SET LOCATION
-    // —————————————————————————————
-    // Wait for + button on map
     composeTestRule.waitUntil(10_000L) {
       runCatching {
             composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).assertExists()
@@ -146,7 +142,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
 
-    // Wait for Manual Create button inside the popup modal
     composeTestRule.waitUntil(10_000L) {
       runCatching {
             composeTestRule
@@ -163,57 +158,40 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
         .onFirst()
         .performClick()
 
-    // —————————————————————————————————————
-    // 3. SET LOCATION BY CLICKING ON MAP
-    // —————————————————————————————————————
+    composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
+          .performClick()
+
+      composeTestRule.waitForIdle()
+      composeTestRule.waitUntil(64_000L) {
+          composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
+      }
+
+      composeTestRule
+          .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
+          .assertIsDisplayed()
+          .performClick()
+      nextMonth(composeTestRule)
+      composeTestRule.waitForIdle()
+      selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
+      composeTestRule.waitForIdle()
+      pressOKDate(composeTestRule)
+      composeTestRule
+          .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+          .performTextInput(TIME_INPUT)
+      composeTestRule
+          .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+          .performTextInput(FAKE_EVENT.title)
+      composeTestRule
+          .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+          .performTextInput(FAKE_EVENT.description!!)
 
     composeTestRule.waitForIdle()
-    // Click “Set location” button in the creation screen
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
-          }
-          .isSuccess
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithTag("test_select_location_backdoor", useUnmergedTree = true)
-        .performClick()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
 
-    // —————————————————————————————
-    // 2. OTHER PARAMETERS
-    // —————————————————————————————
-    composeTestRule.waitUntil(64_000L) {
-      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
-    }
 
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
-        .assertIsDisplayed()
-        .performClick()
-    nextMonth(composeTestRule)
-    composeTestRule.waitForIdle()
-    selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
-    composeTestRule.waitForIdle()
-    pressOKDate(composeTestRule)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
-        .performTextInput(TIME_INPUT)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-        .performTextInput(FAKE_EVENT.title)
-    composeTestRule
-        .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-        .performTextInput(FAKE_EVENT.description!!)
-
-    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
   }
