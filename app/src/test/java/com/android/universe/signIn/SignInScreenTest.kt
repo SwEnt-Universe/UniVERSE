@@ -6,7 +6,6 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
@@ -184,7 +183,8 @@ class SignInScreenTest {
    */
   @Test
   fun signUpScreen_displayAndSignInMethods() {
-    fakeUiState.value = SignInUIState(onboardingState = OnboardingState.SIGN_UP, email = validEmail)
+    fakeUiState.value =
+        SignInUIState(onboardingState = OnboardingState.CHOOSE_AUTH_METHOD, email = validEmail)
 
     composeTestRule.setContentWithStubBackdrop { SignInScreen(viewModel = mockViewModel) }
 

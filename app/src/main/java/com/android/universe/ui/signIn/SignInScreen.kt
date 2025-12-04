@@ -128,7 +128,7 @@ fun SignInScreen(
                 onConfirm = viewModel::signInWithEmail,
                 onBack = viewModel::onBack)
 
-        else ->
+        OnboardingState.CHOOSE_AUTH_METHOD ->
             SignUpBox(
                 email = uiState.email,
                 onPassword = viewModel::onSignUpWithPassword,
@@ -347,7 +347,7 @@ fun GoogleBox(email: String, onBack: () -> Unit, onSignIn: () -> Unit) {
         FlowBottomMenu(
             flowTabs = listOf(FlowTab.Back(onClick = onBack), FlowTab.Google(onClick = onSignIn)))
       }) {
-        Text(text = "Enter your email address", style = MaterialTheme.typography.titleLarge)
+        Text(text = "Sign in with google", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         EmailTextField(value = email, onValueChange = {}, enabled = false)
       }

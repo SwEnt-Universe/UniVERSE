@@ -35,12 +35,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Represents the different steps or screens in the user sign-in/sign-up onboarding flow. Each state
+ * corresponds to a specific UI view presented to the user.
+ */
 enum class OnboardingState {
   WELCOME,
   ENTER_EMAIL,
   SIGN_IN_PASSWORD,
   SIGN_IN_GOOGLE,
-  SIGN_UP
+  CHOOSE_AUTH_METHOD
+}
+
+/** Represents the different authentication methods a user can use to sign in. */
+object SignInMethod {
+  const val GOOGLE = "google.com"
+  const val EMAIL = "password"
 }
 
 /**
@@ -352,23 +362,23 @@ class SignInViewModel(
   fun confirmEmail() {
     if (!_uiState.value.confirmEmailEnabled) return
     viewModelScope.launch {
-      val queryResult = authModel.fetchSignInMethodsForEmail(_uiState.value.email)
-      val methods = queryResult.signInMethods ?: emptyList()
-      when {
-        // Existing Google account
-        "google.com" in methods -> {
-          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_GOOGLE) }
-        }
-
-        // Existing email/password account
-        "password" in methods -> {
-          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_IN_PASSWORD) }
-        }
-
-        // Sign Up
-        else -> {
-          _uiState.update { it.copy(onboardingState = OnboardingState.SIGN_UP) }
-        }
+      nowLoading()
+      try {
+        val queryResult = authModel.fetchSignInMethodsForEmail(_uiState.value.email)
+        val methods = queryResult.signInMethods ?: emptyList()
+        val nextState =
+            when {
+              // If someone already has both he can choose the auth provider, for us to debug
+              // new users wont have this possibility
+              SignInMethod.GOOGLE in methods && SignInMethod.EMAIL in methods ->
+                  OnboardingState.CHOOSE_AUTH_METHOD
+              SignInMethod.GOOGLE in methods -> OnboardingState.SIGN_IN_GOOGLE
+              SignInMethod.EMAIL in methods -> OnboardingState.SIGN_IN_PASSWORD
+              else -> OnboardingState.CHOOSE_AUTH_METHOD
+            }
+        _uiState.update { it.copy(onboardingState = nextState, isLoading = false) }
+      } catch (_: FirebaseNetworkException) {
+        _uiState.update { it.copy(errorMsg = "No internet connection", isLoading = false) }
       }
     }
   }
