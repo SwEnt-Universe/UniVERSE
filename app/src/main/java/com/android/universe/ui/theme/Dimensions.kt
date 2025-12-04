@@ -57,6 +57,11 @@ object Dimensions {
   val LiquidImagePickerWidth = 200.dp
   val LiquidImagePickerHeight = 140.dp
 
+  // SearchBar
+  val SearchBarHeight = 52.dp
+  val SearchBarIconSize = 22.dp
+  val SearchBarSpacing = 12.dp
+
   // Divider
   val DividerThickness = 0.5.dp // SettingsScreen divider
 
