@@ -82,7 +82,6 @@ fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel = viewModel(),
     location: Location,
     onSave: () -> Unit = {},
-    onAiClick: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
