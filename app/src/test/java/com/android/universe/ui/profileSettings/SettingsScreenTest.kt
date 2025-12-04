@@ -1,5 +1,6 @@
 package com.android.universe.ui.profileSettings
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextEquals
@@ -8,9 +9,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.user.FakeUserRepository
-import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.common.GeneralDatePopUpTestTags
 import com.android.universe.ui.common.LogoutTestTags
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
@@ -43,7 +45,6 @@ class SettingsScreenTest {
   }
 
   private lateinit var viewmodel: SettingsViewModel
-  private lateinit var repository: UserRepository
   private lateinit var mockFirebaseUser: FirebaseUser
   private lateinit var mockEmailTask: Task<Void>
   private lateinit var mockPasswordTask: Task<Void>
@@ -77,7 +78,6 @@ class SettingsScreenTest {
 
   @Before
   fun setUp() {
-    // Mock FirebaseAuth
     mockkStatic(FirebaseAuth::class)
     val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
     every { FirebaseAuth.getInstance() } returns fakeAuth
@@ -85,7 +85,6 @@ class SettingsScreenTest {
 
     mockkStatic(FirebaseFirestore::class)
     every { FirebaseFirestore.getInstance() } returns mockk(relaxed = true)
-    // Mock Firebase user and tasks
     mockFirebaseUser = mockk()
     mockEmailTask = mockk(relaxed = true)
     mockPasswordTask = mockk(relaxed = true)
@@ -93,10 +92,17 @@ class SettingsScreenTest {
     every { mockFirebaseUser.email } returns "old@epfl.ch"
     every { mockFirebaseUser.updateEmail(any()) } returns mockEmailTask
     every { mockFirebaseUser.updatePassword(any()) } returns mockPasswordTask
+
     val repository = FakeUserRepository()
+
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val imageManager = ImageBitmapManager(context)
+
     runTest {
       repository.addUser(user)
-      viewmodel = SettingsViewModel(user.uid, repository)
+      viewmodel =
+          SettingsViewModel(
+              uid = user.uid, userRepository = repository, imageManager = imageManager)
     }
   }
 
