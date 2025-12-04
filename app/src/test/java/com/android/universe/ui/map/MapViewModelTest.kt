@@ -1,5 +1,7 @@
 package com.android.universe.ui.map
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.android.universe.R
@@ -19,7 +21,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
-import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -40,6 +41,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -52,6 +54,7 @@ class MapViewModelTest {
   }
 
   private lateinit var viewModel: MapViewModel
+  private lateinit var appContext: Context
   private lateinit var locationRepository: LocationRepository
   private lateinit var eventRepository: EventRepository
   private lateinit var userRepository: UserRepository
@@ -88,7 +91,8 @@ class MapViewModelTest {
               location = Location(latitude = 47.3769, longitude = 8.5417)))
 
   @Before
-  fun setup() {
+  fun setup() = runTest {
+    appContext = ApplicationProvider.getApplicationContext()
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
@@ -102,12 +106,16 @@ class MapViewModelTest {
 
     viewModel =
         MapViewModel(
+            applicationContext = appContext,
             prefs = mockk(relaxed = true),
-            currentUserId = userId,
             locationRepository = locationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository,
         )
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
   }
 
   @After
@@ -270,7 +278,7 @@ class MapViewModelTest {
       val action = awaitItem()
       assertTrue(action is MapAction.MoveCamera)
       assertEquals(target, (action as MapAction.MoveCamera).target)
-      assertEquals(zoom, (action as MapAction.MoveCamera).currentZoom, 0.0)
+      assertEquals(zoom, action.currentZoom, 0.0)
     }
   }
 

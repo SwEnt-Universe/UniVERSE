@@ -197,7 +197,7 @@ fun UniverseApp(
             composable(NavigationScreens.SelectTagUser.route) {
               SelectTagScreen(
                   uid = authInstance.currentUser!!.uid,
-                  navigateOnSave = { navigationActions.navigateTo(NavigationScreens.MapInstance) })
+                  navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) })
             }
           }
 

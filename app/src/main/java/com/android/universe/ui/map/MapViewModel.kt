@@ -86,6 +86,24 @@ data class MapMarkerUiModel(
     val iconResId: Int,
 )
 
+@VisibleForTesting
+internal suspend fun markerLogic(
+    markerMap: MutableMap<String, Event>,
+    markers: List<MapMarkerUiModel>
+): Triple<List<MarkerOptions>, Set<String>, List<Event>> {
+  val previousEvents = markerMap.values.toSet()
+  val currentEvents = markers.map { it.event }.toSet()
+  val toAdd = markers.filter { it.event !in previousEvents }
+  val toRemove = markerMap.filterValues { it !in currentEvents }.keys
+
+  val optionsToAdd =
+      toAdd.map {
+        val pin = MarkerImageCache.get(it.iconResId)
+        MarkerOptions(tag = it.event.id, coordinate = it.position, pinImage = pin)
+      }
+  return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
+}
+
 /**
  * Manages map screen state, location tracking, and event data.
  *
@@ -221,9 +239,9 @@ class MapViewModel(
         enableLocationMarker(LocationMarkerOptions(type = LocationMarkerOptions.Type.Chevron))
         initLocationProvider(locationProvider)
       }
-
-      nowInteractable()
     }
+
+    nowInteractable()
   }
 
   private fun TomTomMap.initLocationProvider(provider: LocationProvider?) {
@@ -297,24 +315,6 @@ class MapViewModel(
         }
       }
     }
-  }
-
-  @VisibleForTesting
-  internal suspend fun markerLogic(
-      markerMap: MutableMap<String, Event>,
-      markers: List<MapMarkerUiModel>
-  ): Triple<List<MarkerOptions>, Set<String>, List<Event>> {
-    val previousEvents = markerMap.values.toSet()
-    val currentEvents = markers.map { it.event }.toSet()
-    val toAdd = markers.filter { it.event !in previousEvents }
-    val toRemove = markerMap.filterValues { it !in currentEvents }.keys
-
-    val optionsToAdd =
-        toAdd.map {
-          val pin = MarkerImageCache.get(it.iconResId)
-          MarkerOptions(tag = it.event.id, coordinate = it.position, pinImage = pin)
-        }
-    return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
   }
 
   fun syncSelectedLocationMarker(location: GeoPoint?) {

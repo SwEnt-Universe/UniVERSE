@@ -203,7 +203,7 @@ private fun CreateEventButton(
 @Composable
 private fun MapBox(
     modifier: Modifier = Modifier,
-    contentAlignement: Alignment = Alignment.TopStart,
+    contentAlignment: Alignment = Alignment.TopStart,
     propagateMinConstraints: Boolean = false,
     uiState: MapUiState,
     content: @Composable (BoxScope.() -> Unit)
@@ -215,7 +215,7 @@ private fun MapBox(
               .then(
                   if (uiState.isMapInteractive) Modifier.testTag(MapScreenTestTags.INTERACTABLE)
                   else Modifier),
-      contentAlignment = contentAlignement,
+      contentAlignment = contentAlignment,
       propagateMinConstraints = propagateMinConstraints,
       content = content)
 }

@@ -1,7 +1,7 @@
 package com.android.universe.ui.map
 
 import android.Manifest
-import androidx.compose.foundation.layout.Box
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -10,11 +10,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
+import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
@@ -42,6 +44,7 @@ class MapScreenTest {
 
   private lateinit var uid: String
   private lateinit var fakeLocationRepository: FakeLocationRepository
+  private lateinit var context: Context
 
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var fakeUserRepository: FakeUserRepository
@@ -49,6 +52,7 @@ class MapScreenTest {
 
   @Before
   fun setUp() {
+    context = ApplicationProvider.getApplicationContext()
     uid = UserTestData.Alice.uid
     fakeLocationRepository = FakeLocationRepository()
     fakeEventRepository = FakeEventRepository()
@@ -58,11 +62,15 @@ class MapScreenTest {
     runTest { fakeUserRepository.addUser(UserTestData.Alice) }
     viewModel =
         MapViewModel(
+            applicationContext = context,
             prefs = mockk(relaxed = true),
-            currentUserId = uid,
             locationRepository = fakeLocationRepository,
             eventRepository = fakeEventRepository,
             userRepository = fakeUserRepository)
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, uid)
+    }
   }
 
   @Test
@@ -161,7 +169,7 @@ fun MapScreenTestWrapper(
     onTabSelected: (Tab) -> Unit,
     createEvent: (latitude: Double, longitude: Double) -> Unit = { lat, lng -> }
 ) {
-  Box {
+  UniverseBackgroundContainer(viewModel) {
     MapScreen(
         uid = uid, viewModel = viewModel, onTabSelected = onTabSelected, createEvent = createEvent)
   }

@@ -7,14 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.common.CommonBackground.BACKGROUND
 import com.android.universe.ui.map.MapBackground
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 
 object CommonBackground {
-  const val BACKGROUNDTEXT = "Background"
+  const val BACKGROUND = "background"
   val BLURVALUE = 8.dp
 }
 
@@ -30,7 +32,7 @@ fun UniverseBackgroundContainer(
     contentAlignment: Alignment = Alignment.TopStart,
     content: @Composable () -> Unit
 ) {
-  Box(Modifier.fillMaxSize(), contentAlignment = contentAlignment) {
+  Box(Modifier.fillMaxSize().testTag(BACKGROUND), contentAlignment = contentAlignment) {
     UniverseBackground(mapViewModel)
     content()
   }
