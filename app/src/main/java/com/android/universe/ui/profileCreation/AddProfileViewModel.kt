@@ -7,9 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
 import com.android.universe.di.DispatcherProvider
-import com.android.universe.model.authentication.AuthModelFirebase
 import com.android.universe.model.image.ImageBitmapManager
-import com.android.universe.model.tag.TagTemporaryRepositoryProvider
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -23,7 +21,6 @@ import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validateUsername
-import com.android.universe.ui.profileSettings.SettingsViewModel
 import com.android.universe.ui.utils.viewModelFactory
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -125,16 +122,12 @@ open class AddProfileViewModel(
      * @param context The context used to initialize the image manager.
      * @param repository The repository for user storage.
      */
-    fun provideFactory(context: Context, uid: String): ViewModelProvider.Factory =
-        viewModelFactory {
-          SettingsViewModel(
-              uid = uid,
-              userRepository = UserRepositoryProvider.repository,
-              authModel = AuthModelFirebase(),
-              tagRepository = TagTemporaryRepositoryProvider.repository,
-              imageManager = ImageBitmapManager(context.applicationContext),
-              dispatcherProvider = DefaultDP)
-        }
+    fun provideFactory(context: Context): ViewModelProvider.Factory = viewModelFactory {
+      AddProfileViewModel(
+          repository = UserRepositoryProvider.repository,
+          imageManager = ImageBitmapManager(context.applicationContext),
+          dispatcherProvider = DefaultDP)
+    }
   }
 
   /** Backing field for [uiState]. Mutable within the ViewModel only. */
