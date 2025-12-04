@@ -33,6 +33,16 @@ import com.android.universe.ui.signIn.UniverseIcon
 import com.android.universe.ui.theme.CapsuleLarge
 import com.android.universe.ui.theme.Dimensions
 
+/**
+ * A composable function that displays a search bar with a liquid design.
+ *
+ * @param query The current search query.
+ * @param onQueryChange A lambda function that is called when the search query changes.
+ * @param modifier The [Modifier] to be applied to the component's container. Note this includes
+ *   test tags
+ * @param placeholder The placeholder text to be displayed when the search query is empty.
+ * @param onClick An optional lambda function that is called when the search bar is clicked.
+ */
 @Composable
 fun LiquidSearchBar(
     query: String,
