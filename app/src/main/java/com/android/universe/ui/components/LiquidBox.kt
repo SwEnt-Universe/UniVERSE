@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.universe.ui.theme.CapsuleLarge
 import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
@@ -56,12 +57,12 @@ fun LiquidBox(
 ) {
   val parentBackdrop = LocalLayerBackdrop.current
   val liquidBackdrop = rememberLayerBackdrop()
+  val combinedBackdrop = rememberCombinedBackdrop(parentBackdrop, liquidBackdrop)
 
   Box(
       modifier =
           modifier.drawBackdrop(
-              backdrop = parentBackdrop,
-              exportedBackdrop = liquidBackdrop,
+              backdrop = combinedBackdrop,
               shape = { shape },
               effects = {
                 vibrancy()

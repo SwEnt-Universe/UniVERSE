@@ -1,5 +1,6 @@
 package com.android.universe.e2e
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasSetTextAction
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
@@ -22,7 +24,10 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.common.ProfileContentTestTags
+import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.map.MapScreenTestTags
+import com.android.universe.ui.map.MapViewModel
+import com.android.universe.ui.map.MapViewModelFactory
 import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.profileCreation.AddProfileScreenTestTags
@@ -32,6 +37,7 @@ import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
+import com.android.universe.utils.onNodeWithTagWithUnmergedTree
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -40,6 +46,7 @@ import io.mockk.mockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -63,37 +70,43 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     private val userTest = UserTestData.Alice
   }
 
+  private lateinit var mapViewModel: MapViewModel
+  private lateinit var context: Context
+
   @Before
   override fun setUp() {
     super.setUp()
+    context = ApplicationProvider.getApplicationContext()
+    mapViewModel = MapViewModelFactory(context).create(MapViewModel::class.java)
     mockkObject(DefaultDP)
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns Dispatchers.Main
     runTest {
-      composeTestRule.setContentWithStubBackdrop { UniverseTheme { UniverseApp() } }
+      composeTestRule.setContentWithStubBackdrop {
+        UniverseTheme {
+          UniverseBackgroundContainer(mapViewModel = mapViewModel) {
+            UniverseApp(mapViewModel = mapViewModel)
+          }
+        }
+      }
+      advanceUntilIdle()
       composeTestRule.waitForIdle()
     }
   }
 
   @Test
   fun `profile login and creation works`() {
-    println("loginAndWait")
     loginAndWait()
 
-    println("fillProfileDetailAndWait")
     fillProfileDetailAndWait()
 
-    println("selectTagAndWait")
     selectTagAndWait()
 
-    println("compareCreatedProfile")
     compareCreatedProfile()
 
-    println("tabNavigationAndPrepareForEdit")
     tabNavigationAndPrepareForEdit()
 
-    println("changeNameToBobAndVerify")
     changeNameToBobAndVerify()
   }
 
@@ -114,6 +127,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
 
     composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_TEXT).assertTextContains("Bob")
+    advanceUntilIdle()
   }
 
   private fun tabNavigationAndPrepareForEdit() = runTest {
@@ -125,7 +139,6 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
 
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).assertIsDisplayed()
-    composeTestRule.waitForIdle()
     val uid = Firebase.auth.currentUser!!.uid
     composeTestRule.onNodeWithTag("${ProfileContentTestTags.FULL_NAME}_$uid").assertIsDisplayed()
 
@@ -134,6 +147,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_$uid")
         .assertIsDisplayed()
+    advanceUntilIdle()
   }
 
   private fun compareCreatedProfile() = runTest {
@@ -142,10 +156,10 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     assertNotNull(createdUser)
     // This delay avoid race conditions for the tags. Not the best but work for now
     createdUserProfile = UserRepositoryProvider.repository.getUser(createdUser!!.uid)
-    assertEquals(userTest.copy(uid = createdUser!!.uid), createdUserProfile.copy(country = "FR"))
+    assertEquals(userTest.copy(uid = createdUser.uid), createdUserProfile.copy(country = "FR"))
   }
 
-  private fun selectTagAndWait() {
+  private fun selectTagAndWait() = runTest {
     userTest.tags.forEach { tag ->
       val tagTestTag = SelectTagsScreenTestTags.tagItem(tag)
 
@@ -173,6 +187,10 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 
     composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).isDisplayed()
+    }
+    advanceUntilIdle()
   }
 
   private fun fillProfileDetailAndWait() = runTest {
@@ -210,11 +228,12 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(SelectTagsScreenTestTags.LAZY_COLUMN).isDisplayed()
     }
+    advanceUntilIdle()
   }
 
   private fun loginAndWait() = runTest {
     composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
+      composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
     }
 
     composeTestRule
@@ -222,14 +241,12 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
         .assertIsDisplayed()
         .performClick()
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FormTestTags.EMAIL_FIELD)
         .assertIsDisplayed()
         .performClick()
         .performTextInput(FAKE_EMAIL)
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
@@ -240,14 +257,12 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     }
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.PASSWORD_BUTTON).performClick()
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FormTestTags.PASSWORD_FIELD)
         .assertIsDisplayed()
         .performClick()
         .performTextInput(FAKE_PASSWORD)
 
-    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
@@ -258,5 +273,6 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     composeTestRule.waitUntil(60_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.ADD_PROFILE_SCREEN).isDisplayed()
     }
+    advanceUntilIdle()
   }
 }

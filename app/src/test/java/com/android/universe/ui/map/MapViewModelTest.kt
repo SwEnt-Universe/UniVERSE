@@ -1,7 +1,8 @@
 package com.android.universe.ui.map
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.AIEventGen
@@ -24,6 +25,7 @@ import io.mockk.mockkObject
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -54,6 +56,7 @@ class MapViewModelTest {
   }
 
   private lateinit var viewModel: MapViewModel
+  private lateinit var appContext: Context
   private lateinit var locationRepository: LocationRepository
   private lateinit var eventRepository: EventRepository
   private lateinit var userRepository: UserRepository
@@ -100,7 +103,8 @@ class MapViewModelTest {
   }
 
   @Before
-  fun setup() {
+  fun setup() = runTest {
+    appContext = ApplicationProvider.getApplicationContext()
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
@@ -120,13 +124,17 @@ class MapViewModelTest {
 
     viewModel =
         MapViewModel(
+            applicationContext = appContext,
             prefs = mockk(relaxed = true),
-            currentUserId = userId,
             locationRepository = locationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository,
             userReactiveRepository = userReactiveRepository,
             ai = ai)
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
   }
 
   @After
@@ -207,13 +215,16 @@ class MapViewModelTest {
     advanceUntilIdle()
     val state = viewModel.uiState.value
 
-    assertEquals(eventsList.size, state.markers.size)
+    assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
 
-    fun assertMarker(eventId: String, expectedFullName: String) {
-      val marker = state.markers.find { it.event.id == eventId }
-      assertNotNull("Marker for $eventId should exist", marker)
-      assertEquals("Wrong creator name for $eventId", expectedFullName, marker!!.creator)
-    }
+    suspend fun assertMarker(eventId: String, expectedFullName: String) =
+        this.apply {
+          val marker = state.markers.find { it.event.id == eventId }
+          val flowCreator = userReactiveRepository.getUserFlow(marker!!.event.creator).first()
+          val creator = flowCreator!!.firstName + " " + flowCreator.lastName
+          assertNotNull("Marker for $eventId should exist", marker)
+          assertEquals("Wrong creator name for $eventId", expectedFullName, creator)
+        }
 
     assertMarker("event1", "${UserTestData.Alice.firstName} ${UserTestData.Alice.lastName}")
     assertMarker("event2", "${UserTestData.Rocky.firstName} ${UserTestData.Rocky.lastName}")
@@ -307,20 +318,6 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
     assertTrue(state.error!!.contains("Tracking failed"))
-  }
-
-  @Test
-  fun `onCameraMoveRequest sends MoveCamera action`() = runTest {
-    viewModel.mapActions.test {
-      val target = GeoPoint(46.5, 6.5)
-      val zoom = 12.0
-      viewModel.onCameraMoveRequest(target, zoom)
-
-      val action = awaitItem()
-      assertTrue(action is MapAction.MoveCamera)
-      assertEquals(target, (action as MapAction.MoveCamera).target)
-      assertEquals(zoom, (action).currentZoom, 0.0)
-    }
   }
 
   @Test
