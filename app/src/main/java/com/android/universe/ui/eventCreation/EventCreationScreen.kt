@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AddLocationAlt
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
@@ -156,6 +157,17 @@ fun EventCreationScreen(
                                         fontWeight = FontWeight.Bold),
                                 fontSize = EventCreationDefaults.titleFontSize)
                             LiquidButton(
+                                onClick = { eventCreationViewModel.showMagicFill() },
+                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
+                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
+                                contentPadding = Dimensions.PaddingSmall,
+                                modifier = Modifier.padding(end = 8.dp)) {
+                                  Icon(
+                                      imageVector = Icons.Default.AutoAwesome,
+                                      contentDescription = "Magic Fill",
+                                      modifier = Modifier.size(EventCreationDefaults.locIconSize))
+                                }
+                            LiquidButton(
                                 onClick = { onSelectLocation() },
                                 height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
                                 width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
@@ -169,6 +181,22 @@ fun EventCreationScreen(
                                       modifier = Modifier.size(EventCreationDefaults.locIconSize))
                                 }
                           }
+
+                      val showMagicFill = uiState.value.isMagicFillVisible
+
+                      if (showMagicFill) {
+                        MagicFillDialog(
+                            isVisible = showMagicFill,
+                            onDismiss = { eventCreationViewModel.hideMagicFill() },
+                            isGenerating = uiState.value.isGenerating,
+                            proposal = uiState.value.proposal,
+                            error = uiState.value.generationError,
+                            onGenerate = { prompt ->
+                              eventCreationViewModel.generateProposal(prompt)
+                            },
+                            onAccept = { eventCreationViewModel.acceptProposal() })
+                      }
+
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                       CustomTextField(
                           modifier =

@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
 import com.android.universe.di.DispatcherProvider
+import com.android.universe.model.ai.gemini.EventProposal
+import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.event.EventTemporaryRepository
@@ -23,13 +25,13 @@ import com.android.universe.ui.common.validateEventTitle
 import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
 import com.android.universe.ui.utils.viewModelFactory
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 enum class OnboardingState {
   ENTER_EVENT_TITLE,
@@ -75,7 +77,11 @@ data class EventCreationUIState(
         mutableMapOf(
             OnboardingState.ENTER_EVENT_TITLE to false,
             OnboardingState.ENTER_DESCRIPTION to false,
-            OnboardingState.ENTER_TIME to false)
+            OnboardingState.ENTER_TIME to false),
+    val isMagicFillVisible: Boolean = false,
+    val isGenerating: Boolean = false,
+    val generationError: String? = null,
+    val proposal: EventProposal? = null,
 ) {
   /** Keep the ValidationState of the event title. */
   val eventTitleValid: ValidationState
@@ -118,7 +124,8 @@ class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val eventTemporaryRepository: EventTemporaryRepository =
         EventTemporaryRepositoryProvider.repository,
-    private val dispatcherProvider: DispatcherProvider = DefaultDP
+    private val dispatcherProvider: DispatcherProvider = DefaultDP,
+    private val gemini: GeminiEventAssistant = GeminiEventAssistant()
 ) : ViewModel() {
 
   companion object {
@@ -283,5 +290,47 @@ class EventCreationViewModel(
         }
       }
     }
+  }
+
+  fun showMagicFill() {
+    eventCreationUiState.value =
+        eventCreationUiState.value.copy(
+            isMagicFillVisible = true, proposal = null, generationError = null)
+  }
+
+  fun hideMagicFill() {
+    eventCreationUiState.value = eventCreationUiState.value.copy(isMagicFillVisible = false)
+  }
+
+  fun generateProposal(userPrompt: String) {
+    if (userPrompt.isBlank()) return
+
+    eventCreationUiState.value =
+        eventCreationUiState.value.copy(isGenerating = true, generationError = null)
+
+    viewModelScope.launch {
+      val result = gemini.generateProposal(userPrompt)
+      if (result != null) {
+        eventCreationUiState.value =
+            eventCreationUiState.value.copy(isGenerating = false, proposal = result)
+      } else {
+        eventCreationUiState.value =
+            eventCreationUiState.value.copy(
+                isGenerating = false,
+                generationError = "AI could not generate a proposal. Please try again.")
+      }
+    }
+  }
+
+  fun acceptProposal() {
+    val p = eventCreationUiState.value.proposal ?: return
+
+    setEventName(p.title)
+    setEventDescription(p.description)
+
+    setOnboardingState(OnboardingState.ENTER_EVENT_TITLE, true)
+    setOnboardingState(OnboardingState.ENTER_DESCRIPTION, true)
+
+    hideMagicFill()
   }
 }
