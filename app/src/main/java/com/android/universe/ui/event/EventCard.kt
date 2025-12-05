@@ -7,7 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.universe.model.location.Location
 import com.android.universe.ui.common.EventContentLayout
-import com.android.universe.ui.common.EventImageHelper
+import com.android.universe.ui.common.EventContentTestTags
+import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.theme.CardShape
 import com.android.universe.ui.theme.Dimensions
@@ -49,8 +50,10 @@ fun EventCard(
             participants = event.participants,
             creator = event.creator,
             imageContent = {
-              EventImageHelper(
-                  eventImage = event.eventPicture, modifier = Modifier.matchParentSize())
+              ImageDisplay(
+                  image = event.eventPicture,
+                  contentDescription = null,
+                  modifier = Modifier.matchParentSize().testTag(EventContentTestTags.EVENT_IMAGE))
             },
             isUserParticipant = event.joined,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },

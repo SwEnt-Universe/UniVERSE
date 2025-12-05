@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -70,27 +69,22 @@ fun SectionDivider() {
  * - **Navigation:** Uses a [Scaffold] with a [FlowBottomMenu] to provide "Back" and "Confirm"
  *   actions.
  *
+ * @param uid The unique identifier for the entity being edited (User ID or Event ID).
  * @param selectTagMode Determines the context of the screen (e.g., [SelectTagMode.USER_PROFILE] or
  *   [SelectTagMode.EVENT_CREATION]), affecting which data source is used.
  * @param selectedTagOverview The ViewModel managing the selected tags state.
- * @param uid The unique identifier for the entity being edited (User ID or Event ID).
  * @param onBack Callback invoked when the user clicks the "Back" button in the bottom menu.
  * @param navigateOnSave Callback invoked after the tags have been successfully saved via the
  *   "Confirm" button.
  */
 @Composable
 fun SelectTagScreen(
-    selectTagMode: SelectTagMode = SelectTagMode.USER_PROFILE,
-    selectedTagOverview: SelectTagViewModel = viewModel(),
     uid: String,
+    selectTagMode: SelectTagMode = SelectTagMode.USER_PROFILE,
     onBack: () -> Unit = {},
-    navigateOnSave: () -> Unit = {}
+    navigateOnSave: () -> Unit = {},
+    selectedTagOverview: SelectTagViewModel = viewModel { SelectTagViewModel(uid, selectTagMode) },
 ) {
-  LaunchedEffect(uid) {
-    selectedTagOverview.mode = selectTagMode
-    selectedTagOverview.eventTagRepositoryObserving()
-    selectedTagOverview.loadTags(uid)
-  }
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()
 
   Scaffold(
@@ -103,7 +97,7 @@ fun SelectTagScreen(
                     FlowTab.Back(onClick = onBack),
                     FlowTab.Confirm(
                         onClick = {
-                          selectedTagOverview.saveTags(uid)
+                          selectedTagOverview.saveTags()
                           navigateOnSave()
                         },
                         enabled = true)))

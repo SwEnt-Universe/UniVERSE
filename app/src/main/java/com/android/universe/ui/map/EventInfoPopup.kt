@@ -21,7 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
 import com.android.universe.ui.common.EventContentLayout
-import com.android.universe.ui.common.EventImageHelper
+import com.android.universe.ui.common.EventContentTestTags
+import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
@@ -76,7 +77,12 @@ fun EventInfoPopup(
                         tags = event.tags.toList(),
                         participants = event.participants.size,
                         creator = creator,
-                        imageContent = { EventImageHelper(eventImage = event.eventPicture) },
+                        imageContent = {
+                          ImageDisplay(
+                              image = event.eventPicture,
+                              contentDescription = null,
+                              modifier = Modifier.testTag(EventContentTestTags.EVENT_IMAGE))
+                        },
                         isUserParticipant = isUserParticipant,
                         onToggleEventParticipation = onToggleEventParticipation,
                         onChatClick = { onChatNavigate(event.id, event.title) },

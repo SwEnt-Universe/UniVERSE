@@ -87,24 +87,19 @@ class ImageDisplayTest {
 
   @Test
   fun imageDisplay_showsDefaultImage_whenImageIsNull() {
-    val defaultImageId = android.R.drawable.ic_menu_camera
     val contentDesc = "Default Profile Picture"
 
-    composeTestRule.setContent {
-      ImageDisplay(image = null, defaultImageId = defaultImageId, contentDescription = contentDesc)
-    }
+    composeTestRule.setContent { ImageDisplay(image = null, contentDescription = contentDesc) }
 
     composeTestRule.onNodeWithContentDescription(contentDesc).assertIsDisplayed()
   }
 
   @Test
   fun imageDisplay_showsBitmap_whenImageIsNotNull() {
-    val defaultImageId = android.R.drawable.ic_menu_camera
     val contentDesc = "User Profile Picture"
 
     composeTestRule.setContent {
-      ImageDisplay(
-          image = validPngBytes, defaultImageId = defaultImageId, contentDescription = contentDesc)
+      ImageDisplay(image = validPngBytes, contentDescription = contentDesc)
     }
 
     composeTestRule.waitForIdle()

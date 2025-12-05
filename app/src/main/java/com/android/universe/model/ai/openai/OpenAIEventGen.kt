@@ -1,5 +1,6 @@
 package com.android.universe.model.ai.openai
 
+import EventSchema
 import com.android.universe.model.ai.AIConfig.AI_MODEL
 import com.android.universe.model.ai.AIConfig.MAX_COMPLETION_TOKENS
 import com.android.universe.model.ai.AIEventGen
@@ -79,8 +80,8 @@ class OpenAIEventGen(private val service: OpenAIService) : AIEventGen {
       throw IllegalStateException(
           "OpenAI returned empty content. " +
               "finish_reason=${choice.finish_reason}, " +
-              "prompt_tokens=${body?.usage?.prompt_tokens}, " +
-              "completion_tokens=${body?.usage?.completion_tokens}")
+              "prompt_tokens=${body.usage?.prompt_tokens}, " +
+              "completion_tokens=${body.usage?.completion_tokens}")
     }
 
     // ========================================================================
