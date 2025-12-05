@@ -7,8 +7,11 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.di.DispatcherProvider
 import com.android.universe.model.event.FakeEventRepository
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
 import com.android.universe.utils.selectDay
@@ -16,11 +19,15 @@ import com.android.universe.utils.selectYear
 import com.android.universe.utils.setContentWithStubBackdrop
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class EventCreationScreenTest {
   private lateinit var viewModel: EventCreationViewModel
@@ -38,7 +45,25 @@ class EventCreationScreenTest {
 
   @Before
   fun setUp() {
-    viewModel = EventCreationViewModel(eventRepository = FakeEventRepository())
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+    val testDispatcher = UnconfinedTestDispatcher()
+    val testDispatcherProvider =
+        object : DispatcherProvider {
+          override val main: CoroutineDispatcher = testDispatcher
+          override val default: CoroutineDispatcher = testDispatcher
+          override val io: CoroutineDispatcher = testDispatcher
+          override val unconfined: CoroutineDispatcher = testDispatcher
+        }
+
+    val imageManager = ImageBitmapManager(context)
+
+    viewModel =
+        EventCreationViewModel(
+            imageManager = imageManager,
+            eventRepository = FakeEventRepository(),
+            dispatcherProvider = testDispatcherProvider)
+
     composeTestRule.setContentWithStubBackdrop {
       EventCreationScreen(eventCreationViewModel = viewModel, onSelectLocation = {}, onSave = {})
     }
@@ -104,5 +129,12 @@ class EventCreationScreenTest {
     selectDay(composeTestRule, SAMPLE_DATE)
     pressOKDate(composeTestRule)
     // composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE)).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCreationViewModel_deleteImage_clearsState() {
+    viewModel.deleteImage()
+
+    assert(viewModel.uiStateEventCreation.value.eventPicture == null)
   }
 }

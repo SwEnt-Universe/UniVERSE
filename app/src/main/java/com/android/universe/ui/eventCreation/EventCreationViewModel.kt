@@ -1,17 +1,18 @@
 package com.android.universe.ui.eventCreation
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
+import com.android.universe.di.DispatcherProvider
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.location.Location
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
@@ -21,8 +22,7 @@ import com.android.universe.ui.common.validateEventDate
 import com.android.universe.ui.common.validateEventTitle
 import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
-import com.android.universe.ui.theme.Dimensions
-import java.io.ByteArrayOutputStream
+import com.android.universe.ui.utils.viewModelFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -30,7 +30,6 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 enum class OnboardingState {
   ENTER_EVENT_TITLE,
@@ -115,13 +114,33 @@ data class EventCreationUIState(
  * @param eventTemporaryRepository The temporary repository fot the event.
  */
 class EventCreationViewModel(
+    private val imageManager: ImageBitmapManager,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val eventTemporaryRepository: EventTemporaryRepository =
-        EventTemporaryRepositoryProvider.repository
+        EventTemporaryRepositoryProvider.repository,
+    private val dispatcherProvider: DispatcherProvider = DefaultDP
 ) : ViewModel() {
 
   companion object {
     const val MISSING_DATE_TEXT = "Please select a date"
+
+    /**
+     * Factory to create an instance of [EventCreationViewModel].
+     *
+     * This factory is required to inject the [Context] needed for [ImageBitmapManager] and the
+     * repositories into the ViewModel.
+     *
+     * @param context The context used to initialize the image manager.
+     * @param eventRepository The repository for persistent event storage.
+     * @param eventTemporaryRepository The repository for temporary event storage.
+     */
+    fun provideFactory(context: Context): ViewModelProvider.Factory = viewModelFactory {
+      EventCreationViewModel(
+          imageManager = ImageBitmapManager(context.applicationContext),
+          eventRepository = EventRepositoryProvider.repository,
+          eventTemporaryRepository = EventTemporaryRepositoryProvider.repository,
+          dispatcherProvider = DefaultDP)
+    }
   }
 
   fun setLocation(lat: Double, lon: Double) {
@@ -174,58 +193,24 @@ class EventCreationViewModel(
   }
 
   /**
-   * Takes the uri as argument and decode the content of the image, resize it to a 256*256 image,
-   * transform it to a byteArray and modify the eventPicture argument of the eventCreationUiState.
+   * Updates the event image state with the provided URI.
    *
-   * @param context the context of the UI.
-   * @param uri the temporary url that give access to the image that the user selected.
+   * @param uri the URI of the image selected by the user.
    */
-  fun setImage(context: Context, uri: Uri?) {
+  fun setImage(uri: Uri?) {
     if (uri == null) {
       eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = null)
     } else {
-      viewModelScope.launch(DefaultDP.io) {
-        // We redimension the image to have a 256*256 image to reduce the space of the
-        // image.
-        val maxSize = Dimensions.ProfilePictureSize
-
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-
-        context.contentResolver.openInputStream(uri)?.use { input ->
-          BitmapFactory.decodeStream(input, null, options)
-        }
-
-        val (height: Int, width: Int) = options.run { outHeight to outWidth }
-        var inSampleSize = 1
-        if (height > maxSize || width > maxSize) {
-          val halfHeight = height / 2
-          val halfWidth = width / 2
-          while ((halfHeight / inSampleSize) >= maxSize && (halfWidth / inSampleSize) >= maxSize) {
-            inSampleSize *= 2
-          }
-        }
-
-        options.inSampleSize = inSampleSize
-        options.inJustDecodeBounds = false
-
-        val bitmap =
-            context.contentResolver.openInputStream(uri)?.use { input ->
-              BitmapFactory.decodeStream(input, null, options)
-            }
-
-        if (bitmap == null) {
-          Log.e("ImageError", "Failed to decode bitmap from URI $uri")
-        } else {
-          val stream = ByteArrayOutputStream()
-          // We compress the image with a low quality to reduce the space of the image.
-          bitmap.compress(Bitmap.CompressFormat.JPEG, 45, stream)
-          val byteArray = stream.toByteArray()
-          withContext(DefaultDP.main) {
-            eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = byteArray)
-          }
-        }
+      viewModelScope.launch(dispatcherProvider.io) {
+        val byteArray = imageManager.resizeAndCompressImage(uri)
+        eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = byteArray)
       }
     }
+  }
+
+  /** Removes the currently selected event image. */
+  fun deleteImage() {
+    eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = null)
   }
 
   /**

@@ -1,10 +1,13 @@
 package com.android.universe.ui.eventCreation
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
+import com.android.universe.di.DispatcherProvider
 import com.android.universe.model.event.EventLocalTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.FakeEventRepository
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.ErrorMessages
@@ -12,6 +15,7 @@ import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -21,6 +25,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -51,11 +56,26 @@ class EventCreationViewModelTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val imageManager = ImageBitmapManager(context)
+
+    val dispatcherProvider =
+        object : DispatcherProvider {
+          override val main: CoroutineDispatcher = testDispatcher
+          override val default: CoroutineDispatcher = testDispatcher
+          override val io: CoroutineDispatcher = testDispatcher
+          override val unconfined: CoroutineDispatcher = testDispatcher
+        }
+
     eventRepository = FakeEventRepository()
     eventTemporaryRepository = EventLocalTemporaryRepository()
     viewModel =
         EventCreationViewModel(
-            eventRepository = eventRepository, eventTemporaryRepository = eventTemporaryRepository)
+            imageManager = imageManager,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = eventTemporaryRepository,
+            dispatcherProvider = dispatcherProvider)
   }
 
   @Test
@@ -146,9 +166,14 @@ class EventCreationViewModelTest {
 
   @Test
   fun setImageWithNullUriRemoveImagePicture() {
-    val context = InstrumentationRegistry.getInstrumentation().targetContext
-    viewModel.setImage(context, null)
+    viewModel.setImage(null)
     assertEquals(null, viewModel.uiStateEventCreation.value.eventPicture)
+  }
+
+  @Test
+  fun testDeleteImage() {
+    viewModel.deleteImage()
+    assertNull(viewModel.uiStateEventCreation.value.eventPicture)
   }
 
   @Test

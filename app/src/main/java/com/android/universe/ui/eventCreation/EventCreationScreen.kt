@@ -71,22 +71,23 @@ object EventCreationDefaults {
 }
 
 /**
- * Screen for the Event creation
+ * Screen for the Event creation.
  *
- * The user can enter a name, a description, a day, a month, a year, a hour and a minute for his
- * event. The user can also click on the button 'Add tags' to add tags that correspond to his
- * events. The user can see the selectedTags in the screen. A save tag button is displayed at the
- * button to save the Event with the parameters that have been selected
+ * Allows the user to create a new event by uploading an image, setting a title and description,
+ * selecting a location, and picking a date. The UI updates the ViewModel state as the user
+ * interacts with the fields and validates the input before allowing the event to be saved.
  *
- * @param eventCreationViewModel the viewModel.
- * @param onSelectLocation triggers location selection flow
- * @param onSave the callBack to call when the user click on the 'Save Event' button.
- * @param onBack the callBack to call when the user click on the back button of the bottom bar.
+ * @param eventCreationViewModel the viewModel that holds the state and logic for event creation.
+ * @param onSelectLocation callback triggered when the user clicks the location button to set the
+ *   event's location.
+ * @param onSave callback triggered when the user successfully saves the event.
+ * @param onBack callback triggered when the user clicks the back button.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventCreationScreen(
-    eventCreationViewModel: EventCreationViewModel = viewModel(),
+    eventCreationViewModel: EventCreationViewModel =
+        viewModel(factory = EventCreationViewModel.provideFactory(LocalContext.current)),
     onSelectLocation: () -> Unit,
     onSave: () -> Unit = {},
     onBack: () -> Unit = {}
@@ -116,18 +117,16 @@ fun EventCreationScreen(
           Box(
               modifier =
                   Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth()) {
-                val context = LocalContext.current
                 // The launcher to launch the image selection.
                 val launcher =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
-                          uri?.let { selectedUri ->
-                            eventCreationViewModel.setImage(context, selectedUri)
-                          }
+                          uri?.let { selectedUri -> eventCreationViewModel.setImage(selectedUri) }
                         }
                 LiquidImagePicker(
                     imageBytes = eventImage,
                     onPickImage = { launcher.launch("image/*") },
+                    onDeleteImage = { eventCreationViewModel.deleteImage() },
                     modifier =
                         Modifier.height(Dimensions.EventPictureHeight)
                             .width(Dimensions.EventPictureWidth)
