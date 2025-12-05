@@ -65,14 +65,14 @@ class UserProfileScreenTest {
   fun setUp() {
     fakeEventRepository = FakeEventRepository()
     fakeUserRepository = FakeUserRepository()
-
-    userProfileViewModel = UserProfileViewModel(fakeUserRepository, fakeEventRepository)
     eventViewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
 
     runTest {
       fakeUserRepository.addUser(testUser)
       fakeEventRepository.addEvent(pastEvent)
       fakeEventRepository.addEvent(futureEvent)
+      userProfileViewModel =
+          UserProfileViewModel(testUser.uid, fakeUserRepository, fakeEventRepository)
     }
   }
 

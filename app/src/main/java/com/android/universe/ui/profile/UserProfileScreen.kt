@@ -28,7 +28,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -92,11 +91,10 @@ fun UserProfileScreen(
     onEditProfileClick: (String) -> Unit = {},
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    userProfileViewModel: UserProfileViewModel = viewModel(),
+    userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
     eventViewModel: EventViewModel = viewModel()
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
-  LaunchedEffect(uid) { userProfileViewModel.loadUser(uid) }
 
   // State Initialization
   val density = LocalDensity.current

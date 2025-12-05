@@ -13,6 +13,7 @@ import com.android.universe.model.tag.TagTemporaryRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserProfile
 import com.android.universe.utils.MainCoroutineRule
+import com.android.universe.utils.UserTestData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +36,7 @@ class SelectTagViewModelTest {
   private lateinit var eventTemporaryRepository: EventTemporaryRepository
   private lateinit var eventRepository: EventRepository
   private lateinit var viewModel: SelectTagViewModel
+  private lateinit var defaultUser: UserProfile
 
   val tags = setOf(Tag.HANDBALL, Tag.METAL, Tag.DND)
 
@@ -52,18 +54,26 @@ class SelectTagViewModelTest {
             eventPicture = null)
   }
 
-  @Before
-  fun setup() {
-    userRepository = FakeUserRepository()
-    tagRepository = TagLocalTemporaryRepository()
-    eventTemporaryRepository = EventLocalTemporaryRepository()
-    eventRepository = FakeEventRepository()
+  fun setUpViewmodel(uid: String, mode: SelectTagMode) {
     viewModel =
         SelectTagViewModel(
+            uid = uid,
+            mode = mode,
             userRepository = userRepository,
             tagRepository = tagRepository,
             eventTemporaryRepository = eventTemporaryRepository,
             eventRepository = eventRepository)
+  }
+
+  @Before
+  fun setup() = runTest {
+    userRepository = FakeUserRepository()
+    tagRepository = TagLocalTemporaryRepository()
+    eventTemporaryRepository = EventLocalTemporaryRepository()
+    eventRepository = FakeEventRepository()
+    defaultUser = UserTestData.NoTagsUser
+    userRepository.addUser(defaultUser)
+    setUpViewmodel(defaultUser.uid, SelectTagMode.USER_PROFILE)
   }
 
   @Test
@@ -348,7 +358,7 @@ class SelectTagViewModelTest {
             tags = setOf(Tag.METAL, Tag.KARATE))
     userRepository.addUser(userProfile)
     advanceUntilIdle()
-    viewModel.loadTags("0")
+    setUpViewmodel(userProfile.uid, SelectTagMode.USER_PROFILE)
     advanceUntilIdle()
     assertEquals(listOf(Tag.METAL, Tag.KARATE), viewModel.selectedTags.value)
   }
@@ -381,6 +391,8 @@ class SelectTagViewModelTest {
             tags = emptySet())
     userRepository.addUser(userProfile)
     advanceUntilIdle()
+    setUpViewmodel(userProfile.uid, SelectTagMode.USER_PROFILE)
+    advanceUntilIdle()
     val tags =
         listOf(
             Tag.SAFARI,
@@ -396,7 +408,8 @@ class SelectTagViewModelTest {
     for (tag in tags) {
       viewModel.addTag(tag)
     }
-    viewModel.saveTags("0")
+
+    viewModel.saveTags()
     advanceUntilIdle()
     val expectedTags =
         setOf(
@@ -441,10 +454,10 @@ class SelectTagViewModelTest {
             tags = setOf(Tag.METAL, Tag.KARATE))
     userRepository.addUser(userProfile)
     advanceUntilIdle()
-    viewModel.loadTags("0")
+    setUpViewmodel(userProfile.uid, SelectTagMode.USER_PROFILE)
     advanceUntilIdle()
     viewModel.addTag(Tag.HANDBALL)
-    viewModel.saveTags("0")
+    viewModel.saveTags()
     advanceUntilIdle()
     val updatedUser = userRepository.getUser("0")
     advanceUntilIdle()
@@ -455,10 +468,8 @@ class SelectTagViewModelTest {
   fun loadTagsEventCreation() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
-    viewModel.mode = SelectTagMode.EVENT_CREATION
-    viewModel.eventTagRepositoryObserving()
+    setUpViewmodel(defaultUser.uid, SelectTagMode.EVENT_CREATION)
     advanceUntilIdle()
-    viewModel.loadTags("0")
     val resultTags = viewModel.selectedTags.value.toSet()
     assertEquals(tags, resultTags)
   }
@@ -467,8 +478,7 @@ class SelectTagViewModelTest {
   fun loadTagsWhenRepositoryChange() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
-    viewModel.mode = SelectTagMode.EVENT_CREATION
-    viewModel.eventTagRepositoryObserving()
+    setUpViewmodel(defaultUser.uid, SelectTagMode.EVENT_CREATION)
     advanceUntilIdle()
     val resultTags = viewModel.selectedTags.value.toSet()
     assertEquals(tags, resultTags)
@@ -476,7 +486,8 @@ class SelectTagViewModelTest {
 
   @Test
   fun saveTagsEventCreation() = runTest {
-    viewModel.mode = SelectTagMode.EVENT_CREATION
+    setUpViewmodel(defaultUser.uid, SelectTagMode.EVENT_CREATION)
+    advanceUntilIdle()
     tags.forEach { tag -> viewModel.addTag(tag) }
     advanceUntilIdle()
     val fakeEvent = SelectTagViewModelTestValues.temporaryEvent
@@ -489,7 +500,7 @@ class SelectTagViewModelTest {
         participants = fakeEvent.participants,
         location = fakeEvent.location,
         eventPicture = fakeEvent.eventPicture)
-    viewModel.saveTags("0")
+    viewModel.saveTags()
     advanceUntilIdle()
     val resultEventTags = eventRepository.getEvent("test")
     assertEquals(fakeEvent.copy(tags = tags), resultEventTags)
