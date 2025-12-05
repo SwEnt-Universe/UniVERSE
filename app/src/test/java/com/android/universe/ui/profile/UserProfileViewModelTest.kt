@@ -32,7 +32,6 @@ class UserProfileViewModelTest {
   fun setup() {
     userRepository = FakeUserRepository()
     eventRepository = FakeEventRepository()
-    viewModel = UserProfileViewModel(userRepository, eventRepository)
   }
 
   @Test
@@ -49,8 +48,8 @@ class UserProfileViewModelTest {
             tags = emptySet())
 
     userRepository.addUser(profile)
-
-    viewModel.loadUser(profile.uid)
+    advanceUntilIdle()
+    viewModel = UserProfileViewModel(profile.uid, userRepository, eventRepository)
 
     advanceUntilIdle()
     val state = viewModel.userState.value
@@ -84,8 +83,8 @@ class UserProfileViewModelTest {
 
     eventRepository.addEvent(incomingEvent)
     eventRepository.addEvent(historyEvent)
-
-    viewModel.loadUser(user.uid)
+    advanceUntilIdle()
+    viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
     advanceUntilIdle()
 
     val state = viewModel.userState.value
@@ -123,7 +122,7 @@ class UserProfileViewModelTest {
     eventRepository.addEvent(recentHistory)
     eventRepository.addEvent(oldHistory)
 
-    viewModel.loadUser(user.uid)
+    viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
     advanceUntilIdle()
 
     val state = viewModel.userState.value

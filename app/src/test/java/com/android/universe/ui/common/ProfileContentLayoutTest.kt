@@ -3,15 +3,12 @@ package com.android.universe.ui.common
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.createBitmap
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
@@ -24,8 +21,6 @@ class ProfileContentLayoutTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private val testUserProfile = UserTestData.SomeTagsUser
-  val testBitmap = createBitmap(100, 100, android.graphics.Bitmap.Config.ARGB_8888)
-  val testImage: ImageBitmap = testBitmap.asImageBitmap()
 
   private fun setProfileContent(
       onChatClick: () -> Unit = {},
@@ -39,7 +34,6 @@ class ProfileContentLayoutTest {
       ProfileContentLayout(
           modifier = Modifier.fillMaxSize(),
           userProfile = testUserProfile,
-          userProfileImage = testImage,
           followers = followers,
           following = following,
           heightTagList = 260.dp,

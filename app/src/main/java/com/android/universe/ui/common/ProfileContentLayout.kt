@@ -1,13 +1,16 @@
 package com.android.universe.ui.common
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -16,12 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.user.UserProfile
+import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 
@@ -46,7 +50,6 @@ object ProfileContentTestTags {
  *
  * @param modifier Modifier for styling/layout.
  * @param userProfile The user's profile data.
- * @param userProfileImage The user's profile image.
  * @param followers Number of followers the user has (Implemented as optional because the logic is
  *   not created yet).
  * @param following Number of users the user is following (Implemented as optional because the logic
@@ -62,7 +65,6 @@ object ProfileContentTestTags {
 fun ProfileContentLayout(
     modifier: Modifier,
     userProfile: UserProfile,
-    userProfileImage: ImageBitmap,
     followers: Int? = 0,
     following: Int? = 0,
     heightTagList: Dp = 260.dp,
@@ -74,11 +76,37 @@ fun ProfileContentLayout(
   Column(modifier = modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
       Column(modifier = Modifier.weight(2f)) {
-        ProfileImageBox(
-            userProfile = userProfile,
-            userProfileImage = userProfileImage,
-            username = userProfile.username,
-            showUsernameOverlay = onSettingsClick == null)
+        Box(modifier = Modifier.fillMaxWidth()) {
+          Box(
+              modifier =
+                  Modifier.height(Dimensions.CardImageHeight)
+                      .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
+                      .testTag(
+                          "${ProfileContentTestTags.PROFILE_IMAGE_CONTAINER}_${userProfile.uid}")) {
+                ImageDisplay(
+                    image = userProfile.profilePicture,
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier.fillMaxSize())
+
+                LiquidButton(
+                    height = Dimensions.CardImageTagOverlayHeight,
+                    width = Dimensions.CardImageTagOverlayWidth,
+                    isInteractive = false,
+                    enabled = false,
+                    onClick = {},
+                    modifier =
+                        Modifier.align(Alignment.TopStart)
+                            .padding(Dimensions.PaddingLarge)
+                            .testTag("${ProfileContentTestTags.USERNAME}_${userProfile.uid}")) {
+                      Text(
+                          text = userProfile.username,
+                          style = MaterialTheme.typography.labelLarge,
+                          color = MaterialTheme.colorScheme.onPrimary,
+                          maxLines = 1,
+                          overflow = TextOverflow.Ellipsis)
+                    }
+              }
+        }
 
         Spacer(Modifier.height(Dimensions.SpacerMedium))
 

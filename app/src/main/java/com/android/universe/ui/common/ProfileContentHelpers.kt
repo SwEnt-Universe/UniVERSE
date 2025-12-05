@@ -1,19 +1,14 @@
 package com.android.universe.ui.common
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.LocationOn
@@ -25,8 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,57 +69,6 @@ fun UserInfoColumn(userProfile: UserProfile) {
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.testTag("${ProfileContentTestTags.DATE_OF_BIRTH}_${userProfile.uid}"))
-  }
-}
-
-/**
- * A composable function that displays a user's profile image with an optional username overlay.
- *
- * @param userProfile The user's profile data.
- * @param userProfileImage The user's profile image as an ImageBitmap.
- * @param username The username to be displayed in the overlay.
- * @param showUsernameOverlay A boolean value indicating whether to show the username overlay or
- *   not.
- */
-@Composable
-fun ProfileImageBox(
-    userProfile: UserProfile,
-    userProfileImage: ImageBitmap,
-    username: String,
-    showUsernameOverlay: Boolean
-) {
-  Box(modifier = Modifier.fillMaxWidth()) {
-    Box(
-        modifier =
-            Modifier.height(Dimensions.CardImageHeight)
-                .clip(RoundedCornerShape(Dimensions.RoundedCornerLarge))
-                .testTag("${ProfileContentTestTags.PROFILE_IMAGE_CONTAINER}_${userProfile.uid}")) {
-          Image(
-              bitmap = userProfileImage,
-              contentDescription = null,
-              contentScale = ContentScale.Crop,
-              modifier = Modifier.fillMaxSize())
-
-          if (showUsernameOverlay) {
-            LiquidButton(
-                height = Dimensions.CardImageTagOverlayHeight,
-                width = Dimensions.CardImageTagOverlayWidth,
-                isInteractive = false,
-                enabled = false,
-                onClick = {},
-                modifier =
-                    Modifier.align(Alignment.TopStart)
-                        .padding(Dimensions.PaddingLarge)
-                        .testTag("${ProfileContentTestTags.USERNAME}_${userProfile.uid}")) {
-                  Text(
-                      username,
-                      style = MaterialTheme.typography.labelLarge,
-                      color = MaterialTheme.colorScheme.onPrimary,
-                      maxLines = 1,
-                      overflow = TextOverflow.Ellipsis)
-                }
-          }
-        }
   }
 }
 

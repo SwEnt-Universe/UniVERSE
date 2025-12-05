@@ -3,7 +3,13 @@ package com.android.universe.model.ai.prompt
 import com.android.universe.model.user.UserProfile
 import java.time.LocalDate
 import java.time.Period
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 
 /**
  * PromptBuilder (STRICT JSON MODE)
