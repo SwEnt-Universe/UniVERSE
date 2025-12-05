@@ -2,7 +2,6 @@ package com.android.universe
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,11 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.core.graphics.scale
 import androidx.core.view.WindowCompat
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -64,7 +61,6 @@ import com.android.universe.ui.profileSettings.SettingsViewModel
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
-import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.google.firebase.Firebase
