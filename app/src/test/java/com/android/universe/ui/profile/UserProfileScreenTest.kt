@@ -1,5 +1,6 @@
 package com.android.universe.ui.profile
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -9,7 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipe
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
@@ -124,7 +125,11 @@ class UserProfileScreenTest {
     setupScreen()
 
     composeTestRule.onNodeWithTag(UserProfileScreenTestTags.PROFILE_EVENT_LIST).performTouchInput {
-      swipeLeft()
+      val startX = width * 0.9f
+      val endX = width * 0.1f
+      val safeY = height * 0.8f
+
+      swipe(start = Offset(startX, safeY), end = Offset(endX, safeY), durationMillis = 400)
     }
 
     composeTestRule.waitForIdle()

@@ -1,9 +1,8 @@
 package com.android.universe.ui.profile
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,24 +33,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.R
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
@@ -64,7 +59,6 @@ import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.utils.toImageBitmap
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -103,11 +97,6 @@ fun UserProfileScreen(
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
   LaunchedEffect(uid) { userProfileViewModel.loadUser(uid) }
-
-  val imageToDisplay =
-      rememberImageBitmap(
-          bytes = userUIState.userProfile.profilePicture,
-          defaultImageId = R.drawable.default_profile_img)
 
   // State Initialization
   val density = LocalDensity.current
@@ -165,7 +154,6 @@ fun UserProfileScreen(
                 ProfileHeaderOverlay(
                     headerOffsetPx = headerOffsetPx,
                     userProfile = userUIState.userProfile,
-                    userImage = imageToDisplay,
                     pagerState = pagerState,
                     gapHeightDp = elementSpacingDp,
                     onProfileHeightMeasured = { profileContentHeightPx = it },
@@ -295,7 +283,6 @@ fun ProfileEventList(
  * @param headerOffsetPx The current vertical offset (in pixels) calculated by the parent
  *   controller.
  * @param userProfile The user data model.
- * @param userImage The bitmap of the user's profile picture.
  * @param pagerState The state of the pager (passed to the tabs).
  * @param gapHeightDp The spacing between the profile info and the tabs.
  * @param onProfileHeightMeasured Callback to report the height of the profile info block to the
@@ -307,7 +294,6 @@ fun ProfileEventList(
 fun ProfileHeaderOverlay(
     headerOffsetPx: Float,
     userProfile: UserProfile,
-    userImage: ImageBitmap,
     pagerState: PagerState,
     gapHeightDp: Dp,
     onProfileHeightMeasured: (Float) -> Unit,
@@ -316,7 +302,9 @@ fun ProfileHeaderOverlay(
 ) {
   Column(
       modifier =
-          Modifier.fillMaxWidth().offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }) {
+          Modifier.fillMaxWidth()
+              .offset { IntOffset(x = 0, y = headerOffsetPx.roundToInt()) }
+              .pointerInput(Unit) { detectHorizontalDragGestures { _, _ -> } }) {
         Box(
             modifier =
                 Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
@@ -325,7 +313,6 @@ fun ProfileHeaderOverlay(
               ProfileContentLayout(
                   modifier = Modifier,
                   userProfile = userProfile,
-                  userProfileImage = userImage,
                   followers = 0,
                   following = 0,
                   heightTagList = 200.dp,
@@ -344,34 +331,6 @@ fun ProfileHeaderOverlay(
               ProfileTabRow(pagerState = pagerState, titles = listOf("History", "Incoming"))
             }
       }
-}
-
-/**
- * A helper composable that converts a ByteArray into an [ImageBitmap].
- *
- * It handles the asynchronous loading state and provides a default image if the byte array is null
- * or invalid.
- *
- * @param bytes The raw image data.
- * @param defaultImageId The resource ID of the drawable to use as a fallback.
- * @return The loaded [ImageBitmap] or the default image.
- */
-@Composable
-fun rememberImageBitmap(
-    bytes: ByteArray?,
-    defaultImageId: Int = R.drawable.default_profile_img
-): ImageBitmap {
-  val context = LocalContext.current
-  val defaultBitmap =
-      remember(defaultImageId) {
-        BitmapFactory.decodeResource(context.resources, defaultImageId)?.asImageBitmap()
-            ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-                .apply { eraseColor(android.graphics.Color.LTGRAY) }
-                .asImageBitmap()
-      }
-  val imageBitmapState =
-      produceState<ImageBitmap?>(initialValue = null, bytes) { value = bytes?.toImageBitmap() }
-  return imageBitmapState.value ?: defaultBitmap
 }
 
 /**
