@@ -27,9 +27,9 @@ class FakeUserRepositoryTest {
           lastName = "User",
           country = "Switzerland",
           description = "Just a test user",
-          dateOfBirth = java.time.LocalDate.of(1990, 1, 1),
+          dateOfBirth = LocalDate.of(1990, 1, 1),
           tags = setOf(Tag.MUSIC, Tag.METAL),
-          followers = setOf("3"),
+          followers = emptySet(),
       )
 
   private val userProfile2 =
@@ -40,7 +40,7 @@ class FakeUserRepositoryTest {
           lastName = "User2",
           country = "France",
           description = "a second user",
-          dateOfBirth = java.time.LocalDate.of(2005, 12, 15),
+          dateOfBirth = LocalDate.of(2005, 12, 15),
           tags = setOf(Tag.TENNIS))
 
   private val userProfile3 =
@@ -51,7 +51,7 @@ class FakeUserRepositoryTest {
           lastName = "User3",
           country = "Portugal",
           description = "a third user",
-          dateOfBirth = java.time.LocalDate.of(2012, 9, 12),
+          dateOfBirth = LocalDate.of(2012, 9, 12),
           tags = setOf(Tag.DND, Tag.AI))
 
   @Before
@@ -426,5 +426,70 @@ class FakeUserRepositoryTest {
 
     assertEquals(expectedFollowingSet, currentUSer.following)
     assertEquals(expectedFollowerSet, targetUser.followers)
+  }
+
+  @Test
+  fun getFollowers_existingUser_shouldReturnFollowers() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.addUser(userProfile3)
+    // userProfile2 and userProfile3 follow userProfile1
+    repository.followUser(userProfile2.uid, userProfile1.uid)
+    repository.followUser(userProfile3.uid, userProfile1.uid)
+
+    val followers = repository.getFollowers(userProfile1.uid)
+    assertEquals(2, followers.size)
+    val followerUids = followers.map { it.uid }.toSet()
+    assertTrue(followerUids.contains(userProfile2.uid))
+    assertTrue(followerUids.contains(userProfile3.uid))
+  }
+
+  @Test
+  fun getFollowers_userWithNoFollowers_shouldReturnEmptyList() = runTest {
+    repository.addUser(userProfile1)
+    val followers = repository.getFollowers(userProfile1.uid)
+    assertTrue(followers.isEmpty())
+  }
+
+  @Test
+  fun getFollowing_existingUser_shouldReturnFollowing() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.addUser(userProfile3)
+    // userProfile1 follows userProfile2 and userProfile3
+    repository.followUser(userProfile1.uid, userProfile2.uid)
+    repository.followUser(userProfile1.uid, userProfile3.uid)
+
+    val currentUser = repository.getUser(userProfile1.uid)
+    val followingUids = currentUser.following
+    assertEquals(2, followingUids.size)
+    assertTrue(followingUids.contains(userProfile2.uid))
+    assertTrue(followingUids.contains(userProfile3.uid))
+  }
+
+  @Test
+  fun getFollowing_userWithNoFollowing_shouldReturnEmptyList() = runTest {
+    repository.addUser(userProfile1)
+    val currentUser = repository.getUser(userProfile1.uid)
+    val followingUids = currentUser.following
+    assertTrue(followingUids.isEmpty())
+  }
+
+  @Test
+  fun getFollowingRecommendations_existingUser_shouldReturnNonFollowingUsers() = runTest {
+    repository.addUser(userProfile1)
+    repository.addUser(userProfile2)
+    repository.addUser(userProfile3)
+    // userProfile1 follows userProfile2
+    repository.followUser(userProfile1.uid, userProfile2.uid)
+
+    val allUsers = repository.getAllUsers()
+    val currentUser = repository.getUser(userProfile1.uid)
+    val followingUids = currentUser.following
+
+    val recommendations =
+        allUsers.filter { it.uid != currentUser.uid && !followingUids.contains(it.uid) }
+    assertEquals(1, recommendations.size)
+    assertEquals(userProfile3.uid, recommendations[0].uid)
   }
 }

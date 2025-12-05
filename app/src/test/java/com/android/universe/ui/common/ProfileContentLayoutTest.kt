@@ -24,7 +24,7 @@ class ProfileContentLayoutTest {
 
   private fun setProfileContent(
       onChatClick: () -> Unit = {},
-      onAddClick: () -> Unit = {},
+      onToggleFollowing: () -> Unit = {},
       onSettingsClick: (() -> Unit)? = null,
       actionRowEnabled: Boolean = true,
       followers: Int? = 0,
@@ -39,7 +39,7 @@ class ProfileContentLayoutTest {
           heightTagList = 260.dp,
           actionRowEnabled = actionRowEnabled,
           onChatClick = onChatClick,
-          onAddClick = onAddClick,
+          onToggleFollowing = onToggleFollowing,
           onSettingsClick = onSettingsClick)
     }
   }
@@ -102,9 +102,11 @@ class ProfileContentLayoutTest {
   @Test
   fun profileContent_actionsRow_isDisplayed_whenActionRowEnabledTrue() {
     var chatClicked = false
-    var addClicked = false
+    var onToggleFollowingClicked = false
 
-    setProfileContent(onChatClick = { chatClicked = true }, onAddClick = { addClicked = true })
+    setProfileContent(
+        onChatClick = { chatClicked = true },
+        onToggleFollowing = { onToggleFollowingClicked = true })
 
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.CHAT_BUTTON}_${testUserProfile.uid}")
@@ -114,7 +116,7 @@ class ProfileContentLayoutTest {
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.ADD_BUTTON}_${testUserProfile.uid}")
         .performClick()
-    assert(addClicked)
+    assert(onToggleFollowingClicked)
   }
 
   @Test

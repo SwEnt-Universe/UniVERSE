@@ -71,4 +71,28 @@ interface UserRepository {
    * @param targetUserId the uid of the user who is being unfollowed by the current user.
    */
   suspend fun unfollowUser(currentUserId: String, targetUserId: String)
+
+  /**
+   * Retrieves the list of followers for the current user.
+   *
+   * @param currentUserId the uid of the user whose followers are to be retrieved.
+   * @return a list of UserProfile objects representing the followers.
+   */
+  suspend fun getFollowers(currentUserId: String): List<UserProfile>
+
+  /**
+   * Retrieves the list of users that the current user is following.
+   *
+   * @param currentUserId the uid of the user whose following list is to be retrieved.
+   * @return a list of UserProfile objects representing the users being followed.
+   */
+  suspend fun getFollowing(currentUserId: String): List<UserProfile>
+
+  /**
+   * Retrieves a list of recommended users for the current user to follow.
+   *
+   * @param currentUserId the uid of the user for whom to get follow recommendations.
+   * @return a list of UserProfile objects representing the recommended users to follow.
+   */
+  suspend fun getFollowRecommendations(currentUserId: String): List<UserProfile>
 }
