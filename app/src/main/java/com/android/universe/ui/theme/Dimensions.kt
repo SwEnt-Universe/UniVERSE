@@ -31,6 +31,7 @@ object Dimensions {
   val PaddingMedium = 8.dp // General spacing, tag group horizontal
   val PaddingLarge = 16.dp // Section titles, content padding
   val PaddingExtraLarge = 24.dp // ContentHorizontalPadding, DividerPadding
+  val Padding2XL = 48.dp
   val PaddingErrorIndent = 8.dp // ErrorIndent
   val PaddingFieldIconSpacing = 8.dp // FieldIconSpacing
 

@@ -34,7 +34,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
@@ -94,15 +93,15 @@ fun AddProfile(
     uid: String,
     navigateOnSave: () -> Unit = {},
     onBack: () -> Unit = {},
-    viewModel: AddProfileViewModel = viewModel()
+    viewModel: AddProfileViewModel =
+        viewModel(factory = AddProfileViewModel.provideFactory(LocalContext.current))
 ) {
   var showDatePicker by remember { mutableStateOf(false) }
   val profileUIState by viewModel.uiState.collectAsState()
-  val context = LocalContext.current
 
   val launcher =
       rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
-        viewModel.setProfilePicture(context, uri)
+        viewModel.setProfilePicture(uri)
       }
   Scaffold(
       modifier = Modifier.testTag(NavigationTestTags.ADD_PROFILE_SCREEN).fillMaxSize(),
@@ -124,7 +123,8 @@ fun AddProfile(
                       .width(200.dp)
                       .height(140.dp),
               imageBytes = profileUIState.profilePicture,
-              onPickImage = { launcher.launch("image/*") })
+              onPickImage = { launcher.launch("image/*") },
+              onDeleteImage = { viewModel.deleteProfilePicture() })
         }
         LiquidBox(
             modifier =
@@ -255,9 +255,6 @@ private fun AddProfileScreenPreview() {
   val stubBackdrop = rememberLayerBackdrop { drawRect(Color.Transparent) }
 
   CompositionLocalProvider(LocalLayerBackdrop provides stubBackdrop) {
-    AddProfile(
-        uid = "preview_user_001",
-        navigateOnSave = {},
-        viewModel = viewModel { AddProfileViewModel(FakeUserRepository()) })
+    AddProfile(uid = "preview_user_001", navigateOnSave = {})
   }
 }

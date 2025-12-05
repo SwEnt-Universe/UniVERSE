@@ -110,7 +110,7 @@ android {
   val hasReleaseKeys = System.getenv("SIGNING_STORE_PASSWORD") != null
   buildTypes {
     release {
-      isMinifyEnabled = true
+      isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
       signingConfig =

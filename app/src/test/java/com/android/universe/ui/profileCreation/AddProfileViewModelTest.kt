@@ -1,19 +1,16 @@
 package com.android.universe.ui.profileCreation
 
-import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.di.DefaultDP
+import com.android.universe.di.DispatcherProvider
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.utils.MainCoroutineRule
-import io.mockk.every
-import io.mockk.mockkObject
-import java.io.File
-import java.io.FileOutputStream
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -33,14 +30,28 @@ class AddProfileViewModelTest {
   @get:Rule val mainCoroutineRule = MainCoroutineRule()
   private lateinit var repository: FakeUserRepository
   private lateinit var viewModel: AddProfileViewModel
+  private lateinit var imageManager: ImageBitmapManager
 
   @Before
   fun setup() {
     repository = FakeUserRepository()
-    viewModel = AddProfileViewModel(repository)
-    mockkObject(DefaultDP)
-    every { DefaultDP.io } returns UnconfinedTestDispatcher()
-    every { DefaultDP.default } returns UnconfinedTestDispatcher()
+
+    imageManager = mockk<ImageBitmapManager>()
+
+    val testDispatcher = UnconfinedTestDispatcher()
+    val dispatcherProvider =
+        object : DispatcherProvider {
+          override val main: CoroutineDispatcher = testDispatcher
+          override val default: CoroutineDispatcher = testDispatcher
+          override val io: CoroutineDispatcher = testDispatcher
+          override val unconfined: CoroutineDispatcher = testDispatcher
+        }
+
+    viewModel =
+        AddProfileViewModel(
+            repository = repository,
+            imageManager = imageManager,
+            dispatcherProvider = dispatcherProvider)
   }
 
   @Test
@@ -146,9 +157,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileEmptyFirstName() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("")
     viewModel.setLastName("Doe")
@@ -165,9 +173,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileEmptyLastName() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("")
@@ -184,9 +189,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileEmptyDay() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -203,9 +205,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileNonNumericDay() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -222,9 +221,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileEmptyMonth() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -241,9 +237,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileNonNumericMonth() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -260,9 +253,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileEmptyYear() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -279,9 +269,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileNonNumericYear() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -298,9 +285,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileInvalidDate1() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -317,9 +301,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileInvalidDate2() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -336,9 +317,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileInvalidDate3() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -355,9 +333,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileInvalidDate4() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -374,9 +349,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileEmptyUsername() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -393,9 +365,6 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileValid() = runTest {
-    val repository = FakeUserRepository()
-    val viewModel = AddProfileViewModel(repository)
-
     viewModel.setUsername("john_doe")
     viewModel.setFirstName("John")
     viewModel.setLastName("Doe")
@@ -487,17 +456,14 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileRejectsInvalidUsernameCharacters() = runTest {
-    val repository = FakeUserRepository()
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("invalid@name")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
 
-    vm.setUsername("invalid@name")
-    vm.setFirstName("John")
-    vm.setLastName("Doe")
-    vm.setDay("12")
-    vm.setMonth("8")
-    vm.setYear("1990")
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -505,17 +471,14 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileRejectsTooLongUsername() = runTest {
-    val repository = FakeUserRepository()
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("a".repeat(InputLimits.USERNAME + 2))
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
 
-    vm.setUsername("a".repeat(InputLimits.USERNAME + 2))
-    vm.setFirstName("John")
-    vm.setLastName("Doe")
-    vm.setDay("12")
-    vm.setMonth("8")
-    vm.setYear("1990")
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -523,17 +486,14 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileRejectsInvalidNameCharacters() = runTest {
-    val repository = FakeUserRepository()
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John1")
+    viewModel.setLastName("Doe")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
 
-    vm.setUsername("john_doe")
-    vm.setFirstName("John1")
-    vm.setLastName("Doe")
-    vm.setDay("12")
-    vm.setMonth("8")
-    vm.setYear("1990")
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -541,17 +501,14 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileRejectsTooLongFirstName() = runTest {
-    val repository = FakeUserRepository()
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("A".repeat(InputLimits.FIRST_NAME + 5))
+    viewModel.setLastName("Doe")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
 
-    vm.setUsername("john_doe")
-    vm.setFirstName("A".repeat(InputLimits.FIRST_NAME + 5))
-    vm.setLastName("Doe")
-    vm.setDay("12")
-    vm.setMonth("8")
-    vm.setYear("1990")
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -559,17 +516,14 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileRejectsTooLongLastName() = runTest {
-    val repository = FakeUserRepository()
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("B".repeat(InputLimits.LAST_NAME + 10))
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
 
-    vm.setUsername("john_doe")
-    vm.setFirstName("John")
-    vm.setLastName("B".repeat(InputLimits.LAST_NAME + 10))
-    vm.setDay("12")
-    vm.setMonth("8")
-    vm.setYear("1990")
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -577,18 +531,15 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileRejectsTooLongDescription() = runTest {
-    val repository = FakeUserRepository()
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setDay("12")
+    viewModel.setMonth("8")
+    viewModel.setYear("1990")
+    viewModel.setDescription("A".repeat(InputLimits.DESCRIPTION + 20))
 
-    vm.setUsername("john_doe")
-    vm.setFirstName("John")
-    vm.setLastName("Doe")
-    vm.setDay("12")
-    vm.setMonth("8")
-    vm.setYear("1990")
-    vm.setDescription("A".repeat(InputLimits.DESCRIPTION + 20))
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
 
     assertEquals(0, repository.getAllUsers().size)
@@ -596,17 +547,15 @@ class AddProfileViewModelTest {
 
   @Test
   fun addProfileTrimsAndAddsCleanedNames() = runTest {
-    val vm = AddProfileViewModel(repository)
+    viewModel.setUsername("john_doe")
+    viewModel.setFirstName("   Jean   Luc   ")
+    viewModel.setLastName("  De    Silva ")
+    viewModel.setDay("15")
+    viewModel.setMonth("5")
+    viewModel.setYear("1995")
+    viewModel.setDescription("  asds  ad  ")
 
-    vm.setUsername("john_doe")
-    vm.setFirstName("   Jean   Luc   ")
-    vm.setLastName("  De    Silva ")
-    vm.setDay("15")
-    vm.setMonth("5")
-    vm.setYear("1995")
-    vm.setDescription("  asds  ad  ")
-
-    vm.addProfile("0")
+    viewModel.addProfile("0")
     advanceUntilIdle()
     val users = repository.getAllUsers()
 
@@ -624,68 +573,44 @@ class AddProfileViewModelTest {
 
   @Test
   fun `setProfilePicture with null uri clears image`() = runTest {
-    // 1. Set a dummy state first (simulate an existing image)
-    // If not, we just rely on the fact that null uri -> null profilePicture
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    viewModel.setProfilePicture(context, null)
+    viewModel.setProfilePicture(null)
     advanceUntilIdle()
 
     assertNull(viewModel.uiState.value.profilePicture)
   }
 
   @Test
-  fun `setProfilePicture with valid uri compresses and updates state`() = runTest {
-    // 1. Create a temporary real image file
-    // We need a real bitmap so BitmapFactory doesn't return null
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    val file: File = File(context.cacheDir, "test_image.jpg")
-    val outputStream = FileOutputStream(file)
+  fun `setProfilePicture with valid uri updates state with compressed bytes`() = runTest {
+    val mockUri = mockk<Uri>()
+    val expectedBytes = byteArrayOf(1, 2, 3, 4)
 
-    // Create a 500x500 bitmap (larger than your 256 limit to trigger resizing logic)
-    val originalBitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)
-    originalBitmap.eraseColor(android.graphics.Color.RED)
+    coEvery { imageManager.resizeAndCompressImage(mockUri) } returns expectedBytes
 
-    // Write it to the file
-    originalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-    outputStream.flush()
-    outputStream.close()
-
-    // 2. Create a URI pointing to this file
-    val uri = Uri.fromFile(file)
-
-    // 3. Call the function
-    viewModel.setProfilePicture(context, uri)
+    viewModel.setProfilePicture(mockUri)
     advanceUntilIdle()
 
-    // 4. Assertions
-
     val resultBytes = viewModel.uiState.value.profilePicture
-
     assertNotNull("Profile picture bytes should not be null", resultBytes)
-    assertTrue("Byte array should contain data", resultBytes!!.isNotEmpty())
+    assertTrue("Byte array should match mock data", resultBytes.contentEquals(expectedBytes))
   }
 
   @Test
-  fun `setProfilePicture handles massive image by downsampling`() = runTest {
-    // 1. Create a "Massive" image (e.g., 1000x1000)
+  fun `setProfilePicture handles null result from manager`() = runTest {
+    val mockUri = mockk<Uri>()
 
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    val file: File = File(context.cacheDir, "massive_image.jpg")
-    val stream = FileOutputStream(file)
+    coEvery { imageManager.resizeAndCompressImage(mockUri) } returns null
 
-    // Create 1000x1000 bitmap
-    val largeBitmap = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888)
-    val success = largeBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-    stream.close()
-
-    assertTrue("Bitmap compression failed in test setup", success)
-    assertTrue("File should exist", file.exists())
-    assertTrue("File should have data", file.length() > 0)
-    // 2. Run logic
-    viewModel.setProfilePicture(context, Uri.fromFile(file))
+    viewModel.setProfilePicture(mockUri)
     advanceUntilIdle()
-    // 3. Verify
-    val resultBytes = viewModel.uiState.value.profilePicture
-    assertNotNull(resultBytes)
+
+    assertNull(
+        "Profile picture should be null if manager fails", viewModel.uiState.value.profilePicture)
+  }
+
+  @Test
+  fun `deleteProfilePicture clears image state`() = runTest {
+    viewModel.deleteProfilePicture()
+
+    assertNull(viewModel.uiState.value.profilePicture)
   }
 }
