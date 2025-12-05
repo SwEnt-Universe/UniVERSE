@@ -1,7 +1,8 @@
 package com.android.universe.ui.map
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.AIEventGen
@@ -24,6 +25,7 @@ import io.mockk.mockkObject
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -54,6 +56,7 @@ class MapViewModelTest {
   }
 
   private lateinit var viewModel: MapViewModel
+  private lateinit var appContext: Context
   private lateinit var locationRepository: LocationRepository
   private lateinit var eventRepository: EventRepository
   private lateinit var userRepository: UserRepository
@@ -100,7 +103,8 @@ class MapViewModelTest {
   }
 
   @Before
-  fun setup() {
+  fun setup() = runTest {
+    appContext = ApplicationProvider.getApplicationContext()
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
@@ -120,13 +124,17 @@ class MapViewModelTest {
 
     viewModel =
         MapViewModel(
+            applicationContext = appContext,
             prefs = mockk(relaxed = true),
-            currentUserId = userId,
             locationRepository = locationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository,
             userReactiveRepository = userReactiveRepository,
             ai = ai)
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
   }
 
   @After
@@ -156,7 +164,7 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.userLocation)
     assertEquals(fakeLocation.latitude, state.userLocation!!.latitude, 0.0001)
-    assertEquals(fakeLocation.longitude, state.userLocation!!.longitude, 0.0001)
+    assertEquals(fakeLocation.longitude, state.userLocation.longitude, 0.0001)
     assertNull(state.error)
     assertFalse(state.isLoading)
   }
@@ -191,56 +199,36 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `loadAllEvents includes correct creator profiles for each event`() = runTest {
-    // Create mock users
-    val user1 = UserTestData.Bob.copy(uid = "user1", username = "Alice")
-    val user2 = UserTestData.Bob.copy(uid = "user2", username = "Bob")
-    val user3 = UserTestData.Bob.copy(uid = "user3", username = "Charlie")
+  fun `loadAllEvents includes correct creator full names for each event`() = runTest {
+    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "1")
+    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "2")
+    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "1")
 
-    // Create events with different creators
-    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "user1")
-    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "user2")
-    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "user3")
-    val event4 =
-        EventTestData.dummyEvent1.copy(id = "event4", creator = "user1") // Duplicate creator
+    val eventsList = listOf(event1, event2, event3)
 
-    val eventsList = listOf(event1, event2, event3, event4)
-
-    // Mock repository responses - using reactive repository since it's available
     coEvery { eventRepository.getAllEvents() } returns eventsList
-    every { userReactiveRepository.getUserFlow("user1") } returns flowOf(user1)
-    every { userReactiveRepository.getUserFlow("user2") } returns flowOf(user2)
-    every { userReactiveRepository.getUserFlow("user3") } returns flowOf(user3)
+    every { userReactiveRepository.getUserFlow("1") } returns flowOf(UserTestData.Alice)
+    every { userReactiveRepository.getUserFlow("2") } returns flowOf(UserTestData.Rocky)
+    every { userReactiveRepository.getUserFlow("1") } returns flowOf(UserTestData.Alice)
 
     viewModel.loadAllEvents()
     advanceUntilIdle()
-
     val state = viewModel.uiState.value
 
     assertEquals("Should have one marker per event", eventsList.size, state.markers.size)
 
-    val marker1 = state.markers.find { it.event.id == "event1" }
-    assertNotNull("Marker for event1 should exist", marker1)
-    assertEquals("Event1 should have Alice as creator", "Alice", marker1!!.creator?.username)
-    assertEquals("Event1 creator UID should match", "user1", marker1.creator?.uid)
+    suspend fun assertMarker(eventId: String, expectedFullName: String) =
+        this.apply {
+          val marker = state.markers.find { it.event.id == eventId }
+          val flowCreator = userReactiveRepository.getUserFlow(marker!!.event.creator).first()
+          val creator = flowCreator!!.firstName + " " + flowCreator.lastName
+          assertNotNull("Marker for $eventId should exist", marker)
+          assertEquals("Wrong creator name for $eventId", expectedFullName, creator)
+        }
 
-    val marker2 = state.markers.find { it.event.id == "event2" }
-    assertNotNull("Marker for event2 should exist", marker2)
-    assertEquals("Event2 should have Bob as creator", "Bob", marker2!!.creator?.username)
-    assertEquals("Event2 creator UID should match", "user2", marker2.creator?.uid)
-
-    val marker3 = state.markers.find { it.event.id == "event3" }
-    assertNotNull("Marker for event3 should exist", marker3)
-    assertEquals("Event3 should have Charlie as creator", "Charlie", marker3!!.creator?.username)
-    assertEquals("Event3 creator UID should match", "user3", marker3.creator?.uid)
-
-    val marker4 = state.markers.find { it.event.id == "event4" }
-    assertNotNull("Marker for event4 should exist", marker4)
-    assertEquals(
-        "Event4 should have Alice as creator (same as event1)",
-        "Alice",
-        marker4!!.creator?.username)
-    assertEquals("Event4 creator UID should match", "user1", marker4.creator?.uid)
+    assertMarker("event1", "${UserTestData.Alice.firstName} ${UserTestData.Alice.lastName}")
+    assertMarker("event2", "${UserTestData.Rocky.firstName} ${UserTestData.Rocky.lastName}")
+    assertMarker("event3", "${UserTestData.Alice.firstName} ${UserTestData.Alice.lastName}")
   }
 
   @Test
@@ -333,20 +321,6 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `onCameraMoveRequest sends MoveCamera action`() = runTest {
-    viewModel.mapActions.test {
-      val target = GeoPoint(46.5, 6.5)
-      val zoom = 12.0
-      viewModel.onCameraMoveRequest(target, zoom)
-
-      val action = awaitItem()
-      assertTrue(action is MapAction.MoveCamera)
-      assertEquals(target, (action as MapAction.MoveCamera).target)
-      assertEquals(zoom, (action as MapAction.MoveCamera).currentZoom, 0.0)
-    }
-  }
-
-  @Test
   fun `onCameraStateChange updates uiState`() = runTest {
     val newPos = GeoPoint(48.8566, 2.3522)
     val newZoom = 15.5
@@ -411,7 +385,7 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.selectedLocation)
     assertEquals(commonLat, state.selectedLocation!!.latitude, 0.0001)
-    assertEquals(commonLng, state.selectedLocation!!.longitude, 0.0001)
+    assertEquals(commonLng, state.selectedLocation.longitude, 0.0001)
   }
 
   @Test

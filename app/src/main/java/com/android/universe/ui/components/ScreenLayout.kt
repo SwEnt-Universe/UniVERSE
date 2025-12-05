@@ -1,11 +1,13 @@
 package com.android.universe.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -13,14 +15,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-
-object ScreenLayoutTestTags {
-  const val TOP_BAR = "topBar"
-  const val BOTTOM_BAR = "bottomBar"
-}
 
 /**
  * A layout composable that arranges its children in a way that is common for screen UIs. It places
@@ -40,8 +38,31 @@ object ScreenLayoutTestTags {
  *   occupied by the top and bottom bars, which should be applied as padding to the content's
  *   container to prevent it from being drawn underneath the bars.
  */
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ScreenLayout(
+    modifier: Modifier = Modifier,
+    topBar: @Composable (() -> Unit) = {},
+    bottomBar: @Composable (() -> Unit) = {},
+    content: @Composable (PaddingValues) -> Unit
+) {
+  Scaffold(
+      modifier = modifier,
+      containerColor = Color.Transparent,
+      topBar = topBar,
+      bottomBar = bottomBar,
+  ) { scaffoldPadding ->
+    Box(modifier = Modifier.fillMaxSize()) { content(scaffoldPadding) }
+  }
+}
+
+object ScreenLayoutTestTags {
+  const val TOP_BAR = "topBar"
+  const val BOTTOM_BAR = "bottomBar"
+}
+
+@Composable
+fun ScreenLayoutWithBox(
     modifier: Modifier = Modifier,
     topBar: @Composable (() -> Unit)? = null,
     bottomBar: @Composable (() -> Unit)? = null,
