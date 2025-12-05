@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Imports
 // ─────────────────────────────────────────────────────────────────────────────
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plugins
@@ -247,6 +247,7 @@ dependencies {
   // Version is controlled by the firebase-bom
   implementation(libs.firebase.auth)
   implementation(libs.firebase.firestore)
+  implementation(libs.firebase.ai)
 
   // ----------------- Jetpack Compose ------------------
   // Versions are controlled by the androidx-compose-bom
