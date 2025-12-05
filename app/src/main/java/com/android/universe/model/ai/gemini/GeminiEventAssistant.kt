@@ -12,7 +12,7 @@ class GeminiEventAssistant(
     private val model: GenerativeModel =
         Firebase.ai(backend = GenerativeBackend.googleAI())
             .generativeModel(
-                modelName = "gemini-1.5-flash",
+                modelName = "gemini-2.5-flash",
                 generationConfig =
                     generationConfig {
                       responseMimeType = "application/json"
