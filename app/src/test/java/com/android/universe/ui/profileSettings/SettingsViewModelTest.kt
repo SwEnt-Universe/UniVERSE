@@ -1,12 +1,10 @@
 package com.android.universe.ui.profileSettings
 
-import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.di.DefaultDP
+import com.android.universe.di.DispatcherProvider
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
@@ -18,22 +16,21 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
-import java.io.File
-import java.io.FileOutputStream
 import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert
@@ -61,6 +58,7 @@ class SettingsViewModelTest {
   private lateinit var mockFirebaseUser: FirebaseUser
   private lateinit var mockEmailTask: Task<Void>
   private lateinit var mockPasswordTask: Task<Void>
+  private lateinit var imageManager: ImageBitmapManager
 
   private lateinit var viewModel: SettingsViewModel
 
@@ -68,11 +66,17 @@ class SettingsViewModelTest {
   fun setUp() {
 
     runTest {
-      // Mock Dispatchers
-      mockkObject(DefaultDP)
-      every { DefaultDP.io } returns UnconfinedTestDispatcher()
-      every { DefaultDP.default } returns UnconfinedTestDispatcher()
-      // Mock FirebaseAuth
+      imageManager = mockk()
+
+      val testDispatcher = UnconfinedTestDispatcher()
+      val dispatcherProvider =
+          object : DispatcherProvider {
+            override val main: CoroutineDispatcher = testDispatcher
+            override val default: CoroutineDispatcher = testDispatcher
+            override val io: CoroutineDispatcher = testDispatcher
+            override val unconfined: CoroutineDispatcher = testDispatcher
+          }
+
       mockkStatic(FirebaseAuth::class)
       val fakeAuth = mockk<FirebaseAuth>(relaxed = true)
       every { FirebaseAuth.getInstance() } returns fakeAuth
@@ -85,14 +89,11 @@ class SettingsViewModelTest {
       mockkObject(UserRepositoryProvider)
       every { UserRepositoryProvider.repository } returns fakeRepo
 
-      // Mock Log for tag error cases
       mockkStatic(Log::class)
       every { Log.e(any(), any()) } returns 0
 
-      // Initialize repositories
       mockRepo = mockk<UserRepository>(relaxed = true)
 
-      // Mock Firebase user and tasks
       mockFirebaseUser = mockk()
       mockEmailTask = mockk(relaxed = true)
       mockPasswordTask = mockk(relaxed = true)
@@ -102,8 +103,12 @@ class SettingsViewModelTest {
       every { mockFirebaseUser.updatePassword(any()) } returns mockPasswordTask
       fakeRepo.addUser(user)
 
-      // Set up ViewModel
-      viewModel = SettingsViewModel(user.uid, fakeRepo)
+      viewModel =
+          SettingsViewModel(
+              uid = user.uid,
+              userRepository = fakeRepo,
+              imageManager = imageManager,
+              dispatcherProvider = dispatcherProvider)
     }
   }
 
@@ -119,7 +124,21 @@ class SettingsViewModelTest {
     every { FirebaseAuth.getInstance() } returns fakeAuth
     every { fakeAuth.currentUser } returns mockFirebaseUser
 
-    val viewModel = SettingsViewModel(user.uid, fakeRepo)
+    val testDispatcher = UnconfinedTestDispatcher()
+    val dispatcherProvider =
+        object : DispatcherProvider {
+          override val main: CoroutineDispatcher = testDispatcher
+          override val default: CoroutineDispatcher = testDispatcher
+          override val io: CoroutineDispatcher = testDispatcher
+          override val unconfined: CoroutineDispatcher = testDispatcher
+        }
+
+    val viewModel =
+        SettingsViewModel(
+            uid = user.uid,
+            userRepository = fakeRepo,
+            imageManager = imageManager,
+            dispatcherProvider = dispatcherProvider)
     assertEquals("old@epfl.ch", viewModel.uiState.value.email)
   }
 
@@ -196,36 +215,36 @@ class SettingsViewModelTest {
     assertTrue(navigated)
   }
 
-  /** Taken directly from add profile */
   @Test
   fun `setProfilePicture with valid uri compresses and updates state`() = runTest {
-    // 1. Create a temporary real image file
-    // We need a real bitmap so BitmapFactory doesn't return null
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    val file: File = File(context.cacheDir, "test_image.jpg")
-    val outputStream = FileOutputStream(file)
+    val mockUri = mockk<Uri>()
+    val expectedBytes = byteArrayOf(10, 20, 30) // Dummy data
 
-    // Create a 500x500 bitmap (larger than your 256 limit to trigger resizing logic)
-    val originalBitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)
-    originalBitmap.eraseColor(android.graphics.Color.RED)
+    coEvery { imageManager.resizeAndCompressImage(mockUri) } returns expectedBytes
 
-    // Write it to the file
-    originalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-    outputStream.flush()
-    outputStream.close()
-
-    // 2. Create a URI pointing to this file
-    val uri = Uri.fromFile(file)
-
-    // 3. Call the function
-    viewModel.setProfilePicture(context, uri)
-    advanceUntilIdle()
-
-    // 4. Assertions
+    viewModel.setProfilePicture(mockUri)
 
     val resultBytes = viewModel.uiState.value.profilePicture
-
     Assert.assertNotNull("Profile picture bytes should not be null", resultBytes)
-    Assert.assertTrue("Byte array should contain data", resultBytes!!.isNotEmpty())
+    Assert.assertTrue(
+        "Byte array should match expected", resultBytes!!.contentEquals(expectedBytes))
+  }
+
+  @Test
+  fun `setProfilePicture handles null uri`() = runTest {
+    viewModel.setProfilePicture(null)
+    assertNull(viewModel.uiState.value.profilePicture)
+  }
+
+  @Test
+  fun `deleteImage clears profile picture`() = runTest {
+    val mockUri = mockk<Uri>()
+    coEvery { imageManager.resizeAndCompressImage(mockUri) } returns byteArrayOf(1, 2, 3)
+    viewModel.setProfilePicture(mockUri)
+    assertNotNull(viewModel.uiState.value.profilePicture)
+
+    viewModel.deleteImage()
+
+    assertNull(viewModel.uiState.value.profilePicture)
   }
 }
