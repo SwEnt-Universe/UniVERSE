@@ -82,6 +82,8 @@ data class EventCreationUIState(
     val isGenerating: Boolean = false,
     val generationError: String? = null,
     val proposal: EventProposal? = null,
+    val aiPrompt: String = "",
+    val aiPromptError: String? = null
 ) {
   /** Keep the ValidationState of the event title. */
   val eventTitleValid: ValidationState
@@ -110,6 +112,40 @@ data class EventCreationUIState(
 
   val eventLocationValid: ValidationState
     get() = validateLocation(location)
+
+  val aiPromptValid: ValidationState
+    get() {
+      if (aiPromptError != null) return ValidationState.Invalid(aiPromptError)
+      if (aiPrompt.isBlank()) return ValidationState.Neutral
+      return ValidationState.Valid
+    }
+
+  val aiProposalTitleValid: ValidationState
+    get() {
+      val p = proposal ?: return ValidationState.Neutral
+      return if (p.title.length <= InputLimits.TITLE_EVENT_MAX_LENGTH) {
+        ValidationState.Valid
+      } else {
+        ValidationState.Invalid(
+            "Title too long (${p.title.length}/${InputLimits.TITLE_EVENT_MAX_LENGTH})")
+      }
+    }
+
+  val aiProposalDescriptionValid: ValidationState
+    get() {
+      val p = proposal ?: return ValidationState.Neutral
+      return if (p.description.length <= InputLimits.DESCRIPTION) {
+        ValidationState.Valid
+      } else {
+        ValidationState.Invalid(
+            "Description too long (${p.description.length}/${InputLimits.DESCRIPTION})")
+      }
+    }
+
+  val isAiProposalValid: Boolean
+    get() =
+        aiProposalTitleValid is ValidationState.Valid &&
+            aiProposalDescriptionValid is ValidationState.Valid
 }
 
 /**
@@ -292,24 +328,39 @@ class EventCreationViewModel(
     }
   }
 
+  fun setAiPrompt(prompt: String) {
+    val error = if (prompt.isBlank()) "Prompt cannot be empty" else null
+    eventCreationUiState.value =
+        eventCreationUiState.value.copy(aiPrompt = prompt, aiPromptError = error)
+  }
+
   fun showAiAssist() {
     eventCreationUiState.value =
         eventCreationUiState.value.copy(
-            isAiAssistVisible = true, proposal = null, generationError = null)
+            isAiAssistVisible = true,
+            proposal = null,
+            generationError = null,
+            aiPrompt = "",
+            aiPromptError = null)
   }
 
   fun hideAiAssist() {
     eventCreationUiState.value = eventCreationUiState.value.copy(isAiAssistVisible = false)
   }
 
-  fun generateProposal(userPrompt: String) {
-    if (userPrompt.isBlank()) return
+  fun generateProposal() {
+    val prompt = eventCreationUiState.value.aiPrompt
+    if (prompt.isBlank()) {
+      eventCreationUiState.value =
+          eventCreationUiState.value.copy(aiPromptError = "Prompt cannot be empty")
+      return
+    }
 
     eventCreationUiState.value =
         eventCreationUiState.value.copy(isGenerating = true, generationError = null)
 
     viewModelScope.launch {
-      val result = gemini.generateProposal(userPrompt)
+      val result = gemini.generateProposal(prompt)
       if (result != null) {
         eventCreationUiState.value =
             eventCreationUiState.value.copy(isGenerating = false, proposal = result)
@@ -324,6 +375,8 @@ class EventCreationViewModel(
 
   fun acceptProposal() {
     val p = eventCreationUiState.value.proposal ?: return
+
+    if (!eventCreationUiState.value.isAiProposalValid) return
 
     setEventName(p.title)
     setEventDescription(p.description)

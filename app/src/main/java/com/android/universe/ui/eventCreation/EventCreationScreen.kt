@@ -31,10 +31,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.ai.gemini.EventProposal
-import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
@@ -105,26 +102,29 @@ fun EventCreationScreen(
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
 
-  var aiPrompt by remember { mutableStateOf("") }
-
   if (uiState.value.isAiAssistVisible) {
     if (uiState.value.proposal == null) {
       AiPromptBox(
-          prompt = aiPrompt,
+          prompt = uiState.value.aiPrompt,
+          validationState = uiState.value.aiPromptValid,
           isGenerating = uiState.value.isGenerating,
           error = uiState.value.generationError,
-          onPromptChange = { aiPrompt = it },
-          onGenerate = { eventCreationViewModel.generateProposal(aiPrompt) },
-          onBack = { eventCreationViewModel.hideAiAssist() })
+          onPromptChange = eventCreationViewModel::setAiPrompt,
+          onGenerate = eventCreationViewModel::generateProposal,
+          onBack = eventCreationViewModel::hideAiAssist)
     } else {
       AiReviewBox(
           proposal = uiState.value.proposal!!,
-          prompt = aiPrompt,
+          prompt = uiState.value.aiPrompt,
+          promptValidationState = uiState.value.aiPromptValid,
+          titleValidationState = uiState.value.aiProposalTitleValid,
+          descriptionValidationState = uiState.value.aiProposalDescriptionValid,
+          isProposalValid = uiState.value.isAiProposalValid,
           isGenerating = uiState.value.isGenerating,
-          onPromptChange = { aiPrompt = it },
-          onRegenerate = { eventCreationViewModel.generateProposal(aiPrompt) },
-          onConfirm = { eventCreationViewModel.acceptProposal() },
-          onBack = { eventCreationViewModel.hideAiAssist() })
+          onPromptChange = eventCreationViewModel::setAiPrompt,
+          onRegenerate = eventCreationViewModel::generateProposal,
+          onConfirm = eventCreationViewModel::acceptProposal,
+          onBack = eventCreationViewModel::hideAiAssist)
     }
   } else {
     StandardEventCreationForm(
@@ -363,21 +363,14 @@ fun AiLayout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit)
 @Composable
 fun AiPromptBox(
     prompt: String,
+    validationState: ValidationState,
     isGenerating: Boolean,
     error: String?,
     onPromptChange: (String) -> Unit,
     onGenerate: () -> Unit,
     onBack: () -> Unit
 ) {
-  var validationError by remember { mutableStateOf<String?>(null) }
-
-  val currentError = validationError ?: error
-  val promptValidationState =
-      if (currentError != null) {
-        ValidationState.Invalid(currentError)
-      } else {
-        ValidationState.Neutral
-      }
+  val finalValidationState = if (error != null) ValidationState.Invalid(error) else validationState
 
   AiLayout(
       bottomBar = {
@@ -405,17 +398,9 @@ fun AiPromptBox(
             label = "Describe your event",
             placeholder = "Share what you want participants to experience…",
             value = prompt,
-            onValueChange = { newValue ->
-              validationError =
-                  if (newValue.isBlank()) {
-                    "Prompt cannot be empty"
-                  } else {
-                    null
-                  }
-              onPromptChange(newValue)
-            },
+            onValueChange = onPromptChange,
             maxLines = 4,
-            validationState = promptValidationState)
+            validationState = finalValidationState)
 
         if (isGenerating) {
           Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
@@ -428,6 +413,10 @@ fun AiPromptBox(
 fun AiReviewBox(
     proposal: EventProposal,
     prompt: String,
+    promptValidationState: ValidationState,
+    titleValidationState: ValidationState,
+    descriptionValidationState: ValidationState,
+    isProposalValid: Boolean,
     isGenerating: Boolean,
     onPromptChange: (String) -> Unit,
     onRegenerate: () -> Unit,
@@ -435,18 +424,6 @@ fun AiReviewBox(
     onBack: () -> Unit
 ) {
   val focusManager = LocalFocusManager.current
-
-  var promptValidationError by remember { mutableStateOf<String?>(null) }
-  val promptValidationState =
-      if (promptValidationError != null) {
-        ValidationState.Invalid(promptValidationError!!)
-      } else {
-        ValidationState.Neutral
-      }
-
-  val isTitleValid = proposal.title.length <= InputLimits.TITLE_EVENT_MAX_LENGTH
-  val isDescriptionValid = proposal.description.length <= InputLimits.DESCRIPTION
-  val hasProposalError = !isTitleValid || !isDescriptionValid
 
   AiLayout(
       bottomBar = {
@@ -463,7 +440,7 @@ fun AiReviewBox(
                         },
                         enabled = prompt.isNotBlank() && !isGenerating),
                     FlowTab.Confirm(
-                        onClick = onConfirm, enabled = !isGenerating && !hasProposalError)))
+                        onClick = onConfirm, enabled = !isGenerating && isProposalValid)))
       }) {
         Row(modifier = Modifier.fillMaxWidth()) {
           Text(text = "Review Proposal", style = MaterialTheme.typography.titleLarge)
@@ -475,10 +452,7 @@ fun AiReviewBox(
             label = "Your Prompt",
             placeholder = "",
             value = prompt,
-            onValueChange = { newValue ->
-              promptValidationError = if (newValue.isBlank()) "Prompt cannot be empty" else null
-              onPromptChange(newValue)
-            },
+            onValueChange = onPromptChange,
             maxLines = 2,
             validationState = promptValidationState)
 
@@ -491,9 +465,7 @@ fun AiReviewBox(
             onValueChange = {},
             enabled = false,
             leadingIcon = Icons.Default.Title,
-            validationState =
-                if (isTitleValid) ValidationState.Neutral
-                else ValidationState.Invalid("Title too long (${proposal.title.length}/50)"))
+            validationState = titleValidationState)
 
         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
 
@@ -505,13 +477,9 @@ fun AiReviewBox(
             enabled = false,
             leadingIcon = Icons.Default.Description,
             maxLines = 3,
-            validationState =
-                if (isDescriptionValid) ValidationState.Neutral
-                else
-                    ValidationState.Invalid(
-                        "Description too long (${proposal.description.length}/100)"))
+            validationState = descriptionValidationState)
 
-        if (hasProposalError) {
+        if (!isProposalValid) {
           Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
           Text(
               text =
