@@ -24,6 +24,8 @@ import com.android.universe.ui.common.validateEventDate
 import com.android.universe.ui.common.validateEventTitle
 import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
+import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors.DESCRIPTION_TOO_LONG_FMT
+import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors.TITLE_TOO_LONG_FMT
 import com.android.universe.ui.utils.viewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,8 +57,15 @@ enum class OnboardingState {
  * @param dateError the error message for the date.
  * @param timeError the error message for the time.
  * @param eventPicture the picture of the event.
+ * @param location the location of the event.
  * @param onboardingState the map that give a boolean for each OnboardingState depending if the text
  *   field has already been changed.
+ * @param isAiAssistVisible true if the AI assistant UI should be shown.
+ * @param isGenerating true if the AI is currently generating a proposal.
+ * @param generationError error message if AI generation failed.
+ * @param proposal the AI generated event proposal (title and description).
+ * @param aiPrompt the user's input prompt for the AI.
+ * @param aiPromptError validation error for the AI prompt.
  */
 data class EventCreationUIState(
     val name: String = "",
@@ -113,6 +122,12 @@ data class EventCreationUIState(
   val eventLocationValid: ValidationState
     get() = validateLocation(location)
 
+  /**
+   * Computed validation state for the AI Prompt.
+   *
+   * It handles the Neutral state: if the prompt is blank but no error is set (initial state), it is
+   * Neutral.
+   */
   val aiPromptValid: ValidationState
     get() {
       if (aiPromptError != null) return ValidationState.Invalid(aiPromptError)
@@ -120,6 +135,7 @@ data class EventCreationUIState(
       return ValidationState.Valid
     }
 
+  /** Computed validation for the AI Proposal Title length. Checks against [InputLimits]. */
   val aiProposalTitleValid: ValidationState
     get() {
       val p = proposal ?: return ValidationState.Neutral
@@ -127,10 +143,11 @@ data class EventCreationUIState(
         ValidationState.Valid
       } else {
         ValidationState.Invalid(
-            "Title too long (${p.title.length}/${InputLimits.TITLE_EVENT_MAX_LENGTH})")
+            TITLE_TOO_LONG_FMT.format(p.title.length, InputLimits.TITLE_EVENT_MAX_LENGTH))
       }
     }
 
+  /** Computed validation for the AI Proposal Description length. Checks against [InputLimits]. */
   val aiProposalDescriptionValid: ValidationState
     get() {
       val p = proposal ?: return ValidationState.Neutral
@@ -138,10 +155,11 @@ data class EventCreationUIState(
         ValidationState.Valid
       } else {
         ValidationState.Invalid(
-            "Description too long (${p.description.length}/${InputLimits.DESCRIPTION})")
+            DESCRIPTION_TOO_LONG_FMT.format(p.description.length, InputLimits.DESCRIPTION))
       }
     }
 
+  /** Helper to check if the proposal is valid overall. */
   val isAiProposalValid: Boolean
     get() =
         aiProposalTitleValid is ValidationState.Valid &&
@@ -154,6 +172,9 @@ data class EventCreationUIState(
  *
  * @param eventRepository The repository for the event.
  * @param eventTemporaryRepository The temporary repository fot the event.
+ * @param eventTemporaryRepository The temporary repository for the event.
+ * @param dispatcherProvider The provider for coroutine dispatchers.
+ * @param gemini The AI assistant used for generating event proposals.
  */
 class EventCreationViewModel(
     private val imageManager: ImageBitmapManager,
@@ -167,6 +188,7 @@ class EventCreationViewModel(
   companion object {
     const val MISSING_DATE_TEXT = "Please select a date"
 
+    /** Centralized error messages for AI features. */
     object AiErrors {
       const val PROMPT_EMPTY = "Prompt cannot be empty"
       const val GENERATION_FAILED = "AI could not generate a proposal. Please try again."
@@ -195,6 +217,12 @@ class EventCreationViewModel(
     }
   }
 
+  /**
+   * Update the location of the event.
+   *
+   * @param lat the latitude of the location.
+   * @param lon the longitude of the location.
+   */
   fun setLocation(lat: Double, lon: Double) {
     eventCreationUiState.value = eventCreationUiState.value.copy(location = Location(lat, lon))
   }
@@ -337,12 +365,25 @@ class EventCreationViewModel(
     }
   }
 
+  /**
+   * Updates the AI prompt text in the state.
+   *
+   * Performs real-time validation: if the prompt is blank (and not in initial state), an error is
+   * set.
+   *
+   * @param prompt The new prompt text input by the user.
+   */
   fun setAiPrompt(prompt: String) {
     val error = if (prompt.isBlank()) AiErrors.PROMPT_EMPTY else null
     eventCreationUiState.value =
         eventCreationUiState.value.copy(aiPrompt = prompt, aiPromptError = error)
   }
 
+  /**
+   * Initializes and shows the AI assistance view.
+   *
+   * Resets any previous AI state (proposal, errors, prompt) to ensure a clean slate.
+   */
   fun showAiAssist() {
     eventCreationUiState.value =
         eventCreationUiState.value.copy(
@@ -353,10 +394,17 @@ class EventCreationViewModel(
             aiPromptError = null)
   }
 
+  /** Hides the AI assistance view and returns to the standard event creation form. */
   fun hideAiAssist() {
     eventCreationUiState.value = eventCreationUiState.value.copy(isAiAssistVisible = false)
   }
 
+  /**
+   * Triggers the AI generation process based on the current prompt.
+   *
+   * If the prompt is valid, it sets the loading state and launches a coroutine to fetch the
+   * proposal from [GeminiEventAssistant]. Updates the state with either the result or an error.
+   */
   fun generateProposal() {
     val prompt = eventCreationUiState.value.aiPrompt
     if (prompt.isBlank()) {
@@ -381,6 +429,12 @@ class EventCreationViewModel(
     }
   }
 
+  /**
+   * Accepts the AI generated proposal.
+   *
+   * If the proposal is valid (meets length constraints), it populates the main event title and
+   * description fields, marks the onboarding steps as active, and closes the AI assistant.
+   */
   fun acceptProposal() {
     val p = eventCreationUiState.value.proposal ?: return
 

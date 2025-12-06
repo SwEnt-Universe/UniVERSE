@@ -86,8 +86,8 @@ object EventCreationDefaults {
  * Screen for the Event creation.
  *
  * Allows the user to create a new event by uploading an image, setting a title and description,
- * selecting a location, and picking a date. The UI updates the ViewModel state as the user
- * interacts with the fields and validates the input before allowing the event to be saved.
+ * selecting a location, and picking a date. It also provides an AI Assistant flow to generate event
+ * details automatically.
  *
  * @param eventCreationViewModel the viewModel that holds the state and logic for event creation.
  * @param onSelectLocation callback triggered when the user clicks the location button to set the
@@ -140,6 +140,19 @@ fun EventCreationScreen(
   }
 }
 
+/**
+ * The standard form layout for manually creating an event.
+ *
+ * This composable displays the main event fields: Image picker, Title, Description, Date, Time, and
+ * Location. It handles user interaction by calling methods on the [eventCreationViewModel] and
+ * triggers navigation via the provided callbacks.
+ *
+ * @param uiState The current UI state containing form data and validation results.
+ * @param eventCreationViewModel The ViewModel to update state and trigger logic.
+ * @param onSelectLocation Callback to navigate to the location selection screen.
+ * @param onSave Callback triggered when the event is successfully saved.
+ * @param onBack Callback to return to the previous screen.
+ */
 @Composable
 fun StandardEventCreationForm(
     uiState: EventCreationUIState,
@@ -342,6 +355,15 @@ fun StandardEventCreationForm(
       })
 }
 
+/**
+ * A shared layout wrapper for AI-related screens (Prompt and Review).
+ *
+ * It mirrors the structure of [StandardEventCreationForm] using a [Scaffold] and spacer system to
+ * ensure the [LiquidBox] containing the content aligns perfectly with the standard form's layout.
+ *
+ * @param bottomBar The bottom navigation bar content.
+ * @param content The internal content of the LiquidBox.
+ */
 @Composable
 fun AiLayout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit) {
   Scaffold(containerColor = Color.Transparent, bottomBar = { bottomBar() }) { paddingValues ->
@@ -364,6 +386,17 @@ fun AiLayout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit)
   }
 }
 
+/**
+ * The initial AI prompt screen where users input their event idea.
+ *
+ * @param prompt The current text input by the user.
+ * @param validationState The validation state of the prompt input field.
+ * @param isGenerating Whether the AI is currently generating a proposal.
+ * @param error Optional error message to display if generation failed.
+ * @param onPromptChange Callback when the prompt text changes.
+ * @param onGenerate Callback when the user clicks the generate button.
+ * @param onBack Callback when the user clicks back to return to standard form.
+ */
 @Composable
 fun AiPromptBox(
     prompt: String,
@@ -414,6 +447,24 @@ fun AiPromptBox(
       }
 }
 
+/**
+ * The review screen for AI-generated event proposals.
+ *
+ * Users can view the generated title and description, modify the prompt to regenerate, or confirm
+ * the proposal to populate the main form.
+ *
+ * @param proposal The generated [EventProposal] containing title and description.
+ * @param prompt The current prompt text (allows modification for regeneration).
+ * @param promptValidationState Validation state for the prompt field.
+ * @param titleValidationState Validation state for the generated title (e.g. length check).
+ * @param descriptionValidationState Validation state for the generated description.
+ * @param isProposalValid Overall validity of the proposal.
+ * @param isGenerating Whether regeneration is in progress.
+ * @param onPromptChange Callback for prompt text changes.
+ * @param onRegenerate Callback to trigger a new generation attempt.
+ * @param onConfirm Callback to accept the proposal and fill the main form.
+ * @param onBack Callback to return to the previous screen.
+ */
 @Composable
 fun AiReviewBox(
     proposal: EventProposal,
