@@ -75,6 +75,7 @@ commonsCompress = "1.28.0"
 # ==============================================================================
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
 
 # ==============================================================================
 # ANDROIDX CORE & LIFECYCLE  (managed by firebase-bom)
