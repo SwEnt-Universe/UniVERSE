@@ -4,11 +4,13 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,25 +21,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.ai.gemini.EventProposal
+import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
@@ -60,6 +69,7 @@ object EventCreationTestTags {
   const val EVENT_PICTURE_PICKER = "EventPicturePicker"
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
   const val SET_LOCATION_BUTTON = "SetLocationButton"
+  const val AI_ASSIST_BUTTON = "AiAssistButton"
 }
 
 object EventCreationDefaults {
@@ -94,12 +104,51 @@ fun EventCreationScreen(
     onBack: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
-  val eventImage = uiState.value.eventPicture
-  val dateText =
-      if (uiState.value.date == null) "" else eventCreationViewModel.formatDate(uiState.value.date)
-  val showDate = remember { mutableStateOf(false) }
-  val flowTabBack = FlowTab.Back(onClick = { onBack() })
 
+  var aiPrompt by remember { mutableStateOf("") }
+
+  if (uiState.value.isAiAssistVisible) {
+    if (uiState.value.proposal == null) {
+      AiPromptBox(
+          prompt = aiPrompt,
+          isGenerating = uiState.value.isGenerating,
+          error = uiState.value.generationError,
+          onPromptChange = { aiPrompt = it },
+          onGenerate = { eventCreationViewModel.generateProposal(aiPrompt) },
+          onBack = { eventCreationViewModel.hideAiAssist() })
+    } else {
+      AiReviewBox(
+          proposal = uiState.value.proposal!!,
+          prompt = aiPrompt,
+          isGenerating = uiState.value.isGenerating,
+          onPromptChange = { aiPrompt = it },
+          onRegenerate = { eventCreationViewModel.generateProposal(aiPrompt) },
+          onConfirm = { eventCreationViewModel.acceptProposal() },
+          onBack = { eventCreationViewModel.hideAiAssist() })
+    }
+  } else {
+    StandardEventCreationForm(
+        uiState = uiState.value,
+        eventCreationViewModel = eventCreationViewModel,
+        onSelectLocation = onSelectLocation,
+        onSave = onSave,
+        onBack = onBack)
+  }
+}
+
+@Composable
+fun StandardEventCreationForm(
+    uiState: EventCreationUIState,
+    eventCreationViewModel: EventCreationViewModel,
+    onSelectLocation: () -> Unit,
+    onSave: () -> Unit,
+    onBack: () -> Unit
+) {
+  val eventImage = uiState.eventPicture
+  val dateText = if (uiState.date == null) "" else eventCreationViewModel.formatDate(uiState.date)
+  val showDate = remember { mutableStateOf(false) }
+
+  val flowTabBack = FlowTab.Back(onClick = { onBack() })
   val flowTabContinue =
       FlowTab.Confirm(
           onClick = {
@@ -110,6 +159,7 @@ fun EventCreationScreen(
             }
           },
           enabled = eventCreationViewModel.validateAll())
+
   Scaffold(
       containerColor = Color.Transparent,
       bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
@@ -118,7 +168,6 @@ fun EventCreationScreen(
           Box(
               modifier =
                   Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth()) {
-                // The launcher to launch the image selection.
                 val launcher =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -156,17 +205,21 @@ fun EventCreationScreen(
                                     MaterialTheme.typography.labelLarge.copy(
                                         fontWeight = FontWeight.Bold),
                                 fontSize = EventCreationDefaults.titleFontSize)
+
                             LiquidButton(
-                                onClick = { eventCreationViewModel.showMagicFill() },
+                                onClick = { eventCreationViewModel.showAiAssist() },
                                 height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
                                 width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
                                 contentPadding = Dimensions.PaddingSmall,
-                                modifier = Modifier.padding(end = 8.dp)) {
+                                modifier =
+                                    Modifier.padding(end = 8.dp)
+                                        .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
                                   Icon(
                                       imageVector = Icons.Default.AutoAwesome,
-                                      contentDescription = "Magic Fill",
+                                      contentDescription = "AI Assist",
                                       modifier = Modifier.size(EventCreationDefaults.locIconSize))
                                 }
+
                             LiquidButton(
                                 onClick = { onSelectLocation() },
                                 height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
@@ -182,21 +235,6 @@ fun EventCreationScreen(
                                 }
                           }
 
-                      val showMagicFill = uiState.value.isMagicFillVisible
-
-                      if (showMagicFill) {
-                        MagicFillDialog(
-                            isVisible = showMagicFill,
-                            onDismiss = { eventCreationViewModel.hideMagicFill() },
-                            isGenerating = uiState.value.isGenerating,
-                            proposal = uiState.value.proposal,
-                            error = uiState.value.generationError,
-                            onGenerate = { prompt ->
-                              eventCreationViewModel.generateProposal(prompt)
-                            },
-                            onAccept = { eventCreationViewModel.acceptProposal() })
-                      }
-
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                       CustomTextField(
                           modifier =
@@ -204,7 +242,7 @@ fun EventCreationScreen(
                                   .padding(vertical = Dimensions.PaddingMedium),
                           label = "Title",
                           placeholder = "Enter your event title",
-                          value = uiState.value.name,
+                          value = uiState.name,
                           onValueChange = { name ->
                             eventCreationViewModel.setEventName(name)
                             eventCreationViewModel.setOnboardingState(
@@ -213,9 +251,9 @@ fun EventCreationScreen(
                           maxLines = 2,
                           leadingIcon = Icons.Default.Title,
                           validationState =
-                              if (uiState.value.onboardingState[
-                                      OnboardingState.ENTER_EVENT_TITLE] == true) {
-                                uiState.value.eventTitleValid
+                              if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
+                                  true) {
+                                uiState.eventTitleValid
                               } else {
                                 ValidationState.Neutral
                               })
@@ -225,7 +263,7 @@ fun EventCreationScreen(
                                   .padding(vertical = Dimensions.PaddingMedium),
                           label = "Description",
                           placeholder = "Enter your event description",
-                          value = uiState.value.description ?: "",
+                          value = uiState.description ?: "",
                           onValueChange = { description ->
                             eventCreationViewModel.setEventDescription(description)
                             eventCreationViewModel.setOnboardingState(
@@ -233,9 +271,9 @@ fun EventCreationScreen(
                           },
                           maxLines = 3,
                           validationState =
-                              if (uiState.value.onboardingState[
-                                      OnboardingState.ENTER_DESCRIPTION] == true) {
-                                uiState.value.eventDescriptionValid
+                              if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
+                                  true) {
+                                uiState.eventDescriptionValid
                               } else {
                                 ValidationState.Neutral
                               })
@@ -256,16 +294,16 @@ fun EventCreationScreen(
                                 leadingIcon = Icons.Default.Event,
                                 enabled = false,
                                 validationState =
-                                    if (uiState.value.eventDateValid == ValidationState.Valid) {
-                                      uiState.value.eventDateTimeValid
+                                    if (uiState.eventDateValid == ValidationState.Valid) {
+                                      uiState.eventDateTimeValid
                                     } else {
-                                      uiState.value.eventDateValid
+                                      uiState.eventDateValid
                                     })
                           }
                       UniversalDatePickerDialog(
                           modifier = Modifier.testTag(EventCreationTestTags.EVENT_DATE_PICKER),
                           visible = showDate.value,
-                          initialDate = uiState.value.date ?: LocalDate.now(),
+                          initialDate = uiState.date ?: LocalDate.now(),
                           yearRange = IntRange(2025, 2050),
                           onDismiss = { showDate.value = false },
                           onConfirm = {
@@ -276,7 +314,7 @@ fun EventCreationScreen(
                           modifier = Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
                           label = "Time",
                           placeholder = "Select a Time in format HH:MM",
-                          value = uiState.value.time,
+                          value = uiState.time,
                           onValueChange = { time ->
                             eventCreationViewModel.setTime(time)
                             eventCreationViewModel.setOnboardingState(
@@ -285,12 +323,11 @@ fun EventCreationScreen(
                           maxLines = 1,
                           leadingIcon = Icons.Default.AccessTimeFilled,
                           validationState =
-                              if (uiState.value.onboardingState[OnboardingState.ENTER_TIME] ==
-                                  true) {
-                                if (uiState.value.eventTimeValid == ValidationState.Valid) {
-                                  uiState.value.eventDateTimeValid
+                              if (uiState.onboardingState[OnboardingState.ENTER_TIME] == true) {
+                                if (uiState.eventTimeValid == ValidationState.Valid) {
+                                  uiState.eventDateTimeValid
                                 } else {
-                                  uiState.value.eventTimeValid
+                                  uiState.eventTimeValid
                                 }
                               } else {
                                 ValidationState.Neutral
@@ -299,4 +336,193 @@ fun EventCreationScreen(
               }
         }
       })
+}
+
+@Composable
+fun AiLayout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit) {
+  Scaffold(containerColor = Color.Transparent, bottomBar = { bottomBar() }) { paddingValues ->
+    Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+      Spacer(modifier = Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth())
+
+      Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+
+      LiquidBox(
+          modifier = Modifier.weight(1f).fillMaxWidth(),
+          shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(Dimensions.PaddingExtraLarge),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                  content()
+                }
+          }
+    }
+  }
+}
+
+@Composable
+fun AiPromptBox(
+    prompt: String,
+    isGenerating: Boolean,
+    error: String?,
+    onPromptChange: (String) -> Unit,
+    onGenerate: () -> Unit,
+    onBack: () -> Unit
+) {
+  var validationError by remember { mutableStateOf<String?>(null) }
+
+  val currentError = validationError ?: error
+  val promptValidationState =
+      if (currentError != null) {
+        ValidationState.Invalid(currentError)
+      } else {
+        ValidationState.Neutral
+      }
+
+  AiLayout(
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOf(
+                    FlowTab.Back(onClick = onBack),
+                    FlowTab.Generate(
+                        onClick = {
+                          if (prompt.isNotBlank()) {
+                            onGenerate()
+                          }
+                        },
+                        enabled = !isGenerating)))
+      }) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+          Icon(Icons.Default.AutoAwesome, contentDescription = null)
+          Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
+          Text(text = "AI Assist", style = MaterialTheme.typography.titleLarge)
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
+
+        CustomTextField(
+            label = "Describe your event",
+            placeholder = "Share what you want participants to experience…",
+            value = prompt,
+            onValueChange = { newValue ->
+              validationError =
+                  if (newValue.isBlank()) {
+                    "Prompt cannot be empty"
+                  } else {
+                    null
+                  }
+              onPromptChange(newValue)
+            },
+            maxLines = 4,
+            validationState = promptValidationState)
+
+        if (isGenerating) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+      }
+}
+
+@Composable
+fun AiReviewBox(
+    proposal: EventProposal,
+    prompt: String,
+    isGenerating: Boolean,
+    onPromptChange: (String) -> Unit,
+    onRegenerate: () -> Unit,
+    onConfirm: () -> Unit,
+    onBack: () -> Unit
+) {
+  val focusManager = LocalFocusManager.current
+
+  var promptValidationError by remember { mutableStateOf<String?>(null) }
+  val promptValidationState =
+      if (promptValidationError != null) {
+        ValidationState.Invalid(promptValidationError!!)
+      } else {
+        ValidationState.Neutral
+      }
+
+  val isTitleValid = proposal.title.length <= InputLimits.TITLE_EVENT_MAX_LENGTH
+  val isDescriptionValid = proposal.description.length <= InputLimits.DESCRIPTION
+  val hasProposalError = !isTitleValid || !isDescriptionValid
+
+  AiLayout(
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOf(
+                    FlowTab.Back(onClick = onBack),
+                    FlowTab.Regenerate(
+                        onClick = {
+                          focusManager.clearFocus()
+                          if (prompt.isNotBlank()) {
+                            onRegenerate()
+                          }
+                        },
+                        enabled = prompt.isNotBlank() && !isGenerating),
+                    FlowTab.Confirm(
+                        onClick = onConfirm, enabled = !isGenerating && !hasProposalError)))
+      }) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+          Text(text = "Review Proposal", style = MaterialTheme.typography.titleLarge)
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+        CustomTextField(
+            label = "Your Prompt",
+            placeholder = "",
+            value = prompt,
+            onValueChange = { newValue ->
+              promptValidationError = if (newValue.isBlank()) "Prompt cannot be empty" else null
+              onPromptChange(newValue)
+            },
+            maxLines = 2,
+            validationState = promptValidationState)
+
+        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+        CustomTextField(
+            label = "Title",
+            placeholder = "",
+            value = proposal.title,
+            onValueChange = {},
+            enabled = false,
+            leadingIcon = Icons.Default.Title,
+            validationState =
+                if (isTitleValid) ValidationState.Neutral
+                else ValidationState.Invalid("Title too long (${proposal.title.length}/50)"))
+
+        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+        CustomTextField(
+            label = "Description",
+            placeholder = "",
+            value = proposal.description,
+            onValueChange = {},
+            enabled = false,
+            leadingIcon = Icons.Default.Description,
+            maxLines = 3,
+            validationState =
+                if (isDescriptionValid) ValidationState.Neutral
+                else
+                    ValidationState.Invalid(
+                        "Description too long (${proposal.description.length}/100)"))
+
+        if (hasProposalError) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+          Text(
+              text =
+                  "Sorry, the AI generated content that is too long. Please reduce or regenerate.",
+              color = MaterialTheme.colorScheme.error,
+              style = MaterialTheme.typography.labelSmall)
+        }
+
+        if (isGenerating) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+      }
 }

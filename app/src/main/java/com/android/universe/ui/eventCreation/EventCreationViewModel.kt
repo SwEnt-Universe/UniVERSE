@@ -78,7 +78,7 @@ data class EventCreationUIState(
             OnboardingState.ENTER_EVENT_TITLE to false,
             OnboardingState.ENTER_DESCRIPTION to false,
             OnboardingState.ENTER_TIME to false),
-    val isMagicFillVisible: Boolean = false,
+    val isAiAssistVisible: Boolean = false,
     val isGenerating: Boolean = false,
     val generationError: String? = null,
     val proposal: EventProposal? = null,
@@ -292,14 +292,14 @@ class EventCreationViewModel(
     }
   }
 
-  fun showMagicFill() {
+  fun showAiAssist() {
     eventCreationUiState.value =
         eventCreationUiState.value.copy(
-            isMagicFillVisible = true, proposal = null, generationError = null)
+            isAiAssistVisible = true, proposal = null, generationError = null)
   }
 
-  fun hideMagicFill() {
-    eventCreationUiState.value = eventCreationUiState.value.copy(isMagicFillVisible = false)
+  fun hideAiAssist() {
+    eventCreationUiState.value = eventCreationUiState.value.copy(isAiAssistVisible = false)
   }
 
   fun generateProposal(userPrompt: String) {
@@ -331,6 +331,6 @@ class EventCreationViewModel(
     setOnboardingState(OnboardingState.ENTER_EVENT_TITLE, true)
     setOnboardingState(OnboardingState.ENTER_DESCRIPTION, true)
 
-    hideMagicFill()
+    hideAiAssist()
   }
 }
