@@ -8,9 +8,11 @@ import com.google.firebase.ai.type.generationConfig
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-class GeminiEventAssistant(
-    private val model: GenerativeModel =
-        Firebase.ai(backend = GenerativeBackend.googleAI())
+open class GeminiEventAssistant(private val providedModel: GenerativeModel? = null) {
+
+  private val model: GenerativeModel by lazy {
+    providedModel
+        ?: Firebase.ai(backend = GenerativeBackend.googleAI())
             .generativeModel(
                 modelName = "gemini-2.5-flash",
                 generationConfig =
@@ -18,14 +20,15 @@ class GeminiEventAssistant(
                       responseMimeType = "application/json"
                       temperature = 0.7f
                     })
-) {
+  }
+
   private val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
     encodeDefaults = true
   }
 
-  suspend fun generateProposal(userPrompt: String): EventProposal? {
+  open suspend fun generateProposal(userPrompt: String): EventProposal? {
     val prompt =
         """
             You are a creative event organizer.

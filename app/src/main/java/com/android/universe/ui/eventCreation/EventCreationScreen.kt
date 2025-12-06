@@ -67,6 +67,9 @@ object EventCreationTestTags {
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
   const val SET_LOCATION_BUTTON = "SetLocationButton"
   const val AI_ASSIST_BUTTON = "AiAssistButton"
+  const val AI_PROMPT_TEXT_FIELD = "AiPromptTextField"
+  const val AI_REVIEW_TITLE_FIELD = "AiReviewTitleField"
+  const val AI_REVIEW_DESCRIPTION_FIELD = "AiReviewDescriptionField"
 }
 
 object EventCreationDefaults {
@@ -395,11 +398,12 @@ fun AiPromptBox(
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
         CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
             label = "Describe your event",
-            placeholder = "Share what you want participants to experience…",
+            placeholder = "State what you want to create…",
             value = prompt,
             onValueChange = onPromptChange,
-            maxLines = 4,
+            maxLines = 10,
             validationState = finalValidationState)
 
         if (isGenerating) {
@@ -449,6 +453,7 @@ fun AiReviewBox(
         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
 
         CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
             label = "Your Prompt",
             placeholder = "",
             value = prompt,
@@ -459,6 +464,7 @@ fun AiReviewBox(
         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
 
         CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_TITLE_FIELD),
             label = "Title",
             placeholder = "",
             value = proposal.title,
@@ -470,6 +476,7 @@ fun AiReviewBox(
         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
 
         CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_DESCRIPTION_FIELD),
             label = "Description",
             placeholder = "",
             value = proposal.description,

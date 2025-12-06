@@ -41,7 +41,7 @@ class GeminiEventAssistantTest {
     every { mockResponse.text } returns VALID_JSON_RESPONSE
     coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
 
-    val assistant = GeminiEventAssistant(model = mockModel)
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
 
     val result = assistant.generateProposal("Yoga session")
 
@@ -58,7 +58,7 @@ class GeminiEventAssistantTest {
     every { mockResponse.text } returns MARKDOWN_JSON_RESPONSE
     coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
 
-    val assistant = GeminiEventAssistant(model = mockModel)
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
 
     val result = assistant.generateProposal("Markdown test")
 
@@ -72,7 +72,7 @@ class GeminiEventAssistantTest {
     val mockModel = mockk<GenerativeModel>()
     coEvery { mockModel.generateContent(any<String>()) } throws IOException("No Internet")
 
-    val assistant = GeminiEventAssistant(model = mockModel)
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
     val result = assistant.generateProposal("Crash test")
 
     assertNull("Should return null when API throws exception", result)
@@ -86,7 +86,7 @@ class GeminiEventAssistantTest {
     every { mockResponse.text } returns MALFORMED_JSON_RESPONSE
     coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
 
-    val assistant = GeminiEventAssistant(model = mockModel)
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
 
     val result = assistant.generateProposal("Bad JSON test")
 
@@ -101,7 +101,7 @@ class GeminiEventAssistantTest {
     every { mockResponse.text } returns null
     coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
 
-    val assistant = GeminiEventAssistant(model = mockModel)
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
 
     val result = assistant.generateProposal("Empty test")
 
