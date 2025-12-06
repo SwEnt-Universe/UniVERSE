@@ -110,7 +110,8 @@ android {
   val hasReleaseKeys = System.getenv("SIGNING_STORE_PASSWORD") != null
   buildTypes {
     release {
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
       signingConfig =
@@ -225,6 +226,9 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 // - Aliases are defined in /gradle/libs.versions.toml
 // ─────────────────────────────────────────────────────────────────────────────
 dependencies {
+  // Those compile only dependencies enable minifcation due to their exclusion from tomtom packages
+  compileOnly(libs.protobuf.java)
+  compileOnly(libs.protobuf.kotlin)
   // Import the Bill of Materials (BOMs) to manage library versions.
   // This removes the need to specify versions for individual Compose and Firebase libraries.
   val composeBom = enforcedPlatform(libs.androidx.compose.bom)
@@ -385,10 +389,8 @@ configurations.configureEach {
   )
 }
 
-configurations.forEach { configuration ->
-  // Exclude protobuf-lite from all configurations
-  // This fixes a fatal exception for tests interacting with Cloud Firestore
-  configuration.exclude("com.google.protobuf", "protobuf-lite")
+configurations {
+  getByName("androidTestImplementation") { exclude("com.google.protobuf", "protobuf-lite") }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
