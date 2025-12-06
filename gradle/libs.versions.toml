@@ -66,6 +66,9 @@ turbine = "1.2.1"
 logback = "1.5.21"
 commonsCompress = "1.28.0"
 
+# ===== OPTIMIZATION =====
+protobufJava = "3.25.4"
+protobufKotlin = "3.25.4"
 
 [libraries]
 # ==============================================================================
@@ -122,6 +125,8 @@ google-play-auth = { group = "com.google.android.gms", name = "play-services-aut
 # ==============================================================================
 # MAPS
 # ==============================================================================
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobufKotlin" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJava" }
 tomtom-maps = { group = "com.tomtom.sdk.maps", name = "map-display", version.ref = "tomtom" }
 tomtom-location = { group = "com.tomtom.sdk.location", name = "provider-default", version.ref = "tomtom" }
 tomtom-search = { group = "com.tomtom.sdk.search", name = "search-online", version.ref = "tomtom" }
