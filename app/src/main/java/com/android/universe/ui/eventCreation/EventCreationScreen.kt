@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
@@ -534,7 +533,6 @@ fun AiReviewBox(
             value = proposal.description,
             onValueChange = {},
             enabled = false,
-            leadingIcon = Icons.Default.Description,
             maxLines = 3,
             validationState = descriptionValidationState)
 
