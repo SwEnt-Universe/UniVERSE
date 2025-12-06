@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
-import com.android.universe.di.DispatcherProvider
 import com.android.universe.model.ai.gemini.EventProposal
 import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.event.EventRepository
@@ -173,7 +172,6 @@ data class EventCreationUIState(
  * @param eventRepository The repository for the event.
  * @param eventTemporaryRepository The temporary repository fot the event.
  * @param eventTemporaryRepository The temporary repository for the event.
- * @param dispatcherProvider The provider for coroutine dispatchers.
  * @param gemini The AI assistant used for generating event proposals.
  */
 class EventCreationViewModel(
@@ -181,7 +179,6 @@ class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val eventTemporaryRepository: EventTemporaryRepository =
         EventTemporaryRepositoryProvider.repository,
-    private val dispatcherProvider: DispatcherProvider = DefaultDP,
     private val gemini: GeminiEventAssistant = GeminiEventAssistant()
 ) : ViewModel() {
 
@@ -212,8 +209,7 @@ class EventCreationViewModel(
       EventCreationViewModel(
           imageManager = ImageBitmapManager(context.applicationContext),
           eventRepository = EventRepositoryProvider.repository,
-          eventTemporaryRepository = EventTemporaryRepositoryProvider.repository,
-          dispatcherProvider = DefaultDP)
+          eventTemporaryRepository = EventTemporaryRepositoryProvider.repository)
     }
   }
 
@@ -281,7 +277,7 @@ class EventCreationViewModel(
     if (uri == null) {
       eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = null)
     } else {
-      viewModelScope.launch(dispatcherProvider.io) {
+      viewModelScope.launch(DefaultDP.io) {
         val byteArray = imageManager.resizeAndCompressImage(uri)
         eventCreationUiState.value = eventCreationUiState.value.copy(eventPicture = byteArray)
       }

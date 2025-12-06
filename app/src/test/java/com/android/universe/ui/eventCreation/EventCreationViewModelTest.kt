@@ -3,7 +3,7 @@ package com.android.universe.ui.eventCreation
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.di.DispatcherProvider
+import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.gemini.EventProposal
 import com.android.universe.model.ai.gemini.FakeGeminiEventAssistant
 import com.android.universe.model.event.EventLocalTemporaryRepository
@@ -15,9 +15,11 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -64,13 +66,11 @@ class EventCreationViewModelTest {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val imageManager = ImageBitmapManager(context)
 
-    val dispatcherProvider =
-        object : DispatcherProvider {
-          override val main: CoroutineDispatcher = testDispatcher
-          override val default: CoroutineDispatcher = testDispatcher
-          override val io: CoroutineDispatcher = testDispatcher
-          override val unconfined: CoroutineDispatcher = testDispatcher
-        }
+    mockkObject(DefaultDP)
+    every { DefaultDP.default } returns testDispatcher
+    every { DefaultDP.io } returns testDispatcher
+    every { DefaultDP.main } returns testDispatcher
+    every { DefaultDP.unconfined } returns testDispatcher
 
     eventRepository = FakeEventRepository()
     eventTemporaryRepository = EventLocalTemporaryRepository()
@@ -81,7 +81,6 @@ class EventCreationViewModelTest {
             imageManager = imageManager,
             eventRepository = eventRepository,
             eventTemporaryRepository = eventTemporaryRepository,
-            dispatcherProvider = dispatcherProvider,
             gemini = fakeGemini)
   }
 
@@ -456,5 +455,6 @@ class EventCreationViewModelTest {
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    unmockkObject(DefaultDP)
   }
 }
