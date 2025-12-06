@@ -228,7 +228,7 @@ fun StandardEventCreationForm(
                                 width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
                                 contentPadding = Dimensions.PaddingSmall,
                                 modifier =
-                                    Modifier.padding(end = 8.dp)
+                                    Modifier.padding(end = Dimensions.PaddingMedium)
                                         .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
                                   Icon(
                                       imageVector = Icons.Default.AutoAwesome,
@@ -520,7 +520,6 @@ fun AiReviewBox(
             placeholder = "",
             value = proposal.title,
             onValueChange = {},
-            enabled = false,
             leadingIcon = Icons.Default.Title,
             validationState = titleValidationState)
 
@@ -532,7 +531,6 @@ fun AiReviewBox(
             placeholder = "",
             value = proposal.description,
             onValueChange = {},
-            enabled = false,
             maxLines = 3,
             validationState = descriptionValidationState)
 
