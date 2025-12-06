@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Imports
 // ─────────────────────────────────────────────────────────────────────────────
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plugins
@@ -110,7 +110,8 @@ android {
   val hasReleaseKeys = System.getenv("SIGNING_STORE_PASSWORD") != null
   buildTypes {
     release {
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
       signingConfig =
@@ -119,6 +120,7 @@ android {
     }
 
     debug {
+      isMinifyEnabled = true
       enableUnitTestCoverage = true
       enableAndroidTestCoverage = true
       signingConfig = signingConfigs.getByName("debug")
@@ -227,6 +229,8 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 dependencies {
   // Import the Bill of Materials (BOMs) to manage library versions.
   // This removes the need to specify versions for individual Compose and Firebase libraries.
+  compileOnly("com.google.protobuf:protobuf-java:3.25.4")
+  compileOnly("com.google.protobuf:protobuf-kotlin:3.25.4")
   val composeBom = enforcedPlatform(libs.androidx.compose.bom)
   val firebaseBom = enforcedPlatform(libs.firebase.bom)
   implementation(composeBom)
@@ -385,10 +389,10 @@ configurations.configureEach {
   )
 }
 
-configurations.forEach { configuration ->
-  // Exclude protobuf-lite from all configurations
-  // This fixes a fatal exception for tests interacting with Cloud Firestore
-  configuration.exclude("com.google.protobuf", "protobuf-lite")
+configurations {
+  getByName("androidTestImplementation") {
+     exclude("com.google.protobuf", "protobuf-lite")
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

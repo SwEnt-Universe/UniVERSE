@@ -1,12 +1,14 @@
 package com.android.universe.model.chat
 
+import androidx.annotation.Keep
 import com.android.universe.di.DefaultDP
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import java.util.concurrent.ConcurrentHashMap
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 const val COLLECTION_NAME = "chats"
 
@@ -33,7 +35,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
   override suspend fun loadChat(chatID: String): Chat {
     val doc =
         withContext(DefaultDP.io) { db.collection(COLLECTION_NAME).document(chatID).get().await() }
-    return doc.toObject(ChatDTO::class.java)?.toChat()
+    return doc.toObject<ChatDTO>()?.toChat()
         ?: throw NoSuchElementException("Chat not found")
   }
 
@@ -187,6 +189,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
    * @property admin The ID of the user who is the administrator of the chat.
    * @property lastMessage The most recent message sent in the chat, used for display in chat lists.
    */
+  @Keep
   data class ChatDTO(
       val chatID: String = "",
       val admin: String = "",
