@@ -167,6 +167,15 @@ class EventCreationViewModel(
   companion object {
     const val MISSING_DATE_TEXT = "Please select a date"
 
+    object AiErrors {
+      const val PROMPT_EMPTY = "Prompt cannot be empty"
+      const val GENERATION_FAILED = "AI could not generate a proposal. Please try again."
+      const val CONTENT_TOO_LONG_UI =
+          "Sorry, the AI generated content that is too long. Please reduce or regenerate."
+      const val TITLE_TOO_LONG_FMT = "Title too long (%d/%d)"
+      const val DESCRIPTION_TOO_LONG_FMT = "Description too long (%d/%d)"
+    }
+
     /**
      * Factory to create an instance of [EventCreationViewModel].
      *
@@ -329,7 +338,7 @@ class EventCreationViewModel(
   }
 
   fun setAiPrompt(prompt: String) {
-    val error = if (prompt.isBlank()) "Prompt cannot be empty" else null
+    val error = if (prompt.isBlank()) AiErrors.PROMPT_EMPTY else null
     eventCreationUiState.value =
         eventCreationUiState.value.copy(aiPrompt = prompt, aiPromptError = error)
   }
@@ -352,7 +361,7 @@ class EventCreationViewModel(
     val prompt = eventCreationUiState.value.aiPrompt
     if (prompt.isBlank()) {
       eventCreationUiState.value =
-          eventCreationUiState.value.copy(aiPromptError = "Prompt cannot be empty")
+          eventCreationUiState.value.copy(aiPromptError = AiErrors.PROMPT_EMPTY)
       return
     }
 
@@ -367,8 +376,7 @@ class EventCreationViewModel(
       } else {
         eventCreationUiState.value =
             eventCreationUiState.value.copy(
-                isGenerating = false,
-                generationError = "AI could not generate a proposal. Please try again.")
+                isGenerating = false, generationError = AiErrors.GENERATION_FAILED)
       }
     }
   }

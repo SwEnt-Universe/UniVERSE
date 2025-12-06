@@ -357,7 +357,7 @@ class EventCreationViewModelTest {
 
     viewModel.setAiPrompt("")
     val state = viewModel.uiStateEventCreation.value
-    assertEquals("Prompt cannot be empty", state.aiPromptError)
+    assertEquals(EventCreationViewModel.Companion.AiErrors.PROMPT_EMPTY, state.aiPromptError)
     assertTrue(state.aiPromptValid is ValidationState.Invalid)
   }
 
@@ -394,7 +394,7 @@ class EventCreationViewModelTest {
     val state = viewModel.uiStateEventCreation.value
     assertFalse(state.isGenerating)
     assertNull(state.proposal)
-    assertEquals("AI could not generate a proposal. Please try again.", state.generationError)
+    assertEquals(EventCreationViewModel.Companion.AiErrors.GENERATION_FAILED, state.generationError)
   }
 
   @Test
@@ -405,7 +405,7 @@ class EventCreationViewModelTest {
     viewModel.generateProposal()
 
     val state = viewModel.uiStateEventCreation.value
-    assertEquals("Prompt cannot be empty", state.aiPromptError)
+    assertEquals(EventCreationViewModel.Companion.AiErrors.PROMPT_EMPTY, state.aiPromptError)
   }
 
   @Test

@@ -50,6 +50,7 @@ import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
@@ -489,8 +490,7 @@ fun AiReviewBox(
         if (!isProposalValid) {
           Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
           Text(
-              text =
-                  "Sorry, the AI generated content that is too long. Please reduce or regenerate.",
+              text = AiErrors.CONTENT_TOO_LONG_UI,
               color = MaterialTheme.colorScheme.error,
               style = MaterialTheme.typography.labelSmall)
         }
