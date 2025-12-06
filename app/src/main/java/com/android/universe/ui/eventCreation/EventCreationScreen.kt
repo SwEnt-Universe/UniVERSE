@@ -502,14 +502,14 @@ fun AiReviewBox(
                         onClick = onConfirm, enabled = !isGenerating && isProposalValid)))
       }) {
         Row(modifier = Modifier.fillMaxWidth()) {
-          Text(text = "Review Proposal", style = MaterialTheme.typography.titleLarge)
+          Text(text = "Review & Refine", style = MaterialTheme.typography.titleLarge)
         }
 
         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
 
         CustomTextField(
             modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
-            label = "Your Prompt",
+            label = "Edit Your Prompt",
             placeholder = "",
             value = prompt,
             onValueChange = onPromptChange,
