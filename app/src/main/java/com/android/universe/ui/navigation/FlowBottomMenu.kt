@@ -40,6 +40,8 @@ object FlowBottomMenuTestTags {
   const val REGENERATE_BUTTON = "BtnRegenerate"
 }
 
+private const val DISABLED_ICON_ALPHA = 0.38f
+
 /**
  * Represents the different types of tabs that can be displayed in the [FlowBottomMenu].
  *
@@ -92,7 +94,7 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
                 tint =
                     if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Confirm",
           testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
@@ -156,7 +158,7 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
                 tint =
                     if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Resend Email",
           testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
@@ -189,7 +191,7 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
                 tint =
                     if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Generate",
           testTag = FlowBottomMenuTestTags.GENERATE_BUTTON,
@@ -208,7 +210,7 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
                 tint =
                     if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Regenerate",
           testTag = FlowBottomMenuTestTags.REGENERATE_BUTTON,
