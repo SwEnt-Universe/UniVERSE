@@ -120,7 +120,6 @@ android {
     }
 
     debug {
-      isMinifyEnabled = true
       enableUnitTestCoverage = true
       enableAndroidTestCoverage = true
       signingConfig = signingConfigs.getByName("debug")
