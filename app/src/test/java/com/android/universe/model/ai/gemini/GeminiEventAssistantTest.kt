@@ -5,12 +5,12 @@ import com.google.firebase.ai.type.GenerateContentResponse
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import java.io.IOException
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.io.IOException
 
 private const val VALID_JSON_RESPONSE =
     """
