@@ -125,6 +125,8 @@ fun EventCreationScreen(
           isProposalValid = uiState.value.isAiProposalValid,
           isGenerating = uiState.value.isGenerating,
           onPromptChange = eventCreationViewModel::setAiPrompt,
+          onTitleChange = eventCreationViewModel::updateProposalTitle,
+          onDescriptionChange = eventCreationViewModel::updateProposalDescription,
           onRegenerate = eventCreationViewModel::generateProposal,
           onConfirm = eventCreationViewModel::acceptProposal,
           onBack = eventCreationViewModel::hideAiAssist)
@@ -474,6 +476,8 @@ fun AiReviewBox(
     isProposalValid: Boolean,
     isGenerating: Boolean,
     onPromptChange: (String) -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
     onRegenerate: () -> Unit,
     onConfirm: () -> Unit,
     onBack: () -> Unit
@@ -519,7 +523,7 @@ fun AiReviewBox(
             label = "Title",
             placeholder = "",
             value = proposal.title,
-            onValueChange = {},
+            onValueChange = onTitleChange,
             leadingIcon = Icons.Default.Title,
             validationState = titleValidationState)
 
@@ -530,7 +534,7 @@ fun AiReviewBox(
             label = "Description",
             placeholder = "",
             value = proposal.description,
-            onValueChange = {},
+            onValueChange = onDescriptionChange,
             maxLines = 3,
             validationState = descriptionValidationState)
 

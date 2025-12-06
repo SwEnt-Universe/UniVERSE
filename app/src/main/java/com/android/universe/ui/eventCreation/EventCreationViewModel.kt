@@ -426,6 +426,28 @@ class EventCreationViewModel(
   }
 
   /**
+   * Update the title of the AI proposal.
+   *
+   * @param title the new title.
+   */
+  fun updateProposalTitle(title: String) {
+    val currentProposal = eventCreationUiState.value.proposal ?: return
+    eventCreationUiState.value =
+        eventCreationUiState.value.copy(proposal = currentProposal.copy(title = title))
+  }
+
+  /**
+   * Update the description of the AI proposal.
+   *
+   * @param description the new description.
+   */
+  fun updateProposalDescription(description: String) {
+    val currentProposal = eventCreationUiState.value.proposal ?: return
+    eventCreationUiState.value =
+        eventCreationUiState.value.copy(proposal = currentProposal.copy(description = description))
+  }
+
+  /**
    * Accepts the AI generated proposal.
    *
    * If the proposal is valid (meets length constraints), it populates the main event title and
