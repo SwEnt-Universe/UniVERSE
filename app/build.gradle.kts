@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Imports
 // ─────────────────────────────────────────────────────────────────────────────
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plugins
@@ -390,9 +390,7 @@ configurations.configureEach {
 }
 
 configurations {
-  getByName("androidTestImplementation") {
-     exclude("com.google.protobuf", "protobuf-lite")
-  }
+  getByName("androidTestImplementation") { exclude("com.google.protobuf", "protobuf-lite") }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

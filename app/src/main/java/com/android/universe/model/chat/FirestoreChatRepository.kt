@@ -6,9 +6,9 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
 
 const val COLLECTION_NAME = "chats"
 
@@ -35,8 +35,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
   override suspend fun loadChat(chatID: String): Chat {
     val doc =
         withContext(DefaultDP.io) { db.collection(COLLECTION_NAME).document(chatID).get().await() }
-    return doc.toObject<ChatDTO>()?.toChat()
-        ?: throw NoSuchElementException("Chat not found")
+    return doc.toObject<ChatDTO>()?.toChat() ?: throw NoSuchElementException("Chat not found")
   }
 
   /**
