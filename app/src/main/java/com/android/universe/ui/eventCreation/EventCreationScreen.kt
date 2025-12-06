@@ -4,11 +4,13 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,9 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AddLocationAlt
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,17 +36,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.ai.gemini.EventProposal
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
@@ -59,6 +66,10 @@ object EventCreationTestTags {
   const val EVENT_PICTURE_PICKER = "EventPicturePicker"
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
   const val SET_LOCATION_BUTTON = "SetLocationButton"
+  const val AI_ASSIST_BUTTON = "AiAssistButton"
+  const val AI_PROMPT_TEXT_FIELD = "AiPromptTextField"
+  const val AI_REVIEW_TITLE_FIELD = "AiReviewTitleField"
+  const val AI_REVIEW_DESCRIPTION_FIELD = "AiReviewDescriptionField"
 }
 
 object EventCreationDefaults {
@@ -74,8 +85,8 @@ object EventCreationDefaults {
  * Screen for the Event creation.
  *
  * Allows the user to create a new event by uploading an image, setting a title and description,
- * selecting a location, and picking a date. The UI updates the ViewModel state as the user
- * interacts with the fields and validates the input before allowing the event to be saved.
+ * selecting a location, and picking a date. It also provides an AI Assistant flow to generate event
+ * details automatically.
  *
  * @param eventCreationViewModel the viewModel that holds the state and logic for event creation.
  * @param onSelectLocation callback triggered when the user clicks the location button to set the
@@ -93,12 +104,69 @@ fun EventCreationScreen(
     onBack: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
-  val eventImage = uiState.value.eventPicture
-  val dateText =
-      if (uiState.value.date == null) "" else eventCreationViewModel.formatDate(uiState.value.date)
-  val showDate = remember { mutableStateOf(false) }
-  val flowTabBack = FlowTab.Back(onClick = { onBack() })
 
+  if (uiState.value.isAiAssistVisible) {
+    if (uiState.value.proposal == null) {
+      AiPromptBox(
+          prompt = uiState.value.aiPrompt,
+          validationState = uiState.value.aiPromptValid,
+          isGenerating = uiState.value.isGenerating,
+          error = uiState.value.generationError,
+          onPromptChange = eventCreationViewModel::setAiPrompt,
+          onGenerate = eventCreationViewModel::generateProposal,
+          onBack = eventCreationViewModel::hideAiAssist)
+    } else {
+      AiReviewBox(
+          proposal = uiState.value.proposal!!,
+          prompt = uiState.value.aiPrompt,
+          promptValidationState = uiState.value.aiPromptValid,
+          titleValidationState = uiState.value.aiProposalTitleValid,
+          descriptionValidationState = uiState.value.aiProposalDescriptionValid,
+          isProposalValid = uiState.value.isAiProposalValid,
+          isGenerating = uiState.value.isGenerating,
+          onPromptChange = eventCreationViewModel::setAiPrompt,
+          onTitleChange = eventCreationViewModel::updateProposalTitle,
+          onDescriptionChange = eventCreationViewModel::updateProposalDescription,
+          onRegenerate = eventCreationViewModel::generateProposal,
+          onConfirm = eventCreationViewModel::acceptProposal,
+          onBack = eventCreationViewModel::hideAiAssist)
+    }
+  } else {
+    StandardEventCreationForm(
+        uiState = uiState.value,
+        eventCreationViewModel = eventCreationViewModel,
+        onSelectLocation = onSelectLocation,
+        onSave = onSave,
+        onBack = onBack)
+  }
+}
+
+/**
+ * The standard form layout for manually creating an event.
+ *
+ * This composable displays the main event fields: Image picker, Title, Description, Date, Time, and
+ * Location. It handles user interaction by calling methods on the [eventCreationViewModel] and
+ * triggers navigation via the provided callbacks.
+ *
+ * @param uiState The current UI state containing form data and validation results.
+ * @param eventCreationViewModel The ViewModel to update state and trigger logic.
+ * @param onSelectLocation Callback to navigate to the location selection screen.
+ * @param onSave Callback triggered when the event is successfully saved.
+ * @param onBack Callback to return to the previous screen.
+ */
+@Composable
+fun StandardEventCreationForm(
+    uiState: EventCreationUIState,
+    eventCreationViewModel: EventCreationViewModel,
+    onSelectLocation: () -> Unit,
+    onSave: () -> Unit,
+    onBack: () -> Unit
+) {
+  val eventImage = uiState.eventPicture
+  val dateText = if (uiState.date == null) "" else eventCreationViewModel.formatDate(uiState.date)
+  val showDate = remember { mutableStateOf(false) }
+
+  val flowTabBack = FlowTab.Back(onClick = { onBack() })
   val flowTabContinue =
       FlowTab.Confirm(
           onClick = {
@@ -109,6 +177,7 @@ fun EventCreationScreen(
             }
           },
           enabled = eventCreationViewModel.validateAll())
+
   Scaffold(
       containerColor = Color.Transparent,
       bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
@@ -117,7 +186,6 @@ fun EventCreationScreen(
           Box(
               modifier =
                   Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth()) {
-                // The launcher to launch the image selection.
                 val launcher =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -155,6 +223,21 @@ fun EventCreationScreen(
                                     MaterialTheme.typography.labelLarge.copy(
                                         fontWeight = FontWeight.Bold),
                                 fontSize = EventCreationDefaults.titleFontSize)
+
+                            LiquidButton(
+                                onClick = { eventCreationViewModel.showAiAssist() },
+                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
+                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
+                                contentPadding = Dimensions.PaddingSmall,
+                                modifier =
+                                    Modifier.padding(end = Dimensions.PaddingMedium)
+                                        .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
+                                  Icon(
+                                      imageVector = Icons.Default.AutoAwesome,
+                                      contentDescription = "AI Assist",
+                                      modifier = Modifier.size(EventCreationDefaults.locIconSize))
+                                }
+
                             LiquidButton(
                                 onClick = { onSelectLocation() },
                                 height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
@@ -169,6 +252,7 @@ fun EventCreationScreen(
                                       modifier = Modifier.size(EventCreationDefaults.locIconSize))
                                 }
                           }
+
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
                       CustomTextField(
                           modifier =
@@ -176,7 +260,7 @@ fun EventCreationScreen(
                                   .padding(vertical = Dimensions.PaddingMedium),
                           label = "Title",
                           placeholder = "Enter your event title",
-                          value = uiState.value.name,
+                          value = uiState.name,
                           onValueChange = { name ->
                             eventCreationViewModel.setEventName(name)
                             eventCreationViewModel.setOnboardingState(
@@ -185,9 +269,9 @@ fun EventCreationScreen(
                           maxLines = 2,
                           leadingIcon = Icons.Default.Title,
                           validationState =
-                              if (uiState.value.onboardingState[
-                                      OnboardingState.ENTER_EVENT_TITLE] == true) {
-                                uiState.value.eventTitleValid
+                              if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
+                                  true) {
+                                uiState.eventTitleValid
                               } else {
                                 ValidationState.Neutral
                               })
@@ -197,7 +281,7 @@ fun EventCreationScreen(
                                   .padding(vertical = Dimensions.PaddingMedium),
                           label = "Description",
                           placeholder = "Enter your event description",
-                          value = uiState.value.description ?: "",
+                          value = uiState.description ?: "",
                           onValueChange = { description ->
                             eventCreationViewModel.setEventDescription(description)
                             eventCreationViewModel.setOnboardingState(
@@ -205,9 +289,9 @@ fun EventCreationScreen(
                           },
                           maxLines = 3,
                           validationState =
-                              if (uiState.value.onboardingState[
-                                      OnboardingState.ENTER_DESCRIPTION] == true) {
-                                uiState.value.eventDescriptionValid
+                              if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
+                                  true) {
+                                uiState.eventDescriptionValid
                               } else {
                                 ValidationState.Neutral
                               })
@@ -228,16 +312,16 @@ fun EventCreationScreen(
                                 leadingIcon = Icons.Default.Event,
                                 enabled = false,
                                 validationState =
-                                    if (uiState.value.eventDateValid == ValidationState.Valid) {
-                                      uiState.value.eventDateTimeValid
+                                    if (uiState.eventDateValid == ValidationState.Valid) {
+                                      uiState.eventDateTimeValid
                                     } else {
-                                      uiState.value.eventDateValid
+                                      uiState.eventDateValid
                                     })
                           }
                       UniversalDatePickerDialog(
                           modifier = Modifier.testTag(EventCreationTestTags.EVENT_DATE_PICKER),
                           visible = showDate.value,
-                          initialDate = uiState.value.date ?: LocalDate.now(),
+                          initialDate = uiState.date ?: LocalDate.now(),
                           yearRange = IntRange(2025, 2050),
                           onDismiss = { showDate.value = false },
                           onConfirm = {
@@ -248,7 +332,7 @@ fun EventCreationScreen(
                           modifier = Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
                           label = "Time",
                           placeholder = "Select a Time in format HH:MM",
-                          value = uiState.value.time,
+                          value = uiState.time,
                           onValueChange = { time ->
                             eventCreationViewModel.setTime(time)
                             eventCreationViewModel.setOnboardingState(
@@ -257,12 +341,11 @@ fun EventCreationScreen(
                           maxLines = 1,
                           leadingIcon = Icons.Default.AccessTimeFilled,
                           validationState =
-                              if (uiState.value.onboardingState[OnboardingState.ENTER_TIME] ==
-                                  true) {
-                                if (uiState.value.eventTimeValid == ValidationState.Valid) {
-                                  uiState.value.eventDateTimeValid
+                              if (uiState.onboardingState[OnboardingState.ENTER_TIME] == true) {
+                                if (uiState.eventTimeValid == ValidationState.Valid) {
+                                  uiState.eventDateTimeValid
                                 } else {
-                                  uiState.value.eventTimeValid
+                                  uiState.eventTimeValid
                                 }
                               } else {
                                 ValidationState.Neutral
@@ -271,4 +354,201 @@ fun EventCreationScreen(
               }
         }
       })
+}
+
+/**
+ * A shared layout wrapper for AI-related screens (Prompt and Review).
+ *
+ * It mirrors the structure of [StandardEventCreationForm] using a [Scaffold] and spacer system to
+ * ensure the [LiquidBox] containing the content aligns perfectly with the standard form's layout.
+ *
+ * @param bottomBar The bottom navigation bar content.
+ * @param content The internal content of the LiquidBox.
+ */
+@Composable
+fun AiLayout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit) {
+  Scaffold(containerColor = Color.Transparent, bottomBar = { bottomBar() }) { paddingValues ->
+    Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+      Spacer(modifier = Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth())
+
+      Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+
+      LiquidBox(
+          modifier = Modifier.weight(1f).fillMaxWidth(),
+          shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(Dimensions.PaddingExtraLarge),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                  content()
+                }
+          }
+    }
+  }
+}
+
+/**
+ * The initial AI prompt screen where users input their event idea.
+ *
+ * @param prompt The current text input by the user.
+ * @param validationState The validation state of the prompt input field.
+ * @param isGenerating Whether the AI is currently generating a proposal.
+ * @param error Optional error message to display if generation failed.
+ * @param onPromptChange Callback when the prompt text changes.
+ * @param onGenerate Callback when the user clicks the generate button.
+ * @param onBack Callback when the user clicks back to return to standard form.
+ */
+@Composable
+fun AiPromptBox(
+    prompt: String,
+    validationState: ValidationState,
+    isGenerating: Boolean,
+    error: String?,
+    onPromptChange: (String) -> Unit,
+    onGenerate: () -> Unit,
+    onBack: () -> Unit
+) {
+  val finalValidationState = if (error != null) ValidationState.Invalid(error) else validationState
+
+  AiLayout(
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOf(
+                    FlowTab.Back(onClick = onBack),
+                    FlowTab.Generate(
+                        onClick = {
+                          if (prompt.isNotBlank()) {
+                            onGenerate()
+                          }
+                        },
+                        enabled = !isGenerating)))
+      }) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+          Icon(Icons.Default.AutoAwesome, contentDescription = null)
+          Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
+          Text(text = "AI Assist", style = MaterialTheme.typography.titleLarge)
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
+
+        CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
+            label = "Describe your event",
+            placeholder = "State what you want to create…",
+            value = prompt,
+            onValueChange = onPromptChange,
+            maxLines = 10,
+            validationState = finalValidationState)
+
+        if (isGenerating) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+      }
+}
+
+/**
+ * The review screen for AI-generated event proposals.
+ *
+ * Users can view the generated title and description, modify the prompt to regenerate, or confirm
+ * the proposal to populate the main form.
+ *
+ * @param proposal The generated [EventProposal] containing title and description.
+ * @param prompt The current prompt text (allows modification for regeneration).
+ * @param promptValidationState Validation state for the prompt field.
+ * @param titleValidationState Validation state for the generated title (e.g. length check).
+ * @param descriptionValidationState Validation state for the generated description.
+ * @param isProposalValid Overall validity of the proposal.
+ * @param isGenerating Whether regeneration is in progress.
+ * @param onPromptChange Callback for prompt text changes.
+ * @param onRegenerate Callback to trigger a new generation attempt.
+ * @param onConfirm Callback to accept the proposal and fill the main form.
+ * @param onBack Callback to return to the previous screen.
+ */
+@Composable
+fun AiReviewBox(
+    proposal: EventProposal,
+    prompt: String,
+    promptValidationState: ValidationState,
+    titleValidationState: ValidationState,
+    descriptionValidationState: ValidationState,
+    isProposalValid: Boolean,
+    isGenerating: Boolean,
+    onPromptChange: (String) -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onRegenerate: () -> Unit,
+    onConfirm: () -> Unit,
+    onBack: () -> Unit
+) {
+  val focusManager = LocalFocusManager.current
+
+  AiLayout(
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOf(
+                    FlowTab.Back(onClick = onBack),
+                    FlowTab.Regenerate(
+                        onClick = {
+                          focusManager.clearFocus()
+                          if (prompt.isNotBlank()) {
+                            onRegenerate()
+                          }
+                        },
+                        enabled = prompt.isNotBlank() && !isGenerating),
+                    FlowTab.Confirm(
+                        onClick = onConfirm, enabled = !isGenerating && isProposalValid)))
+      }) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+          Text(text = "Review & Refine", style = MaterialTheme.typography.titleLarge)
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+        CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
+            label = "Edit Your Prompt",
+            placeholder = "",
+            value = prompt,
+            onValueChange = onPromptChange,
+            maxLines = 2,
+            validationState = promptValidationState)
+
+        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+        CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_TITLE_FIELD),
+            label = "Title",
+            placeholder = "",
+            value = proposal.title,
+            onValueChange = onTitleChange,
+            leadingIcon = Icons.Default.Title,
+            validationState = titleValidationState)
+
+        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+        CustomTextField(
+            modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_DESCRIPTION_FIELD),
+            label = "Description",
+            placeholder = "",
+            value = proposal.description,
+            onValueChange = onDescriptionChange,
+            maxLines = 3,
+            validationState = descriptionValidationState)
+
+        if (!isProposalValid) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+          Text(
+              text = AiErrors.CONTENT_TOO_LONG_UI,
+              color = MaterialTheme.colorScheme.error,
+              style = MaterialTheme.typography.labelSmall)
+        }
+
+        if (isGenerating) {
+          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+      }
 }
