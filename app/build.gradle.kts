@@ -226,10 +226,11 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 // - Aliases are defined in /gradle/libs.versions.toml
 // ─────────────────────────────────────────────────────────────────────────────
 dependencies {
+  // Those compile only dependencies enable minifcation due to their exclusion from tomtom packages
+  compileOnly(libs.protobuf.java)
+  compileOnly(libs.protobuf.kotlin)
   // Import the Bill of Materials (BOMs) to manage library versions.
   // This removes the need to specify versions for individual Compose and Firebase libraries.
-  compileOnly("com.google.protobuf:protobuf-java:3.25.4")
-  compileOnly("com.google.protobuf:protobuf-kotlin:3.25.4")
   val composeBom = enforcedPlatform(libs.androidx.compose.bom)
   val firebaseBom = enforcedPlatform(libs.firebase.bom)
   implementation(composeBom)
