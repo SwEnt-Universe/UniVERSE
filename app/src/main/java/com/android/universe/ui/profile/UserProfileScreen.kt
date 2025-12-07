@@ -184,8 +184,8 @@ fun ProfileContentPager(
     pagerState: PagerState,
     historyListState: LazyListState,
     incomingListState: LazyListState,
-    historyEvents: List<Event>,
-    incomingEvents: List<Event>,
+    historyEvents: List<EventUIState>,
+    incomingEvents: List<EventUIState>,
     eventViewModel: EventViewModel,
     spacerHeightDp: Dp,
     clipPaddingDp: Dp,
@@ -222,7 +222,7 @@ fun ProfileContentPager(
 @Composable
 fun ProfileEventList(
     listState: LazyListState,
-    events: List<Event>,
+    events: List<EventUIState>,
     eventViewModel: EventViewModel,
     headerSpacerHeight: Dp,
     topClipPadding: Dp,
@@ -242,21 +242,7 @@ fun ProfileEventList(
                   Modifier.fillMaxWidth().height(headerSpacerHeight).background(Color.Transparent))
         }
 
-        items(events, key = { it.id }) { event ->
-          val eventUIState =
-              EventUIState(
-                  id = event.id,
-                  title = event.title,
-                  description = event.description ?: "",
-                  date = event.date,
-                  tags = event.tags.toList(),
-                  creator = event.creator,
-                  participants = event.participants.size,
-                  index = event.id.hashCode(),
-                  location = event.location,
-                  joined = true,
-                  eventPicture = event.eventPicture)
-
+        items(events, key = { it.id }) { eventUIState ->
           Box(
               modifier =
                   Modifier.padding(

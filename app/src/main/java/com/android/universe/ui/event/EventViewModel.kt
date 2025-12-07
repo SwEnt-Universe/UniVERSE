@@ -48,6 +48,7 @@ data class EventUIState(
     val creator: String = "",
     val participants: Int = 0,
     val location: Location = Location(0.0, 0.0),
+    val isPrivate: Boolean = false,
     val index: Int = 0,
     val joined: Boolean = false,
     val eventPicture: ByteArray? = null
@@ -193,7 +194,10 @@ class EventViewModel(
                   events.mapIndexed { index, event ->
                     val user = usersMap[event.creator]
                     event.toUIState(
-                        user, index = index, joined = event.participants.contains(storedUid))
+                        user,
+                        index = index,
+                        joined = event.participants.contains(storedUid),
+                        isPrivate = event.isPrivate)
                   }
                 }
             .collect { uiStates -> _eventsState.value = uiStates }
@@ -203,7 +207,8 @@ class EventViewModel(
               event.toUIState(
                   userRepository.getUser(event.creator),
                   index = index,
-                  joined = event.participants.contains(storedUid))
+                  joined = event.participants.contains(storedUid),
+                  isPrivate = event.isPrivate)
             }
         _eventsState.value = uiStates
       }
@@ -220,7 +225,8 @@ class EventViewModel(
   private fun Event.toUIState(
       user: UserProfile?,
       index: Int = 0,
-      joined: Boolean = false
+      joined: Boolean = false,
+      isPrivate: Boolean = false
   ): EventUIState {
     return EventUIState(
         id = id,
@@ -231,6 +237,7 @@ class EventViewModel(
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
         participants = participants.size,
         location = location,
+        isPrivate = isPrivate,
         index = index,
         joined = joined,
         eventPicture = eventPicture)

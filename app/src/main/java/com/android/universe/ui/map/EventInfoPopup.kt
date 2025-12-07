@@ -84,6 +84,7 @@ fun EventInfoPopup(
                               modifier = Modifier.testTag(EventContentTestTags.EVENT_IMAGE))
                         },
                         isUserParticipant = isUserParticipant,
+                        isPrivate = event.isPrivate,
                         onToggleEventParticipation = onToggleEventParticipation,
                         onChatClick = { onChatNavigate(event.id, event.title) },
                     )
