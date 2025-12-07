@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MarkEmailUnread
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +36,11 @@ object FlowBottomMenuTestTags {
   const val PASSWORD_BUTTON = "BtnPassword"
   const val EMAIL_BUTTON = "BtnEmail"
   const val LOGOUT_BUTTON = "BtnLogout"
+  const val GENERATE_BUTTON = "BtnGenerate"
+  const val REGENERATE_BUTTON = "BtnRegenerate"
 }
+
+private const val DISABLED_ICON_ALPHA = 0.38f
 
 /**
  * Represents the different types of tabs that can be displayed in the [FlowBottomMenu].
@@ -88,14 +94,13 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
                 tint =
                     if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Confirm",
           testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
           onClick =
-              if (enabled) {
-                onClick
-              } else {
+              if (enabled) onClick
+              else {
                 {}
               })
 
@@ -153,7 +158,7 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
                 tint =
                     if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Resend Email",
           testTag = FlowBottomMenuTestTags.EMAIL_BUTTON,
@@ -176,6 +181,44 @@ sealed class FlowTab(
           label = "Logout",
           testTag = FlowBottomMenuTestTags.LOGOUT_BUTTON,
           onClick = onClick)
+
+  class Generate(onClick: () -> Unit, enabled: Boolean) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = "Generate",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint =
+                    if (enabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
+          },
+          label = "Generate",
+          testTag = FlowBottomMenuTestTags.GENERATE_BUTTON,
+          onClick =
+              if (enabled) onClick
+              else {
+                {}
+              })
+
+  class Regenerate(onClick: () -> Unit, enabled: Boolean) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = "Regenerate",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint =
+                    if (enabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
+          },
+          label = "Regenerate",
+          testTag = FlowBottomMenuTestTags.REGENERATE_BUTTON,
+          onClick =
+              if (enabled) onClick
+              else {
+                {}
+              })
 }
 
 /**

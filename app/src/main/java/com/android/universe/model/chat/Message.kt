@@ -1,5 +1,6 @@
 package com.android.universe.model.chat
 
+import androidx.annotation.Keep
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -16,6 +17,7 @@ import java.util.Locale
  * @property timestamp The time when the message was sent, represented as a Firebase [Timestamp].
  *   Defaults to the current time.
  */
+@Keep
 data class Message(
     val messageID: String = "",
     val senderID: String = "",

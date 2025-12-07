@@ -3,7 +3,9 @@ package com.android.universe.ui.eventCreation
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.universe.di.DispatcherProvider
+import com.android.universe.di.DefaultDP
+import com.android.universe.model.ai.gemini.EventProposal
+import com.android.universe.model.ai.gemini.FakeGeminiEventAssistant
 import com.android.universe.model.event.EventLocalTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.FakeEventRepository
@@ -13,9 +15,11 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,6 +29,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -36,6 +41,7 @@ class EventCreationViewModelTest {
   private lateinit var eventRepository: FakeEventRepository
   private lateinit var viewModel: EventCreationViewModel
   private lateinit var eventTemporaryRepository: EventTemporaryRepository
+  private lateinit var fakeGemini: FakeGeminiEventAssistant
   private val testDispatcher = StandardTestDispatcher()
 
   /** Companion object to provides values for the tests. */
@@ -60,22 +66,22 @@ class EventCreationViewModelTest {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val imageManager = ImageBitmapManager(context)
 
-    val dispatcherProvider =
-        object : DispatcherProvider {
-          override val main: CoroutineDispatcher = testDispatcher
-          override val default: CoroutineDispatcher = testDispatcher
-          override val io: CoroutineDispatcher = testDispatcher
-          override val unconfined: CoroutineDispatcher = testDispatcher
-        }
+    mockkObject(DefaultDP)
+    every { DefaultDP.default } returns testDispatcher
+    every { DefaultDP.io } returns testDispatcher
+    every { DefaultDP.main } returns testDispatcher
+    every { DefaultDP.unconfined } returns testDispatcher
 
     eventRepository = FakeEventRepository()
     eventTemporaryRepository = EventLocalTemporaryRepository()
+    fakeGemini = FakeGeminiEventAssistant()
+
     viewModel =
         EventCreationViewModel(
             imageManager = imageManager,
             eventRepository = eventRepository,
             eventTemporaryRepository = eventTemporaryRepository,
-            dispatcherProvider = dispatcherProvider)
+            gemini = fakeGemini)
   }
 
   @Test
@@ -314,9 +320,141 @@ class EventCreationViewModelTest {
     assert(stockedEvent.date == expectedDate)
   }
 
+  @Test
+  fun testShowAiAssistResetsState() {
+    viewModel.setAiPrompt("Old Prompt")
+
+    viewModel.showAiAssist()
+
+    val state = viewModel.uiStateEventCreation.value
+    assertTrue(state.isAiAssistVisible)
+    assertEquals("", state.aiPrompt)
+    assertNull(state.aiPromptError)
+    assertNull(state.proposal)
+    assertNull(state.generationError)
+
+    assertEquals(ValidationState.Neutral, state.aiPromptValid)
+  }
+
+  @Test
+  fun testHideAiAssist() {
+    viewModel.showAiAssist()
+    assertTrue(viewModel.uiStateEventCreation.value.isAiAssistVisible)
+
+    viewModel.hideAiAssist()
+    assertFalse(viewModel.uiStateEventCreation.value.isAiAssistVisible)
+  }
+
+  @Test
+  fun testAiPromptValidationLogic() {
+    viewModel.showAiAssist()
+
+    assertEquals(ValidationState.Neutral, viewModel.uiStateEventCreation.value.aiPromptValid)
+
+    viewModel.setAiPrompt("Music Festival")
+    assertEquals(ValidationState.Valid, viewModel.uiStateEventCreation.value.aiPromptValid)
+
+    viewModel.setAiPrompt("")
+    val state = viewModel.uiStateEventCreation.value
+    assertEquals(EventCreationViewModel.Companion.AiErrors.PROMPT_EMPTY, state.aiPromptError)
+    assertTrue(state.aiPromptValid is ValidationState.Invalid)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun testGenerateProposalSuccess() = runTest {
+    viewModel.showAiAssist()
+    viewModel.setAiPrompt("Music Festival")
+
+    fakeGemini.predefinedProposal = EventProposal("Jazz Night", "A smooth evening.")
+
+    viewModel.generateProposal()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiStateEventCreation.value
+    assertFalse(state.isGenerating)
+    assertNotNull(state.proposal)
+    assertEquals("Jazz Night", state.proposal?.title)
+    assertEquals("A smooth evening.", state.proposal?.description)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun testGenerateProposalFailure() = runTest {
+    viewModel.showAiAssist()
+    viewModel.setAiPrompt("Chaos")
+
+    fakeGemini.shouldFail = true
+
+    viewModel.generateProposal()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiStateEventCreation.value
+    assertFalse(state.isGenerating)
+    assertNull(state.proposal)
+    assertEquals(EventCreationViewModel.Companion.AiErrors.GENERATION_FAILED, state.generationError)
+  }
+
+  @Test
+  fun testGenerateProposalEmptyPrompt() {
+    viewModel.showAiAssist()
+    viewModel.setAiPrompt("")
+
+    viewModel.generateProposal()
+
+    val state = viewModel.uiStateEventCreation.value
+    assertEquals(EventCreationViewModel.Companion.AiErrors.PROMPT_EMPTY, state.aiPromptError)
+  }
+
+  @Test
+  fun testAcceptProposalValid() {
+    viewModel.showAiAssist()
+    viewModel.setAiPrompt("Valid Prompt")
+    val validProposal = EventProposal("Cool Title", "Cool Description")
+
+    fakeGemini.predefinedProposal = validProposal
+    viewModel.generateProposal()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    viewModel.acceptProposal()
+
+    val state = viewModel.uiStateEventCreation.value
+    assertEquals("Cool Title", state.name)
+    assertEquals("Cool Description", state.description)
+    assertFalse(state.isAiAssistVisible)
+
+    assertTrue(state.onboardingState[OnboardingState.ENTER_EVENT_TITLE] == true)
+    assertTrue(state.onboardingState[OnboardingState.ENTER_DESCRIPTION] == true)
+  }
+
+  @Test
+  fun testAcceptProposalInvalidLength() {
+    viewModel.showAiAssist()
+    viewModel.setAiPrompt("Long Prompt")
+
+    val longTitle = "A".repeat(InputLimits.TITLE_EVENT_MAX_LENGTH + 5)
+    val validDesc = "Desc"
+
+    fakeGemini.predefinedProposal = EventProposal(longTitle, validDesc)
+    viewModel.generateProposal()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val stateBeforeAccept = viewModel.uiStateEventCreation.value
+    assertFalse(stateBeforeAccept.isAiProposalValid)
+    assertTrue(stateBeforeAccept.aiProposalTitleValid is ValidationState.Invalid)
+
+    viewModel.acceptProposal()
+
+    val stateAfter = viewModel.uiStateEventCreation.value
+    assertTrue(stateAfter.isAiAssistVisible)
+    assertEquals("", stateAfter.name)
+  }
+
   @OptIn(ExperimentalCoroutinesApi::class)
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    unmockkObject(DefaultDP)
   }
 }
