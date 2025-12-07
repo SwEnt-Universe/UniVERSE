@@ -3,13 +3,16 @@ package com.android.universe.ui.event
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +26,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
+import com.android.universe.ui.components.CategoryItem
 import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.components.LiquidSearchBarTestTags
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -77,6 +82,7 @@ fun EventScreen(
   }
   val events by viewModel.filteredEvents.collectAsState()
   val focusManager = LocalFocusManager.current
+  val categories by viewModel.categories.collectAsState()
 
   Scaffold(
       containerColor = Color.Transparent,
@@ -99,6 +105,18 @@ fun EventScreen(
                               start = PaddingMedium,
                               end = PaddingMedium)
                           .testTag(LiquidSearchBarTestTags.SEARCH_BAR))
+              Row(
+                  modifier = Modifier.horizontalScroll(state = rememberScrollState()),
+                  horizontalArrangement = Arrangement.spacedBy(PaddingMedium)) {
+                    for (category in Tag.Category.entries) {
+                      CategoryItem(
+                          category = category,
+                          isSelectable = true,
+                          isSelected = categories.contains(category),
+                          onSelect = { cat -> viewModel.addCategory(cat) },
+                          onDeSelect = { cat -> viewModel.removeCategory(cat) })
+                    }
+                  }
 
               LazyColumn(
                   modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),

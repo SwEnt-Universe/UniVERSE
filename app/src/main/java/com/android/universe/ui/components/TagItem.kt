@@ -101,3 +101,78 @@ fun TagItem(
         }
       }
 }
+
+/**
+ * Contains test tag generators for [CategoryItem] components. These helpers ensure consistent
+ * naming for UI tests when locating specific tags by their display name.
+ */
+object CategoryItemTestTags {
+  fun categoryButton(category: Tag.Category): String {
+    return "CategoryButton" + category.displayName
+  }
+
+  fun categoryText(category: Tag.Category): String {
+    return "Category" + category.displayName
+  }
+}
+
+/** Contains default dimension constants used by the [CategoryItem] composable. */
+object CategoryItemDefaults {
+  const val HEIGHT_CAT = 32f
+  const val WIDTH_CAT = 96f
+}
+
+/**
+ * A composable that displays a single interactive category button similar to the TagItem. This
+ * component renders a specific [Tag.Category] using a [LiquidButton]. It visually communicates the
+ * category's name through color and its state through opacity/tint changes.
+ *
+ * @param modifier Modifier to be applied to the button container.
+ * @param category The [Tag.Category] data model containing the display name
+ * @param heightTag The height of the button in dp (float value). Defaults to
+ *   [CategoryItemDefaults.HEIGHT_CAT]
+ * @param isSelectable Whether the Category responds to clicks. If false, the button acts as a
+ *   static label. By default it is true
+ * @param isSelected Whether the Category is currently selected. Affects the color tint.
+ * @param onSelect Callback invoked when the user clicks an unselected Category.
+ * @param onDeSelect Callback invoked when the user clicks a selected Category.
+ */
+@Composable
+fun CategoryItem(
+    modifier: Modifier = Modifier,
+    category: Tag.Category,
+    heightTag: Float = CategoryItemDefaults.HEIGHT_CAT,
+    isSelectable: Boolean = true,
+    isSelected: Boolean = false,
+    onSelect: (Tag.Category) -> Unit,
+    onDeSelect: (Tag.Category) -> Unit
+) {
+  val buttonColor by
+      animateColorAsState(
+          targetValue = tagColor(category = category.displayName, isSelected = isSelected))
+
+  LiquidButton(
+      onClick = {
+        if (isSelected) {
+          onDeSelect(category)
+        } else {
+          onSelect(category)
+        }
+      },
+      enabled = isSelectable,
+      isInteractive = isSelectable,
+      height = heightTag,
+      width = CategoryItemDefaults.WIDTH_CAT,
+      tint = buttonColor,
+      disableBackdrop = true,
+      contentPadding = 4.dp,
+      modifier = modifier.testTag(CategoryItemTestTags.categoryButton(category))) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              category.displayName,
+              fontSize = MaterialTheme.typography.labelSmall.fontSize,
+              fontWeight = FontWeight.Bold,
+              modifier = Modifier.testTag(CategoryItemTestTags.categoryText(category)))
+        }
+      }
+}

@@ -1,6 +1,8 @@
 package com.android.universe.ui.components
 
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -8,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import com.android.universe.utils.setContentWithStubBackdrop
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -86,5 +89,28 @@ class TagItemTest {
 
     composeTestRule.onNodeWithTag(TAG_BUTTON).performClick()
     assertEquals(false, callbackCalled)
+  }
+
+  @Test
+  fun categorySelectionWorks() {
+    val select = MutableStateFlow(false)
+    composeTestRule.setContentWithStubBackdrop {
+      CategoryItem(
+          category = tag.category,
+          isSelectable = true,
+          isSelected = select.collectAsState().value,
+          onSelect = { select.value = true },
+          onDeSelect = { select.value = false })
+    }
+    composeTestRule
+        .onNodeWithTag(CategoryItemTestTags.categoryText(tag.category), useUnmergedTree = true)
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(CategoryItemTestTags.categoryButton(tag.category))
+        .assertIsEnabled()
+        .performClick()
+    assertEquals(true, select.value)
+    composeTestRule.onNodeWithTag(CategoryItemTestTags.categoryButton(tag.category)).performClick()
+    assertEquals(false, select.value)
   }
 }
