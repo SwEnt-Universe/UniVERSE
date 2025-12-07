@@ -48,6 +48,7 @@ import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -402,7 +403,16 @@ class MapViewModel(
   fun loadAllEvents() {
     viewModelScope.launch {
       try {
-        val events = eventRepository.getAllEvents()
+        val following =
+            try {
+              userRepository.getUser(currentUserId)?.following?.toSet() ?: emptySet()
+            } catch (e: Exception) {
+              if (e is CancellationException) throw e
+              android.util.Log.e("MapViewModel", "Failed to fetch user following list", e)
+              emptySet()
+            }
+
+        val events = eventRepository.getAllEvents(currentUserId, following)
         _eventMarkers.value = events
 
         if (userReactiveRepository != null) {
@@ -426,6 +436,7 @@ class MapViewModel(
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
+        if (e is CancellationException) throw e
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
@@ -506,9 +517,10 @@ class MapViewModel(
     viewModelScope.launch {
       try {
         val user = userRepository.getUser(currentUserId)
-        val events = eventRepository.getSuggestedEventsForUser(user)
+        val events = eventRepository.getSuggestedEventsForUser(user, user.following.toSet())
         _eventMarkers.value = events
       } catch (e: Exception) {
+        if (e is kotlin.coroutines.cancellation.CancellationException) throw e
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }

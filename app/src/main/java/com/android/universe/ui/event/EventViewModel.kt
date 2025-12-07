@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.event.Event
@@ -13,6 +14,7 @@ import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import java.time.LocalDateTime
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -162,7 +164,20 @@ class EventViewModel(
    */
   fun loadEvents() {
     viewModelScope.launch {
-      val events = eventRepository.getAllEvents()
+      val following =
+          try {
+            if (storedUid.isNotEmpty()) {
+              userRepository.getUser(storedUid).following.toSet()
+            } else {
+              emptySet()
+            }
+          } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.e("EventViewModel", "Failed to fetch user following list", e)
+            emptySet()
+          }
+
+      val events = eventRepository.getAllEvents(storedUid, following)
       localList = events
 
       if (userReactiveRepository != null) {

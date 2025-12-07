@@ -30,7 +30,7 @@ class ChatListViewModel(
     viewModelScope.launch {
       // Since users don't have a list of event they participate in, we filter the events.
       // TODO: Update this once users have a list of events.
-      val events = eventRepository.getAllEvents().filter { it.participants.contains(userID) }
+      val events = eventRepository.getUserInvolvedEvents(userID)
       events.forEach { event ->
         val chat =
             try {
