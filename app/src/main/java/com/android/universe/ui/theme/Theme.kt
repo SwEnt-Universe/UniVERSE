@@ -16,7 +16,13 @@ import androidx.compose.ui.platform.LocalContext
 // Expose current darkTheme state from UniverseTheme
 val LocalIsDarkTheme = staticCompositionLocalOf { false }
 
-@Immutable data class ExtendedColors(val success: Color, val placeholder: Color)
+@Immutable
+data class ExtendedColors(
+    val success: Color,
+    val placeholder: Color,
+    val toggleActive: Color,
+    val toggleTrack: Color
+)
 
 /**
  * Provides access to the [ExtendedColors] for the current theme.
@@ -29,7 +35,11 @@ val LocalIsDarkTheme = staticCompositionLocalOf { false }
  * reading this *without* a `UniverseTheme` provider above it will likely crash, revealing the bug.
  */
 val LocalExtendedColors = staticCompositionLocalOf {
-  ExtendedColors(success = Color.Unspecified, placeholder = Color.Unspecified)
+  ExtendedColors(
+      success = Color.Unspecified,
+      placeholder = Color.Unspecified,
+      toggleActive = Color.Unspecified,
+      toggleTrack = Color.Unspecified)
 }
 
 /**
@@ -102,9 +112,17 @@ fun UniverseTheme(
       }
   val extendedColors =
       if (darkTheme) {
-        ExtendedColors(success = SuccessDark, placeholder = PlaceholderDark)
+        ExtendedColors(
+            success = SuccessDark,
+            placeholder = PlaceholderDark,
+            toggleActive = ToggleActiveDark,
+            toggleTrack = ToggleTrackDark)
       } else {
-        ExtendedColors(success = SuccessLight, placeholder = PlaceholderLight)
+        ExtendedColors(
+            success = SuccessLight,
+            placeholder = PlaceholderLight,
+            toggleActive = ToggleActiveLight,
+            toggleTrack = ToggleTrackLight)
       }
   CompositionLocalProvider(
       LocalIsDarkTheme provides darkTheme,

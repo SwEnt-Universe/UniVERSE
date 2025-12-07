@@ -24,7 +24,6 @@
  */
 package com.android.universe.ui.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -54,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.lerp
 import com.android.universe.ui.theme.CapsuleLarge
+import com.android.universe.ui.theme.UniverseTheme
 import com.android.universe.ui.utils.DampedDragAnimation
 import com.android.universe.ui.utils.LocalLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -74,9 +74,8 @@ fun LiquidToggle(
     onSelect: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-  val isLightTheme = !isSystemInDarkTheme()
-  val accentColor = if (isLightTheme) Color(0xFF007AFF) else Color(0xFF0A84FF)
-  val trackColor = if (isLightTheme) Color(0xFF787878).copy(0.2f) else Color(0xFF787880).copy(0.36f)
+  val accentColor = UniverseTheme.extendedColors.toggleActive
+  val trackColor = UniverseTheme.extendedColors.toggleTrack
 
   val parentBackdrop = LocalLayerBackdrop.current
 
