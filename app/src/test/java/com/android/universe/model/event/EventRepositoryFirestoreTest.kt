@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.tag.Tag
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirestoreEventTest
 import com.android.universe.utils.UserTestData
@@ -57,13 +58,35 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
 
-    val result = eventRepository.getAllEvents().toSet()
+    val result = eventRepository.getAllEvents("anyUser", emptySet()).toSet()
 
     assertEquals(3, result.size)
 
     val expectedSet = setOf(event1, event2, event3)
 
     assertEquals(expectedSet, result)
+  }
+
+  @Test
+  fun getAllEvents_respectsVisibilityLogic() = runTest {
+    val creatorId = "creator-123"
+    val strangerId = "stranger-999"
+
+    val publicEvent = event1.copy(id = "pub", creator = creatorId, isPrivate = false)
+    val privateEvent = event2.copy(id = "priv", creator = creatorId, isPrivate = true)
+
+    eventRepository.addEvent(publicEvent)
+    eventRepository.addEvent(privateEvent)
+
+    val resultStranger = eventRepository.getAllEvents(strangerId, emptySet())
+    assertEquals(1, resultStranger.size)
+    assertEquals("pub", resultStranger[0].id)
+
+    val resultFollower = eventRepository.getAllEvents(strangerId, setOf(creatorId))
+    assertEquals(2, resultFollower.size)
+
+    val resultCreator = eventRepository.getAllEvents(creatorId, emptySet())
+    assertEquals(2, resultCreator.size)
   }
 
   @Test(expected = NoSuchElementException::class)
@@ -78,7 +101,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user, emptySet())
 
     assertEquals(1, suggestedEvents.size)
     assertTrue(suggestedEvents.contains(EventTestData.SomeTagsEvent))
@@ -92,9 +115,34 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user, emptySet())
 
     assertTrue(suggestedEvents.isEmpty())
+  }
+
+  @Test
+  fun getSuggestedEvents_respectsVisibilityLogic() = runTest {
+    val user = UserTestData.SomeTagsUser.copy(tags = setOf(Tag.ROCK))
+    val creatorId = "creator-001"
+
+    val publicEvent =
+        event1.copy(
+            id = "public-event", creator = creatorId, isPrivate = false, tags = setOf(Tag.ROCK))
+
+    val privateEvent =
+        event2.copy(
+            id = "private-event", creator = creatorId, isPrivate = true, tags = setOf(Tag.ROCK))
+
+    eventRepository.addEvent(publicEvent)
+    eventRepository.addEvent(privateEvent)
+
+    val resultNotFollowing = eventRepository.getSuggestedEventsForUser(user, emptySet())
+    assertEquals(1, resultNotFollowing.size)
+    assertEquals("public-event", resultNotFollowing[0].id)
+
+    val resultFollowing = eventRepository.getSuggestedEventsForUser(user, setOf(creatorId))
+    assertEquals(2, resultFollowing.size)
+    assertTrue(resultFollowing.any { it.id == "private-event" })
   }
 
   @Test
@@ -150,7 +198,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event2)
 
     eventRepository.updateEvent(event1.id, event3)
-    val result = eventRepository.getAllEvents().toSet()
+    val result = eventRepository.getAllEvents("any", emptySet()).toSet()
     assertEquals(2, result.size)
 
     val expectedSet = setOf(event3.copy(id = event1.id), event2)
@@ -166,7 +214,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   fun deleteEvent() = runTest {
     eventRepository.addEvent(event1)
     eventRepository.deleteEvent(event1.id)
-    val result = eventRepository.getAllEvents()
+    val result = eventRepository.getAllEvents("any", emptySet())
     assertEquals(0, result.size)
   }
 
@@ -177,7 +225,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(event3)
 
     eventRepository.deleteEvent(event2.id)
-    val result = eventRepository.getAllEvents().toSet()
+    val result = eventRepository.getAllEvents("any", emptySet()).toSet()
     assertEquals(2, result.size)
 
     val expectedSet = setOf(event1, event3)
