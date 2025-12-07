@@ -2,12 +2,14 @@ package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -17,10 +19,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.chat.ChatListScreenTestTags
 import com.android.universe.ui.chat.composable.SendMessageInputTestTags
 import com.android.universe.ui.common.FormTestTags
+import com.android.universe.ui.common.ProfileContentTestTags
 import com.android.universe.ui.common.UniverseBackgroundContainer
+import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapCreateEventModalTestTags
 import com.android.universe.ui.map.MapScreenTestTags
@@ -55,210 +60,326 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
 
-    companion object {
-        var fakeUser = UserTestData.Bob
-        const val FAKE_EMAIL = UserTestData.bobEmail
-        const val FAKE_PASS = UserTestData.bobPassword
-        val FAKE_EVENT = EventTestData.futureEventNoTags
-        const val TIME_INPUT = "13:25"
-        const val TEST_MESSAGE = "Hello World!"
+  companion object {
+    // User 1: Bob
+    var bobUser = UserTestData.Bob
+    const val BOB_EMAIL = UserTestData.bobEmail
+    const val BOB_PASS = UserTestData.bobPassword
+    const val BOB_MESSAGE = "Hello from Bob!"
+
+    // User 2: Alice
+    var aliceUser = UserTestData.Alice
+    const val ALICE_EMAIL = UserTestData.aliceEmail
+    const val ALICE_PASS = UserTestData.alicePassword
+    const val ALICE_MESSAGE = "Hello Bob, Alice here!"
+
+    val FAKE_EVENT = EventTestData.futureEventNoTags
+    const val TIME_INPUT = "13:25"
+  }
+
+  @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)
+
+  private lateinit var mapViewModel: MapViewModel
+  private lateinit var context: Context
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    context = ApplicationProvider.getApplicationContext()
+    mapViewModel = MapViewModelFactory(context).create(MapViewModel::class.java)
+    mockkObject(DefaultDP)
+    every { DefaultDP.io } returns UnconfinedTestDispatcher()
+    every { DefaultDP.default } returns UnconfinedTestDispatcher()
+    every { DefaultDP.main } returns UnconfinedTestDispatcher()
+
+    runTest {
+      val bobUid = createTestUser(bobUser, BOB_EMAIL, BOB_PASS)
+      bobUser = bobUser.copy(uid = bobUid)
+      UserRepositoryProvider.repository.addUser(bobUser)
+
+      val aliceUid = createTestUser(aliceUser, ALICE_EMAIL, ALICE_PASS)
+      aliceUser = aliceUser.copy(uid = aliceUid)
+      UserRepositoryProvider.repository.addUser(aliceUser)
+
+      Firebase.auth.signOut()
+      advanceUntilIdle()
+
+      composeTestRule.setContentWithStubBackdrop {
+        UniverseTheme {
+          UniverseBackgroundContainer(mapViewModel) { UniverseApp(mapViewModel = mapViewModel) }
+        }
+      }
+      advanceUntilIdle()
+    }
+  }
+
+  @Test
+  fun createEventAndSendChatMessage() {
+    // Bob
+    // Login -> Create Event -> Send Message -> Log out
+    loginAndWait(BOB_EMAIL, BOB_PASS)
+    createEvent()
+    openChatAndSendMessage(BOB_MESSAGE)
+    logoutAndWait()
+
+    // Alice
+    // Login -> Join Event -> Reply in Chat
+    loginAndWait(ALICE_EMAIL, ALICE_PASS)
+    joinEventAsAlice()
+    openChatVerifyAndReply()
+  }
+
+  private fun joinEventAsAlice() = runTest {
+    // 1. Navigate to Event Tab
+    composeTestRule.waitUntil(10_000L) {
+      composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).isDisplayed()
+    }
+    composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule
+          .onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0", useUnmergedTree = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+    // 2. Click the Card
+    composeTestRule
+        .onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0", useUnmergedTree = true)
+        .onFirst()
+        .performClick()
 
-    @get:Rule
-    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)
-
-    private lateinit var mapViewModel: MapViewModel
-    private lateinit var context: Context
-
-    @Before
-    override fun setUp() {
-        super.setUp()
-        context = ApplicationProvider.getApplicationContext()
-        mapViewModel = MapViewModelFactory(context).create(MapViewModel::class.java)
-        mockkObject(DefaultDP)
-        every { DefaultDP.io } returns UnconfinedTestDispatcher()
-        every { DefaultDP.default } returns UnconfinedTestDispatcher()
-        every { DefaultDP.main } returns UnconfinedTestDispatcher()
-
-        runTest {
-            val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
-            fakeUser = fakeUser.copy(uid = uid)
-            Firebase.auth.signOut()
-            advanceUntilIdle()
-            composeTestRule.setContentWithStubBackdrop {
-                UniverseTheme {
-                    UniverseBackgroundContainer(mapViewModel) {
-                        UniverseApp(mapViewModel = mapViewModel)
-                    }
-                }
-            }
-            advanceUntilIdle()
-        }
+    // 3. Wait for Popup
+    composeTestRule.waitUntil(23_333L) {
+      composeTestRule
+          .onAllNodesWithTag(MapScreenTestTags.EVENT_INFO_POPUP)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    @Test
-    fun createEventAndSendChatMessage() {
-        loginAndWait()
-
-        createEvent()
-
-        openChatAndSendMessage()
+    // 4. Click "Join" inside the Popup
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule
+          .onAllNodesWithContentDescription("Toggle Participation", useUnmergedTree = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    private fun openChatAndSendMessage() = runTest {
-        // 1. Wait for the Bottom Bar to be visible and stable
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
-        }
+    composeTestRule
+        .onAllNodesWithContentDescription("Toggle Participation", useUnmergedTree = true)
+        .onFirst()
+        .performClick()
 
-        composeTestRule.mainClock.advanceTimeBy(5_000L)
-        advanceUntilIdle()
-
-        // 2. Perform the click
-        composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
-
-        // 3. Verify Chat Screen is displayed
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_SCREEN).isDisplayed()
-        }
-
-        // 4. Wait for the Chat List to populate
-        composeTestRule.waitUntil(10_000L) {
-            composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
-        }
-
-        // 5. Find the chat item by the Event Title and click it
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
-        }
-        composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).onFirst().performClick()
-
-        // 6. Verify we are in the specific Chat Screen (Input field should be visible)
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule.onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD).isDisplayed()
-        }
-
-        // 7. Type and Send
-        composeTestRule
-            .onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD)
-            .performClick()
-            .performTextInput(TEST_MESSAGE)
-
-        composeTestRule
-            .onNodeWithTag(SendMessageInputTestTags.SEND_BUTTON)
-            .performClick()
-
-        advanceUntilIdle()
+    // 5. Dismiss Popup
+    composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).performTouchInput {
+      click(percentOffset(0.5f, 0.1f))
     }
 
-    private fun loginAndWait() = runTest {
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
-        }
-
-        composeTestRule
-            .onNodeWithTagWithUnmergedTree(SignInScreenTestTags.JOIN_BUTTON)
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule
-            .onNodeWithTagWithUnmergedTree(FormTestTags.EMAIL_FIELD)
-            .performClick()
-            .performTextInput(FAKE_EMAIL)
-
-        composeTestRule
-            .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule.waitUntil(60_000L) {
-            composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.PASSWORD_BOX).isDisplayed()
-        }
-
-        composeTestRule
-            .onNodeWithTagWithUnmergedTree(FormTestTags.PASSWORD_FIELD)
-            .performClick()
-            .performTextInput(FAKE_PASS)
-
-        composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-
-        composeTestRule.waitUntil(30_000L) {
-            composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
-        }
-        advanceUntilIdle()
-
-        composeTestRule.waitUntil(15_000L) {
-            composeTestRule.onNodeWithTagWithUnmergedTree(MapScreenTestTags.INTERACTABLE).isDisplayed()
-        }
-        advanceUntilIdle()
+    // 6. Wait for Dismissal
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule
+          .onAllNodesWithTag(MapScreenTestTags.EVENT_INFO_POPUP)
+          .fetchSemanticsNodes()
+          .isEmpty()
     }
 
-    private fun createEvent() = runTest {
-        composeTestRule.waitUntil(10_000L) {
-            composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
-        }
-        composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
+    advanceUntilIdle()
+  }
 
-        composeTestRule.waitUntil(10_000L) {
-            runCatching {
-                composeTestRule
-                    .onAllNodesWithTag(
-                        MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
-                    .onFirst()
-                    .assertExists()
-            }.isSuccess
-        }
-        composeTestRule
-            .onAllNodesWithTag(
-                MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
-            .onFirst()
-            .performClick()
+  private fun openChatVerifyAndReply() = runTest {
+    // 1. Navigate to Chat Tab
+    composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
 
-        composeTestRule.waitUntil(10_000L) {
-            runCatching {
-                composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
-            }.isSuccess
-        }
-
-        composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
-        composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
-            down(center)
-            advanceEventTime(1_000)
-        }
-        composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
-            up()
-        }
-
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
-        }
-
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
-        composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).performClick()
-
-        nextMonth(composeTestRule)
-        selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
-        pressOKDate(composeTestRule)
-
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
-            .performTextInput(TIME_INPUT)
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-            .performTextInput(FAKE_EVENT.title)
-        composeTestRule
-            .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-            .performTextInput(FAKE_EVENT.description!!)
-
-        composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-        composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-
-        composeTestRule.waitUntil(10_000L) {
-            composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
-        }
-        advanceUntilIdle()
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
     }
+
+    // 2. Enter the Event Chat
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
+    }
+    composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).onFirst().performClick()
+
+    // 3. Verify Bob's Message exists
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onAllNodes(hasText(BOB_MESSAGE)).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // 4. Send Alice's Reply
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD).isDisplayed()
+    }
+
+    composeTestRule
+        .onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD)
+        .performClick()
+        .performTextInput(ALICE_MESSAGE)
+
+    composeTestRule.onNodeWithTag(SendMessageInputTestTags.SEND_BUTTON).performClick()
+
+    // 5. Verify Alice's message appears
+    composeTestRule.waitUntil(2_000L) {
+      composeTestRule.onAllNodes(hasText(ALICE_MESSAGE)).fetchSemanticsNodes().isNotEmpty()
+    }
+  }
+
+  private fun logoutAndWait() = runTest {
+    // 1. Navigate to Profile
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).isDisplayed()
+    }
+
+    // 2. Open Settings
+    val uid = Firebase.auth.currentUser!!.uid
+    composeTestRule.onNodeWithTag("${ProfileContentTestTags.SETTINGS_BUTTON}_$uid").performClick()
+
+    // 3. Click Logout in Bottom Menu
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.LOGOUT_BUTTON).performClick()
+
+    // 4. Wait for the Dialog to appear
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule
+          .onAllNodes(hasText("Are you sure you want to log out?"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // 5. Click "Logout" in the Dialog
+    composeTestRule.onAllNodes(hasText("Logout")).onLast().performClick()
+
+    // 6. Wait for the Welcome Screen
+    composeTestRule.waitUntil(10_000L) {
+      composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
+    }
+    advanceUntilIdle()
+  }
+
+  private fun openChatAndSendMessage(msg: String) = runTest {
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
+    }
+    composeTestRule.mainClock.advanceTimeBy(5_000L)
+
+    composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
+    }
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
+    }
+    composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).onFirst().performClick()
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD).isDisplayed()
+    }
+
+    composeTestRule
+        .onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD)
+        .performClick()
+        .performTextInput(msg)
+
+    composeTestRule.onNodeWithTag(SendMessageInputTestTags.SEND_BUTTON).performClick()
+
+    advanceUntilIdle()
+  }
+
+  private fun loginAndWait(email: String, pass: String) = runTest {
+    composeTestRule.waitUntil(10_000L) {
+      composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.WELCOME_BOX).isDisplayed()
+    }
+    composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.JOIN_BUTTON).performClick()
+    composeTestRule.onNodeWithTagWithUnmergedTree(FormTestTags.EMAIL_FIELD).performTextInput(email)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+
+    composeTestRule.waitUntil(60_000L) {
+      composeTestRule.onNodeWithTagWithUnmergedTree(SignInScreenTestTags.PASSWORD_BOX).isDisplayed()
+    }
+    composeTestRule
+        .onNodeWithTagWithUnmergedTree(FormTestTags.PASSWORD_FIELD)
+        .performTextInput(pass)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+
+    composeTestRule.waitUntil(30_000L) {
+      composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
+    }
+    advanceUntilIdle()
+    composeTestRule.waitUntil(15_000L) {
+      composeTestRule.onNodeWithTagWithUnmergedTree(MapScreenTestTags.INTERACTABLE).isDisplayed()
+    }
+  }
+
+  private fun createEvent() = runTest {
+    composeTestRule.waitUntil(10_000L) {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
+    }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
+
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule
+                .onAllNodesWithTag(
+                    MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+                .onFirst()
+                .assertExists()
+          }
+          .isSuccess
+    }
+    composeTestRule
+        .onAllNodesWithTag(
+            MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
+        .onFirst()
+        .performClick()
+
+    composeTestRule.waitUntil(10_000L) {
+      runCatching {
+            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
+          }
+          .isSuccess
+    }
+
+    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
+      down(center)
+      advanceEventTime(1_000)
+    }
+    composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
+      up()
+    }
+
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
+    }
+
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).performClick()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).performClick()
+
+    nextMonth(composeTestRule)
+    selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
+    pressOKDate(composeTestRule)
+
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
+        .performTextInput(TIME_INPUT)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+        .performTextInput(FAKE_EVENT.title)
+    composeTestRule
+        .onNodeWithTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+        .performTextInput(FAKE_EVENT.description!!)
+
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+
+    composeTestRule.waitUntil(10_000L) {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
+    }
+    advanceUntilIdle()
+  }
 }
