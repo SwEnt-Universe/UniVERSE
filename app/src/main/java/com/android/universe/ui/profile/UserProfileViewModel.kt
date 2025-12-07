@@ -111,6 +111,8 @@ class UserProfileViewModel(
             participants = event.participants.size,
             location = event.location,
             isPrivate = event.isPrivate,
+            index = event.id.hashCode(),
+            joined = true,
             eventPicture = event.eventPicture)
       }
 

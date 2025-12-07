@@ -84,14 +84,24 @@ class UserProfileViewModelTest {
     eventRepository.addEvent(incomingEvent)
     eventRepository.addEvent(historyEvent)
     advanceUntilIdle()
+
     viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
     advanceUntilIdle()
 
     val state = viewModel.userState.value
+
     assertEquals("Should have 1 incoming event", 1, state.incomingEvents.size)
     assertEquals("Should have 1 history event", 1, state.historyEvents.size)
-    assertEquals(incomingEvent, state.incomingEvents.first())
-    assertEquals(historyEvent, state.historyEvents.first())
+
+    val actualIncoming = state.incomingEvents.first()
+    assertEquals(incomingEvent.id, actualIncoming.id)
+    assertEquals(incomingEvent.title, actualIncoming.title)
+    assertEquals(incomingEvent.date, actualIncoming.date)
+
+    val actualHistory = state.historyEvents.first()
+    assertEquals(historyEvent.id, actualHistory.id)
+    assertEquals(historyEvent.title, actualHistory.title)
+    assertEquals(historyEvent.date, actualHistory.date)
   }
 
   @Test

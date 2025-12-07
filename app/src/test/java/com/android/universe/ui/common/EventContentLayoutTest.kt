@@ -34,7 +34,8 @@ class EventContentLayoutTest {
       eventId: String = defaultEventId,
       title: String = defaultTitle,
       description: String? = defaultDescription,
-      isUserParticipant: Boolean = true
+      isUserParticipant: Boolean = true,
+      isPrivate: Boolean = false
   ) {
     composeTestRule.setContentWithStubBackdrop {
       EventContentLayout(
@@ -47,6 +48,7 @@ class EventContentLayoutTest {
           creator = "Test Creator",
           imageContent = { Box(Modifier.testTag("FAKE_IMAGE")) },
           isUserParticipant = isUserParticipant,
+          isPrivate = isPrivate,
           onToggleEventParticipation = { participationClicked = true },
           onChatClick = { chatClicked = true })
     }
