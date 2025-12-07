@@ -90,7 +90,9 @@ class ImageDisplayTest {
   fun imageDisplay_showsDefaultImage_whenImageIsNull() {
     val contentDesc = "Default Profile Picture"
 
-    composeTestRule.setContentWithStubBackdrop { ImageDisplay(image = null, contentDescription = contentDesc) }
+    composeTestRule.setContentWithStubBackdrop {
+      ImageDisplay(image = null, contentDescription = contentDesc)
+    }
 
     composeTestRule.onNodeWithContentDescription(contentDesc).assertIsDisplayed()
   }

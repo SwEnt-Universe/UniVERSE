@@ -49,19 +49,23 @@ fun ImageDisplay(
 
   val targetBitmap = imageBitmap
 
-  LiquidBox(modifier = modifier, enableLens = false, shape = CardShape,contentAlignment = Alignment.Center) {
-    if (targetBitmap != null) {
-      Image(
-          bitmap = targetBitmap,
-          contentDescription = contentDescription,
-          contentScale = contentScale,
-          modifier = Modifier.fillMaxSize())
-    } else {
-      Icon(
-          imageVector = Icons.Outlined.Image,
-          contentDescription = contentDescription,
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(Padding2XL))
-    }
-  }
+  LiquidBox(
+      modifier = modifier,
+      enableLens = false,
+      shape = CardShape,
+      contentAlignment = Alignment.Center) {
+        if (targetBitmap != null) {
+          Image(
+              bitmap = targetBitmap,
+              contentDescription = contentDescription,
+              contentScale = contentScale,
+              modifier = Modifier.fillMaxSize())
+        } else {
+          Icon(
+              imageVector = Icons.Outlined.Image,
+              contentDescription = contentDescription,
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier = Modifier.size(Padding2XL))
+        }
+      }
 }

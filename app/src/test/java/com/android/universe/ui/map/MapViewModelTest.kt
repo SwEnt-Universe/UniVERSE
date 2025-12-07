@@ -22,6 +22,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -43,7 +44,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -450,18 +450,22 @@ class MapViewModelTest {
     viewModel.selectEvent(testEvent)
     advanceUntilIdle()
 
-    assertEquals(MapViewModel.EventSelectionState.Selected(testEvent, eventCreator), viewModel.selectedEvent.value)
+    assertEquals(
+        MapViewModel.EventSelectionState.Selected(testEvent, eventCreator),
+        viewModel.selectedEvent.value)
   }
 
   @Test
   fun `onMarkerClick selects the event`() = runTest {
     val testEvent = EventTestData.dummyEvent1
-      val eventCreator = UserTestData.Bob.username
+    val eventCreator = UserTestData.Bob.username
     coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
-  viewModel.onMarkerClick(testEvent)
+    viewModel.onMarkerClick(testEvent)
     advanceUntilIdle()
 
-    assertEquals(MapViewModel.EventSelectionState.Selected(testEvent, eventCreator), viewModel.selectedEvent.value)
+    assertEquals(
+        MapViewModel.EventSelectionState.Selected(testEvent, eventCreator),
+        viewModel.selectedEvent.value)
   }
 
   @Test
@@ -481,12 +485,13 @@ class MapViewModelTest {
 
     coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
     val selectedEventState = viewModel.selectedEvent.value
-    val (selectedEvent, creator) = selectedEventState.let {
-        when (it) {
+    val (selectedEvent, creator) =
+        selectedEventState.let {
+          when (it) {
             is MapViewModel.EventSelectionState.None -> Pair(null, null)
             is MapViewModel.EventSelectionState.Selected -> Pair(it.event, it.creator)
+          }
         }
-    }
 
     assertEquals(updatedEvent, selectedEvent)
     assertEquals(eventCreator, creator)
