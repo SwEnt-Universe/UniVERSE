@@ -36,8 +36,10 @@ import kotlinx.coroutines.launch
  * @property creator The name of the event creator.
  * @property participants The number of participants in the event.
  * @property location The location of the event.
+ * @param isPrivate Whether the event is private.
  * @property index The index of the event in the list.
  * @property joined Whether the current user has joined the event.
+ * @param eventPicture The picture of the event.
  */
 data class EventUIState(
     val id: String = "",
@@ -221,6 +223,7 @@ class EventViewModel(
    * @param user The creator of the event.
    * @param index The index of the event in the list.
    * @param joined Whether the current user has joined the event.
+   * @param isPrivate Whether the event is private..
    */
   private fun Event.toUIState(
       user: UserProfile?,

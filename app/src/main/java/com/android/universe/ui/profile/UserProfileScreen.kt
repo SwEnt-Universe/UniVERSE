@@ -80,6 +80,8 @@ object UserProfileScreenTestTags {
  * @param uid The unique identifier of the user to display.
  * @param onTabSelected Callback invoked when a bottom navigation tab is selected.
  * @param onEditProfileClick Callback invoked when the user clicks the "Edit Profile" button.
+ * @param onChatNavigate Callback invoked when a chat button is clicked.
+ * @param onCardClick Callback invoked when a card is clicked.
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
  */

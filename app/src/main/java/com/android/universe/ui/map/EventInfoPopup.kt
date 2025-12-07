@@ -37,6 +37,7 @@ import java.time.LocalDateTime
  * @param creator The name of the event creator.
  * @param isUserParticipant Boolean indicating if the user is a participant of the event.
  * @param onDismiss Callback function invoked when the popup is dismissed.
+ * @param onChatNavigate Callback function invoked when the user clicks on the chat button.
  * @param onToggleEventParticipation Callback function invoked when the user toggles their
  *   participation status.
  */
