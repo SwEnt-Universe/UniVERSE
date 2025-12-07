@@ -1,5 +1,7 @@
 package com.android.universe.ui.search
 
+import com.android.universe.model.tag.Tag
+
 /**
  * A simple fuzzy-search utility used to filter based on approximate matches.
  *
@@ -43,5 +45,17 @@ object SearchEngine {
       }
     }
     return dp[a.length][b.length]
+  }
+
+  /**
+   * Checks if a set of tags contains at least one tag from each category in a given set of categories.
+   * @param tags The set of tags to check.
+   * @param query The set of categories to check for.
+   * @return `true` if the set of tags contains at least one tag from each category in the query.
+   */
+  fun tagMatch(tags: Set<Tag>, query: Set<Tag.Category>): Boolean{
+    return query.all { requiredCategory ->
+      tags.any { it.category == requiredCategory }
+    }
   }
 }
