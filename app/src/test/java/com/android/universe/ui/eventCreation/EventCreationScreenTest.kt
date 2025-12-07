@@ -1,13 +1,18 @@
 package com.android.universe.ui.eventCreation
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.di.DefaultDP
@@ -93,6 +98,7 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.PRIVACY_TOGGLE).assertIsDisplayed()
   }
 
   @Test
@@ -146,6 +152,23 @@ class EventCreationScreenTest {
     viewModel.deleteImage()
 
     assert(viewModel.uiStateEventCreation.value.eventPicture == null)
+  }
+
+  @Test
+  fun eventCreationScreen_privacyToggle_works() {
+    assert(!viewModel.uiStateEventCreation.value.isPrivate)
+
+    val switchMatcher = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Switch)
+
+    composeTestRule.onNode(switchMatcher).performTouchInput { click() }
+    composeTestRule.waitForIdle()
+
+    assert(viewModel.uiStateEventCreation.value.isPrivate)
+
+    composeTestRule.onNode(switchMatcher).performTouchInput { click() }
+    composeTestRule.waitForIdle()
+
+    assert(!viewModel.uiStateEventCreation.value.isPrivate)
   }
 
   @Test
