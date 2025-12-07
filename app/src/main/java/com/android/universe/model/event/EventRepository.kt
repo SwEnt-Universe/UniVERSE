@@ -10,11 +10,13 @@ import com.android.universe.model.user.UserProfile
 interface EventRepository {
 
   /**
-   * Retrieves all events.
+   * Retrieves all events currently stored in the repository, filtered by visibility.
    *
-   * @return a list of all [Event] objects.
+   * @param requestorId the ID of the user requesting the events.
+   * @param usersRequestorFollows the set of user IDs that the requestor follows.
+   * @return a list of [Event] objects visible to the requestor.
    */
-  suspend fun getAllEvents(): List<Event>
+  suspend fun getAllEvents(requestorId: String, usersRequestorFollows: Set<String>): List<Event>
 
   /**
    * Retrieves a single event by its ID.
@@ -25,12 +27,17 @@ interface EventRepository {
   suspend fun getEvent(eventId: String): Event
 
   /**
-   * Retrieves suggested events for a given user based on their profile (tags).
+   * Retrieves suggested events for a given user based on their profile (tags), filtered by
+   * visibility.
    *
    * @param user the [UserProfile] for whom to suggest events.
-   * @return a list of suggested [Event] objects.
+   * @param usersRequestorFollows the set of user IDs that the requestor follows.
+   * @return a list of suggested [Event] objects visible to the requestor.
    */
-  suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event>
+  suspend fun getSuggestedEventsForUser(
+      user: UserProfile,
+      usersRequestorFollows: Set<String>
+  ): List<Event>
 
   /**
    * Retrieves all events where the specific user is a participant.

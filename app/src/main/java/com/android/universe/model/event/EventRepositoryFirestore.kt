@@ -78,6 +78,7 @@ class EventRepositoryFirestore(
         "title" to event.title,
         "description" to event.description,
         "date" to event.date.toString(),
+        "isPrivate" to event.isPrivate,
         "tags" to event.tags.map { it.ordinal },
         "participants" to event.participants.toList(),
         "creator" to event.creator,
@@ -112,6 +113,7 @@ class EventRepositoryFirestore(
           description = doc.getString("description"),
           date = doc.getString("date")?.let { LocalDateTime.parse(it) } ?: LocalDateTime.now(),
           tags = tagsList.map { ordinal -> Tag.entries[ordinal.toInt()] }.toSet(),
+          isPrivate = doc.getBoolean("isPrivate") ?: false,
           creator = doc.getString("creator") ?: "",
           participants = participantsList.toSet(),
           location = mapToLocation(locationMap),
@@ -123,17 +125,29 @@ class EventRepositoryFirestore(
   }
 
   /**
-   * Retrieves all events currently stored in the repository.
+   * Retrieves all events currently stored in the repository, filtered by visibility.
    *
-   * @return a list of [Event] objects.
+   * An event is included only if it is public, or if it is private and the requestor is the creator
+   * or follows the creator.
+   *
+   * @param requestorId the ID of the user requesting the events.
+   * @param usersRequestorFollows the set of user IDs that the requestor follows.
+   * @return a list of [Event] objects visible to the requestor.
    */
-  override suspend fun getAllEvents(): List<Event> {
+  override suspend fun getAllEvents(
+      requestorId: String,
+      usersRequestorFollows: Set<String>
+  ): List<Event> {
     val events = ArrayList<Event>()
     val querySnapshot =
         withContext(ioDispatcher) { db.collection(EVENTS_COLLECTION_PATH).get().await() }
     for (document in querySnapshot.documents) {
       val event = documentToEvent(document)
-      events.add(event)
+      if (!event.isPrivate ||
+          event.creator == requestorId ||
+          usersRequestorFollows.contains(event.creator)) {
+        events.add(event)
+      }
     }
     return events
   }
@@ -158,14 +172,28 @@ class EventRepositoryFirestore(
   }
 
   /**
-   * Retrieves suggested events for a given user based on their profile (tags).
+   * Retrieves suggested events for a given user based on their profile (tags), filtered by
+   * visibility.
+   *
+   * Filters events first by privacy (isPublic OR isCreator OR followsCreator) and then ranks them
+   * based on the number of matching tags with the user's profile.
    *
    * @param user the [UserProfile] for whom to suggest events.
-   * @return a list of suggested [Event] objects.
+   * @param usersRequestorFollows the set of user IDs that the requestor follows.
+   * @return a list of suggested [Event] objects visible to the requestor.
    */
-  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
+  override suspend fun getSuggestedEventsForUser(
+      user: UserProfile,
+      usersRequestorFollows: Set<String>
+  ): List<Event> {
     val matchedEvents = getEventsMatchingUserTags(user)
-    val rankedEvents = rankEventsByTagMatch(user, matchedEvents)
+    val visibleEvents =
+        matchedEvents.filter { event ->
+          !event.isPrivate ||
+              event.creator == user.uid ||
+              usersRequestorFollows.contains(event.creator)
+        }
+    val rankedEvents = rankEventsByTagMatch(user, visibleEvents)
     return rankedEvents.take(50).map { it.first }
   }
 
