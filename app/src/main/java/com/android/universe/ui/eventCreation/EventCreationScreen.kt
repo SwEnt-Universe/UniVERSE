@@ -49,6 +49,7 @@ import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.components.LiquidToggle
 import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
@@ -70,6 +71,7 @@ object EventCreationTestTags {
   const val AI_PROMPT_TEXT_FIELD = "AiPromptTextField"
   const val AI_REVIEW_TITLE_FIELD = "AiReviewTitleField"
   const val AI_REVIEW_DESCRIPTION_FIELD = "AiReviewDescriptionField"
+  const val PRIVACY_TOGGLE = "PrivacyToggle"
 }
 
 object EventCreationDefaults {
@@ -350,6 +352,22 @@ fun StandardEventCreationForm(
                               } else {
                                 ValidationState.Neutral
                               })
+                      Row(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(vertical = Dimensions.PaddingMedium)
+                                  .testTag(EventCreationTestTags.PRIVACY_TOGGLE),
+                          verticalAlignment = Alignment.CenterVertically,
+                          horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = "Private Event (followers only)",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground)
+
+                            LiquidToggle(
+                                selected = { uiState.isPrivate },
+                                onSelect = { eventCreationViewModel.setPrivacy(it) })
+                          }
                     }
               }
         }
