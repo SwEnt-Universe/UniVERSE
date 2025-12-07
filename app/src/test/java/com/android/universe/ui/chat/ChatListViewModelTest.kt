@@ -64,7 +64,7 @@ class ChatListViewModelTest {
         val e2 = EventTestData.dummyEvent2.copy(participants = setOf("y", userId))
         val e3 = EventTestData.dummyEvent3.copy(participants = setOf("nobody"))
 
-        coEvery { mockEventRepository.getAllEvents() } returns listOf(e1, e2, e3)
+        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(e1, e2, e3)
 
         coEvery { ChatManager.loadChat(any()) } answers
             {
@@ -104,7 +104,7 @@ class ChatListViewModelTest {
       testScope.runTest {
         val event = EventTestData.dummyEvent1.copy(participants = setOf(userId))
 
-        coEvery { mockEventRepository.getAllEvents() } returns listOf(event)
+        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(event)
 
         // Stub loadChat to throw
         coEvery { ChatManager.loadChat(event.id) } throws NoSuchElementException()
@@ -133,7 +133,7 @@ class ChatListViewModelTest {
         val e2 = EventTestData.dummyEvent2.copy(participants = setOf("c"))
         val e3 = EventTestData.dummyEvent3.copy(participants = setOf("d"))
 
-        coEvery { mockEventRepository.getAllEvents() } returns listOf(e1, e2, e3)
+        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(e1, e2, e3)
 
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
