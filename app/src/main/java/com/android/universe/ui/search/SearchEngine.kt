@@ -48,14 +48,14 @@ object SearchEngine {
   }
 
   /**
-   * Checks if a set of tags contains at least one tag from each category in a given set of categories.
+   * Checks if a set of tags contains at least one tag from each category in a given set of
+   * categories.
+   *
    * @param tags The set of tags to check.
    * @param query The set of categories to check for.
    * @return `true` if the set of tags contains at least one tag from each category in the query.
    */
-  fun tagMatch(tags: Set<Tag>, query: Set<Tag.Category>): Boolean{
-    return query.all { requiredCategory ->
-      tags.any { it.category == requiredCategory }
-    }
+  fun tagMatch(tags: Set<Tag>, query: Set<Tag.Category>): Boolean {
+    return query.all { requiredCategory -> tags.any { it.category == requiredCategory } }
   }
 }
