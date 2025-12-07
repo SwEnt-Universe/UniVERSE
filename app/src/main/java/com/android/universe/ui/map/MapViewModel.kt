@@ -45,6 +45,7 @@ import com.tomtom.sdk.map.display.map.OnlineCachePolicy
 import com.tomtom.sdk.map.display.marker.Marker
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
+import com.tomtom.sdk.map.display.style.StyleMode
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
@@ -69,6 +70,11 @@ private const val KEY_CAMERA_ZOOM = "camera_zoom"
 private const val CACHE_SIZE = 50L * 1024 * 1024
 private const val DEFAULT_ZOOM = 15.0
 private const val DEFAULT_TILT = 45.0
+
+private const val LIGHT_STYLE =
+    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
+private const val DARK_STYLE =
+    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTuOfCEvj1xLZYKOA_LMlky3/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
 
 /** UI state for the Map screen. */
 data class MapUiState(
@@ -116,6 +122,7 @@ class MapViewModel(
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
     private val ai: AIEventGen = OpenAIProvider.eventGen,
+    private val isDarkTheme: Boolean = false
 ) : ViewModel() {
 
   private val _uiState =
@@ -137,9 +144,15 @@ class MapViewModel(
   /** List of events to display as markers. */
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
-  private val _selectedEvent = MutableStateFlow<Event?>(null)
+  sealed interface EventSelectionState {
+    data object None : EventSelectionState
+
+    data class Selected(val event: Event, val creator: String) : EventSelectionState
+  }
+
+  private val _selectedEvent = MutableStateFlow<EventSelectionState>(EventSelectionState.None)
   /** The currently selected event, if any. */
-  val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+  val selectedEvent: StateFlow<EventSelectionState> = _selectedEvent.asStateFlow()
 
   // Map & Location Internal State
   @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
@@ -188,10 +201,7 @@ class MapViewModel(
       val mapOptions =
           MapOptions(
               mapKey = BuildConfig.TOMTOM_API_KEY,
-              mapStyle =
-                  StyleDescriptor(
-                      "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
-                          .toUri()),
+              mapStyle = StyleDescriptor(uri = LIGHT_STYLE.toUri(), darkUri = DARK_STYLE.toUri()),
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
       tomtomMapView = MapView(applicationContext, mapOptions)
@@ -224,6 +234,7 @@ class MapViewModel(
   fun onMapReady(map: TomTomMap) {
     tomTomMap = map
     map.apply {
+      if (isDarkTheme) setStyleMode(StyleMode.DARK)
       setInitialCamera(uiState.value.cameraPosition, uiState.value.zoomLevel)
       setAntialiasingMethod(AntialiasingMethod.FastApproximateAntialiasing)
       setUpMapListeners(
@@ -514,22 +525,6 @@ class MapViewModel(
     }
   }
 
-  /**
-   * Fetches a username asynchronously.
-   *
-   * @param uid The user ID to fetch.
-   * @return The username (Note: returns default "" immediately as launch is async).
-   */
-  fun getEventCreatorUsername(uid: String): String {
-    var username = ""
-    viewModelScope.launch {
-      val user = userRepository.getUser(uid)
-      username = user.username
-      return@launch
-    }
-    return username
-  }
-
   /** Handles a click on an event marker. */
   fun onMarkerClick(event: Event) {
     selectEvent(event)
@@ -537,7 +532,12 @@ class MapViewModel(
 
   /** Sets the currently active event in the state. */
   fun selectEvent(event: Event?) {
-    viewModelScope.launch { _selectedEvent.emit(event) }
+    viewModelScope.launch {
+      if (event == null) _selectedEvent.emit(EventSelectionState.None)
+      else
+          _selectedEvent.emit(
+              EventSelectionState.Selected(event, userRepository.getUser(event.creator).username))
+    }
   }
 
   /**
@@ -559,7 +559,10 @@ class MapViewModel(
         eventRepository.updateEvent(event.id, updatedEvent)
 
         // Update the selected event to reflect the change
-        _selectedEvent.value = updatedEvent
+        _selectedEvent.update {
+          it as EventSelectionState.Selected
+          it.copy(event = updatedEvent)
+        }
       } catch (e: NoSuchElementException) {
         _uiState.update { it.copy(error = "No event ${event.title} found") }
       }

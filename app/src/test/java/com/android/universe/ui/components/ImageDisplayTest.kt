@@ -3,12 +3,13 @@ package com.android.universe.ui.components
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.utils.setContentWithStubBackdrop
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
+@RunWith(AndroidJUnit4::class)
 class ImageDisplayTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -89,7 +90,7 @@ class ImageDisplayTest {
   fun imageDisplay_showsDefaultImage_whenImageIsNull() {
     val contentDesc = "Default Profile Picture"
 
-    composeTestRule.setContent { ImageDisplay(image = null, contentDescription = contentDesc) }
+    composeTestRule.setContentWithStubBackdrop { ImageDisplay(image = null, contentDescription = contentDesc) }
 
     composeTestRule.onNodeWithContentDescription(contentDesc).assertIsDisplayed()
   }
@@ -98,7 +99,7 @@ class ImageDisplayTest {
   fun imageDisplay_showsBitmap_whenImageIsNotNull() {
     val contentDesc = "User Profile Picture"
 
-    composeTestRule.setContent {
+    composeTestRule.setContentWithStubBackdrop {
       ImageDisplay(image = validPngBytes, contentDescription = contentDesc)
     }
 

@@ -1,7 +1,6 @@
 package com.android.universe.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.android.universe.di.DefaultDP
+import com.android.universe.ui.theme.CardShape
 import com.android.universe.ui.theme.Dimensions.Padding2XL
 import com.android.universe.ui.utils.toImageBitmap
 import kotlinx.coroutines.CoroutineDispatcher
@@ -49,7 +49,7 @@ fun ImageDisplay(
 
   val targetBitmap = imageBitmap
 
-  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+  LiquidBox(modifier = modifier, enableLens = false, shape = CardShape,contentAlignment = Alignment.Center) {
     if (targetBitmap != null) {
       Image(
           bitmap = targetBitmap,

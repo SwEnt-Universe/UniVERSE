@@ -1,6 +1,7 @@
 package com.android.universe.ui.map
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.android.universe.model.event.EventRepositoryProvider
@@ -17,7 +18,10 @@ class MapViewModelFactory(private val context: Context) : ViewModelProvider.Fact
           prefs = context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           locationRepository = TomTomLocationRepository(context),
           eventRepository = EventRepositoryProvider.repository,
-          userRepository = UserRepositoryProvider.repository)
+          userRepository = UserRepositoryProvider.repository,
+          isDarkTheme =
+              context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                  Configuration.UI_MODE_NIGHT_YES)
           as T
     }
     throw IllegalArgumentException("Unknown ViewModel class")

@@ -181,16 +181,18 @@ fun MapScreen(
             }
           }
 
-          selectedEvent?.let { event ->
-            EventInfoPopup(
-                modifier = Modifier.padding(padding),
-                event = event,
-                creator = viewModel.getEventCreatorUsername(event.creator),
-                onDismiss = { viewModel.selectEvent(null) },
-                onChatNavigate = onChatNavigate,
-                isUserParticipant = viewModel.isUserParticipant(event),
-                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+          selectedEvent.let {
+            if (it is MapViewModel.EventSelectionState.Selected)
+                EventInfoPopup(
+                    modifier = Modifier.padding(padding),
+                    event = it.event,
+                    creator = it.creator,
+                    onDismiss = { viewModel.selectEvent(null) },
+                    onChatNavigate = onChatNavigate,
+                    isUserParticipant = viewModel.isUserParticipant(it.event),
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
           }
+
           MapCreateEventModal(
               isPresented = showMapModal,
               onDismissRequest = { showMapModal = false },
