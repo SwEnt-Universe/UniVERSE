@@ -2,10 +2,11 @@ package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
@@ -66,27 +67,29 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
   companion object {
     // User 1: Bob
     var bobUser = UserTestData.Bob
-    const val BOB_EMAIL = UserTestData.bobEmail
-    const val BOB_PASS = UserTestData.bobPassword
     const val BOB_MESSAGE = "Hello from Bob!"
 
     // User 2: Alice
     var aliceUser = UserTestData.Alice
-    const val ALICE_EMAIL = UserTestData.aliceEmail
-    const val ALICE_PASS = UserTestData.alicePassword
     const val ALICE_MESSAGE = "Hello Bob, Alice here!"
 
     val FAKE_EVENT = EventTestData.futureEventNoTags
     const val TIME_INPUT = "13:25"
   }
 
-  @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
   @get:Rule
   val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)
 
   private lateinit var mapViewModel: MapViewModel
   private lateinit var context: Context
+
+  private lateinit var bobEmail: String
+  private lateinit var bobUid: String
+  private lateinit var aliceEmail: String
+  private lateinit var aliceUid: String
+
 
   @Before
   override fun setUp() {
@@ -99,13 +102,21 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     every { DefaultDP.main } returns Dispatchers.Main
 
     runTest {
-      val bobUid = createTestUser(bobUser, BOB_EMAIL, BOB_PASS)
+      // Create independent e-mail address
+      createRandomTestUser(bobUser).let {
+          bobEmail = it.first
+          bobUid = it.second
+      }
       bobUser = bobUser.copy(uid = bobUid)
       UserRepositoryProvider.repository.addUser(bobUser)
 
-      val aliceUid = createTestUser(aliceUser, ALICE_EMAIL, ALICE_PASS)
+      createRandomTestUser(aliceUser).let {
+          aliceEmail = it.first
+          aliceUid = it.second
+      }
       aliceUser = aliceUser.copy(uid = aliceUid)
       UserRepositoryProvider.repository.addUser(aliceUser)
+      advanceUntilIdle()
 
       Firebase.auth.signOut()
       advanceUntilIdle()
@@ -123,14 +134,14 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
   fun createEventAndSendChatMessage() {
     // Bob
     // Login -> Create Event -> Send Message -> Log out
-    loginAndWait(BOB_EMAIL, BOB_PASS)
+    loginAndWait(bobEmail, PASSWORD)
     createEvent()
     openChatAndSendMessage(BOB_MESSAGE)
     logoutAndWait()
 
     // Alice
     // Login -> Join Event -> Reply in Chat
-    loginAndWait(ALICE_EMAIL, ALICE_PASS)
+    loginAndWait(aliceEmail, PASSWORD)
     joinEventAsAlice()
     openChatVerifyAndReply()
   }
@@ -171,8 +182,10 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     }
 
     composeTestRule
-        .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
-        .performClick()
+        .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).performTouchInput {
+            click(center)
+            advanceEventTime(1_000L)
+        }
 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule
@@ -190,6 +203,10 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
           .onAllNodesWithTag(MapScreenTestTags.EVENT_INFO_POPUP)
           .fetchSemanticsNodes()
           .isEmpty()
+    }
+
+    composeTestRule.waitUntil(5_000L) {
+        composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
     }
 
     advanceUntilIdle()
