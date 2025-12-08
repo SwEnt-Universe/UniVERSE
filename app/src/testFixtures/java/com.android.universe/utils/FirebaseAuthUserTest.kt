@@ -12,12 +12,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.junit.Before
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Base class for tests that require both Firebase Auth and Firestore emulators. Combines
@@ -145,11 +145,11 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
   open fun setUp() {
     FirebaseApp.initializeApp(ApplicationProvider.getApplicationContext())
     emulator.connect(isRobolectric)
-      runBlocking {
-          clearFirestoreUsers()
-          clearTestCollection()
-          clearAuthUsers()
-      }
-      Firebase.auth.signOut()
+    runBlocking {
+      clearFirestoreUsers()
+      clearTestCollection()
+      clearAuthUsers()
+    }
+    Firebase.auth.signOut()
   }
 }

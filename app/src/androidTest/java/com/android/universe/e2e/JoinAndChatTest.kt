@@ -165,17 +165,23 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
 
     // 4. Click "Join" inside the Popup
     composeTestRule.waitUntil(5_000L) {
-        composeTestRule.onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).isDisplayed()
+      composeTestRule
+          .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
+          .isDisplayed()
     }
 
-    composeTestRule.onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).performClick()
+    composeTestRule
+        .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
+        .performClick()
 
     composeTestRule.waitUntil(5_000L) {
-        composeTestRule.onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).hasText("Leave")
+      composeTestRule
+          .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
+          .hasText("Leave")
     }
     // 5. Dismiss Popup
     composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).performTouchInput {
-        click(topRight)
+      click(topRight)
     }
 
     // 6. Wait for Dismissal

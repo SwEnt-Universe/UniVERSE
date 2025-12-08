@@ -21,9 +21,12 @@ object CustomComposeSemantics {
     }
   }
 
-    fun SemanticsNodeInteraction.hasText(
-        value: String,
-        substring: Boolean = false,
-        ignoreCase: Boolean = false,
-    ): Boolean = androidx.compose.ui.test.hasText(value, substring = substring, ignoreCase = ignoreCase).matches(this.fetchSemanticsNode())
+  fun SemanticsNodeInteraction.hasText(
+      value: String,
+      substring: Boolean = false,
+      ignoreCase: Boolean = false,
+  ): Boolean =
+      androidx.compose.ui.test
+          .hasText(value, substring = substring, ignoreCase = ignoreCase)
+          .matches(this.fetchSemanticsNode())
 }
