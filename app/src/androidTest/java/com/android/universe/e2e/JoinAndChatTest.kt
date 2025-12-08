@@ -6,7 +6,6 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
@@ -22,6 +21,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.chat.ChatListScreenTestTags
 import com.android.universe.ui.chat.composable.SendMessageInputTestTags
+import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.FormTestTags
 import com.android.universe.ui.common.ProfileContentTestTags
 import com.android.universe.ui.common.UniverseBackgroundContainer
@@ -35,6 +35,8 @@ import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.signIn.SignInScreenTestTags
 import com.android.universe.ui.theme.UniverseTheme
+import com.android.universe.utils.CustomComposeSemantics.hasTestTagPrefix
+import com.android.universe.utils.CustomComposeSemantics.hasText
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.FirebaseAuthUserTest
 import com.android.universe.utils.UserTestData
@@ -47,6 +49,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import io.mockk.every
 import io.mockk.mockkObject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -93,7 +96,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     mockkObject(DefaultDP)
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
-    every { DefaultDP.main } returns UnconfinedTestDispatcher()
+    every { DefaultDP.main } returns Dispatchers.Main
 
     runTest {
       val bobUid = createTestUser(bobUser, BOB_EMAIL, BOB_PASS)
@@ -162,20 +165,17 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
 
     // 4. Click "Join" inside the Popup
     composeTestRule.waitUntil(5_000L) {
-      composeTestRule
-          .onAllNodesWithContentDescription("Toggle Participation", useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
+        composeTestRule.onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).isDisplayed()
     }
 
-    composeTestRule
-        .onAllNodesWithContentDescription("Toggle Participation", useUnmergedTree = true)
-        .onFirst()
-        .performClick()
+    composeTestRule.onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).performClick()
 
+    composeTestRule.waitUntil(5_000L) {
+        composeTestRule.onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).hasText("Leave")
+    }
     // 5. Dismiss Popup
     composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).performTouchInput {
-      click(percentOffset(0.5f, 0.1f))
+        click(topRight)
     }
 
     // 6. Wait for Dismissal
