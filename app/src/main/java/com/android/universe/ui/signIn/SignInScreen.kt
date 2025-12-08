@@ -169,6 +169,7 @@ fun Layout(
     content: @Composable () -> Unit
 ) {
   ScreenLayout(
+      modifier = modifier,
       bottomBar = {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { bottomBar() }
       }) { paddingValues ->
