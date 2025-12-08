@@ -72,6 +72,7 @@ object EventCreationTestTags {
   const val AI_REVIEW_TITLE_FIELD = "AiReviewTitleField"
   const val AI_REVIEW_DESCRIPTION_FIELD = "AiReviewDescriptionField"
   const val PRIVACY_TOGGLE = "PrivacyToggle"
+  const val PRIVACY_SWITCH = "PrivacySwitch"
 }
 
 object EventCreationDefaults {
@@ -365,6 +366,7 @@ fun StandardEventCreationForm(
                                 color = MaterialTheme.colorScheme.onBackground)
 
                             LiquidToggle(
+                                modifier = Modifier.testTag(EventCreationTestTags.PRIVACY_SWITCH),
                                 selected = { uiState.isPrivate },
                                 onSelect = { eventCreationViewModel.setPrivacy(it) })
                           }
