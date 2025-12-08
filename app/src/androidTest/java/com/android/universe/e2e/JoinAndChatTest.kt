@@ -2,11 +2,9 @@ package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
-import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
