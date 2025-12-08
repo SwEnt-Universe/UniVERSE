@@ -304,9 +304,11 @@ class EventViewModel(
       combine(eventsState, _searchQuery, _categories) { events, query, cats ->
             val filtered =
                 filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags.toSet(), cats) }
-            val comparator =
-                categoryCoverageComparator<EventUIState>(cats) { state -> state.tags.toSet() }
-            filtered.sortedWith(comparator).reversed()
+            if (cats.isNotEmpty()) { // don't waste performance on sorting if it's not filtered
+              val comparator =
+                  categoryCoverageComparator<EventUIState>(cats) { state -> state.tags.toSet() }
+              filtered.sortedWith(comparator).reversed()
+            } else filtered
           }
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }
