@@ -40,6 +40,7 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
+import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.map.OnlineCachePolicy
 import com.tomtom.sdk.map.display.marker.Marker
@@ -160,6 +161,7 @@ class MapViewModel(
   private val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
   private val markerToEvent = mutableMapOf<String, Event>()
   private lateinit var currentUserId: String
+  private var longClickListener: MapLongClickListener? = null
 
   // Jobs
   private var locationTrackingJob: Job? = null
@@ -174,15 +176,11 @@ class MapViewModel(
   fun init(uid: String, locationSelectedCallback: (Double, Double) -> Unit) {
     currentUserId = uid
     // Re-attach listener if map is already interactive (e.g., config change)
-    if (uiState.value.isMapInteractive && tomTomMap != null) {
-      tomTomMap!!.setMapLongClickListener(
-          mode = uiState.value.mapMode,
-          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
-          onLocationSelected = locationSelectedCallback)
-    }
+    updateLongClickListener(locationSelectedCallback)
     loadAllEvents()
     startEventPolling()
   }
+
 
   override fun onCleared() {
     super.onCleared()
@@ -346,14 +344,26 @@ class MapViewModel(
       onMapLongClick: (GeoPoint) -> Unit,
       onLocationSelected: (Double, Double) -> Unit
   ) {
-    this.addMapLongClickListener { geoPoint ->
-      when (mode) {
-        MapMode.NORMAL -> onMapLongClick(geoPoint)
-        MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
-      }
-      true
+    longClickListener = MapLongClickListener { geoPoint: GeoPoint ->
+        when (mode) {
+            MapMode.NORMAL -> onMapLongClick(geoPoint)
+            MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+        }
+        true
+    }.let {
+        this.addMapLongClickListener(it)
+        it
     }
   }
+    fun updateLongClickListener(locationSelectedCallback: (Double, Double) -> Unit) {
+        if (uiState.value.isMapInteractive && tomTomMap != null) {
+            longClickListener?.let { tomTomMap?.removeMapLongClickListener(it) }
+            tomTomMap?.setMapLongClickListener(
+                mode = uiState.value.mapMode,
+                onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
+                onLocationSelected = locationSelectedCallback)
+        }
+    }
 
   /** Initializes the location provider and starts tracking after permission is granted. */
   fun onPermissionGranted() {

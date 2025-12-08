@@ -133,6 +133,10 @@ fun MapScreen(
     }
   }
 
+  LaunchedEffect(uiState.mapMode) {
+      viewModel.updateLongClickListener(onLocationSelected)
+  }
+
   // --- 2. Reactive Updates (Side Effects) ---
 
   // Sync Markers
