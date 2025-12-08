@@ -14,6 +14,7 @@ interface EventTemporaryRepository {
    * @param creator The creator of the event.
    * @param participants The participants of the event.
    * @param location The location of the event.
+   * @param isPrivate Whether the event is private or not.
    * @param eventPicture The picture of the event.
    */
   suspend fun updateEvent(
@@ -24,6 +25,7 @@ interface EventTemporaryRepository {
       creator: String,
       participants: Set<String>,
       location: Location,
+      isPrivate: Boolean,
       eventPicture: ByteArray?
   )
 
