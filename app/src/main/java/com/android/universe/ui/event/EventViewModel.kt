@@ -13,6 +13,7 @@ import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.search.SearchEngine
+import com.android.universe.ui.search.SearchEngine.categoryCoverageComparator
 import java.time.LocalDateTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -301,7 +302,11 @@ class EventViewModel(
 
   val filteredEvents: StateFlow<List<EventUIState>> =
       combine(eventsState, _searchQuery, _categories) { events, query, cats ->
-            filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags.toSet(), cats) }
+            val filtered =
+                filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags.toSet(), cats) }
+            val comparator =
+                categoryCoverageComparator<EventUIState>(cats) { state -> state.tags.toSet() }
+            filtered.sortedWith(comparator).reversed()
           }
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

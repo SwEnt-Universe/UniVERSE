@@ -1,5 +1,6 @@
 package com.android.universe.ui.common
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,10 +39,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.components.CategoryItem
+import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.TagItem
 import com.android.universe.ui.components.TagItemDefaults
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.Dimensions.PaddingMedium
 
 /**
  * Contains test tag identifiers for [TagColumn], [TagRow], and related components. These strings
@@ -379,5 +383,50 @@ private fun Modifier.fadingEdge(
                   0f to transparent, startRatio to opaque, endRatio to opaque, 1f to transparent)
             }
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
+      }
+}
+
+object CategoryRowTestTag {
+  val ROW_TAG = "CategoryRowRowTestTag"
+}
+
+/**
+ * A composable for the category row.
+ *
+ * @param modifier Modifier for the Box that contains the row. It already has a fading edge effect
+ *   applied as well as a max filled width
+ * @param isSelected A lambda that returns true if a given [Tag.Category] is currently selected.
+ * @param onSelect Callback invoked when an unselected tag is clicked.
+ * @param onDeSelect Callback invoked when a selected tag is clicked again.
+ */
+@Composable
+fun CategoryRow(
+    modifier: Modifier = Modifier,
+    isSelected: (Tag.Category) -> Boolean,
+    onSelect: (Tag.Category) -> Unit,
+    onDeSelect: (Tag.Category) -> Unit
+) {
+  Box(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .fadingEdge(
+                  visible = true,
+                  fadeSize = (CategoryItemDefaults.HEIGHT_CAT).dp,
+                  isVertical = false)) {
+        Row(
+            modifier =
+                Modifier.testTag(CategoryRowTestTag.ROW_TAG)
+                    .horizontalScroll(state = rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(PaddingMedium)) {
+              for (category in Tag.Category.entries) {
+                CategoryItem(
+                    category = category,
+                    isSelectable = true,
+                    isSelected = isSelected(category),
+                    onSelect = onSelect,
+                    onDeSelect = onDeSelect)
+              }
+            }
       }
 }
