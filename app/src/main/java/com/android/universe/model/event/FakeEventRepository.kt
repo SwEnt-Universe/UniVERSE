@@ -49,18 +49,14 @@ class FakeEventRepository : EventRepository {
    * visibility.
    *
    * @param user the [UserProfile] for whom to suggest events.
-   * @param usersRequestorFollows the set of user IDs that the requestor follows.
    * @return a list of suggested [Event] objects visible to the requestor.
    */
   override suspend fun getSuggestedEventsForUser(
       user: UserProfile,
-      usersRequestorFollows: Set<String>
   ): List<Event> {
     return events.filter { event ->
       event.tags.any { it in user.tags } &&
-          (!event.isPrivate ||
-              event.creator == user.uid ||
-              usersRequestorFollows.contains(event.creator))
+          (!event.isPrivate || event.creator == user.uid || user.following.contains(event.creator))
     }
   }
 

@@ -179,19 +179,15 @@ class EventRepositoryFirestore(
    * based on the number of matching tags with the user's profile.
    *
    * @param user the [UserProfile] for whom to suggest events.
-   * @param usersRequestorFollows the set of user IDs that the requestor follows.
    * @return a list of suggested [Event] objects visible to the requestor.
    */
   override suspend fun getSuggestedEventsForUser(
       user: UserProfile,
-      usersRequestorFollows: Set<String>
   ): List<Event> {
     val matchedEvents = getEventsMatchingUserTags(user)
     val visibleEvents =
         matchedEvents.filter { event ->
-          !event.isPrivate ||
-              event.creator == user.uid ||
-              usersRequestorFollows.contains(event.creator)
+          !event.isPrivate || event.creator == user.uid || user.following.contains(event.creator)
         }
     val rankedEvents = rankEventsByTagMatch(user, visibleEvents)
     return rankedEvents.take(50).map { it.first }

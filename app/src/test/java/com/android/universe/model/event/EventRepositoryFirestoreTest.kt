@@ -101,7 +101,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user, emptySet())
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
 
     assertEquals(1, suggestedEvents.size)
     assertTrue(suggestedEvents.contains(EventTestData.SomeTagsEvent))
@@ -115,7 +115,7 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(EventTestData.SomeTagsEvent)
     eventRepository.addEvent(EventTestData.NoTagsEvent)
 
-    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user, emptySet())
+    val suggestedEvents = eventRepository.getSuggestedEventsForUser(user)
 
     assertTrue(suggestedEvents.isEmpty())
   }
@@ -136,11 +136,13 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
     eventRepository.addEvent(publicEvent)
     eventRepository.addEvent(privateEvent)
 
-    val resultNotFollowing = eventRepository.getSuggestedEventsForUser(user, emptySet())
+    val resultNotFollowing = eventRepository.getSuggestedEventsForUser(user)
     assertEquals(1, resultNotFollowing.size)
     assertEquals("public-event", resultNotFollowing[0].id)
 
-    val resultFollowing = eventRepository.getSuggestedEventsForUser(user, setOf(creatorId))
+    val userFollowing = user.copy(following = setOf(creatorId))
+    val resultFollowing = eventRepository.getSuggestedEventsForUser(userFollowing)
+
     assertEquals(2, resultFollowing.size)
     assertTrue(resultFollowing.any { it.id == "private-event" })
   }

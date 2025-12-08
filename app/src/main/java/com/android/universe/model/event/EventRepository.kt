@@ -31,13 +31,9 @@ interface EventRepository {
    * visibility.
    *
    * @param user the [UserProfile] for whom to suggest events.
-   * @param usersRequestorFollows the set of user IDs that the requestor follows.
    * @return a list of suggested [Event] objects visible to the requestor.
    */
-  suspend fun getSuggestedEventsForUser(
-      user: UserProfile,
-      usersRequestorFollows: Set<String>
-  ): List<Event>
+  suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event>
 
   /**
    * Retrieves all events where the specific user is a participant.

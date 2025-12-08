@@ -33,6 +33,7 @@ import java.time.LocalDateTime
  * A popup component that displays detailed information about an event. Places an EventContentLayout
  * inside a LiquidBottomSheet with slide-in/out animations.
  *
+ * @param modifier The modifier to be applied to the popup.
  * @param event The [Event] object containing event details to be displayed.
  * @param creator The name of the event creator.
  * @param isUserParticipant Boolean indicating if the user is a participant of the event.

@@ -367,7 +367,7 @@ class MapViewModelTest {
     val suggestedEvents = listOf(EventTestData.dummyEvent1, EventTestData.dummyEvent2)
 
     coEvery { userRepository.getUser(userId) } returns testUser
-    coEvery { eventRepository.getSuggestedEventsForUser(testUser, any()) } returns suggestedEvents
+    coEvery { eventRepository.getSuggestedEventsForUser(testUser) } returns suggestedEvents
 
     viewModel.loadSuggestedEventsForCurrentUser()
     advanceUntilIdle()

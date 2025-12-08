@@ -53,7 +53,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(eventB)
     repository.addEvent(eventC)
 
-    val suggestedEvents = repository.getSuggestedEventsForUser(user, emptySet())
+    val suggestedEvents = repository.getSuggestedEventsForUser(user)
 
     assertTrue(suggestedEvents.contains(eventA))
     assertTrue(suggestedEvents.contains(eventB))
@@ -76,16 +76,18 @@ class FakeEventRepositoryTest {
     repository.addEvent(publicEvent)
     repository.addEvent(privateEvent)
 
-    val resultNotFollowing = repository.getSuggestedEventsForUser(user, emptySet())
+    val resultNotFollowing = repository.getSuggestedEventsForUser(user)
     assertEquals(1, resultNotFollowing.size)
     assertEquals("public-event", resultNotFollowing[0].id)
 
-    val resultFollowing = repository.getSuggestedEventsForUser(user, setOf(creatorId))
+    val userFollowing = user.copy(following = setOf(creatorId))
+    val resultFollowing = repository.getSuggestedEventsForUser(userFollowing)
+
     assertEquals(2, resultFollowing.size)
     assertTrue(resultFollowing.any { it.id == "private-event" })
 
     val creatorUser = user.copy(uid = creatorId)
-    val resultAsCreator = repository.getSuggestedEventsForUser(creatorUser, emptySet())
+    val resultAsCreator = repository.getSuggestedEventsForUser(creatorUser)
     assertEquals(2, resultAsCreator.size)
   }
 

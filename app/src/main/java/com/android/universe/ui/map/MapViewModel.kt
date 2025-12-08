@@ -405,7 +405,7 @@ class MapViewModel(
       try {
         val following =
             try {
-              userRepository.getUser(currentUserId)?.following?.toSet() ?: emptySet()
+              userRepository.getUser(currentUserId).following.toSet()
             } catch (e: Exception) {
               if (e is CancellationException) throw e
               android.util.Log.e("MapViewModel", "Failed to fetch user following list", e)
@@ -517,10 +517,10 @@ class MapViewModel(
     viewModelScope.launch {
       try {
         val user = userRepository.getUser(currentUserId)
-        val events = eventRepository.getSuggestedEventsForUser(user, user.following.toSet())
+        val events = eventRepository.getSuggestedEventsForUser(user)
         _eventMarkers.value = events
       } catch (e: Exception) {
-        if (e is kotlin.coroutines.cancellation.CancellationException) throw e
+        if (e is CancellationException) throw e
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
