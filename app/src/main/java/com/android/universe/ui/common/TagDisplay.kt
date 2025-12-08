@@ -412,13 +412,14 @@ fun CategoryRow(
               .fillMaxWidth()
               .fadingEdge(
                   visible = true,
-                  fadeSize = (CategoryItemDefaults.HEIGHT_CAT).dp,
+                  fadeSize = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
                   isVertical = false)) {
         Row(
             modifier =
                 Modifier.testTag(CategoryRowTestTag.ROW_TAG)
                     .horizontalScroll(state = rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(PaddingMedium)) {
+              Spacer(modifier = Modifier.width(PaddingMedium))
               for (category in Tag.Category.entries) {
                 CategoryItem(
                     category = category,
@@ -427,6 +428,7 @@ fun CategoryRow(
                     onSelect = onSelect,
                     onDeSelect = onDeSelect)
               }
+              Spacer(modifier = Modifier.width(PaddingMedium))
             }
       }
 }

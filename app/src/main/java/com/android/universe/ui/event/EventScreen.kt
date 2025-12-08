@@ -6,7 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -105,6 +107,7 @@ fun EventScreen(
                   isSelected = { cat -> categories.contains(cat) },
                   onSelect = viewModel::addCategory,
                   onDeSelect = viewModel::removeCategory)
+              Spacer(modifier = Modifier.height(PaddingMedium))
 
               LazyColumn(
                   modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),
