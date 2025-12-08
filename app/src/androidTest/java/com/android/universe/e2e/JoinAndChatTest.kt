@@ -90,7 +90,6 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
   private lateinit var aliceEmail: String
   private lateinit var aliceUid: String
 
-
   @Before
   override fun setUp() {
     super.setUp()
@@ -104,15 +103,15 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     runTest {
       // Create independent e-mail address
       createRandomTestUser(bobUser).let {
-          bobEmail = it.first
-          bobUid = it.second
+        bobEmail = it.first
+        bobUid = it.second
       }
       bobUser = bobUser.copy(uid = bobUid)
       UserRepositoryProvider.repository.addUser(bobUser)
 
       createRandomTestUser(aliceUser).let {
-          aliceEmail = it.first
-          aliceUid = it.second
+        aliceEmail = it.first
+        aliceUid = it.second
       }
       aliceUser = aliceUser.copy(uid = aliceUid)
       UserRepositoryProvider.repository.addUser(aliceUser)
@@ -182,9 +181,10 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     }
 
     composeTestRule
-        .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON)).performTouchInput {
-            click(center)
-            advanceEventTime(1_000L)
+        .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
+        .performTouchInput {
+          click(center)
+          advanceEventTime(1_000L)
         }
 
     composeTestRule.waitUntil(5_000L) {
@@ -206,7 +206,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     }
 
     composeTestRule.waitUntil(5_000L) {
-        composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
+      composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
     }
 
     advanceUntilIdle()

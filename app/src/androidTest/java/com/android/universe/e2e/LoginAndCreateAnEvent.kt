@@ -85,8 +85,8 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
     runTest {
       createRandomTestUser(fakeUser).let {
-         userEmail = it.first
-         userUid = it.second
+        userEmail = it.first
+        userUid = it.second
       }
       fakeUser = fakeUser.copy(uid = userUid)
       Firebase.auth.signOut()
