@@ -9,16 +9,19 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -48,6 +51,7 @@ import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
@@ -146,8 +150,6 @@ val shape =
         bottomStart = 0.dp,
         bottomEnd = 0.dp)
 
-const val FRACTION = 0.4f
-
 /**
  * A composable function that provides a common layout structure for the sign-in/sign-up screens. It
  * places a `LiquidBox` at the bottom of the screen which contains the main content at the top and a
@@ -163,22 +165,30 @@ fun Layout(
     bottomBar: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
-  Box(modifier = modifier.fillMaxSize()) {
-    LiquidBox(
-        modifier = Modifier.fillMaxHeight(FRACTION).align(Alignment.BottomCenter), shape = shape) {
-          Column(
-              modifier = Modifier.fillMaxSize().padding(Dimensions.PaddingExtraLarge),
-              verticalArrangement = Arrangement.Top,
-              horizontalAlignment = Alignment.CenterHorizontally) {
-                content()
-              }
-          Box(
-              modifier =
-                  Modifier.align(Alignment.BottomCenter).padding(Dimensions.PaddingExtraLarge)) {
-                bottomBar()
+  ScreenLayout(
+      bottomBar = {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { bottomBar() }
+      }) { paddingValues ->
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+          val defaultSize = maxHeight * 0.4f
+
+          LiquidBox(
+              modifier = Modifier.fillMaxWidth().wrapContentHeight().align(Alignment.BottomCenter),
+              shape = shape) {
+                Column(
+                    modifier =
+                        Modifier.wrapContentSize()
+                            .defaultMinSize(minHeight = defaultSize)
+                            .padding(horizontal = Dimensions.PaddingExtraLarge)
+                            .padding(top = Dimensions.PaddingExtraLarge),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                      content()
+                      Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
+                    }
               }
         }
-  }
+      }
 }
 
 /**
@@ -276,20 +286,26 @@ fun WelcomeBox(onClick: () -> Unit = {}) {
             onClick = onClick,
             modifier =
                 Modifier.fillMaxWidth(0.8f)
-                    .padding(bottom = Dimensions.PaddingExtraLarge)
+                    .padding(all = Dimensions.PaddingExtraLarge)
                     .testTag(SignInScreenTestTags.JOIN_BUTTON)) {
-              Text(text = "Join the UniVERSE", style = MaterialTheme.typography.titleLarge)
+              Text(
+                  text = "Join the UniVERSE",
+                  style = MaterialTheme.typography.titleLarge,
+                  color = MaterialTheme.colorScheme.onSurface)
             }
       }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Text(text = "UniVERSE", style = MaterialTheme.typography.headlineLarge)
+          Text(
+              text = "UniVERSE",
+              style = MaterialTheme.typography.headlineLarge,
+              color = MaterialTheme.colorScheme.onSurface)
           Spacer(modifier = Modifier.width(Dimensions.SpacerLarge))
           UniverseIcon()
         }
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         Text(
             text = "Your entire campus social life on one map",
-        )
+            color = MaterialTheme.colorScheme.onSurface)
       }
 }
 
@@ -323,7 +339,10 @@ fun EmailBox(
                     FlowTab.Back(onClick = onBack),
                     FlowTab.Confirm(onClick = onConfirm, enabled = confirmEnabled)))
       }) {
-        Text(text = "Enter your email address", style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = "Enter your email address",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         EmailTextField(
             value = email, onValueChange = { onEmailChange(it) }, validationState = validationState)
@@ -347,7 +366,10 @@ fun GoogleBox(email: String, onBack: () -> Unit, onSignIn: () -> Unit) {
         FlowBottomMenu(
             flowTabs = listOf(FlowTab.Back(onClick = onBack), FlowTab.Google(onClick = onSignIn)))
       }) {
-        Text(text = "Sign in with google", style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = "Sign in with google",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         EmailTextField(value = email, onValueChange = {}, enabled = false)
       }
@@ -386,7 +408,10 @@ fun PasswordBox(
                     FlowTab.Back(onClick = onBack),
                     FlowTab.Confirm(onClick = onConfirm, enabled = confirmEnabled)))
       }) {
-        Text(text = "Enter your password", style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = "Enter your password",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         EmailTextField(value = email, onValueChange = {}, enabled = false)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
@@ -422,7 +447,9 @@ fun SignUpBox(email: String, onPassword: () -> Unit, onGoogle: () -> Unit, onBac
                     FlowTab.Password(onClick = onPassword)))
       }) {
         Text(
-            text = "Select your authentication method", style = MaterialTheme.typography.titleLarge)
+            text = "Select your authentication method",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         EmailTextField(value = email, onValueChange = {}, enabled = false)
       }
