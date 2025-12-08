@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
 
     setContent {
       // Enables a live dark/light-mode swap of the system bottom menu (if enabled)
-      val isDarkTheme = isSystemInDarkTheme() // or your custom theme state
+      val isDarkTheme = isSystemInDarkTheme()
       val view = LocalView.current
       SideEffect {
         val controller = WindowCompat.getInsetsController(window, view)
