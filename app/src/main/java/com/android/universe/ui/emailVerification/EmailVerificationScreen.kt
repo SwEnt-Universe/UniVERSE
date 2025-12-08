@@ -1,12 +1,19 @@
 package com.android.universe.ui.emailVerification
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FlashOn
@@ -29,10 +36,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
-import com.android.universe.ui.signIn.Layout
+import com.android.universe.ui.signIn.shape
 import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -82,31 +92,45 @@ fun EmailVerificationScreen(
     else onBack() // User became null, go back to login
   }
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    LoadingAnimation(
-        sendEmailFailed = uiState.sendEmailFailed,
-        modifier =
-            Modifier.align(Alignment.TopCenter).padding(top = Dimensions.PaddingExtraLarge * 6))
-
-    Layout(
-        bottomBar = {
-          FlowBottomMenu(
-              flowTabs =
-                  listOf(
-                      FlowTab.Back(onClick = onBack),
-                      FlowTab.Email(
-                          onClick = {
-                            if (user != null && uiState.resendEnabled)
-                                viewModel.sendEmailVerification(user)
-                          },
-                          enabled = uiState.resendEnabled)))
-        }) {
-          EmailStatusScreen(
-              sendEmailFailed = uiState.sendEmailFailed,
-              email = uiState.email,
-              countdown = uiState.countDown)
+  ScreenLayout(
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOf(
+                    FlowTab.Back(onClick = onBack),
+                    FlowTab.Email(
+                        onClick = {
+                          if (user != null && uiState.resendEnabled)
+                              viewModel.sendEmailVerification(user)
+                        },
+                        enabled = uiState.resendEnabled)))
+      }) { paddingValues ->
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+          val defaultSize = maxHeight * 0.4f
+          Column(Modifier.fillMaxSize()) {
+            Spacer(Modifier.height(paddingValues.calculateTopPadding()))
+            LoadingAnimation(
+                sendEmailFailed = uiState.sendEmailFailed,
+                modifier = Modifier.weight(1f).align(Alignment.CenterHorizontally))
+            LiquidBox(modifier = Modifier.fillMaxWidth().wrapContentHeight(), shape = shape) {
+              Column(
+                  modifier =
+                      Modifier.wrapContentSize()
+                          .defaultMinSize(minHeight = defaultSize)
+                          .padding(horizontal = Dimensions.PaddingExtraLarge)
+                          .padding(top = Dimensions.PaddingExtraLarge),
+                  verticalArrangement = Arrangement.Top,
+                  horizontalAlignment = Alignment.CenterHorizontally) {
+                    EmailStatusScreen(
+                        sendEmailFailed = uiState.sendEmailFailed,
+                        email = uiState.email,
+                        countdown = uiState.countDown)
+                    Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
+                  }
+            }
+          }
         }
-  }
+      }
 }
 
 /**
@@ -130,21 +154,26 @@ fun LoadingAnimation(sendEmailFailed: Boolean, modifier: Modifier = Modifier) {
   val backgroundColor =
       if (sendEmailFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
       else MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.1f)
-  Box(
-      modifier =
-          modifier
-              .size(Dimensions.IconSizeLarge * 10)
-              .background(color = backgroundColor, shape = CircleShape)
-              .testTag(EmailVerificationScreenTestTags.ICON_BOX),
-      contentAlignment = Alignment.Center) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = primaryColor,
-            modifier = Modifier.size(Dimensions.IconSizeLarge * 6))
 
-        if (!sendEmailFailed)
-            CircularProgressIndicator(modifier = Modifier.fillMaxSize(), strokeWidth = 6.dp)
+  BoxWithConstraints(
+      modifier = modifier.fillMaxSize().padding(Dimensions.PaddingExtraLarge),
+      contentAlignment = Alignment.Center) {
+        Box(
+            modifier =
+                modifier
+                    .size(min(maxHeight, maxWidth))
+                    .background(color = backgroundColor, shape = CircleShape)
+                    .testTag(EmailVerificationScreenTestTags.ICON_BOX),
+            contentAlignment = Alignment.Center) {
+              Icon(
+                  imageVector = icon,
+                  contentDescription = null,
+                  tint = primaryColor,
+                  modifier = Modifier.fillMaxSize(0.6f))
+
+              if (!sendEmailFailed)
+                  CircularProgressIndicator(modifier = Modifier.fillMaxSize(), strokeWidth = 6.dp)
+            }
       }
 }
 
@@ -172,10 +201,10 @@ private fun EmailStatusScreen(
 ) {
 
   val messagePrefix =
-      if (sendEmailFailed) "Couldn't send verification link\nto "
-      else "Please verify the email using the link sent\nto "
+      if (sendEmailFailed) "Couldn't send a verification link to "
+      else "Please verify the email using the link sent to "
   val instructions =
-      if (sendEmailFailed) "Verify the email address, your network connection\nand try again"
+      if (sendEmailFailed) "Verify the email address, your internet connection and try again"
       else null
 
   Text(
@@ -184,6 +213,7 @@ private fun EmailStatusScreen(
       fontSize = MaterialTheme.typography.headlineLarge.fontSize,
       fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
       fontFamily = MaterialTheme.typography.headlineLarge.fontFamily,
+      color = MaterialTheme.colorScheme.onSurface,
       modifier = Modifier.fillMaxWidth().testTag(EmailVerificationScreenTestTags.HEADLINE_TEXT))
 
   Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
@@ -194,14 +224,16 @@ private fun EmailStatusScreen(
             append(messagePrefix)
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(email) }
           },
+      color = MaterialTheme.colorScheme.onSurface,
       textAlign = TextAlign.Left,
       fontSize = MaterialTheme.typography.bodyLarge.fontSize,
       modifier = Modifier.fillMaxWidth().testTag(EmailVerificationScreenTestTags.MESSAGE_TEXT))
 
   instructions?.let {
-    Spacer(Modifier.padding(vertical = Dimensions.SpacerExtraLarge))
+    Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
     Text(
         text = it,
+        color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Left,
         style = MaterialTheme.typography.bodyLarge,
         modifier =
@@ -210,7 +242,7 @@ private fun EmailStatusScreen(
 
   Spacer(Modifier.padding(vertical = Dimensions.SpacerMedium))
 
-  if (countdown != null) {
+  if (countdown != null && !sendEmailFailed) {
     Text(
         text =
             buildAnnotatedString {
@@ -218,6 +250,7 @@ private fun EmailStatusScreen(
               withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$countdown") }
               append(" second(s)")
             },
+        color = MaterialTheme.colorScheme.onSurface,
         style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.Left,
         modifier = Modifier.fillMaxWidth().testTag(EmailVerificationScreenTestTags.COUNTDOWN_TEXT))
