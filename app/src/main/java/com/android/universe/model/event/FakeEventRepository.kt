@@ -15,12 +15,21 @@ class FakeEventRepository : EventRepository {
   private val events = mutableListOf<Event>()
 
   /**
-   * Retrieves all events currently stored in the repository.
+   * Retrieves all events currently stored in the repository, filtered by visibility.
    *
+   * @param requestorId the ID of the user requesting the events.
+   * @param usersRequestorFollows the set of user IDs that the requestor follows.
    * @return a list of [Event] objects. Returns a copy to prevent external modification.
    */
-  override suspend fun getAllEvents(): List<Event> {
-    return events.toList()
+  override suspend fun getAllEvents(
+      requestorId: String,
+      usersRequestorFollows: Set<String>
+  ): List<Event> {
+    return events.filter { event ->
+      !event.isPrivate ||
+          event.creator == requestorId ||
+          usersRequestorFollows.contains(event.creator)
+    }
   }
 
   /**
@@ -36,13 +45,19 @@ class FakeEventRepository : EventRepository {
   }
 
   /**
-   * Retrieves suggested events for a given user based on their profile (tags).
+   * Retrieves suggested events for a given user based on their profile (tags), filtered by
+   * visibility.
    *
    * @param user the [UserProfile] for whom to suggest events.
-   * @return a list of suggested [Event] objects.
+   * @return a list of suggested [Event] objects visible to the requestor.
    */
-  override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> {
-    return events.filter { event -> event.tags.any { it in user.tags } }
+  override suspend fun getSuggestedEventsForUser(
+      user: UserProfile,
+  ): List<Event> {
+    return events.filter { event ->
+      event.tags.any { it in user.tags } &&
+          (!event.isPrivate || event.creator == user.uid || user.following.contains(event.creator))
+    }
   }
 
   /**
