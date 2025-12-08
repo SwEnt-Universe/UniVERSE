@@ -11,11 +11,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.Before
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Base class for tests that require both Firebase Auth and Firestore emulators. Combines
@@ -52,24 +52,24 @@ open class FirebaseAuthUserTest(private val isRobolectric: Boolean = true) {
 
   /** Clears all users from the Firebase Auth emulator. */
   private fun clearAuthUsers() {
-      val projectId = FirebaseApp.getInstance().options.projectId
-      val host = if (isRobolectric) "127.0.0.1" else "10.0.2.2"
-      val url =
-          URL("http://$host:${FirebaseEmulator.AUTH_PORT}/emulator/v1/projects/$projectId/accounts")
-      val conn = url.openConnection() as HttpURLConnection
-      try {
-        conn.requestMethod = "DELETE"
-        conn.connectTimeout = 2000
-        conn.connect()
-        val responseCode = conn.responseCode
-        if (responseCode == HttpURLConnection.HTTP_OK)
-            Log.i("FirebaseAuthUserTest", "Cleared Auth emulator users successfully.")
-        else Log.w("FirebaseAuthUserTest", "Failed to clear Auth emulator users: $responseCode")
-      } catch (e: Exception) {
-        Log.w("FirebaseAuthUserTest", "Failed to clear Auth emulator users: ${e.message}")
-      } finally {
-        conn.disconnect()
-      }
+    val projectId = FirebaseApp.getInstance().options.projectId
+    val host = if (isRobolectric) "127.0.0.1" else "10.0.2.2"
+    val url =
+        URL("http://$host:${FirebaseEmulator.AUTH_PORT}/emulator/v1/projects/$projectId/accounts")
+    val conn = url.openConnection() as HttpURLConnection
+    try {
+      conn.requestMethod = "DELETE"
+      conn.connectTimeout = 2000
+      conn.connect()
+      val responseCode = conn.responseCode
+      if (responseCode == HttpURLConnection.HTTP_OK)
+          Log.i("FirebaseAuthUserTest", "Cleared Auth emulator users successfully.")
+      else Log.w("FirebaseAuthUserTest", "Failed to clear Auth emulator users: $responseCode")
+    } catch (e: Exception) {
+      Log.w("FirebaseAuthUserTest", "Failed to clear Auth emulator users: ${e.message}")
+    } finally {
+      conn.disconnect()
+    }
   }
 
   private suspend fun clearTestCollection() {
