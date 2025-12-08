@@ -160,8 +160,8 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
     viewModel.selectedEvent.value.let {
-        it as MapViewModel.EventSelectionState.Selected
-        assertEquals(it.event.title, EventTestData.dummyEvent1.title)
+      it as MapViewModel.EventSelectionState.Selected
+      assertEquals(it.event.title, EventTestData.dummyEvent1.title)
     }
 
     viewModel.selectEvent(null)
@@ -172,8 +172,8 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
     viewModel.selectedEvent.value.let {
-        it as MapViewModel.EventSelectionState.Selected
-        assertEquals(it.event.title, EventTestData.dummyEvent2.title)
+      it as MapViewModel.EventSelectionState.Selected
+      assertEquals(it.event.title, EventTestData.dummyEvent2.title)
     }
   }
 }

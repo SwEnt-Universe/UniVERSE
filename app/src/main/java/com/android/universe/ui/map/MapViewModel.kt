@@ -181,7 +181,6 @@ class MapViewModel(
     startEventPolling()
   }
 
-
   override fun onCleared() {
     super.onCleared()
     tomtomMapView?.onDestroy()
@@ -344,26 +343,29 @@ class MapViewModel(
       onMapLongClick: (GeoPoint) -> Unit,
       onLocationSelected: (Double, Double) -> Unit
   ) {
-    longClickListener = MapLongClickListener { geoPoint: GeoPoint ->
-        when (mode) {
-            MapMode.NORMAL -> onMapLongClick(geoPoint)
-            MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
-        }
-        true
-    }.let {
-        this.addMapLongClickListener(it)
-        it
+    longClickListener =
+        MapLongClickListener { geoPoint: GeoPoint ->
+              when (mode) {
+                MapMode.NORMAL -> onMapLongClick(geoPoint)
+                MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+              }
+              true
+            }
+            .let {
+              this.addMapLongClickListener(it)
+              it
+            }
+  }
+
+  fun updateLongClickListener(locationSelectedCallback: (Double, Double) -> Unit) {
+    if (uiState.value.isMapInteractive && tomTomMap != null) {
+      longClickListener?.let { tomTomMap?.removeMapLongClickListener(it) }
+      tomTomMap?.setMapLongClickListener(
+          mode = uiState.value.mapMode,
+          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
+          onLocationSelected = locationSelectedCallback)
     }
   }
-    fun updateLongClickListener(locationSelectedCallback: (Double, Double) -> Unit) {
-        if (uiState.value.isMapInteractive && tomTomMap != null) {
-            longClickListener?.let { tomTomMap?.removeMapLongClickListener(it) }
-            tomTomMap?.setMapLongClickListener(
-                mode = uiState.value.mapMode,
-                onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
-                onLocationSelected = locationSelectedCallback)
-        }
-    }
 
   /** Initializes the location provider and starts tracking after permission is granted. */
   fun onPermissionGranted() {
