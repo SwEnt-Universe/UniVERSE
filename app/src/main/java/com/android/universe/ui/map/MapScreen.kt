@@ -159,6 +159,15 @@ fun MapScreen(
     }
   }
 
+  // Listen for camera-center requests. Performs centering and clears request.
+  LaunchedEffect(uiState.pendingCameraCenter, uiState.isMapInteractive) {
+    val target = uiState.pendingCameraCenter
+    if (target != null && uiState.isMapInteractive) {
+      viewModel.onCameraMoveRequest(target)
+      viewModel.clearPendingCameraCenter()
+    }
+  }
+
   // --- 3. UI Structure ---
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
