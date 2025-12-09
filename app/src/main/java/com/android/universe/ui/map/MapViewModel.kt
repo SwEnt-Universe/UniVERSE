@@ -662,9 +662,6 @@ class MapViewModel(
 
         // Center camera on preview event
         requestCameraCenter(event.location.toGeoPoint())
-
-        // Request to center on new event
-        requestCameraCenter(GeoPoint(event.location.latitude, event.location.longitude))
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
       } finally {
