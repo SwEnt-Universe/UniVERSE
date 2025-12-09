@@ -226,7 +226,7 @@ class EventViewModel(
    *
    * @param category The category to add.
    */
-  fun addCategory(category: Tag.Category) {
+  fun selectCategory(category: Tag.Category) {
     _categories.value += category
   }
 
@@ -235,7 +235,7 @@ class EventViewModel(
    *
    * @param category The category to remove.
    */
-  fun removeCategory(category: Tag.Category) {
+  fun deselectCategory(category: Tag.Category) {
     _categories.value -= category
   }
 
@@ -328,10 +328,10 @@ class EventViewModel(
   val filteredEvents: StateFlow<List<EventUIState>> =
       combine(eventsState, _searchQuery, _categories) { events, query, cats ->
             val filtered =
-                filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags.toSet(), cats) }
+                filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags, cats) }
             if (cats.isNotEmpty()) { // don't waste performance on sorting if it's not filtered
               val comparator =
-                  categoryCoverageComparator<EventUIState>(cats) { state -> state.tags.toSet() }
+                  categoryCoverageComparator<EventUIState>(cats) { state -> state.tags }
               filtered.sortedWith(comparator).reversed()
             } else filtered
           }

@@ -63,7 +63,7 @@ object SearchEngine {
    * @param query The set of categories to match.
    * @return `true` if at least one category in [query] is present in [tags].
    */
-  fun tagMatch(tags: Set<Tag>, query: Set<Tag.Category>): Boolean {
+  fun tagMatch(tags: Iterable<Tag>, query: Set<Tag.Category>): Boolean {
     if (query.isEmpty()) return true
     return query.any { cat -> tags.any { it.category == cat } }
   }
@@ -82,7 +82,7 @@ object SearchEngine {
    */
   fun <T> categoryCoverageComparator(
       requiredCategories: Set<Tag.Category>,
-      tagExtractor: (T) -> Set<Tag>
+      tagExtractor: (T) -> Iterable<Tag>
   ): Comparator<T> {
 
     return Comparator { a, b ->

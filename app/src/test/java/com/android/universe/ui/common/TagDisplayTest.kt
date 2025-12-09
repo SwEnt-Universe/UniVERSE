@@ -438,11 +438,12 @@ class TagDisplayTest {
   fun categoryRowExists() {
     val select = MutableStateFlow(false)
     composeTestRule.setContentWithStubBackdrop {
-      CategoryRow(
-          modifier = Modifier,
+      TagRow(
+          tags = Tag.tagFromEachCategory.toList(),
           isSelected = { select.value },
-          onSelect = { select.value = true },
-          onDeSelect = { select.value = false })
+          onTagSelect = { select.value = true },
+          onTagReSelect = { select.value = false },
+          isCategory = true)
     }
     composeTestRule
         .onNodeWithTag(CategoryRowTestTag.ROW_TAG, useUnmergedTree = true)

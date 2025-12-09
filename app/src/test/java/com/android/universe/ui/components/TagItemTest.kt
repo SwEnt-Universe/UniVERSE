@@ -95,12 +95,13 @@ class TagItemTest {
   fun categorySelectionWorks() {
     val select = MutableStateFlow(false)
     composeTestRule.setContentWithStubBackdrop {
-      CategoryItem(
-          category = tag.category,
+      TagItem(
+          tag = tag,
           isSelectable = true,
           isSelected = select.collectAsState().value,
           onSelect = { select.value = true },
-          onDeSelect = { select.value = false })
+          onDeSelect = { select.value = false },
+          isCategory = true)
     }
     composeTestRule
         .onNodeWithTag(CategoryItemTestTags.categoryText(tag.category), useUnmergedTree = true)

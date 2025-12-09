@@ -1,6 +1,5 @@
 package com.android.universe.ui.common
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -39,13 +38,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.universe.model.tag.Tag
-import com.android.universe.ui.components.CategoryItem
-import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.TagItem
 import com.android.universe.ui.components.TagItemDefaults
 import com.android.universe.ui.theme.Dimensions
-import com.android.universe.ui.theme.Dimensions.PaddingMedium
 
 /**
  * Contains test tag identifiers for [TagColumn], [TagRow], and related components. These strings
@@ -153,15 +149,16 @@ fun TagColumn(
 /**
  * A Composable that displays a horizontal row of tags.
  *
- * This component renders a scrollable list of [TagItem]s arranged horizontally. It supports
- * interactive selection and can optionally apply a visual fade effect at the left and right edges
- * to indicate scrolling content.
+ * This component renders a scrollable list of [TagItem]s (or Category Items) arranged horizontally.
+ * It supports interactive selection and can optionally apply a visual fade effect at the left and
+ * right edges to indicate scrolling content.
  *
  * @param tags The list of [Tag] objects to display.
  * @param modifierTags Modifier to be applied to each individual [TagItem].
  * @param modifierBox Modifier to be applied to the outer container of the row.
  * @param heightTag The fixed height for each [TagItem]. Defaults to [TagItemDefaults.HEIGHT_TAG].
  * @param widthList The fixed width of the entire row. Defaults to [TagGroupDefaults.DefaultWidth].
+ * @param widthTag The fixed width for each [TagItem]. Defaults to [TagItemDefaults.WIDTH_TAG].
  * @param isSelectable Whether the tags can be interacted with (selected/deselected).
  * @param isSelected A lambda that returns true if a given [Tag] is currently selected.
  * @param onTagSelect Callback invoked when an unselected tag is clicked.
@@ -170,6 +167,7 @@ fun TagColumn(
  * @param state The [LazyListState] to control or observe the scrolling state.
  * @param fade If true, applies a transparency gradient fade to the left and right edges.
  * @param fadeWidth The width of the fade effect in Dp. Defaults to 10% of [widthList].
+ * @param isCategory Whether the tags should be considered as a category
  */
 @Composable
 fun TagRow(
@@ -177,6 +175,7 @@ fun TagRow(
     modifierTags: Modifier = Modifier,
     modifierBox: Modifier = Modifier,
     heightTag: Float = TagItemDefaults.HEIGHT_TAG,
+    widthTag: Float = TagItemDefaults.WIDTH_TAG,
     widthList: Dp = TagGroupDefaults.DefaultWidth,
     isSelectable: Boolean = true,
     isSelected: (Tag) -> Boolean,
@@ -185,29 +184,33 @@ fun TagRow(
     tagElement: ((Tag) -> String)? = null,
     state: LazyListState = rememberLazyListState(),
     fade: Boolean = true,
-    fadeWidth: Dp = widthList * 0.1f
+    fadeWidth: Dp = widthList * 0.1f,
+    isCategory: Boolean = false
 ) {
-
+  val spacing = if (isCategory) Dimensions.PaddingMedium else TagGroupDefaults.DefaultInterPaddingH
+  val rowTag = if (isCategory) CategoryRowTestTag.ROW_TAG else TagGroupTestTag.tagRow(tags)
   LazyRow(
       state = state,
-      horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
+      horizontalArrangement = Arrangement.spacedBy(spacing),
       contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
       modifier =
           modifierBox
               .width(widthList)
-              .testTag(TagGroupTestTag.tagRow(tags))
+              .testTag(rowTag)
               .fadingEdge(visible = fade, fadeSize = fadeWidth, isVertical = false)) {
         items(tags) { tag ->
           TagItem(
               tag = tag,
               heightTag = heightTag,
+              widthTag = widthTag,
               isSelectable = isSelectable,
               isSelected = isSelected(tag),
               onSelect = { tag -> onTagSelect(tag) },
               onDeSelect = { tag -> onTagReSelect(tag) },
               modifier =
                   modifierTags.then(
-                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
+                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier),
+              isCategory = isCategory)
         }
       }
 }
@@ -387,48 +390,5 @@ private fun Modifier.fadingEdge(
 }
 
 object CategoryRowTestTag {
-  val ROW_TAG = "CategoryRowRowTestTag"
-}
-
-/**
- * A composable for the category row.
- *
- * @param modifier Modifier for the Box that contains the row. It already has a fading edge effect
- *   applied as well as a max filled width
- * @param isSelected A lambda that returns true if a given [Tag.Category] is currently selected.
- * @param onSelect Callback invoked when an unselected tag is clicked.
- * @param onDeSelect Callback invoked when a selected tag is clicked again.
- */
-@Composable
-fun CategoryRow(
-    modifier: Modifier = Modifier,
-    isSelected: (Tag.Category) -> Boolean,
-    onSelect: (Tag.Category) -> Unit,
-    onDeSelect: (Tag.Category) -> Unit
-) {
-  Box(
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .fadingEdge(
-                  visible = true,
-                  fadeSize = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
-                  isVertical = false)) {
-        Row(
-            modifier =
-                Modifier.testTag(CategoryRowTestTag.ROW_TAG)
-                    .horizontalScroll(state = rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(PaddingMedium)) {
-              Spacer(modifier = Modifier.width(PaddingMedium))
-              for (category in Tag.Category.entries) {
-                CategoryItem(
-                    category = category,
-                    isSelectable = true,
-                    isSelected = isSelected(category),
-                    onSelect = onSelect,
-                    onDeSelect = onDeSelect)
-              }
-              Spacer(modifier = Modifier.width(PaddingMedium))
-            }
-      }
+  const val ROW_TAG = "CategoryRowRowTestTag"
 }

@@ -239,9 +239,9 @@ class EventViewModelTest {
 
   @Test
   fun categoriesUpdatesWork() {
-    viewModel.addCategory(SAMPLETAG.category)
+    viewModel.selectCategory(SAMPLETAG.category)
     assertEquals(setOf(SAMPLETAG.category), viewModel.categories.value)
-    viewModel.removeCategory(SAMPLETAG.category)
+    viewModel.deselectCategory(SAMPLETAG.category)
     assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
   }
 }
