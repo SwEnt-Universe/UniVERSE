@@ -524,33 +524,51 @@ class MapViewModelTest {
       }
 
   @Test
-  fun `generateAiEventAroundUser invokes AI generateEvents then persists and reloads events`() =
-      runTest {
-        // Arrange
-        setUserLocation(46.5, 6.5)
+  fun `generateAiEventAroundUser invokes AI and sets preview state but does not persist`() =
+    runTest {
+      // Arrange
+      setUserLocation(46.5, 6.5)
 
-        val fakeUser = UserTestData.Bob.copy(uid = userId)
-        coEvery { userRepository.getUser(userId) } returns fakeUser
+      val fakeUser = UserTestData.Bob.copy(uid = userId)
+      coEvery { userRepository.getUser(userId) } returns fakeUser
 
-        val generatedEvents = listOf(EventTestData.dummyEvent1.copy(id = "ai-event"))
-        coEvery { ai.generateEvents(any()) } returns generatedEvents
+      val generatedEvent =
+        EventTestData.dummyEvent1.copy(id = "ai-event", location = Location(46.5, 6.5))
+      coEvery { ai.generateEvents(any()) } returns listOf(generatedEvent)
 
-        coEvery { eventRepository.persistAIEvents(any()) } returns generatedEvents
+      // Act
+      viewModel.generateAiEventAroundUser(radiusKm = 42, timeFrame = "tonight")
+      advanceUntilIdle()
 
-        coEvery { eventRepository.getAllEvents(any(), any()) } returns generatedEvents
+      // ---- VERIFY BEHAVIOR ----
 
-        viewModel.generateAiEventAroundUser(radiusKm = 42, timeFrame = "tonight")
-        advanceUntilIdle()
+      // User is fetched exactly once
+      coVerify(exactly = 1) { userRepository.getUser(userId) }
 
-        // Verified atLeast = 1 because it's called once for generation context
-        // AND once inside loadAllEvents for privacy filtering.
-        coVerify(atLeast = 1) { userRepository.getUser(userId) }
-        coVerify(exactly = 1) { ai.generateEvents(any()) }
-        coVerify(exactly = 1) { eventRepository.persistAIEvents(any()) }
-        coVerify(exactly = 1) { eventRepository.getAllEvents(any(), any()) }
+      // AI called exactly once
+      coVerify(exactly = 1) { ai.generateEvents(any()) }
 
-        assertNull(viewModel.uiState.value.error)
-      }
+      // Should NOT persist anything (that now happens only in acceptPreview)
+      coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
+
+      // Should NOT reload events (also moved to acceptPreview)
+      coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
+
+      // ---- STATE ASSERTIONS ----
+
+      // Preview and selection are set
+      assertEquals(generatedEvent, viewModel.previewEvent.value)
+      assertEquals(generatedEvent, viewModel.selectedEvent.value)
+
+      // No error
+      assertNull(viewModel.uiState.value.error)
+
+      // Camera center request should be present
+      assertEquals(
+        generatedEvent.location.toGeoPoint(),
+        viewModel.uiState.value.pendingCameraCenter
+      )
+    }
 
   @Test
   fun `requestCameraCenter sets pendingCameraCenter`() = runTest {
