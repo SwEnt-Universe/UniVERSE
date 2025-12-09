@@ -655,7 +655,10 @@ class MapViewModel(
 
         // Update preview + selection state
         _previewEvent.value = event
-        _selectedEvent.value = event
+        // creator username lookup
+        val creatorName = userRepository.getUser(event.creator).username
+
+        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = creatorName)
 
         // Center camera on preview event
         requestCameraCenter(event.location.toGeoPoint())
@@ -682,7 +685,7 @@ class MapViewModel(
         // 2. Clear preview
         eventTemporaryRepository.deleteEvent()
         _previewEvent.value = null
-        _selectedEvent.value = null
+        _selectedEvent.value = EventSelectionState.None
 
         // 3. Refresh event list
         loadAllEvents()
@@ -697,7 +700,7 @@ class MapViewModel(
       eventTemporaryRepository.deleteEvent()
 
       _previewEvent.value = null
-      _selectedEvent.value = null
+      _selectedEvent.value = EventSelectionState.None
     }
   }
 

@@ -204,6 +204,7 @@ fun MapScreen(
           }
 
           selectedEvent.let {
+            val isPreview = preview.value != null
             if (it is MapViewModel.EventSelectionState.Selected)
                 EventInfoPopup(
                     modifier = Modifier.padding(padding),
@@ -212,7 +213,19 @@ fun MapScreen(
                     onDismiss = { viewModel.selectEvent(null) },
                     onChatNavigate = onChatNavigate,
                     isUserParticipant = viewModel.isUserParticipant(it.event),
-                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) },
+                    isPreview = isPreview,
+                    bottomBar =
+                        if (isPreview) {
+                          {
+                            FlowBottomMenu(
+                                flowTabs =
+                                    listOf(
+                                        FlowTab.Back { viewModel.rejectPreview() },
+                                        FlowTab.Confirm(
+                                            { viewModel.acceptPreview() }, enabled = true)))
+                          }
+                        } else null)
           }
 
           MapCreateEventModal(
