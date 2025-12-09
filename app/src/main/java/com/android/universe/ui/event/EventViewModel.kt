@@ -13,6 +13,8 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.search.SearchEngine
+import com.android.universe.ui.search.SearchEngine.categoryCoverageComparator
 import java.time.LocalDateTime
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -136,12 +138,14 @@ class EventViewModel(
   /** Backing property for the list of event UI states. */
   private val _eventsState = MutableStateFlow<List<EventUIState>>(emptyList())
   private var localList = emptyList<Event>()
+  private val _categories = MutableStateFlow<Set<Tag.Category>>(emptySet())
 
   private val _uiState = MutableStateFlow(UiState())
   val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
   /** Publicly exposed StateFlow of event UI states. */
   val eventsState: StateFlow<List<EventUIState>> = _eventsState.asStateFlow()
+  val categories: StateFlow<Set<Tag.Category>> = _categories.asStateFlow()
 
   var storedUid = ""
 
@@ -215,6 +219,24 @@ class EventViewModel(
         _eventsState.value = uiStates
       }
     }
+  }
+
+  /**
+   * Adds a category to the list of categories.
+   *
+   * @param category The category to add.
+   */
+  fun selectCategory(category: Tag.Category) {
+    _categories.value += category
+  }
+
+  /**
+   * Removes a category from the list of categories.
+   *
+   * @param category The category to remove.
+   */
+  fun deselectCategory(category: Tag.Category) {
+    _categories.value -= category
   }
 
   /**
@@ -304,6 +326,14 @@ class EventViewModel(
   }
 
   val filteredEvents: StateFlow<List<EventUIState>> =
-      combine(eventsState, _searchQuery) { events, query -> filterEvents(events, query) }
+      combine(eventsState, _searchQuery, _categories) { events, query, cats ->
+            val filtered =
+                filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags, cats) }
+            if (cats.isNotEmpty()) { // don't waste performance on sorting if it's not filtered
+              val comparator =
+                  categoryCoverageComparator<EventUIState>(cats) { state -> state.tags }
+              filtered.sortedWith(comparator).reversed()
+            } else filtered
+          }
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }
