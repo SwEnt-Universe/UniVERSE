@@ -551,4 +551,31 @@ class MapViewModelTest {
 
         assertNull(viewModel.uiState.value.error)
       }
+
+  @Test
+  fun `requestCameraCenter sets pendingCameraCenter`() = runTest {
+    val target = GeoPoint(46.0, 7.0)
+
+    viewModel.requestCameraCenter(target)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(target, state.pendingCameraCenter)
+  }
+
+  @Test
+  fun `clearPendingCameraCenter clears pendingCameraCenter`() = runTest {
+    val target = GeoPoint(46.0, 7.0)
+    viewModel.requestCameraCenter(target)
+    advanceUntilIdle()
+
+    // The value should be set
+    assertEquals(target, viewModel.uiState.value.pendingCameraCenter)
+
+    // Now clear it
+    viewModel.clearPendingCameraCenter()
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.pendingCameraCenter)
+  }
 }
