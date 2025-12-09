@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.DrawerDefaults.scrimColor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetDefaults
+import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.ScaffoldDefaults.contentWindowInsets
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -59,6 +62,7 @@ import androidx.compose.ui.unit.dp
  * @param refractionHeight The apparent height of the liquid lens, affecting the refraction
  *   calculation. Defaults to 24.dp.
  * @param refractionAmount The intensity of the displacement/refraction effect. Defaults to 24.dp.
+ * @param bottomBar optional bottom bar displaying options
  * @param content The content to be displayed inside the bottom sheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +84,8 @@ fun LiquidBottomSheet(
     blurRadius: Dp = 16.dp,
     refractionHeight: Dp = 24.dp,
     refractionAmount: Dp = 24.dp,
-    content: @Composable ColumnScope.() -> Unit
+    bottomBar: @Composable (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
   if (isPresented) {
     ModalBottomSheet(
@@ -113,6 +118,12 @@ fun LiquidBottomSheet(
                   }
 
                   content()
+
+                  bottomBar?.let {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                      it()
+                    }
+                  }
                 }
               }
         }

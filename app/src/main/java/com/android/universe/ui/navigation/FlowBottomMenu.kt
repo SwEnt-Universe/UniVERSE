@@ -232,7 +232,11 @@ sealed class FlowTab(
  *   menu. Each tab has an associated icon, label, test tag, and onClick action.
  */
 @Composable
-fun FlowBottomMenu(flowTabs: List<FlowTab>, defaultSelectedTabIndex: Int = -1) {
+fun FlowBottomMenu(
+    flowTabs: List<FlowTab>,
+    defaultSelectedTabIndex: Int = -1,
+    modifier: Modifier = Modifier
+) {
   val selectedTabIndex = remember { mutableIntStateOf(defaultSelectedTabIndex) }
 
   LiquidBottomTabs(
@@ -242,9 +246,9 @@ fun FlowBottomMenu(flowTabs: List<FlowTab>, defaultSelectedTabIndex: Int = -1) {
         flowTabs[index].onClick()
       },
       tabsCount = flowTabs.count(),
-      modifier = Modifier.testTag(FlowBottomMenuTestTags.MENU)) {
+      modifier = modifier.testTag(FlowBottomMenuTestTags.MENU)) {
         flowTabs.forEach { tab ->
-          LiquidBottomTab(onClick = tab.onClick, modifier = Modifier.testTag(tab.testTag)) {
+          LiquidBottomTab(onClick = tab.onClick, modifier = modifier.testTag(tab.testTag)) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center) {

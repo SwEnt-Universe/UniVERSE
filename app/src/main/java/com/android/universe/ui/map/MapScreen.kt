@@ -177,19 +177,8 @@ fun MapScreen(
   // --- 3. UI Structure ---
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = {
-        if (preview.value != null) {
-          // PREVIEW MODE: bottom bar used to accept/reject AI events
-          FlowBottomMenu(
-              flowTabs =
-                  listOf(
-                      FlowTab.Back { viewModel.rejectPreview() },
-                      FlowTab.Confirm(onClick = { viewModel.acceptPreview() }, enabled = true)))
-        } else {
-          // NORMAL MODE: bottom bar used for navigation
-          NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected)
-        }
-      }) { padding ->
+      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
+          padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
           AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
@@ -217,7 +206,17 @@ fun MapScreen(
                 onChatNavigate = onChatNavigate,
                 isUserParticipant = viewModel.isUserParticipant(event),
                 onToggleEventParticipation = { viewModel.toggleEventParticipation(event) },
-                isPreview = isPreview)
+                isPreview = isPreview,
+                bottomBar =
+                    if (isPreview) {
+                      {
+                        FlowBottomMenu(
+                            flowTabs =
+                                listOf(
+                                    FlowTab.Back { viewModel.rejectPreview() },
+                                    FlowTab.Confirm({ viewModel.acceptPreview() }, enabled = true)))
+                      }
+                    } else null)
           }
 
           MapCreateEventModal(
