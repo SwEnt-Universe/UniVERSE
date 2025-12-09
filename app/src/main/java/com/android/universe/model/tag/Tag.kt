@@ -233,6 +233,9 @@ enum class Tag(val displayName: String, val category: Category) {
       return getTagsForCategory(category).map { it.displayName }
     }
 
+    val tagFromEachCategory =
+        setOf(JAZZ, RUNNING, VEGAN, DRAWING, FESTIVALS, VIDEO_GAMES, PROGRAMMING, PHYSICS)
+
     /**
      * Filters a list of Tags to include only those in a specific category.
      *
