@@ -83,7 +83,8 @@ fun EventInfoPopup(
                           ImageDisplay(
                               image = event.eventPicture,
                               contentDescription = null,
-                              modifier = Modifier.testTag(EventContentTestTags.EVENT_IMAGE))
+                              modifier =
+                                  Modifier.fillMaxSize().testTag(EventContentTestTags.EVENT_IMAGE))
                         },
                         isUserParticipant = isUserParticipant,
                         isPrivate = event.isPrivate,

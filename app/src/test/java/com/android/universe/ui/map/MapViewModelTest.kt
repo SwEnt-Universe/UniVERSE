@@ -443,20 +443,29 @@ class MapViewModelTest {
   @Test
   fun `selectEvent updates selectedEvent flow`() = runTest {
     val testEvent = EventTestData.dummyEvent1
+    coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
+    advanceUntilIdle()
+    val eventCreator = UserTestData.Bob.username
 
     viewModel.selectEvent(testEvent)
     advanceUntilIdle()
 
-    assertEquals(testEvent, viewModel.selectedEvent.value)
+    assertEquals(
+        MapViewModel.EventSelectionState.Selected(testEvent, eventCreator),
+        viewModel.selectedEvent.value)
   }
 
   @Test
   fun `onMarkerClick selects the event`() = runTest {
     val testEvent = EventTestData.dummyEvent1
+    val eventCreator = UserTestData.Bob.username
+    coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
     viewModel.onMarkerClick(testEvent)
     advanceUntilIdle()
 
-    assertEquals(testEvent, viewModel.selectedEvent.value)
+    assertEquals(
+        MapViewModel.EventSelectionState.Selected(testEvent, eventCreator),
+        viewModel.selectedEvent.value)
   }
 
   @Test
@@ -464,16 +473,28 @@ class MapViewModelTest {
     val event = EventTestData.dummyEvent1
     val newParticipants = event.participants + userId
     val updatedEvent = event.copy(participants = newParticipants)
+    val eventCreator = UserTestData.Bob.username
 
+    coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
     coEvery { eventRepository.updateEvent(event.id, updatedEvent) } returns Unit
     coEvery { eventRepository.getAllEvents(any(), any()) } returns listOf(updatedEvent)
 
+    viewModel.selectEvent(event)
     viewModel.toggleEventParticipation(event)
     advanceUntilIdle()
 
     coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
-    val selectedEvent = viewModel.selectedEvent.value
+    val selectedEventState = viewModel.selectedEvent.value
+    val (selectedEvent, creator) =
+        selectedEventState.let {
+          when (it) {
+            is MapViewModel.EventSelectionState.None -> Pair(null, null)
+            is MapViewModel.EventSelectionState.Selected -> Pair(it.event, it.creator)
+          }
+        }
+
     assertEquals(updatedEvent, selectedEvent)
+    assertEquals(eventCreator, creator)
     assertTrue(selectedEvent?.participants?.contains(userId) ?: false)
   }
 
