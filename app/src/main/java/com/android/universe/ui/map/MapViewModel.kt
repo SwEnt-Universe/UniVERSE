@@ -3,6 +3,7 @@ package com.android.universe.ui.map
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.view.ViewGroup
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
@@ -123,7 +124,6 @@ class MapViewModel(
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
     private val ai: AIEventGen = OpenAIProvider.eventGen,
-    private val isDarkTheme: Boolean = false
 ) : ViewModel() {
 
   private val _uiState =
@@ -162,6 +162,11 @@ class MapViewModel(
   private val markerToEvent = mutableMapOf<String, Event>()
   private lateinit var currentUserId: String
   private var longClickListener: MapLongClickListener? = null
+  private var mapTheme: StyleMode =
+      if (applicationContext.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+          Configuration.UI_MODE_NIGHT_YES)
+          StyleMode.DARK
+      else StyleMode.MAIN
 
   // Jobs
   private var locationTrackingJob: Job? = null
@@ -187,6 +192,11 @@ class MapViewModel(
     tomtomMapView = null
     stopLocationTracking()
     stopEventPolling()
+  }
+
+  fun setTheme(isDarkTheme: Boolean) {
+    if (isDarkTheme) this.mapTheme = StyleMode.DARK else this.mapTheme = StyleMode.MAIN
+    tomTomMap?.setStyleMode(this.mapTheme)
   }
 
   /**
@@ -231,7 +241,6 @@ class MapViewModel(
   fun onMapReady(map: TomTomMap) {
     tomTomMap = map
     map.apply {
-      if (isDarkTheme) setStyleMode(StyleMode.DARK)
       setInitialCamera(uiState.value.cameraPosition, uiState.value.zoomLevel)
       setAntialiasingMethod(AntialiasingMethod.FastApproximateAntialiasing)
       setUpMapListeners(

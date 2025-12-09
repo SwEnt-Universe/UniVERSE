@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -100,6 +102,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
+  val theme = isSystemInDarkTheme()
 
   // --- 1. Permissions & Initialization ---
 
@@ -141,6 +144,8 @@ fun MapScreen(
   LaunchedEffect(uiState.markers, uiState.isMapInteractive) {
     viewModel.syncEventMarkers(uiState.markers)
   }
+
+  SideEffect { viewModel.setTheme(theme) }
 
   // Sync Selection
   LaunchedEffect(uiState.selectedLocation) {
