@@ -29,11 +29,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.ScreenLayoutWithBox
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -94,12 +97,15 @@ fun MapScreen(
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
-          UserRepositoryProvider.repository)
+          eventTemporaryRepository = EventTemporaryRepositoryProvider.repository,
+          UserRepositoryProvider.repository,
+      )
     }
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
+  val preview = viewModel.previewEvent.collectAsState()
 
   // --- 1. Permissions & Initialization ---
 
@@ -172,7 +178,17 @@ fun MapScreen(
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
-        NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
+        if (preview.value != null) {
+          // PREVIEW MODE: bottom bar used to accept/reject AI events
+          FlowBottomMenu(
+              flowTabs =
+                  listOf(
+                      FlowTab.Back { viewModel.rejectPreview() },
+                      FlowTab.Confirm(onClick = { viewModel.acceptPreview() }, enabled = true)))
+        } else {
+          // NORMAL MODE: bottom bar used for navigation
+          NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected)
+        }
       }) { padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
@@ -191,6 +207,8 @@ fun MapScreen(
           }
 
           selectedEvent?.let { event ->
+            val isPreview = preview.value != null && preview.value?.id == event.id
+
             EventInfoPopup(
                 modifier = Modifier.padding(padding),
                 event = event,
@@ -198,8 +216,10 @@ fun MapScreen(
                 onDismiss = { viewModel.selectEvent(null) },
                 onChatNavigate = onChatNavigate,
                 isUserParticipant = viewModel.isUserParticipant(event),
-                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) },
+                isPreview = isPreview)
           }
+
           MapCreateEventModal(
               isPresented = showMapModal,
               onDismissRequest = { showMapModal = false },
