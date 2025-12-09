@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -105,6 +107,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
+  val theme = isSystemInDarkTheme()
   val preview = viewModel.previewEvent.collectAsState()
 
   // --- 1. Permissions & Initialization ---
@@ -139,12 +142,16 @@ fun MapScreen(
     }
   }
 
+  LaunchedEffect(uiState.mapMode) { viewModel.updateLongClickListener(onLocationSelected) }
+
   // --- 2. Reactive Updates (Side Effects) ---
 
   // Sync Markers
   LaunchedEffect(uiState.markers, uiState.isMapInteractive) {
     viewModel.syncEventMarkers(uiState.markers)
   }
+
+  SideEffect { viewModel.setTheme(theme) }
 
   // Sync Selection
   LaunchedEffect(uiState.selectedLocation) {
@@ -177,8 +184,9 @@ fun MapScreen(
   // --- 3. UI Structure ---
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
-      bottomBar = { NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = onTabSelected) }) {
-          padding ->
+      bottomBar = {
+        NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
+      }) { padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
           AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
@@ -195,28 +203,16 @@ fun MapScreen(
             }
           }
 
-          selectedEvent?.let { event ->
-            val isPreview = preview.value != null && preview.value?.id == event.id
-
-            EventInfoPopup(
-                modifier = Modifier.padding(padding),
-                event = event,
-                creator = viewModel.getEventCreatorUsername(event.creator),
-                onDismiss = { viewModel.selectEvent(null) },
-                onChatNavigate = onChatNavigate,
-                isUserParticipant = viewModel.isUserParticipant(event),
-                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) },
-                isPreview = isPreview,
-                bottomBar =
-                    if (isPreview) {
-                      {
-                        FlowBottomMenu(
-                            flowTabs =
-                                listOf(
-                                    FlowTab.Back { viewModel.rejectPreview() },
-                                    FlowTab.Confirm({ viewModel.acceptPreview() }, enabled = true)))
-                      }
-                    } else null)
+          selectedEvent.let {
+            if (it is MapViewModel.EventSelectionState.Selected)
+                EventInfoPopup(
+                    modifier = Modifier.padding(padding),
+                    event = it.event,
+                    creator = it.creator,
+                    onDismiss = { viewModel.selectEvent(null) },
+                    onChatNavigate = onChatNavigate,
+                    isUserParticipant = viewModel.isUserParticipant(it.event),
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
           }
 
           MapCreateEventModal(
