@@ -608,6 +608,9 @@ class MapViewModel(
               return
             }
 
+    // Trigger loading icon
+    _uiState.update { it.copy(isLoading = true, error = null) }
+
     viewModelScope.launch {
       try {
         val profile = userRepository.getUser(currentUserId)
@@ -637,6 +640,9 @@ class MapViewModel(
         requestCameraCenter(GeoPoint(event.location.latitude, event.location.longitude))
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
+      } finally {
+        // Hide loading icon
+        _uiState.update { it.copy(isLoading = false) }
       }
     }
   }
