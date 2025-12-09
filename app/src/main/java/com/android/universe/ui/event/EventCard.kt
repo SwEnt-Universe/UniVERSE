@@ -56,6 +56,7 @@ fun EventCard(
                   modifier = Modifier.matchParentSize().testTag(EventContentTestTags.EVENT_IMAGE))
             },
             isUserParticipant = event.joined,
+            isPrivate = event.isPrivate,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
             onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge))

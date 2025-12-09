@@ -9,6 +9,7 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.event.EventUIState
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -38,8 +39,8 @@ data class UserProfileUIState(
             tags = emptySet(),
             profilePicture = null),
     val age: Int = 0,
-    val incomingEvents: List<Event> = emptyList(),
-    val historyEvents: List<Event> = emptyList(),
+    val incomingEvents: List<EventUIState> = emptyList(),
+    val historyEvents: List<EventUIState> = emptyList(),
     val errorMsg: String? = null
 )
 
@@ -92,10 +93,33 @@ class UserProfileViewModel(
 
       val (incoming, history) = rawEvents.partition { event -> event.date.isAfter(now) }
 
+      fun mapToUIState(event: Event): EventUIState {
+        val creatorName =
+            if (event.creator == _userState.value.userProfile.uid) {
+              "${_userState.value.userProfile.firstName} ${_userState.value.userProfile.lastName}"
+            } else {
+              "Unknown"
+            }
+
+        return EventUIState(
+            id = event.id,
+            title = event.title,
+            description = event.description ?: "",
+            date = event.date,
+            tags = event.tags.toList(),
+            creator = creatorName,
+            participants = event.participants.size,
+            location = event.location,
+            isPrivate = event.isPrivate,
+            index = event.id.hashCode(),
+            joined = true,
+            eventPicture = event.eventPicture)
+      }
+
       _userState.value =
           _userState.value.copy(
-              incomingEvents = incoming.sortedBy { it.date },
-              historyEvents = history.sortedByDescending { it.date })
+              incomingEvents = incoming.sortedBy { it.date }.map { mapToUIState(it) },
+              historyEvents = history.sortedByDescending { it.date }.map { mapToUIState(it) })
     } catch (e: Exception) {
       Log.e("UserProfileViewModel", "Error loading events", e)
     }
