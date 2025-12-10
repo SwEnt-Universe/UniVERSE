@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
-import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Title
@@ -43,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.ai.gemini.EventProposal
+import com.android.universe.model.location.Location
 import com.android.universe.ui.common.UniversalDatePickerDialog
 import com.android.universe.ui.common.ValidationState
 import com.android.universe.ui.components.CustomTextField
@@ -92,17 +91,15 @@ object EventCreationDefaults {
  * details automatically.
  *
  * @param eventCreationViewModel the viewModel that holds the state and logic for event creation.
- * @param onSelectLocation callback triggered when the user clicks the location button to set the
- *   event's location.
+ * @param location the location of the event.
  * @param onSave callback triggered when the user successfully saves the event.
  * @param onBack callback triggered when the user clicks the back button.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventCreationScreen(
     eventCreationViewModel: EventCreationViewModel =
         viewModel(factory = EventCreationViewModel.provideFactory(LocalContext.current)),
-    onSelectLocation: () -> Unit,
+    location: Location,
     onSave: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
@@ -138,7 +135,7 @@ fun EventCreationScreen(
     StandardEventCreationForm(
         uiState = uiState.value,
         eventCreationViewModel = eventCreationViewModel,
-        onSelectLocation = onSelectLocation,
+        location = location,
         onSave = onSave,
         onBack = onBack)
   }
@@ -153,7 +150,7 @@ fun EventCreationScreen(
  *
  * @param uiState The current UI state containing form data and validation results.
  * @param eventCreationViewModel The ViewModel to update state and trigger logic.
- * @param onSelectLocation Callback to navigate to the location selection screen.
+ * @param location the location of the event.
  * @param onSave Callback triggered when the event is successfully saved.
  * @param onBack Callback to return to the previous screen.
  */
@@ -161,7 +158,7 @@ fun EventCreationScreen(
 fun StandardEventCreationForm(
     uiState: EventCreationUIState,
     eventCreationViewModel: EventCreationViewModel,
-    onSelectLocation: () -> Unit,
+    location: Location,
     onSave: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -175,7 +172,7 @@ fun StandardEventCreationForm(
           onClick = {
             val currentUser = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUser != null) {
-              eventCreationViewModel.saveEvent(uid = currentUser)
+              eventCreationViewModel.saveEvent(uid = currentUser, location = location)
               onSave()
             }
           },
@@ -238,20 +235,6 @@ fun StandardEventCreationForm(
                                   Icon(
                                       imageVector = Icons.Default.AutoAwesome,
                                       contentDescription = "AI Assist",
-                                      modifier = Modifier.size(EventCreationDefaults.locIconSize))
-                                }
-
-                            LiquidButton(
-                                onClick = { onSelectLocation() },
-                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
-                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
-                                contentPadding = Dimensions.PaddingSmall,
-                                modifier =
-                                    Modifier.testTag(EventCreationTestTags.SET_LOCATION_BUTTON)) {
-                                  Icon(
-                                      imageVector = Icons.Default.AddLocationAlt,
-                                      contentDescription = "Set location",
-                                      tint = MaterialTheme.colorScheme.onBackground,
                                       modifier = Modifier.size(EventCreationDefaults.locIconSize))
                                 }
                           }
