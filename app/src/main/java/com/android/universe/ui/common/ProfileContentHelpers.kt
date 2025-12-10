@@ -139,6 +139,40 @@ fun FollowingOrSettingsButton(
 }
 
 /**
+ * A composable function that displays a statistic in a circular button with a label below it.
+ *
+ * @param label The label for the statistic.
+ * @param count The count/value of the statistic.
+ * @param testTag The test tag for UI testing.
+ */
+@Composable
+fun StatCircleColumn(label: String, count: Int, testTag: String) {
+  Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.testTag(testTag)) {
+    LiquidButton(
+        modifier = Modifier.size(35.dp).clip(CircleShape),
+        enabled = false,
+        isInteractive = false,
+        onClick = {},
+        contentPadding = Dimensions.PaddingSmall) {
+          Text(
+              text = "$count",
+              style = MaterialTheme.typography.bodyMedium,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              color = MaterialTheme.colorScheme.onSurface)
+        }
+
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        softWrap = false,
+        overflow = TextOverflow.Clip,
+        maxLines = 1)
+  }
+}
+
+/**
  * A composable function that displays the number of followers and following in a row layout.
  *
  * @param userProfile The user's profile data.
@@ -147,58 +181,16 @@ fun FollowingOrSettingsButton(
 @Composable
 fun FollowersFollowingColumn(userProfile: UserProfile, modifier: Modifier) {
   Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier =
-            Modifier.testTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${userProfile.uid}")) {
-          LiquidButton(
-              modifier = Modifier.size(35.dp).clip(CircleShape),
-              enabled = false,
-              isInteractive = false,
-              onClick = {},
-              contentPadding = Dimensions.PaddingSmall) {
-                Text(
-                    text = "${userProfile.followers.size}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface)
-              }
-          Text(
-              text = "followers",
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurface,
-              softWrap = false,
-              overflow = TextOverflow.Clip,
-              maxLines = 1)
-        }
+    StatCircleColumn(
+        label = "followers",
+        count = userProfile.followers.size,
+        testTag = "${ProfileContentTestTags.FOLLOWERS_COUNT}_${userProfile.uid}")
 
     Spacer(Modifier.width(Dimensions.SpacerSmall))
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier =
-            Modifier.testTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${userProfile.uid}")) {
-          LiquidButton(
-              modifier = Modifier.size(35.dp).clip(CircleShape),
-              enabled = false,
-              isInteractive = false,
-              onClick = {},
-              contentPadding = Dimensions.PaddingSmall) {
-                Text(
-                    text = "${userProfile.following.size}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface)
-              }
-          Text(
-              text = "following",
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurface,
-              softWrap = false,
-              overflow = TextOverflow.Clip,
-              maxLines = 1)
-        }
+    StatCircleColumn(
+        label = "following",
+        count = userProfile.following.size,
+        testTag = "${ProfileContentTestTags.FOLLOWING_COUNT}_${userProfile.uid}")
   }
 }
