@@ -56,6 +56,7 @@ object ProfileContentTestTags {
  *   is not created yet).
  * @param heightTagList Height of the tag list/row.
  * @param actionRowEnabled Whether to show the action row (chat, follow buttons) or not.
+ * @param isFollowing Whether the current user is following this user.
  * @param onChatClick Callback for chat button.
  * @param onToggleFollowing Callback for add/follow button.
  * @param onSettingsClick Optional callback for settings button. If null, settings button is not
@@ -69,6 +70,7 @@ fun ProfileContentLayout(
     following: Int? = 0,
     heightTagList: Dp = 260.dp,
     actionRowEnabled: Boolean = true,
+    isFollowing: Boolean? = null,
     onChatClick: () -> Unit,
     onToggleFollowing: () -> Unit,
     onSettingsClick: (() -> Unit)? = null
@@ -166,6 +168,7 @@ fun ProfileContentLayout(
           userProfile = userProfile,
           followers = followers ?: 0,
           following = following ?: 0,
+          isFollowing = isFollowing ?: false,
           onChatClick = onChatClick,
           onToggleFollowing = onToggleFollowing,
           modifier = Modifier.fillMaxWidth())

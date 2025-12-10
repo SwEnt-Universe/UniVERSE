@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -80,7 +81,7 @@ fun UserInfoColumn(userProfile: UserProfile) {
  * @param followers The number of followers the user has.
  * @param following The number of users the user is following.
  * @param onChatClick A lambda function that is called when the "Chat" button is clicked.
- * @param onToggleFollowing A lambda function that is called when the "Add" button is clicked.
+ * @param onToggleFollowing A lambda function that is called when the "Follow" button is clicked.
  * @param modifier The modifier to be applied to the row.
  */
 @Composable
@@ -88,6 +89,7 @@ fun ProfileCardActionsRow(
     userProfile: UserProfile,
     followers: Int,
     following: Int,
+    isFollowing: Boolean,
     onChatClick: () -> Unit,
     onToggleFollowing: () -> Unit,
     modifier: Modifier
@@ -96,8 +98,9 @@ fun ProfileCardActionsRow(
     LiquidButton(
         onClick = onChatClick,
         height = Dimensions.CardButtonHeight,
-        width = Dimensions.CardButtonWidth,
-        modifier = Modifier.testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
+        modifier =
+            Modifier.weight(1f)
+                .testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.Chat,
@@ -155,15 +158,21 @@ fun ProfileCardActionsRow(
     LiquidButton(
         onClick = onToggleFollowing,
         height = Dimensions.CardButtonHeight,
-        width = Dimensions.CardButtonWidth,
-        modifier = Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
+        modifier =
+            Modifier.weight(1f)
+                .testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector = Icons.Outlined.PersonAdd,
-                contentDescription = "Add",
+                imageVector =
+                    if (isFollowing) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAdd,
+                contentDescription = if (isFollowing) "Unfollow" else "Follow",
                 modifier = Modifier.size(Dimensions.IconSizeMedium))
+
             Spacer(Modifier.width(Dimensions.SpacerSmall))
-            Text(text = "Add", style = MaterialTheme.typography.labelLarge)
+
+            Text(
+                text = if (isFollowing) "Unfollow" else "Follow",
+                style = MaterialTheme.typography.labelLarge)
           }
         }
   }

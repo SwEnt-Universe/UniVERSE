@@ -6,24 +6,23 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-data class ProfileUIState(
-    val user: UserProfile,
-    val followersCount: Int = 0,
-    val followingCount: Int = 0,
-    val isFollowing: Boolean = false
-)
+data class ProfileUIState(val user: UserProfile, val isFollowing: Boolean = false)
 
 data class ProfileTabsState(
     val explore: List<ProfileUIState> = emptyList(),
     val followers: List<ProfileUIState> = emptyList(),
-    val following: List<ProfileUIState> = emptyList()
+    val following: List<ProfileUIState> = emptyList(),
+    val isLoading: Boolean = false
 )
 
-data class UiState(val errorMsg: String? = null)
+data class UiState(val errorMsg: String? = null, val isInitialized: Boolean = false)
 
 /**
  * ViewModel for searching and managing user profiles.
@@ -31,6 +30,7 @@ data class UiState(val errorMsg: String? = null)
  * @param userRepository The repository to fetch user profiles from.
  */
 class SearchProfileViewModel(
+    private val uid: String,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(UiState())
@@ -39,56 +39,63 @@ class SearchProfileViewModel(
   private val _searchQuery = MutableStateFlow("")
   val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-  var currentUserId: String = ""
+  private val explore = MutableStateFlow<List<UserProfile>>(emptyList())
+  private val followers = MutableStateFlow<List<UserProfile>>(emptyList())
+  private val following = MutableStateFlow<List<UserProfile>>(emptyList())
 
-  private val _profilesState = MutableStateFlow(ProfileTabsState())
-  val profilesState: StateFlow<ProfileTabsState> = _profilesState.asStateFlow()
+  private val currentUserFollowingIds = MutableStateFlow<Set<String>>(emptySet())
 
-  // To avoid recomposing UI state on every search
-  private var exploreRaw = emptyList<UserProfile>()
-  private var followersRaw = emptyList<UserProfile>()
-  private var followingRaw = emptyList<UserProfile>()
+  /** Combined state of profile tabs with filtering based on search query */
+  val profilesState: StateFlow<ProfileTabsState> =
+      combine(explore, followers, following, currentUserFollowingIds, searchQuery) {
+              exploreRaw,
+              followersRaw,
+              followingRaw,
+              followingIds,
+              query ->
+            val q = query.lowercase()
 
-  /** Load explore recommendations */
-  fun loadExplore() {
-    viewModelScope.launch {
-      try {
-        val users = userRepository.getFollowRecommendations(currentUserId)
+            fun filter(list: List<UserProfile>) =
+                if (q.isBlank()) list
+                else
+                    list.filter {
+                      val full = "${it.firstName} ${it.lastName}".lowercase()
+                      full.contains(q)
+                    }
 
-        exploreRaw = users
-        updateExploreUI(users)
-      } catch (_: Exception) {
-        setError("Failed to load explore users")
-      }
-    }
+            ProfileTabsState(
+                explore = filter(exploreRaw).map { it.toUI(followingIds) },
+                followers = filter(followersRaw).map { it.toUI(followingIds) },
+                following = filter(followingRaw).map { it.toUI(followingIds) },
+                isLoading = false)
+          }
+          .stateIn(viewModelScope, SharingStarted.Eagerly, ProfileTabsState())
+
+  init {
+    loadInitialData()
   }
 
-  /** Load followers of current user */
-  fun loadFollowers() {
+  /** Load initial data for explore, followers, and following lists. */
+  fun loadInitialData() {
     viewModelScope.launch {
       try {
-        followersRaw = userRepository.getFollowers(currentUserId)
-        updateFollowersUI(followersRaw)
-      } catch (_: Exception) {
-        setError("Failed to load followers")
-      }
-    }
-  }
+        _uiState.value = UiState(isInitialized = false)
 
-  /** Load following of current user */
-  fun loadFollowing() {
-    viewModelScope.launch {
-      try {
-        followingRaw = userRepository.getFollowing(currentUserId)
-        updateFollowingUI(followingRaw)
+        currentUserFollowingIds.value = userRepository.getFollowing(uid).map { it.uid }.toSet()
+
+        explore.value = userRepository.getFollowRecommendations(uid)
+        followers.value = userRepository.getFollowers(uid)
+        following.value = userRepository.getFollowing(uid)
+
+        _uiState.value = UiState(isInitialized = true)
       } catch (_: Exception) {
-        setError("Failed to load following")
+        setError("Failed to load initial data")
       }
     }
   }
 
   /**
-   * Toggle follow/unfollow for a target user
+   * Toggle follow/unfollow for a target user and update relevant lists accordingly.
    *
    * @param target The target user's profile UI state.
    */
@@ -96,77 +103,30 @@ class SearchProfileViewModel(
     viewModelScope.launch {
       try {
         if (target.isFollowing) {
-          userRepository.unfollowUser(currentUserId, target.user.uid)
+          userRepository.unfollowUser(uid, target.user.uid)
+          currentUserFollowingIds.value = currentUserFollowingIds.value - target.user.uid
         } else {
-          userRepository.followUser(currentUserId, target.user.uid)
+          userRepository.followUser(uid, target.user.uid)
+          currentUserFollowingIds.value = currentUserFollowingIds.value + target.user.uid
         }
 
-        reloadLists()
+        following.value = userRepository.getFollowing(uid)
+        explore.value = userRepository.getFollowRecommendations(uid)
+        followers.value = userRepository.getFollowers(uid)
       } catch (_: Exception) {
         setError("Failed to update follow status")
       }
     }
   }
 
-  /** Reload all profile lists to reflect changes */
-  private fun reloadLists() {
-    loadExplore()
-    loadFollowers()
-    loadFollowing()
-  }
-
   /**
    * Convert UserProfile to ProfileUIState
    *
-   * @param user The user profile to convert.
+   * @param followingIds The set of user IDs that the current user is following.
    * @return The corresponding ProfileUIState.
    */
-  private suspend fun toProfileUIState(user: UserProfile): ProfileUIState {
-    val followers = userRepository.getFollowers(user.uid)
-    val following = userRepository.getFollowing(user.uid)
-
-    return ProfileUIState(
-        user = user,
-        followersCount = followers.size,
-        followingCount = following.size,
-        isFollowing = followingRaw.any { it.uid == user.uid })
-  }
-
-  /**
-   * Update explore tab UI state
-   *
-   * @param users The list of user profiles to update.
-   */
-  private fun updateExploreUI(users: List<UserProfile>) {
-    viewModelScope.launch {
-      val uiStates = users.map { toProfileUIState(it) }
-      _profilesState.value = _profilesState.value.copy(explore = uiStates)
-    }
-  }
-
-  /**
-   * Update followers tab UI state
-   *
-   * @param users The list of user profiles to update.
-   */
-  private fun updateFollowersUI(users: List<UserProfile>) {
-    viewModelScope.launch {
-      val uiStates = users.map { toProfileUIState(it) }
-      _profilesState.value = _profilesState.value.copy(followers = uiStates)
-    }
-  }
-
-  /**
-   * Update following tab UI state
-   *
-   * @param users The list of user profiles to update.
-   */
-  private fun updateFollowingUI(users: List<UserProfile>) {
-    viewModelScope.launch {
-      val uiStates = users.map { toProfileUIState(it) }
-      _profilesState.value = _profilesState.value.copy(following = uiStates)
-    }
-  }
+  private fun UserProfile.toUI(followingIds: Set<String>) =
+      ProfileUIState(this, isFollowing = followingIds.contains(uid))
 
   /**
    * Update search query and filter explore list
@@ -175,19 +135,6 @@ class SearchProfileViewModel(
    */
   fun updateSearchQuery(query: String) {
     _searchQuery.value = query
-    filterExplore()
-  }
-
-  /** Filter explore list based on search query */
-  private fun filterExplore() {
-    val q = searchQuery.value.lowercase()
-
-    val filtered =
-        exploreRaw.filter {
-          it.firstName.lowercase().contains(q) || it.lastName.lowercase().contains(q)
-        }
-
-    updateExploreUI(filtered)
   }
 
   /**

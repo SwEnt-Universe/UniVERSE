@@ -58,6 +58,7 @@ import com.android.universe.ui.profileCreation.AddProfile
 import com.android.universe.ui.profileCreation.AddProfileViewModel
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.profileSettings.SettingsViewModel
+import com.android.universe.ui.searchProfile.SearchProfileScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
@@ -368,6 +369,19 @@ fun UniverseApp(
                     credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
                   })
             }
+
+        navigation(
+            route = NavigationScreens.SearchProfile.name,
+            startDestination = NavigationScreens.SearchProfile.route) {
+              composable(route = NavigationScreens.SearchProfile.route) {
+                SearchProfileScreen(
+                    uid = authInstance.currentUser!!.uid,
+                    onTabSelected = onTabSelected,
+                    onChatNavigate = {},
+                    onCardClick = {})
+              }
+            }
+
         navigation(
             route = NavigationScreens.EventCreation.name,
             startDestination = NavigationScreens.EventCreation.route) {
