@@ -89,6 +89,7 @@ data class MapUiState(
     val isLocationPermissionGranted: Boolean = false,
     val isMapInteractive: Boolean = false,
     val mapMode: MapMode = MapMode.NORMAL,
+    val pendingCameraCenter: GeoPoint? = null,
     // Defaults to Lausanne
     val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
     val zoomLevel: Double = 14.0
@@ -613,7 +614,10 @@ class MapViewModel(
    * @param radiusKm Max radius for generation.
    * @param timeFrame Time frame for context (e.g., "today").
    */
-  fun generateAiEventAroundUser(radiusKm: Int = MAX_RADIUS_KM, timeFrame: String = "today") {
+  fun generateAiEventAroundUser(
+      radiusKm: Int = MAX_RADIUS_KM,
+      timeFrame: String = "today",
+  ) {
     val userLoc =
         uiState.value.userLocation
             ?: run {
@@ -635,11 +639,38 @@ class MapViewModel(
         val events = ai.generateEvents(query)
 
         eventRepository.persistAIEvents(events)
+        val event = events.firstOrNull() ?: throw IllegalStateException("AI returned no events")
         loadAllEvents()
+
+        // Request to center on new event
+        requestCameraCenter(GeoPoint(event.location.latitude, event.location.longitude))
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
       }
     }
+  }
+
+  /**
+   * Requests the map camera to center on the given geographic point.
+   *
+   * This does not move the camera directly. Instead, it updates the UI state with a
+   * `pendingCameraCenter` value, which the UI layer (e.g., `MapScreen`) can observe and react to by
+   * performing the actual camera movement on the map instance.
+   *
+   * @param point The target geographic coordinate to center the camera on.
+   */
+  fun requestCameraCenter(point: GeoPoint) {
+    _uiState.update { it.copy(pendingCameraCenter = point) }
+  }
+
+  /**
+   * Clears any previously requested camera-center action.
+   *
+   * Call after the UI has consumed and applied the pending camera movement. Prevents the same
+   * camera command from being executed multiple times.
+   */
+  fun clearPendingCameraCenter() {
+    _uiState.update { it.copy(pendingCameraCenter = null) }
   }
 
   private fun mapEventToMarker(event: Event): MapMarkerUiModel {
