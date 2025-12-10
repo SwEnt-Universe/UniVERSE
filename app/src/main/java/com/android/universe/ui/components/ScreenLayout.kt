@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -50,7 +51,7 @@ fun ScreenLayout(
       modifier = modifier,
       containerColor = Color.Transparent,
       topBar = topBar,
-      bottomBar = bottomBar,
+      bottomBar = { Box(Modifier.navigationBarsPadding()) { bottomBar() } },
   ) { scaffoldPadding ->
     Box(modifier = Modifier.fillMaxSize()) { content(scaffoldPadding) }
   }

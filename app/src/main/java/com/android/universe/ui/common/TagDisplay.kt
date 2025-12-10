@@ -283,6 +283,7 @@ fun TagGroup(
                 Text(
                     title,
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier =
                         Modifier.fillMaxWidth()
                             .padding(top = outerPaddingV, bottom = Dimensions.PaddingSmall),
