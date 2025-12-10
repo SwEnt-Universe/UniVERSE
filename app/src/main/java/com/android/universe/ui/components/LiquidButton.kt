@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,18 +64,34 @@ import kotlin.math.sin
 import kotlin.math.tanh
 
 /**
+ * A glass-style button that exhibits "liquid" properties, such as squashing, stretching, and
+ * wobbling in response to user interaction.
+ *
+ * This button can be rendered in two ways:
+ * 1. **With a backdrop:** It uses the `drawBackdrop` API to create a blurred, vibrant, and
+ *    lens-distorted background effect. This is the default behavior.
+ * 2. **Without a backdrop:** It renders as a simple colored surface, useful for environments where
+ *    backdrop effects are unavailable or disabled. The liquid deformation is still applied via a
+ *    `graphicsLayer`.
+ *
+ * The "liquid" effect is achieved through a combination of scaling and translation transformations
+ * based on press and drag gestures.
+ *
  * @param onClick The lambda function to be executed when the button is clicked.
- * @param modifier The [Modifier] to be applied to the component's container. Note this includes
- *   test tags
- * @param enabled Whether the component is enabled or not. I.e if one can press it or not
- * @param isInteractive Whether the component is interactive or not. I.e if there are visual effects
- *   on long presses.
- * @param height The height of the component. 48f by default
- * @param width The width of the component. 192f by default
- * @param color The color of the component. MaterialTheme.colorScheme.background by default
- * @param contentPadding The padding of the content. 16.dp by default
- * @param content The composable content for the button, typically a series of `Icon` or `Text`
- *   composables. This lambda is executed within a [RowScope].
+ * @param modifier The [Modifier] to be applied to the button.
+ * @param enabled Controls the enabled state of the button. When `false`, the button will not be
+ *   clickable and interaction effects are disabled.
+ * @param isInteractive If `true` and the button is `enabled`, liquid interaction effects (squash,
+ *   stretch, wobble) will be active. If `false`, standard ripple effects are used instead.
+ * @param tint An optional color to tint the button's surface. When used with a backdrop, it applies
+ *   a hue shift and a translucent overlay.
+ * @param disableBackdrop If `true`, the backdrop effect is disabled and a simple `surfaceColor` is
+ *   drawn instead. Set this to `true` for better performance or when backdrop layers are not
+ *   available.
+ * @param height The height of the button.
+ * @param width The width of the button.
+ * @param surfaceColor The color of the button's surface when `disableBackdrop` is `true`, or the
+ *   translucent overlay color when `disableBackdrop` is `false`.
  */
 @Composable
 fun LiquidButton(
@@ -86,7 +103,7 @@ fun LiquidButton(
     disableBackdrop: Boolean = false,
     height: Float = 48f,
     width: Float = 192f,
-    surfaceColor: Color = Color.Unspecified,
+    surfaceColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
     contentPadding: Dp = 16.dp,
     content: @Composable RowScope.() -> Unit
 ) {
