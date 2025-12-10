@@ -131,6 +131,17 @@ class EventCreationViewModelTest {
   }
 
   @Test
+  fun testSetPrivacy() {
+    assertFalse(viewModel.uiStateEventCreation.value.isPrivate)
+
+    viewModel.setPrivacy(true)
+    assertTrue(viewModel.uiStateEventCreation.value.isPrivate)
+
+    viewModel.setPrivacy(false)
+    assertFalse(viewModel.uiStateEventCreation.value.isPrivate)
+  }
+
+  @Test
   fun testSetEventDate() {
     viewModel.setDate(SAMPLE_DATE)
     val state = viewModel.uiStateEventCreation.value
@@ -314,10 +325,30 @@ class EventCreationViewModelTest {
     assert(stockedEvent.participants == setOf("user123"))
     assert(stockedEvent.location == Location(0.0, 0.0))
     assert(stockedEvent.tags == emptySet<Tag>())
+    assertFalse(stockedEvent.isPrivate)
 
     val expectedDate = LocalDateTime.of(2030, 12, 12, 12, 12)
 
     assert(stockedEvent.date == expectedDate)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun testSavePrivateEvent() = runTest {
+    viewModel.setEventName(SAMPLE_TITLE)
+    viewModel.setEventDescription(SAMPLE_DESCRIPTION)
+    viewModel.setDate(SAMPLE_DATE)
+    viewModel.setTime(SAMPLE_TIME)
+    viewModel.setLocation(0.0, 0.0)
+    viewModel.setPrivacy(true)
+
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    viewModel.saveEvent(uid = "user123")
+    testDispatcher.scheduler.advanceUntilIdle()
+    val stockedEvent = eventTemporaryRepository.getEvent()
+
+    assertTrue(stockedEvent.isPrivate)
   }
 
   @Test

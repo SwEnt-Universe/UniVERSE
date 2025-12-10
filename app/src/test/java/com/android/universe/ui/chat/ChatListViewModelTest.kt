@@ -62,9 +62,9 @@ class ChatListViewModelTest {
         // Setup test events
         val e1 = EventTestData.dummyEvent1.copy(participants = setOf(userId, "x"))
         val e2 = EventTestData.dummyEvent2.copy(participants = setOf("y", userId))
-        val e3 = EventTestData.dummyEvent3.copy(participants = setOf("nobody"))
 
-        coEvery { mockEventRepository.getAllEvents() } returns listOf(e1, e2, e3)
+        // We mock the repo to return only e1 and e2.
+        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(e1, e2)
 
         coEvery { ChatManager.loadChat(any()) } answers
             {
@@ -78,20 +78,15 @@ class ChatListViewModelTest {
               getNewSampleChat(id, mockChatRepository)
             }
 
-        // Act
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
 
         val previews = viewModel.chatPreviews.value
-        println(previews)
-        println(previews.size)
 
-        // Assert: 2 events included
         assertEquals(2, previews.size)
 
         val ids = previews.map { it.chatID }
         val titles = previews.map { it.chatName }
-        print(ids)
 
         assertTrue(ids.contains(e1.id))
         assertTrue(ids.contains(e2.id))
@@ -104,7 +99,7 @@ class ChatListViewModelTest {
       testScope.runTest {
         val event = EventTestData.dummyEvent1.copy(participants = setOf(userId))
 
-        coEvery { mockEventRepository.getAllEvents() } returns listOf(event)
+        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(event)
 
         // Stub loadChat to throw
         coEvery { ChatManager.loadChat(event.id) } throws NoSuchElementException()
@@ -129,11 +124,9 @@ class ChatListViewModelTest {
   @Test
   fun `ignores dummy events where user is not a participant`() =
       testScope.runTest {
-        val e1 = EventTestData.dummyEvent1.copy(participants = setOf("a", "b"))
-        val e2 = EventTestData.dummyEvent2.copy(participants = setOf("c"))
-        val e3 = EventTestData.dummyEvent3.copy(participants = setOf("d"))
-
-        coEvery { mockEventRepository.getAllEvents() } returns listOf(e1, e2, e3)
+        // If the user is not a participant, the repository returns an empty list.
+        // We simulate the repository behaving correctly.
+        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns emptyList()
 
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()

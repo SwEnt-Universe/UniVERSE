@@ -23,6 +23,7 @@ import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -158,7 +159,10 @@ class MapScreenTest {
     viewModel.selectEvent(event1)
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
-    assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent1.title)
+    viewModel.selectedEvent.value.let {
+      it as MapViewModel.EventSelectionState.Selected
+      assertEquals(it.event.title, EventTestData.dummyEvent1.title)
+    }
 
     viewModel.selectEvent(null)
     composeTestRule.waitForIdle()
@@ -167,7 +171,10 @@ class MapScreenTest {
     viewModel.selectEvent(event2)
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.EVENT_INFO_POPUP).assertIsDisplayed()
-    assert(viewModel.selectedEvent.value?.title == EventTestData.dummyEvent2.title)
+    viewModel.selectedEvent.value.let {
+      it as MapViewModel.EventSelectionState.Selected
+      assertEquals(it.event.title, EventTestData.dummyEvent2.title)
+    }
   }
 }
 

@@ -27,6 +27,7 @@ class EventViewModelTest {
   companion object {
     const val EVENT1TITLE = "Morning Run at the Lake"
     const val EVENT1DESC = "Join us for a casual 5km run around the lake followed by coffee."
+    val SAMPLETAG = Tag.METAL
   }
 
   private lateinit var repository: FakeEventRepository
@@ -234,5 +235,13 @@ class EventViewModelTest {
     assertEquals(EVENT1TITLE, result.first().title)
 
     job.cancel()
+  }
+
+  @Test
+  fun categoriesUpdatesWork() {
+    viewModel.selectCategory(SAMPLETAG.category)
+    assertEquals(setOf(SAMPLETAG.category), viewModel.categories.value)
+    viewModel.deselectCategory(SAMPLETAG.category)
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
   }
 }

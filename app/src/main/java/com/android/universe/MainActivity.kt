@@ -379,6 +379,7 @@ fun UniverseApp(
                         viewModelStoreOwner = entry,
                         factory = EventCreationViewModel.provideFactory(context))
 
+                mapViewModel.setMapMode(MapMode.NORMAL)
                 EventCreationScreen(
                     eventCreationViewModel = vm,
                     onSelectLocation = {

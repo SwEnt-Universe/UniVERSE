@@ -16,6 +16,7 @@ import java.time.LocalDateTime
  * @property participants set of unique identifiers (UIDs) of the users participating in the event.
  * @property location where the event will take place.
  * @property eventPicture optional byte array representing the event's picture.
+ * @property isPrivate whether the event is private or not.
  */
 data class Event(
     val id: String,
@@ -26,7 +27,8 @@ data class Event(
     val creator: String,
     val participants: Set<String> = emptySet(),
     val location: Location,
-    val eventPicture: ByteArray? = null
+    val eventPicture: ByteArray? = null,
+    val isPrivate: Boolean = false
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -42,6 +44,7 @@ data class Event(
     if (creator != other.creator) return false
     if (participants != other.participants) return false
     if (location != other.location) return false
+    if (isPrivate != other.isPrivate) return false
     if ((eventPicture != null || other.eventPicture != null) &&
         (!eventPicture.contentEquals(other.eventPicture)))
         return false
@@ -58,6 +61,7 @@ data class Event(
     result = 31 * result + participants.hashCode()
     result = 31 * result + location.hashCode()
     result = 31 * result + (eventPicture?.contentHashCode() ?: 0)
+    result = 31 * result + isPrivate.hashCode()
     return result
   }
 }

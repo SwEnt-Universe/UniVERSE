@@ -16,6 +16,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
    * @param creator The creator of the event.
    * @param participants The participants of the event.
    * @param location The location of the event.
+   * @param isPrivate Whether the event is private or not.
    * @param eventPicture The picture of the event.
    */
   override suspend fun updateEvent(
@@ -26,6 +27,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
       creator: String,
       participants: Set<String>,
       location: Location,
+      isPrivate: Boolean,
       eventPicture: ByteArray?
   ) {
     stockedEvent =
@@ -38,6 +40,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
             creator = creator,
             participants = participants,
             location = location,
+            isPrivate = isPrivate,
             eventPicture = eventPicture)
   }
 

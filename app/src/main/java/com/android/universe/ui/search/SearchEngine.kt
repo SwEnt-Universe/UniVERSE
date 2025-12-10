@@ -1,5 +1,7 @@
 package com.android.universe.ui.search
 
+import com.android.universe.model.tag.Tag
+
 /**
  * A simple fuzzy-search utility used to filter based on approximate matches.
  *
@@ -43,5 +45,56 @@ object SearchEngine {
       }
     }
     return dp[a.length][b.length]
+  }
+
+  /**
+   * Checks if a set of tags contains at least one tag belonging to *any* category in a given set of
+   * categories.
+   *
+   * OR behavior:
+   * - If at least one category in [query] is represented by at least one tag in [tags], the
+   *   function returns `true`.
+   * - If none of the categories in [query] appear in [tags], it returns `false`.
+   *
+   * Special case:
+   * - If [query] is empty, the function returns `true` (no filter applied).
+   *
+   * @param tags The set of tags to check.
+   * @param query The set of categories to match.
+   * @return `true` if at least one category in [query] is present in [tags].
+   */
+  fun tagMatch(tags: Iterable<Tag>, query: Set<Tag.Category>): Boolean {
+    if (query.isEmpty()) return true
+    return query.any { cat -> tags.any { it.category == cat } }
+  }
+
+  /**
+   * Creates a comparator for comparing two objects of type [T] by the number of required categories
+   * covered by their tag sets.
+   *
+   * Coverage rule (OR):
+   * - An object "covers" a category if at least one of its tags belongs to that category.
+   *
+   * Higher coverage → "greater".
+   *
+   * @param requiredCategories Categories to check for.
+   * @param tagExtractor Function extracting a Set<Tag> from T.
+   */
+  fun <T> categoryCoverageComparator(
+      requiredCategories: Set<Tag.Category>,
+      tagExtractor: (T) -> Iterable<Tag>
+  ): Comparator<T> {
+
+    return Comparator { a, b ->
+      val tagsA = tagExtractor(a)
+      val tagsB = tagExtractor(b)
+
+      val countA = requiredCategories.count { cat -> tagsA.any { it.category == cat } }
+
+      val countB = requiredCategories.count { cat -> tagsB.any { it.category == cat } }
+
+      countA.compareTo(countB) // higher → greater so make sure to .reversed() in UI if you want
+      // descending order
+    }
   }
 }
