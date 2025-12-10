@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -153,111 +154,111 @@ fun SettingsScreen(
               LiquidBox(
                   modifier = Modifier.fillMaxSize(),
                   shape = BottomSheetDefaults.ExpandedShape,
-                  enableLens = false) {
-                    Column(
-                        modifier =
-                            Modifier.testTag(SettingsTestTags.LIQUID_BOX_CONTENT)
-                                .fillMaxSize()
-                                .verticalScroll(state = rememberScrollState())
-                                .padding(
-                                    horizontal = Dimensions.PaddingExtraLarge,
-                                    vertical = Dimensions.PaddingLarge),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingLarge)) {
-                          Text(
-                              text = FieldTitles.AUTHENTICATION,
-                              style = SettingsScreenStyles.sectionTitleStyle(),
-                              color = MaterialTheme.colorScheme.onSurface)
-                          FieldModifier(
-                              modifier = Modifier.testTag(SettingsTestTags.EMAIL_TEXT),
-                              editModifier = Modifier.testTag(SettingsTestTags.EMAIL_BUTTON),
-                              leadingIcon = Icons.Default.Mail,
-                              title = FieldTitles.MAIL,
-                              endText = uiState.email,
-                              trailingIcon = Icons.Default.Edit,
-                              onClick = { viewModel.setModalType(ModalType.EMAIL) })
-                          if (uiState.passwordEnabled == true) {
+              ) {
+                Column(
+                    modifier =
+                        Modifier.testTag(SettingsTestTags.LIQUID_BOX_CONTENT)
+                            .fillMaxSize()
+                            .padding(
+                                horizontal = Dimensions.PaddingExtraLarge,
+                                vertical = Dimensions.PaddingLarge)
+                            .verticalScroll(state = rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingLarge)) {
+                      Text(
+                          text = FieldTitles.AUTHENTICATION,
+                          style = SettingsScreenStyles.sectionTitleStyle(),
+                          color = MaterialTheme.colorScheme.onSurface)
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.EMAIL_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.EMAIL_BUTTON),
+                          leadingIcon = Icons.Default.Mail,
+                          title = FieldTitles.MAIL,
+                          endText = uiState.email,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.EMAIL) })
+                      if (uiState.passwordEnabled == true) {
+                        FieldModifier(
+                            modifier = Modifier.testTag(SettingsTestTags.PASSWORD_TEXT),
+                            editModifier = Modifier.testTag(SettingsTestTags.PASSWORD_BUTTON),
+                            leadingIcon = Icons.Default.Lock, // TODO test on real app
+                            title = FieldTitles.PASSWORD,
+                            endText = "********",
+                            trailingIcon = Icons.Default.Edit,
+                            onClick = { viewModel.setModalType(ModalType.PASSWORD) })
+                      }
+                      Text(
+                          text = FieldTitles.PROFILE,
+                          style = SettingsScreenStyles.sectionTitleStyle(),
+                          color = MaterialTheme.colorScheme.onSurface)
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.USERNAME_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.USERNAME_BUTTON),
+                          leadingIcon = Icons.Default.AccountCircle,
+                          title = FieldTitles.USERNAME,
+                          endText = uiState.username,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.USERNAME) })
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.FIRST_NAME_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.FIRST_NAME_BUTTON),
+                          leadingIcon = Icons.Default.AccountCircle,
+                          title = FieldTitles.FIRSTNAME,
+                          endText = uiState.firstName,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.FIRSTNAME) })
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.LAST_NAME_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.LAST_NAME_BUTTON),
+                          leadingIcon = Icons.Default.AccountCircle,
+                          title = FieldTitles.LASTNAME,
+                          endText = uiState.lastName,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.LASTNAME) })
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.DESCRIPTION_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.DESCRIPTION_BUTTON),
+                          leadingIcon = Icons.Default.Description,
+                          title = FieldTitles.DESCRIPTION,
+                          endText = uiState.description,
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { viewModel.setModalType(ModalType.DESCRIPTION) })
+                      Column(
+                          modifier = Modifier.fillMaxWidth(),
+                          verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingSmall)) {
                             FieldModifier(
-                                modifier = Modifier.testTag(SettingsTestTags.PASSWORD_TEXT),
-                                editModifier = Modifier.testTag(SettingsTestTags.PASSWORD_BUTTON),
-                                leadingIcon = Icons.Default.Lock, // TODO test on real app
-                                title = FieldTitles.PASSWORD,
-                                endText = "********",
+                                modifier = Modifier.testTag(SettingsTestTags.DATE_TEXT),
+                                editModifier = Modifier.testTag(SettingsTestTags.DATE_BUTTON),
+                                leadingIcon = Icons.Default.CalendarMonth,
+                                title = FieldTitles.DATE,
+                                endText = uiState.formattedDate ?: "Unavailable",
                                 trailingIcon = Icons.Default.Edit,
-                                onClick = { viewModel.setModalType(ModalType.PASSWORD) })
+                                onClick = { showDate.value = true })
+                            if (uiState.dateValidation is ValidationState.Invalid) {
+                              Text(
+                                  modifier = Modifier.testTag(SettingsTestTags.DATE_ERROR),
+                                  text =
+                                      (uiState.dateValidation as ValidationState.Invalid)
+                                          .errorMessage,
+                                  color = MaterialTheme.colorScheme.error)
+                            }
                           }
-                          Text(
-                              text = FieldTitles.PROFILE,
-                              style = SettingsScreenStyles.sectionTitleStyle(),
-                              color = MaterialTheme.colorScheme.onSurface)
-                          FieldModifier(
-                              modifier = Modifier.testTag(SettingsTestTags.USERNAME_TEXT),
-                              editModifier = Modifier.testTag(SettingsTestTags.USERNAME_BUTTON),
-                              leadingIcon = Icons.Default.AccountCircle,
-                              title = FieldTitles.USERNAME,
-                              endText = uiState.username,
-                              trailingIcon = Icons.Default.Edit,
-                              onClick = { viewModel.setModalType(ModalType.USERNAME) })
-                          FieldModifier(
-                              modifier = Modifier.testTag(SettingsTestTags.FIRST_NAME_TEXT),
-                              editModifier = Modifier.testTag(SettingsTestTags.FIRST_NAME_BUTTON),
-                              leadingIcon = Icons.Default.AccountCircle,
-                              title = FieldTitles.FIRSTNAME,
-                              endText = uiState.firstName,
-                              trailingIcon = Icons.Default.Edit,
-                              onClick = { viewModel.setModalType(ModalType.FIRSTNAME) })
-                          FieldModifier(
-                              modifier = Modifier.testTag(SettingsTestTags.LAST_NAME_TEXT),
-                              editModifier = Modifier.testTag(SettingsTestTags.LAST_NAME_BUTTON),
-                              leadingIcon = Icons.Default.AccountCircle,
-                              title = FieldTitles.LASTNAME,
-                              endText = uiState.lastName,
-                              trailingIcon = Icons.Default.Edit,
-                              onClick = { viewModel.setModalType(ModalType.LASTNAME) })
-                          FieldModifier(
-                              modifier = Modifier.testTag(SettingsTestTags.DESCRIPTION_TEXT),
-                              editModifier = Modifier.testTag(SettingsTestTags.DESCRIPTION_BUTTON),
-                              leadingIcon = Icons.Default.Description,
-                              title = FieldTitles.DESCRIPTION,
-                              endText = uiState.description,
-                              trailingIcon = Icons.Default.Edit,
-                              onClick = { viewModel.setModalType(ModalType.DESCRIPTION) })
-                          Column(
-                              modifier = Modifier.fillMaxWidth(),
-                              verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingSmall)) {
-                                FieldModifier(
-                                    modifier = Modifier.testTag(SettingsTestTags.DATE_TEXT),
-                                    editModifier = Modifier.testTag(SettingsTestTags.DATE_BUTTON),
-                                    leadingIcon = Icons.Default.CalendarMonth,
-                                    title = FieldTitles.DATE,
-                                    endText = uiState.formattedDate ?: "Unavailable",
-                                    trailingIcon = Icons.Default.Edit,
-                                    onClick = { showDate.value = true })
-                                if (uiState.dateValidation is ValidationState.Invalid) {
-                                  Text(
-                                      modifier = Modifier.testTag(SettingsTestTags.DATE_ERROR),
-                                      text =
-                                          (uiState.dateValidation as ValidationState.Invalid)
-                                              .errorMessage,
-                                      color = MaterialTheme.colorScheme.error)
-                                }
-                              }
-                          FieldModifier(
-                              leadingIcon = Icons.Default.LocationOn,
-                              title = FieldTitles.LOCATION,
-                              endText = "TBD",
-                              trailingIcon = Icons.Default.Edit) // TODO location
-                          FieldModifier(
-                              modifier = Modifier.testTag(SettingsTestTags.TAG_TEXT),
-                              editModifier = Modifier.testTag(SettingsTestTags.TAG_BUTTON),
-                              leadingIcon = Icons.Default.LightMode,
-                              title = FieldTitles.TAG,
-                              endText = tagState.take(4).joinToString { t -> t.displayName },
-                              trailingIcon = Icons.Default.Edit,
-                              onClick = { onAddTag() })
-                          // Padding to cover for the bottom bar and prevent overlap issues
-                          Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
-                        }
-                  }
+                      FieldModifier(
+                          leadingIcon = Icons.Default.LocationOn,
+                          title = FieldTitles.LOCATION,
+                          endText = "TBD",
+                          trailingIcon = Icons.Default.Edit) // TODO location
+                      FieldModifier(
+                          modifier = Modifier.testTag(SettingsTestTags.TAG_TEXT),
+                          editModifier = Modifier.testTag(SettingsTestTags.TAG_BUTTON),
+                          leadingIcon = Icons.Default.LightMode,
+                          title = FieldTitles.TAG,
+                          endText = tagState.take(4).joinToString { t -> t.displayName },
+                          trailingIcon = Icons.Default.Edit,
+                          onClick = { onAddTag() })
+                      // Padding to cover for the bottom bar and prevent overlap issues
+                      Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
+                    }
+              }
             }
         LiquidBottomSheet(
             isPresented = uiState.showModal, onDismissRequest = { viewModel.stopModal() }) {
@@ -356,30 +357,40 @@ fun FieldModifier(
     trailingIcon: ImageVector,
     onClick: () -> Unit = {}
 ) {
-  Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      if (leadingIcon != null) {
+  Row(
+      modifier = Modifier.fillMaxWidth().clickable { onClick() },
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start) {
+              if (leadingIcon != null) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = title,
+                    tint = MaterialTheme.colorScheme.onSurface)
+                Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+              }
+              Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = endText,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = modifier,
+                    textAlign = TextAlign.Start)
+              }
+            }
         Icon(
-            imageVector = leadingIcon,
-            contentDescription = title,
-            tint = MaterialTheme.colorScheme.onSurface)
-        Spacer(modifier = Modifier.width(Dimensions.PaddingSmall))
+            imageVector = trailingIcon,
+            contentDescription = "Edit $title",
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = editModifier.size(Dimensions.IconSizeMedium).clickable(onClick = onClick))
       }
-      Text(text = title, color = MaterialTheme.colorScheme.onSurface)
-    }
-    Spacer(modifier = Modifier.weight(1f))
-    Text(
-        text = endText,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier.weight(1f, fill = true),
-        textAlign = TextAlign.End)
-    Spacer(modifier = Modifier.weight(0.01f))
-    Icon(
-        imageVector = trailingIcon,
-        contentDescription = "Edit $title",
-        tint = MaterialTheme.colorScheme.onSurface,
-        modifier = editModifier.clickable(onClick = onClick))
-  }
 }
