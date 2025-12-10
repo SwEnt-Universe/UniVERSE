@@ -11,13 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
@@ -87,8 +87,7 @@ fun SelectTagScreen(
 ) {
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()
 
-  Scaffold(
-      containerColor = Color.Transparent,
+  ScreenLayout(
       modifier = Modifier.fillMaxSize(),
       bottomBar = {
         FlowBottomMenu(
