@@ -7,9 +7,11 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -50,6 +52,9 @@ sealed class Tab(
   /** Represents the 'Chat' tab. */
   object Chat :
       Tab(NavigationScreens.Chat, Icons.AutoMirrored.Outlined.Chat, Icons.AutoMirrored.Filled.Chat)
+
+  object Community :
+      Tab(NavigationScreens.SearchProfile, Icons.Outlined.Groups, Icons.Filled.Groups)
 }
 
 /** A predefined list of [Tab] objects that will be displayed in the bottom navigation bar. */
@@ -59,6 +64,7 @@ val tabs =
         Tab.Map,
         Tab.Event,
         Tab.Profile,
+        Tab.Community,
     )
 
 /**

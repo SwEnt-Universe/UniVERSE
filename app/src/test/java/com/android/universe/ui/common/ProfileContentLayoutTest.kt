@@ -23,6 +23,7 @@ class ProfileContentLayoutTest {
   private val testUserProfile = UserTestData.SomeTagsUser
 
   private fun setProfileContent(
+      isFollowing: Boolean = true,
       onChatClick: () -> Unit = {},
       onToggleFollowing: () -> Unit = {},
       onSettingsClick: (() -> Unit)? = null,
@@ -36,6 +37,7 @@ class ProfileContentLayoutTest {
           userProfile = testUserProfile,
           followers = followers,
           following = following,
+          isFollowing = isFollowing,
           heightTagList = 260.dp,
           actionRowEnabled = actionRowEnabled,
           onChatClick = onChatClick,
@@ -147,5 +149,39 @@ class ProfileContentLayoutTest {
     composeTestRule.onNodeWithText("50").assertExists()
 
     composeTestRule.onNodeWithText("following").assertExists()
+  }
+
+  @Test
+  fun profileContent_followButton_displaysFollow_whenNotFollowing_andCallsCallback() {
+    var toggleCalled = false
+
+    setProfileContent(isFollowing = false, onToggleFollowing = { toggleCalled = true })
+
+    val tag = "${ProfileContentTestTags.ADD_BUTTON}_${testUserProfile.uid}"
+
+    composeTestRule.onNodeWithTag(tag).assertExists()
+
+    composeTestRule.onNodeWithText("Follow").assertExists()
+
+    composeTestRule.onNodeWithTag(tag).performClick()
+
+    assert(toggleCalled)
+  }
+
+  @Test
+  fun profileContent_followButton_displaysUnfollow_whenFollowing_andCallsCallback() {
+    var toggleCalled = false
+
+    setProfileContent(isFollowing = true, onToggleFollowing = { toggleCalled = true })
+
+    val tag = "${ProfileContentTestTags.ADD_BUTTON}_${testUserProfile.uid}"
+
+    composeTestRule.onNodeWithTag(tag).assertExists()
+
+    composeTestRule.onNodeWithText("Unfollow").assertExists()
+
+    composeTestRule.onNodeWithTag(tag).performClick()
+
+    assert(toggleCalled)
   }
 }
