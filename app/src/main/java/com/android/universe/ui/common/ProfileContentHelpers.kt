@@ -80,6 +80,7 @@ fun UserInfoColumn(userProfile: UserProfile) {
  * @param userProfile The user's profile data.
  * @param followers The number of followers the user has.
  * @param following The number of users the user is following.
+ * @param isFollowing A boolean indicating whether the current user is following this user.
  * @param onChatClick A lambda function that is called when the "Chat" button is clicked.
  * @param onToggleFollowing A lambda function that is called when the "Follow" button is clicked.
  * @param modifier The modifier to be applied to the row.
