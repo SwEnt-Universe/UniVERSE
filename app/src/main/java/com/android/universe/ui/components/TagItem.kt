@@ -106,6 +106,7 @@ fun TagItem(
           Text(
               if (isCategory) tag.category.displayName else tag.displayName,
               fontSize = MaterialTheme.typography.labelSmall.fontSize,
+              color = MaterialTheme.colorScheme.onPrimary,
               fontWeight = FontWeight.Bold,
               modifier = Modifier.testTag(textTag))
         }
