@@ -22,7 +22,7 @@ data class ProfileTabsState(
     val isLoading: Boolean = false
 )
 
-data class UiState(val errorMsg: String? = null, val isInitialized: Boolean = false)
+data class UiState(val errorMsg: String? = null)
 
 /**
  * ViewModel for searching and managing user profiles.
@@ -45,8 +45,10 @@ class SearchProfileViewModel(
 
   private val currentUserFollowingIds = MutableStateFlow<Set<String>>(emptySet())
 
+  private val _isLoading = MutableStateFlow(false)
+
   /** Combined state of profile tabs with filtering based on search query */
-  val profilesState: StateFlow<ProfileTabsState> =
+  val baseProfilesState: StateFlow<ProfileTabsState> =
       combine(explore, followers, following, currentUserFollowingIds, searchQuery) {
               exploreRaw,
               followersRaw,
@@ -71,6 +73,11 @@ class SearchProfileViewModel(
           }
           .stateIn(viewModelScope, SharingStarted.Eagerly, ProfileTabsState())
 
+  /** Final profiles state including loading state */
+  val profilesState: StateFlow<ProfileTabsState> =
+      combine(baseProfilesState, _isLoading) { base, loading -> base.copy(isLoading = loading) }
+          .stateIn(viewModelScope, SharingStarted.Eagerly, ProfileTabsState())
+
   init {
     loadInitialData()
   }
@@ -78,18 +85,17 @@ class SearchProfileViewModel(
   /** Load initial data for explore, followers, and following lists. */
   fun loadInitialData() {
     viewModelScope.launch {
+      _isLoading.value = true
       try {
-        _uiState.value = UiState(isInitialized = false)
-
         currentUserFollowingIds.value = userRepository.getFollowing(uid).map { it.uid }.toSet()
 
         explore.value = userRepository.getFollowRecommendations(uid)
         followers.value = userRepository.getFollowers(uid)
         following.value = userRepository.getFollowing(uid)
-
-        _uiState.value = UiState(isInitialized = true)
       } catch (_: Exception) {
         setError("Failed to load initial data")
+      } finally {
+        _isLoading.value = false
       }
     }
   }
@@ -109,10 +115,6 @@ class SearchProfileViewModel(
           userRepository.followUser(uid, target.user.uid)
           currentUserFollowingIds.value = currentUserFollowingIds.value + target.user.uid
         }
-
-        following.value = userRepository.getFollowing(uid)
-        explore.value = userRepository.getFollowRecommendations(uid)
-        followers.value = userRepository.getFollowers(uid)
       } catch (_: Exception) {
         setError("Failed to update follow status")
       }
