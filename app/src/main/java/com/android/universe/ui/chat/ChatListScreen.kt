@@ -95,7 +95,8 @@ fun ChatListScreen(
               modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 Text(
                     text = "Join some events to start chatting with others",
-                    modifier = Modifier.testTag(NO_CHAT_PREVIEW))
+                    modifier = Modifier.testTag(NO_CHAT_PREVIEW),
+                    color = MaterialTheme.colorScheme.onSurface)
               }
         }
       }
@@ -135,6 +136,7 @@ fun ChatPreviewItem(
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.testTag(nodeTestTag + CHAT_NAME))
                 Spacer(modifier = Modifier.height(Dimensions.SpacerMedium))
                 Row(
@@ -146,12 +148,14 @@ fun ChatPreviewItem(
                           style = MaterialTheme.typography.bodyMedium,
                           maxLines = 1,
                           overflow = TextOverflow.Ellipsis,
+                          color = MaterialTheme.colorScheme.onSurface,
                           modifier =
                               Modifier.testTag(nodeTestTag + LAST_MESSAGE_TEXT).weight(weight = 1f))
                       chatPreview.lastMessage.value?.let {
                         Text(
                             text = it.getDisplayTime(),
                             style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier =
                                 Modifier.padding(
                                         top = Dimensions.PaddingSmall,
@@ -161,7 +165,10 @@ fun ChatPreviewItem(
                     }
               }
               Column(Modifier.align(Alignment.CenterVertically)) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowRight, contentDescription = null)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface)
               }
             }
       }
