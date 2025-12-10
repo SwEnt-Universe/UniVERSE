@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PersonRemove
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,7 +45,7 @@ fun UserInfoColumn(userProfile: UserProfile) {
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.testTag("${ProfileContentTestTags.FULL_NAME}_${userProfile.uid}"))
 
-    Spacer(Modifier.height(Dimensions.SpacerSmall))
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -53,67 +53,100 @@ fun UserInfoColumn(userProfile: UserProfile) {
           Icon(
               imageVector = Icons.Filled.LocationOn,
               contentDescription = "Location",
-              modifier = Modifier.size(Dimensions.IconSizeMedium))
+              modifier = Modifier.size(Dimensions.IconSizeMedium),
+              tint = MaterialTheme.colorScheme.onSurface)
           Spacer(Modifier.width(Dimensions.SpacerSmall))
           Text(
               text = userProfile.country,
               style = MaterialTheme.typography.bodyLarge,
               maxLines = 1,
-              overflow = TextOverflow.Ellipsis)
+              overflow = TextOverflow.Ellipsis,
+              color = MaterialTheme.colorScheme.onSurface)
         }
 
-    Spacer(Modifier.height(Dimensions.SpacerSmall))
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
 
     Text(
         userProfile.dateOfBirth.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
         style = MaterialTheme.typography.bodyLarge,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.testTag("${ProfileContentTestTags.DATE_OF_BIRTH}_${userProfile.uid}"))
   }
 }
 
 /**
- * A composable function that displays a row of action buttons and follower/following counts on a
- * user's profile card.
+ * A composable function that displays either a "Follow/Unfollow" button or a "Settings" button
+ * based on the provided parameters.
  *
  * @param userProfile The user's profile data.
- * @param followers The number of followers the user has.
- * @param following The number of users the user is following.
- * @param isFollowing A boolean indicating whether the current user is following this user.
- * @param onChatClick A lambda function that is called when the "Chat" button is clicked.
- * @param onToggleFollowing A lambda function that is called when the "Follow" button is clicked.
- * @param modifier The modifier to be applied to the row.
+ * @param isFollowing Whether the current user is following this user.
+ * @param onToggleFollowing Callback for follow/unfollow button.
+ * @param onSettingsClick Optional callback for settings button. If null, follow/unfollow button is
+ *   shown.
  */
 @Composable
-fun ProfileCardActionsRow(
+fun FollowingOrSettingsButton(
     userProfile: UserProfile,
-    followers: Int,
-    following: Int,
     isFollowing: Boolean,
-    onChatClick: () -> Unit,
     onToggleFollowing: () -> Unit,
-    modifier: Modifier
+    onSettingsClick: (() -> Unit)? = null
 ) {
-  Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+  if (onSettingsClick != null) {
     LiquidButton(
-        onClick = onChatClick,
+        onClick = onSettingsClick,
         height = Dimensions.CardButtonHeight,
+        contentPadding = Dimensions.PaddingMedium,
         modifier =
-            Modifier.weight(1f)
-                .testTag("${ProfileContentTestTags.CHAT_BUTTON}_${userProfile.uid}")) {
+            Modifier.testTag("${ProfileContentTestTags.SETTINGS_BUTTON}_${userProfile.uid}")) {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector = Icons.AutoMirrored.Outlined.Chat,
-                contentDescription = "Chat",
-                modifier = Modifier.size(Dimensions.IconSizeMedium))
+                imageVector = Icons.Outlined.Settings,
+                contentDescription = "Settings",
+                modifier = Modifier.size(Dimensions.IconSizeSmall),
+                tint = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.width(Dimensions.SpacerSmall))
-            Text(text = "Chat", style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface)
           }
         }
+  } else {
+    LiquidButton(
+        onClick = onToggleFollowing,
+        height = Dimensions.CardButtonHeight,
+        contentPadding = Dimensions.PaddingMedium,
+        modifier = Modifier.testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector =
+                    if (isFollowing) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAdd,
+                contentDescription = if (isFollowing) "Unfollow" else "Follow",
+                modifier = Modifier.size(Dimensions.IconSizeSmall),
+                tint = MaterialTheme.colorScheme.onSurface)
 
-    Spacer(Modifier.width(Dimensions.SpacerSmall))
+            Spacer(Modifier.width(Dimensions.SpacerSmall))
 
+            Text(
+                text = if (isFollowing) "Unfollow" else "Follow",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface)
+          }
+        }
+  }
+}
+
+/**
+ * A composable function that displays the number of followers and following in a row layout.
+ *
+ * @param userProfile The user's profile data.
+ * @param modifier Modifier for styling/layout.
+ */
+@Composable
+fun FollowersFollowingColumn(userProfile: UserProfile, modifier: Modifier) {
+  Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
@@ -125,12 +158,19 @@ fun ProfileCardActionsRow(
               onClick = {},
               contentPadding = Dimensions.PaddingSmall) {
                 Text(
-                    text = "$followers",
+                    text = "${userProfile.followers.size}",
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis)
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface)
               }
-          Text(text = "followers", style = MaterialTheme.typography.labelSmall)
+          Text(
+              text = "followers",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+              softWrap = false,
+              overflow = TextOverflow.Clip,
+              maxLines = 1)
         }
 
     Spacer(Modifier.width(Dimensions.SpacerSmall))
@@ -146,35 +186,19 @@ fun ProfileCardActionsRow(
               onClick = {},
               contentPadding = Dimensions.PaddingSmall) {
                 Text(
-                    text = "$following",
+                    text = "${userProfile.following.size}",
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis)
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface)
               }
-          Text(text = "following", style = MaterialTheme.typography.labelSmall)
-        }
-
-    Spacer(Modifier.width(Dimensions.SpacerSmall))
-
-    LiquidButton(
-        onClick = onToggleFollowing,
-        height = Dimensions.CardButtonHeight,
-        modifier =
-            Modifier.weight(1f)
-                .testTag("${ProfileContentTestTags.ADD_BUTTON}_${userProfile.uid}")) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector =
-                    if (isFollowing) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAdd,
-                contentDescription = if (isFollowing) "Unfollow" else "Follow",
-                modifier = Modifier.size(Dimensions.IconSizeMedium))
-
-            Spacer(Modifier.width(Dimensions.SpacerSmall))
-
-            Text(
-                text = if (isFollowing) "Unfollow" else "Follow",
-                style = MaterialTheme.typography.labelLarge)
-          }
+          Text(
+              text = "following",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+              softWrap = false,
+              overflow = TextOverflow.Clip,
+              maxLines = 1)
         }
   }
 }

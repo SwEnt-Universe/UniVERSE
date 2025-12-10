@@ -83,7 +83,6 @@ object Dimensions {
   // Card
   val CardImageHeight = 170.dp
   val CardButtonHeight = 45f
-  val CardButtonWidth = 100f
   val CardButtonWidthDp = 100.dp
   val CardDividerThickness = 1.8.dp
 

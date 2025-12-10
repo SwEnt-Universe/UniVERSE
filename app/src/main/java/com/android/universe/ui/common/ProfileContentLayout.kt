@@ -8,12 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,8 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidButton
@@ -37,7 +30,6 @@ object ProfileContentTestTags {
   const val DATE_OF_BIRTH = "profile_date_birth"
   const val LOCATION = "profile_location"
   const val DESCRIPTION = "profile_description"
-  const val CHAT_BUTTON = "profile_chat_button"
   const val FOLLOWERS_COUNT = "profile_followers_count"
   const val FOLLOWING_COUNT = "profile_following_count"
   const val ADD_BUTTON = "profile_add_button"
@@ -50,14 +42,7 @@ object ProfileContentTestTags {
  *
  * @param modifier Modifier for styling/layout.
  * @param userProfile The user's profile data.
- * @param followers Number of followers the user has (Implemented as optional because the logic is
- *   not created yet).
- * @param following Number of users the user is following (Implemented as optional because the logic
- *   is not created yet).
- * @param heightTagList Height of the tag list/row.
- * @param actionRowEnabled Whether to show the action row (chat, follow buttons) or not.
  * @param isFollowing Whether the current user is following this user.
- * @param onChatClick Callback for chat button.
  * @param onToggleFollowing Callback for add/follow button.
  * @param onSettingsClick Optional callback for settings button. If null, settings button is not
  *   shown.
@@ -66,12 +51,7 @@ object ProfileContentTestTags {
 fun ProfileContentLayout(
     modifier: Modifier,
     userProfile: UserProfile,
-    followers: Int? = 0,
-    following: Int? = 0,
-    heightTagList: Dp = 260.dp,
-    actionRowEnabled: Boolean = true,
     isFollowing: Boolean? = null,
-    onChatClick: () -> Unit,
     onToggleFollowing: () -> Unit,
     onSettingsClick: (() -> Unit)? = null
 ) {
@@ -109,69 +89,45 @@ fun ProfileContentLayout(
                     }
               }
         }
-
-        Spacer(Modifier.height(Dimensions.SpacerMedium))
-
-        UserInfoColumn(userProfile)
       }
 
-      Column(modifier = Modifier.weight(1f)) {
-        TagColumn(
-            tags = userProfile.tags.toList(),
-            isSelectable = false,
-            isSelected = { false },
-            heightList = heightTagList,
-            modifierBox =
-                Modifier.testTag("${ProfileContentTestTags.TAGS_COLUMN}_${userProfile.uid}")
-                    .padding(start = Dimensions.PaddingLarge))
-
-        if (onSettingsClick != null) {
-          Spacer(Modifier.height(Dimensions.SpacerLarge))
-
-          LiquidButton(
-              onClick = onSettingsClick,
-              height = Dimensions.CardButtonHeight,
-              width = Dimensions.CardButtonWidth,
-              contentPadding = Dimensions.PaddingMedium,
-              modifier =
-                  Modifier.testTag(
-                      "${ProfileContentTestTags.SETTINGS_BUTTON}_${userProfile.uid}")) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Icon(
-                      imageVector = Icons.Outlined.Settings,
-                      contentDescription = "Settings",
-                      modifier = Modifier.size(Dimensions.IconSizeMedium))
-                  Spacer(Modifier.width(Dimensions.SpacerSmall))
-                  Text(text = "Settings", style = MaterialTheme.typography.labelLarge)
-                }
-              }
-        }
-      }
+      TagColumn(
+          tags = userProfile.tags.toList(),
+          isSelectable = false,
+          isSelected = { false },
+          heightList = Dimensions.CardImageHeight,
+          modifierBox =
+              Modifier.weight(1f)
+                  .testTag("${ProfileContentTestTags.TAGS_COLUMN}_${userProfile.uid}")
+                  .padding(start = Dimensions.PaddingLarge))
     }
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
-    Text(
-        userProfile.description ?: "No description available",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-        maxLines = 3,
-        overflow = TextOverflow.Ellipsis,
-        modifier =
-            Modifier.fillMaxWidth()
-                .testTag("${ProfileContentTestTags.DESCRIPTION}_${userProfile.uid}"))
+    Row(modifier = Modifier.fillMaxWidth()) {
+      Column(modifier = Modifier.weight(2f)) { UserInfoColumn(userProfile) }
 
-    if (actionRowEnabled) {
-      Spacer(Modifier.height(Dimensions.SpacerMedium))
+      Column(modifier = Modifier.weight(1f).padding(start = Dimensions.PaddingLarge)) {
+        FollowingOrSettingsButton(
+            userProfile = userProfile,
+            isFollowing = isFollowing ?: false,
+            onToggleFollowing = onToggleFollowing,
+            onSettingsClick = onSettingsClick)
 
-      ProfileCardActionsRow(
-          userProfile = userProfile,
-          followers = followers ?: 0,
-          following = following ?: 0,
-          isFollowing = isFollowing ?: false,
-          onChatClick = onChatClick,
-          onToggleFollowing = onToggleFollowing,
-          modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(Dimensions.SpacerMedium))
+
+        FollowersFollowingColumn(userProfile = userProfile, modifier = Modifier.fillMaxWidth())
+      }
+    }
+
+    if (userProfile.description != null) {
+      Spacer(Modifier.height(Dimensions.SpacerSmall))
+
+      Text(
+          text = userProfile.description,
+          style = MaterialTheme.typography.bodyLarge,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier = Modifier.testTag("${ProfileContentTestTags.DESCRIPTION}_${userProfile.uid}"))
     }
   }
 }
