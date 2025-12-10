@@ -99,6 +99,7 @@ fun ScreenLayoutWithBox(
               Modifier.wrapContentSize()
                   .onSizeChanged { bottomBarHeight = it.height }
                   .align(Alignment.BottomCenter)
+                  .navigationBarsPadding()
                   .testTag(ScreenLayoutTestTags.BOTTOM_BAR)) {
             bottomBar()
           }
