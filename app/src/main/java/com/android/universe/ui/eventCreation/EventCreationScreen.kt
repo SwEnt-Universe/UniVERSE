@@ -65,7 +65,6 @@ object EventCreationTestTags {
   const val EVENT_TIME_TEXT_FIELD = "EventTimeTextField"
   const val EVENT_PICTURE_PICKER = "EventPicturePicker"
   const val CREATION_EVENT_TITLE = "CreationEventTitle"
-  const val SET_LOCATION_BUTTON = "SetLocationButton"
   const val AI_ASSIST_BUTTON = "AiAssistButton"
   const val AI_PROMPT_TEXT_FIELD = "AiPromptTextField"
   const val AI_REVIEW_TITLE_FIELD = "AiReviewTitleField"
