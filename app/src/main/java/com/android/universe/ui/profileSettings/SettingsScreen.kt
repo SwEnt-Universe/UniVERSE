@@ -288,8 +288,7 @@ fun SettingsScreen(
                             Modifier.height(bottomSheetSize)
                                 .padding(
                                     horizontal = Dimensions.PaddingLarge,
-                                    vertical = Dimensions.PaddingMedium)
-                                .testTag(SettingsTestTags.MODAL_POPUP)) {
+                                    vertical = Dimensions.PaddingMedium)) {
                           Row(
                               modifier = Modifier.fillMaxWidth(),
                               verticalAlignment = Alignment.CenterVertically,
