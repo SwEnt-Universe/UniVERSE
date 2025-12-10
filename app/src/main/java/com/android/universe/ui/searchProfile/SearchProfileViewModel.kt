@@ -100,6 +100,45 @@ class SearchProfileViewModel(
     }
   }
 
+  /** Load user's explore recommendations */
+  fun loadExplore() =
+      viewModelScope.launch {
+        _isLoading.value = true
+        try {
+          explore.value = userRepository.getFollowRecommendations(uid)
+        } catch (_: Exception) {
+          setError("Failed to load explore")
+        } finally {
+          _isLoading.value = false
+        }
+      }
+
+  /** Load user's followers list */
+  fun loadFollowers() =
+      viewModelScope.launch {
+        _isLoading.value = true
+        try {
+          followers.value = userRepository.getFollowers(uid)
+        } catch (_: Exception) {
+          setError("Failed to load followers")
+        } finally {
+          _isLoading.value = false
+        }
+      }
+
+  /** Load user's following list */
+  fun loadFollowing() =
+      viewModelScope.launch {
+        _isLoading.value = true
+        try {
+          following.value = userRepository.getFollowing(uid)
+        } catch (_: Exception) {
+          setError("Failed to load following")
+        } finally {
+          _isLoading.value = false
+        }
+      }
+
   /**
    * Toggle follow/unfollow for a target user and update relevant lists accordingly.
    *

@@ -27,6 +27,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,6 +93,14 @@ fun SearchProfileScreen(
   val exploreListState = rememberLazyListState()
   val followersListState = rememberLazyListState()
   val followingListState = rememberLazyListState()
+
+  LaunchedEffect(pagerState.currentPage) {
+    when (pagerState.currentPage) {
+      0 -> searchProfileViewModel.loadExplore()
+      1 -> searchProfileViewModel.loadFollowers()
+      2 -> searchProfileViewModel.loadFollowing()
+    }
+  }
 
   Scaffold(
       containerColor = Color.Transparent,

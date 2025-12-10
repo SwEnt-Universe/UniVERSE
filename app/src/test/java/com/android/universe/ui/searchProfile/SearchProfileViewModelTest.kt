@@ -73,6 +73,45 @@ class SearchProfileViewModelTest {
   }
 
   @Test
+  fun loadExplore_loadsExploreRecommendations() = runTest {
+    repository.followUser(UserTestData.Alice.uid, UserTestData.Bob.uid)
+
+    viewModel.loadExplore()
+    advanceUntilIdle()
+
+    val exploreIds = viewModel.profilesState.value.explore.map { it.user.uid }
+
+    assertFalse(exploreIds.contains(UserTestData.Alice.uid))
+    assertFalse(exploreIds.contains(UserTestData.Bob.uid))
+    assertTrue(exploreIds.contains(UserTestData.Rocky.uid))
+  }
+
+  @Test
+  fun loadFollowers_loadsCorrectFollowers() = runTest {
+    repository.followUser(UserTestData.Bob.uid, UserTestData.Alice.uid)
+    repository.followUser(UserTestData.Rocky.uid, UserTestData.Alice.uid)
+
+    viewModel.loadFollowers()
+    advanceUntilIdle()
+
+    val followerIds = viewModel.profilesState.value.followers.map { it.user.uid }.toSet()
+
+    assertEquals(setOf(UserTestData.Bob.uid, UserTestData.Rocky.uid), followerIds)
+  }
+
+  @Test
+  fun loadFollowing_loadsCorrectFollowing() = runTest {
+    repository.followUser(UserTestData.Alice.uid, UserTestData.Bob.uid)
+
+    viewModel.loadFollowing()
+    advanceUntilIdle()
+
+    val followingIds = viewModel.profilesState.value.following.map { it.user.uid }
+
+    assertEquals(listOf(UserTestData.Bob.uid), followingIds)
+  }
+
+  @Test
   fun followOrUnfollowUser_followsUser() = runTest {
     repository.unfollowUser(UserTestData.Alice.uid, UserTestData.Bob.uid)
 
