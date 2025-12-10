@@ -181,7 +181,8 @@ fun Layout(
               shape = shape) {
                 Column(
                     modifier =
-                        Modifier.wrapContentSize()
+                        Modifier.fillMaxWidth()
+                            .wrapContentHeight()
                             .defaultMinSize(minHeight = defaultSize)
                             .padding(horizontal = Dimensions.PaddingExtraLarge)
                             .padding(top = Dimensions.PaddingExtraLarge),

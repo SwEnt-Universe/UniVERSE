@@ -115,7 +115,8 @@ fun EmailVerificationScreen(
             LiquidBox(modifier = Modifier.fillMaxWidth().wrapContentHeight(), shape = shape) {
               Column(
                   modifier =
-                      Modifier.wrapContentSize()
+                      Modifier.fillMaxWidth()
+                          .wrapContentSize()
                           .defaultMinSize(minHeight = defaultSize)
                           .padding(horizontal = Dimensions.PaddingExtraLarge)
                           .padding(top = Dimensions.PaddingExtraLarge),
