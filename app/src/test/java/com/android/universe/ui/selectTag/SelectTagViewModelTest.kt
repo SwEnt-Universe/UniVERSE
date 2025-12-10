@@ -499,6 +499,7 @@ class SelectTagViewModelTest {
         creator = fakeEvent.creator,
         participants = fakeEvent.participants,
         location = fakeEvent.location,
+        isPrivate = fakeEvent.isPrivate,
         eventPicture = fakeEvent.eventPicture)
     viewModel.saveTags()
     advanceUntilIdle()

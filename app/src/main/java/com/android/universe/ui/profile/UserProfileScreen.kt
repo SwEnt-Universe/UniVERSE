@@ -80,6 +80,8 @@ object UserProfileScreenTestTags {
  * @param uid The unique identifier of the user to display.
  * @param onTabSelected Callback invoked when a bottom navigation tab is selected.
  * @param onEditProfileClick Callback invoked when the user clicks the "Edit Profile" button.
+ * @param onChatNavigate Callback invoked when a chat button is clicked.
+ * @param onCardClick Callback invoked when a card is clicked.
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
  */
@@ -184,8 +186,8 @@ fun ProfileContentPager(
     pagerState: PagerState,
     historyListState: LazyListState,
     incomingListState: LazyListState,
-    historyEvents: List<Event>,
-    incomingEvents: List<Event>,
+    historyEvents: List<EventUIState>,
+    incomingEvents: List<EventUIState>,
     eventViewModel: EventViewModel,
     spacerHeightDp: Dp,
     clipPaddingDp: Dp,
@@ -222,7 +224,7 @@ fun ProfileContentPager(
 @Composable
 fun ProfileEventList(
     listState: LazyListState,
-    events: List<Event>,
+    events: List<EventUIState>,
     eventViewModel: EventViewModel,
     headerSpacerHeight: Dp,
     topClipPadding: Dp,
@@ -242,21 +244,7 @@ fun ProfileEventList(
                   Modifier.fillMaxWidth().height(headerSpacerHeight).background(Color.Transparent))
         }
 
-        items(events, key = { it.id }) { event ->
-          val eventUIState =
-              EventUIState(
-                  id = event.id,
-                  title = event.title,
-                  description = event.description ?: "",
-                  date = event.date,
-                  tags = event.tags.toList(),
-                  creator = event.creator,
-                  participants = event.participants.size,
-                  index = event.id.hashCode(),
-                  location = event.location,
-                  joined = true,
-                  eventPicture = event.eventPicture)
-
+        items(events, key = { it.id }) { eventUIState ->
           Box(
               modifier =
                   Modifier.padding(

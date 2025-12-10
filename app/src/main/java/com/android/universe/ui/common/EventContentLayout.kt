@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
@@ -42,6 +47,7 @@ private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
  * @param creator Event author/creator name.
  * @param imageContent Composable that renders the event image.
  * @param isUserParticipant Whether the user is part of the event.
+ * @param isPrivate Whether the event is private.
  * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
  * @param onChatClick Callback for chat button.
  */
@@ -57,6 +63,7 @@ fun EventContentLayout(
     creator: String,
     imageContent: @Composable () -> Unit,
     isUserParticipant: Boolean,
+    isPrivate: Boolean,
     onToggleEventParticipation: () -> Unit,
     onChatClick: () -> Unit
 ) {
@@ -70,33 +77,56 @@ fun EventContentLayout(
                   .testTag("${EventContentTestTags.EVENT_IMAGE_CONTAINER}_$eventId")) {
             imageContent()
 
-            LiquidButton(
-                modifier =
-                    Modifier.align(Alignment.TopStart)
-                        .padding(Dimensions.PaddingLarge)
-                        .widthIn(max = Dimensions.CardImageTagOverlayWidthDp)
-                        .wrapContentWidth(),
-                enabled = false,
-                isInteractive = false,
-                height = Dimensions.CardImageTagOverlayHeight,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                onClick = {}) {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = date.format(dateFormatter),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.testTag("${EventContentTestTags.EVENT_DATE}_$eventId"))
+            Row(
+                modifier = Modifier.align(Alignment.TopStart).padding(Dimensions.PaddingLarge),
+                verticalAlignment = Alignment.CenterVertically) {
+                  LiquidButton(
+                      modifier =
+                          Modifier.widthIn(max = Dimensions.CardImageTagOverlayWidthDp)
+                              .wrapContentWidth(),
+                      enabled = false,
+                      isInteractive = false,
+                      height = Dimensions.CardImageTagOverlayHeight,
+                      tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                      onClick = {}) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                          Text(
+                              text = date.format(dateFormatter),
+                              style = MaterialTheme.typography.bodySmall,
+                              color = Color.White,
+                              maxLines = 1,
+                              overflow = TextOverflow.Ellipsis,
+                              modifier =
+                                  Modifier.testTag("${EventContentTestTags.EVENT_DATE}_$eventId"))
+                          Spacer(Modifier.width(Dimensions.SpacerSmall))
+                          Text(
+                              text = date.format(timeFormatter),
+                              style = MaterialTheme.typography.bodySmall,
+                              color = Color.White,
+                              maxLines = 1,
+                              overflow = TextOverflow.Ellipsis,
+                              modifier =
+                                  Modifier.testTag("${EventContentTestTags.EVENT_TIME}_$eventId"))
+                        }
+                      }
+
+                  if (isPrivate) {
                     Spacer(Modifier.width(Dimensions.SpacerSmall))
-                    Text(
-                        text = date.format(timeFormatter),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TIME}_$eventId"))
+                    LiquidButton(
+                        modifier = Modifier.wrapContentWidth(),
+                        enabled = false,
+                        isInteractive = false,
+                        height = Dimensions.CardImageTagOverlayHeight,
+                        width = Dimensions.CardImageTagOverlayHeight,
+                        contentPadding = 0.dp,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        onClick = {}) {
+                          Icon(
+                              imageVector = Icons.Outlined.Lock,
+                              contentDescription = "Private Event",
+                              tint = Color.White,
+                              modifier = Modifier.size(16.dp))
+                        }
                   }
                 }
 

@@ -127,7 +127,7 @@ class RealRequest_OpenAITest {
     assert(saved.all { it.id.isNotBlank() }) { "Events saved in repository must have assigned IDs" }
 
     // 3. Verify persistence
-    val repoEvents = repo.getAllEvents()
+    val repoEvents = repo.getAllEvents("69", emptySet())
     assert(repoEvents.size == saved.size) { "Repository event count mismatch" }
 
     saved.forEach { e ->

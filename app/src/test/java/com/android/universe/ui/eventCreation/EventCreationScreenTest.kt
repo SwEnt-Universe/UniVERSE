@@ -93,6 +93,7 @@ class EventCreationScreenTest {
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_PICKER).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventCreationTestTags.PRIVACY_TOGGLE).assertIsDisplayed()
   }
 
   @Test
@@ -146,6 +147,21 @@ class EventCreationScreenTest {
     viewModel.deleteImage()
 
     assert(viewModel.uiStateEventCreation.value.eventPicture == null)
+  }
+
+  @Test
+  fun eventCreationScreen_privacyToggle_works() {
+    assert(!viewModel.uiStateEventCreation.value.isPrivate)
+
+    val switchNode = composeTestRule.onNodeWithTag(EventCreationTestTags.PRIVACY_SWITCH)
+
+    switchNode.performClick()
+    composeTestRule.waitForIdle()
+    assert(viewModel.uiStateEventCreation.value.isPrivate)
+
+    switchNode.performClick()
+    composeTestRule.waitForIdle()
+    assert(!viewModel.uiStateEventCreation.value.isPrivate)
   }
 
   @Test

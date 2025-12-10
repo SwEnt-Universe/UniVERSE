@@ -61,6 +61,61 @@ class FakeEventRepositoryTest {
   }
 
   @Test
+  fun getSuggestedEvents_respectsVisibilityLogic() = runTest {
+    val user = UserTestData.SomeTagsUser
+    val creatorId = "creator-001"
+
+    val publicEvent =
+        EventTestData.dummyEvent1.copy(
+            id = "public-event", creator = creatorId, isPrivate = false, tags = user.tags)
+
+    val privateEvent =
+        EventTestData.dummyEvent2.copy(
+            id = "private-event", creator = creatorId, isPrivate = true, tags = user.tags)
+
+    repository.addEvent(publicEvent)
+    repository.addEvent(privateEvent)
+
+    val resultNotFollowing = repository.getSuggestedEventsForUser(user)
+    assertEquals(1, resultNotFollowing.size)
+    assertEquals("public-event", resultNotFollowing[0].id)
+
+    val userFollowing = user.copy(following = setOf(creatorId))
+    val resultFollowing = repository.getSuggestedEventsForUser(userFollowing)
+
+    assertEquals(2, resultFollowing.size)
+    assertTrue(resultFollowing.any { it.id == "private-event" })
+
+    val creatorUser = user.copy(uid = creatorId)
+    val resultAsCreator = repository.getSuggestedEventsForUser(creatorUser)
+    assertEquals(2, resultAsCreator.size)
+  }
+
+  @Test
+  fun getAllEvents_respectsVisibilityLogic() = runTest {
+    val creatorId = "creator-123"
+    val strangerId = "stranger-999"
+
+    val publicEvent =
+        EventTestData.dummyEvent1.copy(id = "pub", creator = creatorId, isPrivate = false)
+    val privateEvent =
+        EventTestData.dummyEvent2.copy(id = "priv", creator = creatorId, isPrivate = true)
+
+    repository.addEvent(publicEvent)
+    repository.addEvent(privateEvent)
+
+    val resultStranger = repository.getAllEvents(strangerId, emptySet())
+    assertEquals(1, resultStranger.size)
+    assertEquals("pub", resultStranger[0].id)
+
+    val resultFollower = repository.getAllEvents(strangerId, setOf(creatorId))
+    assertEquals(2, resultFollower.size)
+
+    val resultCreator = repository.getAllEvents(creatorId, emptySet())
+    assertEquals(2, resultCreator.size)
+  }
+
+  @Test
   fun getEventsForUser_returnsEventsWhereUserInvolvedEventsIsParticipantOrCreator() = runTest {
     val createdEvent =
         EventTestData.dummyEvent1.copy(
@@ -202,7 +257,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(event1)
     repository.addEvent(event2)
 
-    val result = repository.getAllEvents()
+    val result = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(2, result.size)
     assertEquals("event-001", result[0].id)
     assertEquals("event-002", result[1].id)
@@ -251,7 +306,7 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-001", newEvent)
 
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(1, result1.size)
     val result2 = repository.getEvent("event-001")
     assertNotNull(result2)
@@ -292,7 +347,7 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.updateEvent("event-002", newEvent)
 
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(1, result1.size)
     val result2 = repository.getEvent("event-002")
     assertNotNull(result2)
@@ -334,7 +389,7 @@ class FakeEventRepositoryTest {
             location = Location(latitude = 37.423021, longitude = -122.086808))
     repository.updateEvent("event-003", newEvent)
 
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(1, result1.size)
     val result2 = repository.getEvent("event-003")
     assertNotNull(result2)
@@ -390,11 +445,11 @@ class FakeEventRepositoryTest {
             creator = userA.uid,
             location = Location(latitude = 46.5196535, longitude = 6.6322734))
     repository.addEvent(event2)
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(result1.size, 2)
 
     repository.deleteEvent("event-001")
-    val result2 = repository.getAllEvents()
+    val result2 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(1, result2.size)
     assertEquals("event-002", result2[0].id)
     assertEquals("Evening Cycling Tour", result2[0].title)
@@ -419,7 +474,7 @@ class FakeEventRepositoryTest {
     repository.addEvent(event)
 
     // verify initial state
-    val result1 = repository.getAllEvents()
+    val result1 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(1, result1.size)
 
     // Attempt to delete a non-existent event
@@ -431,7 +486,7 @@ class FakeEventRepositoryTest {
     }
 
     // Verify the existing event is still intact
-    val result2 = repository.getAllEvents()
+    val result2 = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(1, result2.size)
     assertEquals("event-001", result2[0].id)
     assertEquals("Morning Run at the Lake", result2[0].title)
@@ -484,7 +539,7 @@ class FakeEventRepositoryTest {
     assertNotEquals(saved[0].id, saved[1].id)
 
     // Assert: repository actually persisted them
-    val all = repository.getAllEvents()
+    val all = repository.getAllEvents(userA.uid, emptySet())
     assertEquals(2, all.size)
 
     // Assert: stored events match what persistAIEvents returned

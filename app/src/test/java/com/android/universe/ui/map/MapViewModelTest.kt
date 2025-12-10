@@ -206,7 +206,7 @@ class MapViewModelTest {
 
     val eventsList = listOf(event1, event2, event3)
 
-    coEvery { eventRepository.getAllEvents() } returns eventsList
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns eventsList
     every { userReactiveRepository.getUserFlow("1") } returns flowOf(UserTestData.Alice)
     every { userReactiveRepository.getUserFlow("2") } returns flowOf(UserTestData.Rocky)
     every { userReactiveRepository.getUserFlow("1") } returns flowOf(UserTestData.Alice)
@@ -244,7 +244,7 @@ class MapViewModelTest {
     // Extract just the events for the repository
     val eventsList = testData.map { it.first }
 
-    coEvery { eventRepository.getAllEvents() } returns eventsList
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns eventsList
 
     viewModel.loadAllEvents()
     advanceUntilIdle()
@@ -281,7 +281,7 @@ class MapViewModelTest {
     val concurrentEvent =
         EventTestData.dummyEvent1.copy(
             id = "2", tags = setOf(sportTag, musicTag, sportTagTwo, musicTagTwo, foodTag))
-    coEvery { eventRepository.getAllEvents() } returns
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns
         listOf(mixedEvent, emptyTagEvent, concurrentEvent)
 
     viewModel.loadAllEvents()
@@ -335,7 +335,7 @@ class MapViewModelTest {
 
   @Test
   fun `loadAllEvents updates uiState markers`() = runTest {
-    coEvery { eventRepository.getAllEvents() } returns fakeEvents
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns fakeEvents
 
     viewModel.loadAllEvents()
     advanceUntilIdle()
@@ -352,7 +352,7 @@ class MapViewModelTest {
 
   @Test
   fun `loadAllEvents sets error on failure`() = runTest {
-    coEvery { eventRepository.getAllEvents() } throws RuntimeException("Failed to load")
+    coEvery { eventRepository.getAllEvents(any(), any()) } throws RuntimeException("Failed to load")
 
     viewModel.loadAllEvents()
     advanceUntilIdle()
@@ -409,7 +409,7 @@ class MapViewModelTest {
 
     // Controlled mutable list that mockk will read from
     val currentEvents = mutableListOf<Event>()
-    coEvery { eventRepository.getAllEvents() } answers { currentEvents.toList() }
+    coEvery { eventRepository.getAllEvents(any(), any()) } answers { currentEvents.toList() }
 
     // Initial state
     assertEquals(0, viewModel.eventMarkers.value.size)
@@ -443,20 +443,29 @@ class MapViewModelTest {
   @Test
   fun `selectEvent updates selectedEvent flow`() = runTest {
     val testEvent = EventTestData.dummyEvent1
+    coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
+    advanceUntilIdle()
+    val eventCreator = UserTestData.Bob.username
 
     viewModel.selectEvent(testEvent)
     advanceUntilIdle()
 
-    assertEquals(testEvent, viewModel.selectedEvent.value)
+    assertEquals(
+        MapViewModel.EventSelectionState.Selected(testEvent, eventCreator),
+        viewModel.selectedEvent.value)
   }
 
   @Test
   fun `onMarkerClick selects the event`() = runTest {
     val testEvent = EventTestData.dummyEvent1
+    val eventCreator = UserTestData.Bob.username
+    coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
     viewModel.onMarkerClick(testEvent)
     advanceUntilIdle()
 
-    assertEquals(testEvent, viewModel.selectedEvent.value)
+    assertEquals(
+        MapViewModel.EventSelectionState.Selected(testEvent, eventCreator),
+        viewModel.selectedEvent.value)
   }
 
   @Test
@@ -464,16 +473,28 @@ class MapViewModelTest {
     val event = EventTestData.dummyEvent1
     val newParticipants = event.participants + userId
     val updatedEvent = event.copy(participants = newParticipants)
+    val eventCreator = UserTestData.Bob.username
 
+    coEvery { userRepository.getUser(UserTestData.Bob.uid) } returns UserTestData.Bob
     coEvery { eventRepository.updateEvent(event.id, updatedEvent) } returns Unit
-    coEvery { eventRepository.getAllEvents() } returns listOf(updatedEvent)
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns listOf(updatedEvent)
 
+    viewModel.selectEvent(event)
     viewModel.toggleEventParticipation(event)
     advanceUntilIdle()
 
     coVerify { eventRepository.updateEvent(event.id, updatedEvent) }
-    val selectedEvent = viewModel.selectedEvent.value
+    val selectedEventState = viewModel.selectedEvent.value
+    val (selectedEvent, creator) =
+        selectedEventState.let {
+          when (it) {
+            is MapViewModel.EventSelectionState.None -> Pair(null, null)
+            is MapViewModel.EventSelectionState.Selected -> Pair(it.event, it.creator)
+          }
+        }
+
     assertEquals(updatedEvent, selectedEvent)
+    assertEquals(eventCreator, creator)
     assertTrue(selectedEvent?.participants?.contains(userId) ?: false)
   }
 
@@ -520,7 +541,7 @@ class MapViewModelTest {
 
         coVerify(exactly = 0) { userRepository.getUser(any()) }
         coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
-        coVerify(exactly = 0) { eventRepository.getAllEvents() }
+        coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
       }
 
   @Test
@@ -535,21 +556,19 @@ class MapViewModelTest {
         val generatedEvents = listOf(EventTestData.dummyEvent1.copy(id = "ai-event"))
         coEvery { ai.generateEvents(any()) } returns generatedEvents
 
-        // FIX: persistAIEvents must return List<Event>
-        coEvery { eventRepository.persistAIEvents(generatedEvents) } returns generatedEvents
+        coEvery { eventRepository.persistAIEvents(any()) } returns generatedEvents
 
-        // loadAllEvents → repository.getAllEvents()
-        coEvery { eventRepository.getAllEvents() } returns generatedEvents
+        coEvery { eventRepository.getAllEvents(any(), any()) } returns generatedEvents
 
-        // Act
         viewModel.generateAiEventAroundUser(radiusKm = 42, timeFrame = "tonight")
         advanceUntilIdle()
 
-        // Assert
-        coVerify(exactly = 1) { userRepository.getUser(userId) }
+        // Verified atLeast = 1 because it's called once for generation context
+        // AND once inside loadAllEvents for privacy filtering.
+        coVerify(atLeast = 1) { userRepository.getUser(userId) }
         coVerify(exactly = 1) { ai.generateEvents(any()) }
-        coVerify(exactly = 1) { eventRepository.persistAIEvents(generatedEvents) }
-        coVerify(exactly = 1) { eventRepository.getAllEvents() }
+        coVerify(exactly = 1) { eventRepository.persistAIEvents(any()) }
+        coVerify(exactly = 1) { eventRepository.getAllEvents(any(), any()) }
 
         assertNull(viewModel.uiState.value.error)
       }
