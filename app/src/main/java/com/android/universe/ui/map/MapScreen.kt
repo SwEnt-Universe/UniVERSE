@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -28,12 +29,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.common.TagRow
+import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.ScreenLayoutWithBox
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -103,7 +108,8 @@ fun MapScreen(
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
   val theme = isSystemInDarkTheme()
-
+    val categoryList = remember { Tag.tagFromEachCategory.toList() }
+    val categories by viewModel.categories.collectAsState()
   // --- 1. Permissions & Initialization ---
 
   val permissionLauncher =
@@ -173,6 +179,18 @@ fun MapScreen(
         NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
       }) { padding ->
         MapBox(uiState = uiState) {
+            //TODO handle padding
+            Box(modifier = Modifier.fillMaxWidth().padding(top = Dimensions.PaddingExtraLarge*2) ) {
+                TagRow(
+                    categoryList,
+                    heightTag = CategoryItemDefaults.HEIGHT_CAT,
+                    widthTag = CategoryItemDefaults.WIDTH_CAT,
+                    isSelected = { cat -> categories.contains(cat.category) },
+                    onTagSelect = { cat -> viewModel.selectCategory(cat.category, true) },
+                    onTagReSelect = { cat -> viewModel.selectCategory(cat.category, false) },
+                    fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+                    isCategory = true)
+            }
           // Create Event Button
           AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
           // Overlays

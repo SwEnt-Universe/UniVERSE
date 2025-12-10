@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.util.Log
 import android.view.ViewGroup
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
@@ -22,6 +23,7 @@ import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.location.LocationRepository
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
 import com.android.universe.model.tag.Tag.Category.ART
 import com.android.universe.model.tag.Tag.Category.FOOD
@@ -34,6 +36,7 @@ import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
+import com.android.universe.ui.search.SearchEngine
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
@@ -56,12 +59,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -137,6 +142,8 @@ class MapViewModel(
               zoomLevel = prefs.getFloat(KEY_CAMERA_ZOOM, 14f).toDouble()))
   /** Observable UI state. */
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+    private val _categories = MutableStateFlow<Set<Category>>(emptySet())
+    val categories: StateFlow<Set<Category>> = _categories.asStateFlow()
 
   private val _mapActions = Channel<MapAction>(Channel.BUFFERED)
   /** Stream of one-off map actions. */
@@ -473,6 +480,28 @@ class MapViewModel(
       }
     }
   }
+
+    /**
+     * Selects a category.
+     *
+     * @param category The category to select.
+     * @param select Whether to select or deselect the category.
+     * true means selecting, false means deselecting.
+     */
+    fun selectCategory(category: Category, select : Boolean){
+
+        if(select){
+            _categories.update { it + category }
+        } else {
+            _categories.update { it - category }
+        }
+        if (categories.value .isEmpty()) {
+            _uiState.update { it.copy(markers = _eventMarkers.value .map { e -> mapEventToMarker(e) }) }
+        } else {
+            _uiState.update { it.copy(markers = _eventMarkers.value.filter { SearchEngine.tagMatch(it.tags, categories.value) }.map { e -> mapEventToMarker(e) }) }
+        }
+    }
+
 
   /**
    * Polls events periodically.
