@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
@@ -294,7 +295,10 @@ fun ProfileEventList(
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
   val density = LocalDensity.current
-  var footerHeight by remember { mutableStateOf(0.dp) }
+  val configuration = LocalConfiguration.current
+
+  val screenHeight = configuration.screenHeightDp.dp
+  var footerHeight by remember { mutableStateOf(screenHeight) }
 
   val bottomPaddingDp = 80.dp
 
@@ -304,15 +308,21 @@ fun ProfileEventList(
           val visibleItems = layoutInfo.visibleItemsInfo
           val viewportHeight = layoutInfo.viewportSize.height
 
-          if (visibleItems.isNotEmpty()) {
-            val eventsHeightPx =
-                visibleItems.filter { it.index > 0 && it.index <= events.size }.sumOf { it.size }
+          if (visibleItems.isNotEmpty() && events.isNotEmpty()) {
+            val lastEventIndex = events.size
+            val isLastItemVisible = visibleItems.any { it.index == lastEventIndex }
 
-            val bottomPaddingPx = with(density) { bottomPaddingDp.toPx() }
+            if (isLastItemVisible) {
+              val eventsHeightPx =
+                  visibleItems.filter { it.index > 0 && it.index <= events.size }.sumOf { it.size }
 
-            val neededPx = (viewportHeight - eventsHeightPx - bottomPaddingPx).coerceAtLeast(0f)
+              val bottomPaddingPx = with(density) { bottomPaddingDp.toPx() }
 
-            footerHeight = with(density) { neededPx.toDp() }
+              val neededPx = (viewportHeight - eventsHeightPx - bottomPaddingPx).coerceAtLeast(0f)
+              footerHeight = with(density) { neededPx.toDp() }
+            } else {
+              footerHeight = 0.dp
+            }
           }
         }
   }
