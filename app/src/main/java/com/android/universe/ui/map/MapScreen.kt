@@ -106,7 +106,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
-  val categoryList = remember { Tag.tagFromEachCategory.toList() }
+  val categoryList = Tag.tagFromEachCategory.toList()
   val categories by viewModel.categories.collectAsState()
   // --- 1. Permissions & Initialization ---
 
@@ -181,7 +181,12 @@ fun MapScreen(
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
-        NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
+        NavigationBottomMenu(
+            selectedTab = Tab.Map,
+            onTabSelected = { tab ->
+              viewModel.resetFilter()
+              onTabSelected(tab)
+            })
       }) { padding ->
         MapBox(uiState = uiState) {
           BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -222,7 +227,10 @@ fun MapScreen(
                     event = it.event,
                     creator = it.creator,
                     onDismiss = { viewModel.selectEvent(null) },
-                    onChatNavigate = onChatNavigate,
+                    onChatNavigate = { eventId, eventTitle ->
+                      viewModel.resetFilter()
+                      onChatNavigate(eventId, eventTitle)
+                    },
                     isUserParticipant = viewModel.isUserParticipant(it.event),
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
           }
@@ -232,6 +240,7 @@ fun MapScreen(
               onDismissRequest = { showMapModal = false },
               onAiCreate = { viewModel.generateAiEventAroundUser() },
               onManualCreate = {
+                viewModel.resetFilter()
                 onNavigateToEventCreation()
                 showMapModal = false
               })

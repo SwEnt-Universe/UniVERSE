@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
-import android.util.Log
 import android.view.ViewGroup
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
@@ -504,6 +503,12 @@ class MapViewModel(
                     .map { e -> mapEventToMarker(e) })
       }
     }
+  }
+
+  /** Clears the filter. To be used when navigating away from the screen. */
+  fun resetFilter() {
+    _categories.update { emptySet() }
+    _uiState.update { it.copy(markers = _eventMarkers.value.map { e -> mapEventToMarker(e) }) }
   }
 
   /**

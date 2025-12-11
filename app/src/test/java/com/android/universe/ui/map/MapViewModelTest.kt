@@ -609,4 +609,12 @@ class MapViewModelTest {
     viewModel.selectCategory(cat, false)
     assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
   }
+
+  @Test
+  fun `resetFilter empties categories`() {
+    val cat = Tag.Category.FOOD
+    viewModel.selectCategory(cat, true)
+    viewModel.resetFilter()
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
+  }
 }
