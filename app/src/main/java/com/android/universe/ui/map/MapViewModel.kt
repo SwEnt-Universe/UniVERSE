@@ -219,7 +219,12 @@ class MapViewModel(
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
       val view = MapView(applicationContext, mapOptions)
-      view.compassButton.margin = Margin(top = 256, left = 0, right = 30, bottom = 0)
+      view.compassButton.margin =
+          Margin(
+              top = (applicationContext.resources.displayMetrics.heightPixels * 0.12f).toInt(),
+              left = 0,
+              right = 30,
+              bottom = 0)
       tomtomMapView = view
       tomtomMapView?.onCreate(null)
       tomtomMapView?.configureUiSettings()
