@@ -240,6 +240,13 @@ fun UniverseApp(
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
               },
+              onEditButtonClick = { uid, location ->
+                navController.navigate(
+                    NavigationScreens.EventEdition.route
+                        .replace("{uid}", uid)
+                        .replace("{latitude}", location.latitude.toFloat().toString())
+                        .replace("{longitude}", location.longitude.toFloat().toString()))
+              },
               viewModel = mapViewModel)
         }
 
@@ -269,6 +276,13 @@ fun UniverseApp(
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
                   },
+                  onEditButtonClick = { uid, location ->
+                    navController.navigate(
+                        NavigationScreens.EventEdition.route
+                            .replace("{uid}", uid)
+                            .replace("{latitude}", location.latitude.toFloat().toString())
+                            .replace("{longitude}", location.longitude.toFloat().toString()))
+                  },
                   viewModel = mapViewModel)
             }
 
@@ -294,6 +308,13 @@ fun UniverseApp(
                           .replace("{eventId}", eventId)
                           .replace("{latitude}", eventLocation.latitude.toFloat().toString())
                           .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
+                },
+                onEditButtonClick = { uid, location ->
+                  navController.navigate(
+                      NavigationScreens.EventEdition.route
+                          .replace("{uid}", uid)
+                          .replace("{latitude}", location.latitude.toFloat().toString())
+                          .replace("{longitude}", location.longitude.toFloat().toString()))
                 })
           }
         }
@@ -425,6 +446,48 @@ fun UniverseApp(
                     },
                     onBack = { navigationActions.goBack() })
               }
+            }
+
+        navigation(
+            route = NavigationScreens.EventEdition.name,
+            startDestination = NavigationScreens.EventEdition.route) {
+
+              // --- Main Event Creation Screen ---
+              composable(
+                  route = NavigationScreens.EventEdition.route,
+                  arguments =
+                      listOf(
+                          navArgument("latitude") { type = NavType.FloatType },
+                          navArgument("longitude") { type = NavType.FloatType },
+                          navArgument("uid") { type = NavType.StringType })) { entry ->
+                    val latitude = entry.arguments?.getFloat("latitude") ?: 0f
+                    val longitude = entry.arguments?.getFloat("longitude") ?: 0f
+                    val uid = entry.arguments?.getString("uid") ?: ""
+
+                    EventCreationScreen(
+                        uidEvent = uid,
+                        location = Location(latitude.toDouble(), longitude.toDouble()),
+                        onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
+                        onSaveEdition = { navController.navigate("selectTagEventEdition/$uid") },
+                        onBack = {
+                          mapViewModel.switchMapMode(MapMode.SELECT_LOCATION)
+                          navigationActions.goBack()
+                        })
+                  }
+
+              composable(
+                  route = NavigationScreens.SelectTagEventEdition.route,
+                  arguments = listOf(navArgument("uid") { type = NavType.StringType })) { entry ->
+                    val uid = entry.arguments?.getString("uid") ?: ""
+                    SelectTagScreen(
+                        selectTagMode = SelectTagMode.EVENT_EDITION,
+                        uid = uid,
+                        navigateOnSave = {
+                          navController.popBackStack(
+                              route = NavigationScreens.Map.route, inclusive = false)
+                        },
+                        onBack = { navigationActions.goBack() })
+                  }
             }
         // --- Add Tags Screen FOR USER---
         composable(
