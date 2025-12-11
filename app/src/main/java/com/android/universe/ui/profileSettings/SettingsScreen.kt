@@ -358,7 +358,7 @@ fun FieldModifier(
     onClick: () -> Unit = {}
 ) {
   Row(
-      modifier = Modifier.fillMaxWidth().clickable { onClick() },
+      modifier = editModifier.fillMaxWidth().clickable(onClick = onClick),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween) {
         Row(
@@ -391,6 +391,6 @@ fun FieldModifier(
             imageVector = trailingIcon,
             contentDescription = "Edit $title",
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = editModifier.size(Dimensions.IconSizeMedium).clickable(onClick = onClick))
+            modifier = Modifier.size(Dimensions.IconSizeMedium))
       }
 }
