@@ -342,40 +342,29 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
-
-    composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule
-                .onAllNodesWithTag(
-                    MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
-                .onFirst()
-                .assertExists()
-          }
-          .isSuccess
-    }
     composeTestRule
         .onAllNodesWithTag(
             MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
         .onFirst()
         .performClick()
-
     composeTestRule.waitUntil(10_000L) {
-      runCatching {
-            composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).assertExists()
-          }
-          .isSuccess
+      composeTestRule
+          .onNodeWithTagWithUnmergedTree(MapScreenTestTags.SELECT_LOCATION_TEXT)
+          .isDisplayed()
     }
-
-    composeTestRule.onNodeWithTag(EventCreationTestTags.SET_LOCATION_BUTTON).performClick()
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
       down(center)
-      advanceEventTime(1_000)
-    }
-    composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
-      up()
+      advanceEventTime(1000L)
     }
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntil(9_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
     }
 
@@ -385,7 +374,6 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     nextMonth(composeTestRule)
     selectDayWithMonth(composeTestRule, FAKE_EVENT.date.toLocalDate())
     pressOKDate(composeTestRule)
-
     composeTestRule
         .onNodeWithTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD)
         .performTextInput(TIME_INPUT)
