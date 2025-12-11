@@ -41,6 +41,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.tag.Tag
+import com.android.universe.ui.common.TagRow
+import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -88,6 +91,7 @@ fun SearchProfileScreen(
   val uiState by searchProfileViewModel.uiState.collectAsState()
   val searchQuery by searchProfileViewModel.searchQuery.collectAsState()
   val profilesState by searchProfileViewModel.profilesState.collectAsState()
+  val categories by searchProfileViewModel.categories.collectAsState()
 
   val pagerState = rememberPagerState(pageCount = { 3 })
   val exploreListState = rememberLazyListState()
@@ -127,7 +131,9 @@ fun SearchProfileScreen(
                     pagerState = pagerState,
                     searchQuery = searchQuery,
                     onQueryChange = { searchProfileViewModel.updateSearchQuery(it) },
-                    topPadding = paddingValues.calculateTopPadding())
+                    topPadding = paddingValues.calculateTopPadding(),
+                    categories = categories,
+                    catSelect = searchProfileViewModel::selectCategory)
 
                 uiState.errorMsg?.let { error ->
                   Snackbar(
@@ -152,15 +158,19 @@ fun SearchProfileScreen(
  * @param onQueryChange Callback function invoked when the search query changes.
  * @param topPadding The top padding to be applied to the overlay, typically to account for system
  *   UI elements.
+ * @param categories The set of selected categories.
+ * @param catSelect Callback function invoked when a category is selected or deselected.
  */
 @Composable
 fun SearchHeaderOverlay(
     pagerState: PagerState,
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    topPadding: Dp
+    topPadding: Dp,
+    categories: Set<Tag.Category> = emptySet(),
+    catSelect: (Tag.Category, Boolean) -> Unit = { _, _ -> }
 ) {
-
+  val allCats = remember { Tag.tagFromEachCategory.toList() }
   Surface(modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER)) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding)) {
       LiquidSearchBar(
@@ -171,6 +181,15 @@ fun SearchHeaderOverlay(
                   .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
 
       Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+      TagRow(
+          allCats,
+          heightTag = CategoryItemDefaults.HEIGHT_CAT,
+          widthTag = CategoryItemDefaults.WIDTH_CAT,
+          isSelected = { cat -> categories.contains(cat.category) },
+          onTagSelect = { cat -> catSelect(cat.category, true) },
+          onTagReSelect = { cat -> catSelect(cat.category, false) },
+          fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+          isCategory = true)
 
       SearchProfileTabRow(
           pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))

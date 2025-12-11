@@ -2,15 +2,18 @@ package com.android.universe.ui.searchProfile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.universe.model.tag.Tag.Category
 import com.android.universe.model.user.UserProfile
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.search.SearchEngine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ProfileUIState(val user: UserProfile, val isFollowing: Boolean = false)
@@ -39,6 +42,9 @@ class SearchProfileViewModel(
   private val _searchQuery = MutableStateFlow("")
   val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+  private val _categories = MutableStateFlow<Set<Category>>(emptySet())
+  val categories: StateFlow<Set<Category>> = _categories.asStateFlow()
+
   private val explore = MutableStateFlow<List<UserProfile>>(emptyList())
   private val followers = MutableStateFlow<List<UserProfile>>(emptyList())
   private val following = MutableStateFlow<List<UserProfile>>(emptyList())
@@ -49,21 +55,32 @@ class SearchProfileViewModel(
 
   /** Combined state of profile tabs with filtering based on search query */
   val baseProfilesState: StateFlow<ProfileTabsState> =
-      combine(explore, followers, following, currentUserFollowingIds, searchQuery) {
-              exploreRaw,
-              followersRaw,
-              followingRaw,
-              followingIds,
-              query ->
+      combine(explore, followers, following, currentUserFollowingIds, searchQuery, categories) { arr
+            ->
+            val exploreRaw = arr[0] as List<UserProfile>
+            val followersRaw = arr[1] as List<UserProfile>
+            val followingRaw = arr[2] as List<UserProfile>
+            val followingIds = arr[3] as Set<String>
+            val query = arr[4] as String
+            val cats = arr[5] as Set<Category>
+
             val q = query.lowercase()
 
             fun filter(list: List<UserProfile>) =
-                if (q.isBlank()) list
+                if (q.isBlank())
+                    list
+                        .filter { SearchEngine.tagMatch(it.tags, cats) }
+                        .sortedWith(SearchEngine.categoryCoverageComparator(cats) { e -> e.tags })
+                        .reversed()
                 else
-                    list.filter {
-                      val full = "${it.firstName} ${it.lastName}".lowercase()
-                      full.contains(q)
-                    }
+                    list
+                        .filter {
+                          val full = "${it.firstName} ${it.lastName}".lowercase()
+                          full.contains(q)
+                        }
+                        .filter { SearchEngine.tagMatch(it.tags, cats) }
+                        .sortedWith(SearchEngine.categoryCoverageComparator(cats) { e -> e.tags })
+                        .reversed()
 
             ProfileTabsState(
                 explore = filter(exploreRaw).map { it.toUI(followingIds) },
@@ -176,6 +193,17 @@ class SearchProfileViewModel(
    */
   fun updateSearchQuery(query: String) {
     _searchQuery.value = query
+  }
+
+  /**
+   * Selects a category.
+   *
+   * @param category The category to select.
+   * @param select Whether to select or deselect the category. true means selecting, false means
+   *   deselecting.
+   */
+  fun selectCategory(category: Category, select: Boolean) {
+    if (select) _categories.update { it + category } else _categories.update { it - category }
   }
 
   /**

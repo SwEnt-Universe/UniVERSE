@@ -1,6 +1,7 @@
 package com.android.universe.ui.searchProfile
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
@@ -156,5 +157,14 @@ class SearchProfileViewModelTest {
     advanceUntilIdle()
 
     assertEquals(testQuery, viewModel.searchQuery.value)
+  }
+
+  @Test
+  fun selectCategory_addsAndRemoves() {
+    val testCategory = Tag.Category.MUSIC
+    viewModel.selectCategory(testCategory, true)
+    assertEquals(setOf(testCategory), viewModel.categories.value)
+    viewModel.selectCategory(testCategory, false)
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
   }
 }
