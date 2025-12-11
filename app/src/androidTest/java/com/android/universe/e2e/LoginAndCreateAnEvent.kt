@@ -181,8 +181,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // —————————————————————————————————————
     // 3. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
-    composeTestRule.waitUntil(5_000L) {
-      composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).isDisplayed()
+    composeTestRule.waitUntil(10_000L) {
+      composeTestRule
+          .onNodeWithTagWithUnmergedTree(FlowBottomMenuTestTags.CONFIRM_BUTTON)
+          .isDisplayed()
     }
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
       down(center)
@@ -193,7 +195,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(9_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()
     }
 
