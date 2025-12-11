@@ -44,6 +44,20 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
             eventPicture = eventPicture)
   }
 
+  /** Accepts an event object. */
+  override suspend fun updateEventAsObject(event: Event) {
+    updateEvent(
+        id = event.id,
+        title = event.title,
+        description = event.description,
+        dateTime = event.date,
+        creator = event.creator,
+        participants = event.participants,
+        location = event.location,
+        isPrivate = event.isPrivate,
+        eventPicture = event.eventPicture)
+  }
+
   /** Return the current stocked event. */
   override suspend fun getEvent(): Event {
     if (stockedEvent == null) {
