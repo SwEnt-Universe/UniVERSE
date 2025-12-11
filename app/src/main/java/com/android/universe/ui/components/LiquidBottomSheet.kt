@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.Dimensions
 
 /**
  * A customized [ModalBottomSheet] implementation that applies a "liquid" or "glassmorphism" visual
@@ -120,9 +121,13 @@ fun LiquidBottomSheet(
                   content()
 
                   bottomBar?.let {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                      it()
-                    }
+                    Box(
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .padding(vertical = Dimensions.PaddingExtraLarge),
+                        contentAlignment = Alignment.Center) {
+                          it()
+                        }
                   }
                 }
               }
