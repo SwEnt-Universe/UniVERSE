@@ -42,7 +42,6 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
-import com.tomtom.sdk.map.display.common.screen.Padding
 import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.map.OnlineCachePolicy
@@ -218,8 +217,8 @@ class MapViewModel(
               mapStyle = StyleDescriptor(uri = LIGHT_STYLE.toUri(), darkUri = DARK_STYLE.toUri()),
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
-        val view = MapView(applicationContext, mapOptions)
-        view.compassButton.margin = Margin(top = 256, left = 0, right = 30, bottom = 0)
+      val view = MapView(applicationContext, mapOptions)
+      view.compassButton.margin = Margin(top = 256, left = 0, right = 30, bottom = 0)
       tomtomMapView = view
       tomtomMapView?.onCreate(null)
       tomtomMapView?.configureUiSettings()
