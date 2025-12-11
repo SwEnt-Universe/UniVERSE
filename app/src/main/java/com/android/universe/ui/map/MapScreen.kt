@@ -8,9 +8,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -108,8 +109,8 @@ fun MapScreen(
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
   val theme = isSystemInDarkTheme()
-    val categoryList = remember { Tag.tagFromEachCategory.toList() }
-    val categories by viewModel.categories.collectAsState()
+  val categoryList = remember { Tag.tagFromEachCategory.toList() }
+  val categories by viewModel.categories.collectAsState()
   // --- 1. Permissions & Initialization ---
 
   val permissionLauncher =
@@ -179,18 +180,22 @@ fun MapScreen(
         NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
       }) { padding ->
         MapBox(uiState = uiState) {
-            //TODO handle padding
-            Box(modifier = Modifier.fillMaxWidth().padding(top = Dimensions.PaddingExtraLarge*2) ) {
-                TagRow(
-                    categoryList,
-                    heightTag = CategoryItemDefaults.HEIGHT_CAT,
-                    widthTag = CategoryItemDefaults.WIDTH_CAT,
-                    isSelected = { cat -> categories.contains(cat.category) },
-                    onTagSelect = { cat -> viewModel.selectCategory(cat.category, true) },
-                    onTagReSelect = { cat -> viewModel.selectCategory(cat.category, false) },
-                    fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
-                    isCategory = true)
-            }
+          BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val screenHeight = maxHeight
+            val topOffset = screenHeight * 0.05f
+
+            TagRow(
+                categoryList,
+                modifierBox = Modifier.offset(y = topOffset),
+                heightTag = CategoryItemDefaults.HEIGHT_CAT,
+                widthTag = CategoryItemDefaults.WIDTH_CAT,
+                isSelected = { cat -> categories.contains(cat.category) },
+                onTagSelect = { cat -> viewModel.selectCategory(cat.category, true) },
+                onTagReSelect = { cat -> viewModel.selectCategory(cat.category, false) },
+                fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+                isCategory = true)
+          }
+
           // Create Event Button
           AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
           // Overlays
