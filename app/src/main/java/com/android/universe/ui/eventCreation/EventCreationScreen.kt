@@ -49,6 +49,7 @@ import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.LiquidImagePicker
 import com.android.universe.ui.components.LiquidToggle
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
@@ -177,8 +178,7 @@ fun StandardEventCreationForm(
           },
           enabled = eventCreationViewModel.validateAll())
 
-  Scaffold(
-      containerColor = Color.Transparent,
+  ScreenLayout(
       bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
       content = { paddingValues ->
         Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
