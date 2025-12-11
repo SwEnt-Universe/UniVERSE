@@ -806,4 +806,22 @@ class MapViewModelTest {
     coVerify(exactly = 0) { tempRepo.deleteEvent() }
     coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
   }
+
+  @Test
+  fun `selectCategory all actions`() {
+    val cat = Tag.Category.FOOD
+    viewModel.selectCategory(cat, true)
+    viewModel.uiState.value.markers.all { it.event.tags.none { e -> e.category != cat } }
+    assertEquals(setOf(cat), viewModel.categories.value)
+    viewModel.selectCategory(cat, false)
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
+  }
+
+  @Test
+  fun `resetFilter empties categories`() {
+    val cat = Tag.Category.FOOD
+    viewModel.selectCategory(cat, true)
+    viewModel.resetFilter()
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
+  }
 }

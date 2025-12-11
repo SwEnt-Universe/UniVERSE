@@ -7,10 +7,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,7 +40,10 @@ import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.common.TagRow
+import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.ScreenLayoutWithBox
@@ -113,6 +118,8 @@ fun MapScreen(
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
   val preview = viewModel.previewEvent.collectAsState()
+  val categoryList = Tag.tagFromEachCategory.toList()
+  val categories by viewModel.categories.collectAsState()
 
   // --- 1. Permissions & Initialization ---
 
@@ -188,7 +195,12 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
         if (uiState.mapMode == MapMode.NORMAL) {
-          NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
+          NavigationBottomMenu(
+              selectedTab = Tab.Map,
+              onTabSelected = { tab ->
+                viewModel.resetFilter()
+                onTabSelected(tab)
+              })
         } else {
           FlowBottomMenu(
               flowTabs =
@@ -196,6 +208,7 @@ fun MapScreen(
                       FlowTab.Back(onClick = { viewModel.switchMapMode(MapMode.NORMAL) }),
                       FlowTab.Confirm(
                           onClick = {
+                            viewModel.resetFilter()
                             onNavigateToEventCreation(
                                 uiState.selectedLocation!!.latitude,
                                 uiState.selectedLocation!!.longitude)
@@ -205,6 +218,22 @@ fun MapScreen(
         }
       }) { padding ->
         MapBox(uiState = uiState) {
+          BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val screenHeight = maxHeight
+            val topOffset = screenHeight * 0.05f
+
+            TagRow(
+                categoryList,
+                modifierBox = Modifier.offset(y = topOffset),
+                heightTag = CategoryItemDefaults.HEIGHT_CAT,
+                widthTag = CategoryItemDefaults.WIDTH_CAT,
+                isSelected = { cat -> categories.contains(cat.category) },
+                onTagSelect = { cat -> viewModel.selectCategory(cat.category, true) },
+                onTagReSelect = { cat -> viewModel.selectCategory(cat.category, false) },
+                fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+                isCategory = true)
+          }
+
           // Create Event Button
           if (uiState.mapMode == MapMode.NORMAL) {
             AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
@@ -230,7 +259,10 @@ fun MapScreen(
                     event = it.event,
                     creator = it.creator,
                     onDismiss = { viewModel.selectEvent(null) },
-                    onChatNavigate = onChatNavigate,
+                    onChatNavigate = { eventId, eventTitle ->
+                      viewModel.resetFilter()
+                      onChatNavigate(eventId, eventTitle)
+                    },
                     isUserParticipant = viewModel.isUserParticipant(it.event),
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) },
                     isPreview = isPreview,
