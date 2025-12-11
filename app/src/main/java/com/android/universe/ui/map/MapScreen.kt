@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -191,9 +190,12 @@ fun MapScreen(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
         if (uiState.mapMode == MapMode.NORMAL) {
-          NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab ->
-              viewModel.resetFilter()
-              onTabSelected(tab) })
+          NavigationBottomMenu(
+              selectedTab = Tab.Map,
+              onTabSelected = { tab ->
+                viewModel.resetFilter()
+                onTabSelected(tab)
+              })
         } else {
           FlowBottomMenu(
               flowTabs =
@@ -201,6 +203,7 @@ fun MapScreen(
                       FlowTab.Back(onClick = { viewModel.switchMapMode(MapMode.NORMAL) }),
                       FlowTab.Confirm(
                           onClick = {
+                            viewModel.resetFilter()
                             onNavigateToEventCreation(
                                 uiState.selectedLocation!!.latitude,
                                 uiState.selectedLocation!!.longitude)
@@ -264,8 +267,6 @@ fun MapScreen(
               onAiCreate = { viewModel.generateAiEventAroundUser() },
               onManualCreate = {
                 viewModel.switchMapMode(MapMode.SELECT_LOCATION)
-                viewModel.resetFilter()
-                onNavigateToEventCreation()
                 showMapModal = false
               })
         }
