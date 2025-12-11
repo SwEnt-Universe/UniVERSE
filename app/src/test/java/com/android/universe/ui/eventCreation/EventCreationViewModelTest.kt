@@ -302,7 +302,7 @@ class EventCreationViewModelTest {
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123", location = SAMPLE_LOCATION)
+    viewModel.saveEvent(uidUser = "user123", uidEvent = null, location = SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
     assert(stockedEvent.title == SAMPLE_TITLE)
@@ -328,7 +328,7 @@ class EventCreationViewModelTest {
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123", location = SAMPLE_LOCATION)
+    viewModel.saveEvent(uidUser = "user123", uidEvent = null, location = SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
 
