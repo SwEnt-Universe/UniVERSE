@@ -216,6 +216,7 @@ class MapViewModel(
           MapOptions(
               mapKey = BuildConfig.TOMTOM_API_KEY,
               mapStyle = StyleDescriptor(uri = LIGHT_STYLE.toUri(), darkUri = DARK_STYLE.toUri()),
+              styleMode = mapTheme,
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
       val view = MapView(applicationContext, mapOptions)
