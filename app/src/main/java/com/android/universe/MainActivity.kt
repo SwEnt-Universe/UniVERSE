@@ -228,7 +228,8 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
-              onNavigateToEventCreation = {lat, lng -> navController.navigate("eventCreation/$lat/$lng")
+              onNavigateToEventCreation = { lat, lng ->
+                navController.navigate("eventCreation/$lat/$lng")
               },
               onChatNavigate = { chatID, chatName ->
                 navController.navigate(
@@ -255,7 +256,8 @@ fun UniverseApp(
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
                   onTabSelected = onTabSelected,
-                  onNavigateToEventCreation = {lat, lng -> navController.navigate("eventCreation/$lat/$lng")
+                  onNavigateToEventCreation = { lat, lng ->
+                    navController.navigate("eventCreation/$lat/$lng")
                   },
                   preselectedEventId = eventId,
                   preselectedLocation = Location(lat, lng),
@@ -394,19 +396,20 @@ fun UniverseApp(
             startDestination = NavigationScreens.EventCreation.route) {
 
               // --- Main Event Creation Screen ---
-              composable(route = NavigationScreens.EventCreation.route,
+              composable(
+                  route = NavigationScreens.EventCreation.route,
                   arguments =
                       listOf(
                           navArgument("latitude") { type = NavType.FloatType },
                           navArgument("longitude") { type = NavType.FloatType })) { entry ->
-                  val latitude = entry.arguments?.getFloat("latitude") ?: 0f
-                  val longitude = entry.arguments?.getFloat("longitude") ?: 0f
+                    val latitude = entry.arguments?.getFloat("latitude") ?: 0f
+                    val longitude = entry.arguments?.getFloat("longitude") ?: 0f
 
-                EventCreationScreen(
-                    location = Location(latitude.toDouble(), longitude.toDouble()),
-                    onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
-                    onBack = { navigationActions.goBack() })
-              }
+                    EventCreationScreen(
+                        location = Location(latitude.toDouble(), longitude.toDouble()),
+                        onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
+                        onBack = { navigationActions.goBack() })
+                  }
 
               composable(NavigationScreens.SelectTagEvent.route) {
                 SelectTagScreen(

@@ -333,7 +333,6 @@ class EventCreationViewModel(
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
 
-
           eventTemporaryRepository.updateEvent(
               id = id,
               title = eventCreationUiState.value.name,

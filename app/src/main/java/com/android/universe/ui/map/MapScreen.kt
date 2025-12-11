@@ -182,27 +182,28 @@ fun MapScreen(
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
-          if (uiState.mapMode == MapMode.NORMAL) {
-              NavigationBottomMenu(
-                  selectedTab = Tab.Map,
-                  onTabSelected = { tab -> onTabSelected(tab) })
-          }else{
-              FlowBottomMenu(flowTabs = listOf(FlowTab.Back(onClick = { viewModel.switchMapMode(MapMode.NORMAL) }), FlowTab.Confirm(
-                  onClick = {
-                      onNavigateToEventCreation(uiState.selectedLocation!!.latitude, uiState.selectedLocation!!.longitude)
-                      viewModel.switchMapMode(MapMode.NORMAL) }, enabled = uiState.selectedLocation != null)
-              ))
-          }
+        if (uiState.mapMode == MapMode.NORMAL) {
+          NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
+        } else {
+          FlowBottomMenu(
+              flowTabs =
+                  listOf(
+                      FlowTab.Back(onClick = { viewModel.switchMapMode(MapMode.NORMAL) }),
+                      FlowTab.Confirm(
+                          onClick = {
+                            onNavigateToEventCreation(
+                                uiState.selectedLocation!!.latitude,
+                                uiState.selectedLocation!!.longitude)
+                            viewModel.switchMapMode(MapMode.NORMAL)
+                          },
+                          enabled = uiState.selectedLocation != null)))
+        }
       }) { padding ->
         MapBox(uiState = uiState) {
           // Create Event Button
-            if (uiState.mapMode == MapMode.NORMAL) {
-                AddEventButton(
-                    onClick = { showMapModal = true },
-                    boxScope = this,
-                    padding = padding
-                )
-            }
+          if (uiState.mapMode == MapMode.NORMAL) {
+            AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
+          }
           // Overlays
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -237,17 +238,20 @@ fun MapScreen(
                 showMapModal = false
               })
         }
-          if (uiState.mapMode == MapMode.SELECT_LOCATION){
-              LiquidBox(shape = (RoundedCornerShape(
-                  topStart = 0.dp,
-                  topEnd = 0.dp,
-                  bottomStart = 16.dp,
-                  bottomEnd = 16.dp)),
-                  modifier = Modifier.fillMaxWidth().height(130.dp)
-              ){
-                  Text("Select your location", modifier = Modifier.fillMaxWidth().align(Alignment.Center), fontSize = 32.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
+        if (uiState.mapMode == MapMode.SELECT_LOCATION) {
+          LiquidBox(
+              shape =
+                  (RoundedCornerShape(
+                      topStart = 0.dp, topEnd = 0.dp, bottomStart = 16.dp, bottomEnd = 16.dp)),
+              modifier = Modifier.fillMaxWidth().height(130.dp)) {
+                Text(
+                    "Select your location",
+                    modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                    fontSize = 32.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface)
               }
-          }
+        }
       }
 }
 

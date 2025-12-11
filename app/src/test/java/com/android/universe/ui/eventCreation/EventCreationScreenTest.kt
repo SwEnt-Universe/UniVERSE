@@ -70,7 +70,8 @@ class EventCreationScreenTest {
             gemini = fakeGemini)
 
     composeTestRule.setContentWithStubBackdrop {
-      EventCreationScreen(eventCreationViewModel = viewModel, location = Location(0.0,0.0), onSave = {})
+      EventCreationScreen(
+          eventCreationViewModel = viewModel, location = Location(0.0, 0.0), onSave = {})
     }
   }
 
