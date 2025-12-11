@@ -123,8 +123,6 @@ private fun EventInfoPopUpPreview() {
         isUserParticipant = true,
         onDismiss = {},
         onChatNavigate = { _, _ -> },
-        onToggleEventParticipation = {},
-        isPreview = true,
-    )
+        onToggleEventParticipation = {})
   }
 }
