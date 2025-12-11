@@ -32,6 +32,8 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.internal.format
+import okhttp3.internal.notify
 
 enum class OnboardingState {
   ENTER_EVENT_TITLE,
@@ -44,10 +46,6 @@ enum class OnboardingState {
  *
  * @param name the name of the event.
  * @param description the description of the event.
- * @param day the day of the event.
- * @param month the month of the event.
- * @param year the year of the event.
- * @param hour the hour of the event.
  * @param minute the minute of the event.
  * @param date the date of the event.
  * @param time the time of the event.
@@ -67,11 +65,6 @@ enum class OnboardingState {
 data class EventCreationUIState(
     val name: String = "",
     val description: String? = null,
-    val day: String = "",
-    val month: String = "",
-    val year: String = "",
-    val hour: String = "",
-    val minute: String = "",
     val date: LocalDate? = null,
     val time: String = "",
     val titleError: String? = null,
@@ -206,6 +199,22 @@ class EventCreationViewModel(
     }
   }
 
+    fun loadUid(uid: String?){
+        viewModelScope.launch(DefaultDP.io){
+            if (uid != null) {
+                val event = eventRepository.getEvent(uid)
+                val eventDate = event.date.toLocalDate()
+                val eventTime = event.date.toLocalTime()
+                eventCreationUiState.value = eventCreationUiState.value.copy(
+                    name = event.title,
+                    description = event.description ?: "",
+                    date = eventDate,
+                    time = formatTime(eventTime))
+            }
+        }
+    }
+
+
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
 
@@ -316,17 +325,26 @@ class EventCreationViewModel(
     return if (date == null) "Select date" else date.format(formatter)
   }
 
+    /**
+     * Format the date to a string.
+     *
+     * @param date the date to format.
+     */
+    fun formatTime(time: LocalTime?): String {
+        return if (time == null) "Select time" else time.format(timeFormatter)
+    }
+
   /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
-   * @param uid the uid of the Current User.
+   * @param uidUser the uid of the Current User.
    * @param location the location of the event.
    */
-  fun saveEvent(uid: String, location: Location) {
+  fun saveEvent(uidUser: String, uidEvent: String?, location: Location) {
     if (validateAll()) {
       viewModelScope.launch {
         try {
-          val id = eventRepository.getNewID()
+          val id = uidEvent ?: eventRepository.getNewID()
 
           val internalDate = uiStateEventCreation.value.date
           val internalTime = LocalTime.parse(uiStateEventCreation.value.time, timeFormatter)
@@ -338,8 +356,8 @@ class EventCreationViewModel(
               title = eventCreationUiState.value.name,
               description = eventCreationUiState.value.description,
               dateTime = eventDateTime,
-              creator = uid,
-              participants = setOf(uid),
+              creator = uidUser,
+              participants = setOf(uidUser),
               location = location,
               isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)

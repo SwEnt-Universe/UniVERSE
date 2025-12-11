@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,6 +98,7 @@ object EventCreationDefaults {
  */
 @Composable
 fun EventCreationScreen(
+    uid: String? = null,
     eventCreationViewModel: EventCreationViewModel =
         viewModel(factory = EventCreationViewModel.provideFactory(LocalContext.current)),
     location: Location,
@@ -133,6 +135,7 @@ fun EventCreationScreen(
     }
   } else {
     StandardEventCreationForm(
+        uid = uid,
         uiState = uiState.value,
         eventCreationViewModel = eventCreationViewModel,
         location = location,
@@ -156,6 +159,7 @@ fun EventCreationScreen(
  */
 @Composable
 fun StandardEventCreationForm(
+    uidEvent: String? = null,
     uiState: EventCreationUIState,
     eventCreationViewModel: EventCreationViewModel,
     location: Location,
@@ -172,12 +176,15 @@ fun StandardEventCreationForm(
           onClick = {
             val currentUser = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUser != null) {
-              eventCreationViewModel.saveEvent(uid = currentUser, location = location)
+              eventCreationViewModel.saveEvent(uidUser = currentUser, uidEvent = uidEvent, location = location)
               onSave()
             }
           },
           enabled = eventCreationViewModel.validateAll())
 
+    LaunchedEffect(uidEvent){
+        eventCreationViewModel.loadUid(uidEvent)
+    }
   ScreenLayout(
       bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
       content = { paddingValues ->
