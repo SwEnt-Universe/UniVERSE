@@ -1,6 +1,7 @@
 package com.android.universe.model.ai.prompt
 
 import com.android.universe.model.user.UserProfile
+import com.android.universe.ui.common.InputLimits
 import java.time.LocalDate
 import java.time.Period
 import kotlinx.serialization.json.Json
@@ -21,7 +22,8 @@ import kotlinx.serialization.json.putJsonObject
  * This is OpenAI’s recommended modern prompt format.
  */
 object PromptBuilder {
-
+  val descLimit = InputLimits.DESCRIPTION
+  val titleLimit = InputLimits.TITLE_EVENT_MAX_LENGTH
   private val json = Json { prettyPrint = false }
 
   // ----------------------------------------------------------
@@ -39,6 +41,9 @@ object PromptBuilder {
         add(
             "Always output a JSON object with a top-level \"events\" array that matches EXACTLY the provided JSON schema.")
         add("No markdown, no commentary, no prose—ONLY the JSON object.")
+        add("Event titles must not exceed $titleLimit characters. Keep them short and descriptive.")
+        add("Event descriptions must not exceed $descLimit characters and must be a single line.")
+        add("No line breaks or excessive whitespace in titles or descriptions.")
 
         // ======================================================
         // REALISM RULES
