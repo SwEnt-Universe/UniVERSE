@@ -21,6 +21,8 @@ import com.android.universe.model.ai.prompt.EventQuery
 import com.android.universe.model.ai.prompt.TaskConfig
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventTemporaryRepository
+import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag.Category
 import com.android.universe.model.tag.Tag.Category.ART
@@ -125,6 +127,8 @@ class MapViewModel(
     private val prefs: SharedPreferences,
     private val locationRepository: LocationRepository,
     private val eventRepository: EventRepository,
+    private val eventTemporaryRepository: EventTemporaryRepository =
+        EventTemporaryRepositoryProvider.repository,
     private val userRepository: UserRepository,
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
@@ -161,6 +165,9 @@ class MapViewModel(
   private val _selectedEvent = MutableStateFlow<EventSelectionState>(EventSelectionState.None)
   /** The currently selected event, if any. */
   val selectedEvent: StateFlow<EventSelectionState> = _selectedEvent.asStateFlow()
+
+  private val _previewEvent = MutableStateFlow<Event?>(null)
+  val previewEvent: StateFlow<Event?> = _previewEvent.asStateFlow()
 
   // Map & Location Internal State
   @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
@@ -666,6 +673,9 @@ class MapViewModel(
               return
             }
 
+    // Trigger loading icon
+    _uiState.update { it.copy(isLoading = true, error = null) }
+
     viewModelScope.launch {
       try {
         val profile = userRepository.getUser(currentUserId)
@@ -679,15 +689,56 @@ class MapViewModel(
         val query = EventQuery(user = profile, task = task, context = context)
         val events = ai.generateEvents(query)
 
-        eventRepository.persistAIEvents(events)
         val event = events.firstOrNull() ?: throw IllegalStateException("AI returned no events")
-        loadAllEvents()
 
-        // Request to center on new event
-        requestCameraCenter(GeoPoint(event.location.latitude, event.location.longitude))
+        // Store temporarily
+        eventTemporaryRepository.updateEventAsObject(event)
+
+        // Update preview + selection state
+        _previewEvent.value = event
+        // creator username lookup
+        val creatorName = userRepository.getUser(event.creator).username
+
+        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = creatorName)
+
+        // Center camera on preview event
+        requestCameraCenter(event.location.toGeoPoint())
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
+      } finally {
+        // Hide loading icon
+        _uiState.update { it.copy(isLoading = false) }
       }
+    }
+  }
+
+  fun acceptPreview() {
+    val event = _previewEvent.value ?: return
+
+    viewModelScope.launch {
+      try {
+        // 1. Save to real repository
+        eventRepository.persistAIEvents(listOf(event))
+
+        // 2. Clear preview
+        eventTemporaryRepository.deleteEvent()
+        _previewEvent.value = null
+        _selectedEvent.value = EventSelectionState.None
+
+        // 3. Refresh event list
+        loadAllEvents()
+      } catch (e: Exception) {
+        _uiState.update { it.copy(error = e.message ?: "Failed to accept preview") }
+      }
+    }
+  }
+
+  fun rejectPreview() {
+    viewModelScope.launch {
+      eventTemporaryRepository.deleteEvent()
+
+      _previewEvent.value = null
+      _selectedEvent.value = EventSelectionState.None
     }
   }
 

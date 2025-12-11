@@ -41,6 +41,8 @@ import java.time.LocalDateTime
  * @param onChatNavigate Callback function invoked when the user clicks on the chat button.
  * @param onToggleEventParticipation Callback function invoked when the user toggles their
  *   participation status.
+ * @param isPreview modifies options if used to preview AI event suggestion
+ * @param bottomBar optional bottom bar displaying options
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +53,9 @@ fun EventInfoPopup(
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
-    onToggleEventParticipation: () -> Unit
+    onToggleEventParticipation: () -> Unit,
+    isPreview: Boolean = false,
+    bottomBar: @Composable (() -> Unit)? = null
 ) {
   Box(
       modifier =
@@ -69,7 +73,8 @@ fun EventInfoPopup(
                   modifier = Modifier.fillMaxWidth(),
                   isPresented = true,
                   shape = MaterialTheme.shapes.large,
-                  onDismissRequest = onDismiss) {
+                  onDismissRequest = onDismiss,
+                  bottomBar = bottomBar) {
                     EventContentLayout(
                         modifier = Modifier.padding(Dimensions.PaddingLarge),
                         eventId = event.id,
@@ -90,6 +95,7 @@ fun EventInfoPopup(
                         isPrivate = event.isPrivate,
                         onToggleEventParticipation = onToggleEventParticipation,
                         onChatClick = { onChatNavigate(event.id, event.title) },
+                        showActions = !isPreview,
                     )
                   }
             }
@@ -116,6 +122,7 @@ private fun EventInfoPopUpPreview() {
         creator = "",
         isUserParticipant = true,
         onDismiss = {},
-        onChatNavigate = { _, _ -> }) {}
+        onChatNavigate = { _, _ -> },
+        onToggleEventParticipation = {})
   }
 }
