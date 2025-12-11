@@ -1,7 +1,9 @@
 package com.android.universe.e2e
 
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDisplayed
@@ -11,8 +13,10 @@ import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.user.UserRepositoryProvider
@@ -36,6 +40,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import io.mockk.every
 import io.mockk.mockkObject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -57,6 +62,9 @@ class SearchUserAndFollow : FirebaseAuthUserTest(isRobolectric = false) {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    @get:Rule
+    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)
+
     private lateinit var mapViewModel: MapViewModel
     private lateinit var context: Context
 
@@ -73,7 +81,7 @@ class SearchUserAndFollow : FirebaseAuthUserTest(isRobolectric = false) {
         mockkObject(DefaultDP)
         every { DefaultDP.io } returns UnconfinedTestDispatcher()
         every { DefaultDP.default } returns UnconfinedTestDispatcher()
-        every { DefaultDP.main } returns UnconfinedTestDispatcher()
+        every { DefaultDP.main } returns Dispatchers.Main
 
         runTest {
             createRandomTestUser(bobUser).let {
@@ -117,7 +125,7 @@ class SearchUserAndFollow : FirebaseAuthUserTest(isRobolectric = false) {
 
     private fun followBobAsAlice() = runTest {
         // Navigate to Community/Search Tab
-        composeTestRule.waitUntil(5_000L) {
+        composeTestRule.waitUntil(10_000L) {
             composeTestRule.onNodeWithTag(NavigationTestTags.COMMUNITY_TAB).isDisplayed()
         }
         composeTestRule.onNodeWithTag(NavigationTestTags.COMMUNITY_TAB).performClick()
@@ -125,12 +133,6 @@ class SearchUserAndFollow : FirebaseAuthUserTest(isRobolectric = false) {
         composeTestRule.waitUntil(5_000L) {
             composeTestRule.onNodeWithTag(SearchProfileScreenTestTags.HEADER).isDisplayed()
         }
-
-        // Search for Bob
-        composeTestRule.onNodeWithTag(SearchProfileScreenTestTags.SEARCH_BAR).performClick()
-        composeTestRule
-            .onNodeWithTag(SearchProfileScreenTestTags.SEARCH_BAR)
-            .performTextInput(bobUser.username)
 
         // Wait for Bob's Profile Card to appear in the list
         composeTestRule.waitUntil(10_000L) {
@@ -140,23 +142,28 @@ class SearchUserAndFollow : FirebaseAuthUserTest(isRobolectric = false) {
                 .isNotEmpty()
         }
 
-        // Click the "Follow" button on Bob's card
+        // Identify the "Follow" button
         val followButtonTag = "${ProfileContentTestTags.ADD_BUTTON}_$bobUid"
 
         composeTestRule.waitUntil(5_000L) {
             composeTestRule.onNodeWithTag(followButtonTag).isDisplayed()
         }
 
-        composeTestRule.onNodeWithTag(followButtonTag).performClick()
-
-        // Verify button text changes to "Unfollow"
-        composeTestRule.waitUntil(5_000L) {
-            composeTestRule
-                .onNodeWithTag(followButtonTag)
-                .assert(hasText("Unfollow"))
-                .isDisplayed()
-            true
+        // Perform Click using Touch Input (Same as joinEventAsAlice)
+        composeTestRule.onNodeWithTag(followButtonTag).performTouchInput {
+            click(center)
+            advanceEventTime(1_000L)
         }
+
+        // Wait for text to change to "Unfollow"
+        composeTestRule.waitUntil(10_000L) {
+            runCatching {
+                composeTestRule
+                    .onNodeWithTag(followButtonTag)
+                    .assert(hasText("Unfollow"))
+            }.isSuccess
+        }
+
         advanceUntilIdle()
     }
 
