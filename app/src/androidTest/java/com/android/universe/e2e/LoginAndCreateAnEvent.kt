@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -180,10 +181,14 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // —————————————————————————————————————
     // 3. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
-
-    // Click “Set location” button in the creation screen
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performClick()
+    composeTestRule.waitUntil(5_000L) {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).isDisplayed()
+    }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
+      down(center)
+      advanceEventTime(1000L)
+      up()
+    }
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
