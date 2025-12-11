@@ -1,6 +1,10 @@
 package com.android.universe.ui.searchProfile
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,9 +37,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
@@ -92,6 +97,24 @@ fun SearchProfileScreen(
   val followersListState = rememberLazyListState()
   val followingListState = rememberLazyListState()
 
+  val currentListState =
+      when (pagerState.currentPage) {
+        0 -> exploreListState
+        1 -> followersListState
+        2 -> followingListState
+        else -> exploreListState
+      }
+
+  val isSearchBarVisible = remember { mutableStateOf(true) }
+
+  LaunchedEffect(pagerState.currentPage, currentListState) {
+    snapshotFlow {
+          currentListState.firstVisibleItemIndex == 0 &&
+              currentListState.firstVisibleItemScrollOffset < 50
+        }
+        .collect { isVisible -> isSearchBarVisible.value = isVisible }
+  }
+
   LaunchedEffect(pagerState.currentPage) {
     when (pagerState.currentPage) {
       0 -> searchProfileViewModel.loadExplore()
@@ -118,13 +141,15 @@ fun SearchProfileScreen(
                     followingProfiles = profilesState.following,
                     isLoading = profilesState.isLoading,
                     searchProfileViewModel = searchProfileViewModel,
+                    isSearchBarVisible = isSearchBarVisible.value,
                     onCardClick = onCardClick)
 
                 SearchHeaderOverlay(
                     pagerState = pagerState,
                     searchQuery = searchQuery,
                     onQueryChange = { searchProfileViewModel.updateSearchQuery(it) },
-                    topPadding = paddingValues.calculateTopPadding())
+                    topPadding = paddingValues.calculateTopPadding(),
+                    isSearchBarVisible = isSearchBarVisible.value)
 
                 uiState.errorMsg?.let { error ->
                   Snackbar(
@@ -149,30 +174,66 @@ fun SearchProfileScreen(
  * @param onQueryChange Callback function invoked when the search query changes.
  * @param topPadding The top padding to be applied to the overlay, typically to account for system
  *   UI elements.
+ * @param isSearchBarVisible A boolean indicating whether the search bar should be visible.
  */
 @Composable
 fun SearchHeaderOverlay(
     pagerState: PagerState,
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    topPadding: Dp
+    topPadding: Dp,
+    isSearchBarVisible: Boolean
 ) {
 
-  Surface(modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER)) {
-    Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding)) {
-      LiquidSearchBar(
-          query = searchQuery,
-          onQueryChange = onQueryChange,
-          modifier =
-              Modifier.padding(horizontal = Dimensions.PaddingMedium)
-                  .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
+  val searchBarHeight by
+      animateDpAsState(
+          targetValue = if (isSearchBarVisible) 56.dp else 0.dp,
+          animationSpec = tween(durationMillis = 300),
+          label = "searchBarHeight")
 
-      Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+  val searchBarAlpha by
+      animateFloatAsState(
+          targetValue = if (isSearchBarVisible) 1f else 0f,
+          animationSpec = tween(durationMillis = 300),
+          label = "searchBarAlpha")
 
-      SearchProfileTabRow(
-          pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
-    }
-  }
+  val surfaceColor by
+      animateColorAsState(
+          targetValue =
+              if (isSearchBarVisible) Color.Transparent
+              else MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+          animationSpec = tween(durationMillis = 300),
+          label = "surfaceColor")
+
+  Surface(
+      modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER),
+      color = surfaceColor) {
+        Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding)) {
+          Box(
+              modifier =
+                  Modifier.height(
+                          searchBarHeight +
+                              if (isSearchBarVisible) Dimensions.PaddingMedium * 2 else 0.dp)
+                      .fillMaxWidth()
+                      .alpha(searchBarAlpha)) {
+                if (isSearchBarVisible) {
+                  LiquidSearchBar(
+                      query = searchQuery,
+                      onQueryChange = onQueryChange,
+                      modifier =
+                          Modifier.padding(horizontal = Dimensions.PaddingLarge)
+                              .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
+                }
+              }
+
+          if (isSearchBarVisible) {
+            Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+          }
+
+          SearchProfileTabRow(
+              pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
+        }
+      }
 }
 
 /**
@@ -189,6 +250,7 @@ fun SearchHeaderOverlay(
  * @param isLoading A boolean indicating whether the profile data is currently being loaded.
  * @param searchProfileViewModel The [SearchProfileViewModel] used to handle user interactions such
  *   as following or unfollowing users.
+ * @param isSearchBarVisible A boolean indicating whether the search bar is visible.
  * @param onCardClick Callback function invoked when a profile card is clicked.
  */
 @Composable
@@ -202,9 +264,14 @@ fun SearchProfileContentPager(
     followingProfiles: List<ProfileUIState>,
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
+    isSearchBarVisible: Boolean,
     onCardClick: () -> Unit = {}
 ) {
-  var headerHeight by remember { mutableStateOf(180.dp) }
+  val headerHeight by
+      animateDpAsState(
+          targetValue = if (isSearchBarVisible) 180.dp else 100.dp,
+          animationSpec = tween(durationMillis = 300),
+          label = "headerHeight")
 
   HorizontalPager(
       state = pagerState,

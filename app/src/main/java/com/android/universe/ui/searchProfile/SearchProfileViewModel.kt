@@ -88,10 +88,6 @@ class SearchProfileViewModel(
       _isLoading.value = true
       try {
         currentUserFollowingIds.value = userRepository.getFollowing(uid).map { it.uid }.toSet()
-
-        explore.value = userRepository.getFollowRecommendations(uid)
-        followers.value = userRepository.getFollowers(uid)
-        following.value = userRepository.getFollowing(uid)
       } catch (_: Exception) {
         setError("Failed to load initial data")
       } finally {
@@ -148,9 +144,11 @@ class SearchProfileViewModel(
     viewModelScope.launch {
       try {
         if (target.isFollowing) {
+          updateFollowerCount(target.user, isFollowing = true)
           userRepository.unfollowUser(uid, target.user.uid)
           currentUserFollowingIds.value = currentUserFollowingIds.value - target.user.uid
         } else {
+          updateFollowerCount(target.user, isFollowing = false)
           userRepository.followUser(uid, target.user.uid)
           currentUserFollowingIds.value = currentUserFollowingIds.value + target.user.uid
         }
@@ -160,6 +158,20 @@ class SearchProfileViewModel(
     }
   }
 
+  /** Update follower count in all relevant lists after follow/unfollow action */
+  private fun updateFollowerCount(targetUser: UserProfile, isFollowing: Boolean) {
+    val updated =
+        if (isFollowing) {
+          targetUser.followers - uid
+        } else {
+          targetUser.followers + uid
+        }
+    val updatedProfile = targetUser.copy(followers = updated)
+    explore.value = explore.value.map { if (it.uid == targetUser.uid) updatedProfile else it }
+    followers.value = followers.value.map { if (it.uid == targetUser.uid) updatedProfile else it }
+    following.value = following.value.map { if (it.uid == targetUser.uid) updatedProfile else it }
+  }
+
   /**
    * Convert UserProfile to ProfileUIState
    *
@@ -167,7 +179,7 @@ class SearchProfileViewModel(
    * @return The corresponding ProfileUIState.
    */
   private fun UserProfile.toUI(followingIds: Set<String>) =
-      ProfileUIState(this, isFollowing = followingIds.contains(uid))
+      ProfileUIState(this, isFollowing = followingIds.contains(this.uid))
 
   /**
    * Update search query and filter explore list
