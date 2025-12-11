@@ -34,6 +34,7 @@ import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
+import com.android.universe.ui.search.SearchEngine
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
@@ -50,6 +51,7 @@ import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.style.StyleMode
 import com.tomtom.sdk.map.display.ui.MapView
+import com.tomtom.sdk.map.display.ui.Margin
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlin.coroutines.cancellation.CancellationException
@@ -139,6 +141,8 @@ class MapViewModel(
               zoomLevel = prefs.getFloat(KEY_CAMERA_ZOOM, 14f).toDouble()))
   /** Observable UI state. */
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+  private val _categories = MutableStateFlow<Set<Category>>(emptySet())
+  val categories: StateFlow<Set<Category>> = _categories.asStateFlow()
 
   private val _mapActions = Channel<MapAction>(Channel.BUFFERED)
   /** Stream of one-off map actions. */
@@ -214,7 +218,14 @@ class MapViewModel(
               mapStyle = StyleDescriptor(uri = LIGHT_STYLE.toUri(), darkUri = DARK_STYLE.toUri()),
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
-      tomtomMapView = MapView(applicationContext, mapOptions)
+      val view = MapView(applicationContext, mapOptions)
+      view.compassButton.margin =
+          Margin(
+              top = (applicationContext.resources.displayMetrics.heightPixels * 0.12f).toInt(),
+              left = 0,
+              right = 30,
+              bottom = 0)
+      tomtomMapView = view
       tomtomMapView?.onCreate(null)
       tomtomMapView?.configureUiSettings()
       tomtomMapView?.getMapAsync { onMapReady(it) }
@@ -469,6 +480,39 @@ class MapViewModel(
   }
 
   /**
+   * Selects a category and updates the markers according to the new filter.
+   *
+   * @param category The category to select.
+   * @param select Whether to select or deselect the category. true means selecting, false means
+   *   deselecting.
+   */
+  fun selectCategory(category: Category, select: Boolean) {
+
+    if (select) {
+      _categories.update { it + category }
+    } else {
+      _categories.update { it - category }
+    }
+    if (_categories.value.isEmpty()) {
+      _uiState.update { it.copy(markers = _eventMarkers.value.map { e -> mapEventToMarker(e) }) }
+    } else {
+      _uiState.update {
+        it.copy(
+            markers =
+                _eventMarkers.value
+                    .filter { e -> SearchEngine.tagMatch(e.tags, categories.value) }
+                    .map { e -> mapEventToMarker(e) })
+      }
+    }
+  }
+
+  /** Clears the filter. To be used when navigating away from the screen. */
+  fun resetFilter() {
+    _categories.update { emptySet() }
+    _uiState.update { it.copy(markers = _eventMarkers.value.map { e -> mapEventToMarker(e) }) }
+  }
+
+  /**
    * Polls events periodically.
    *
    * @param intervalMinutes Minutes between poll attempts.
@@ -510,7 +554,10 @@ class MapViewModel(
           withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
 
       if (markersToRemove.isNotEmpty()) {
-        markersToRemove.forEach { markerToEvent.remove(it) }
+        markersToRemove.forEach {
+          map.removeMarkers(it)
+          markerToEvent.remove(it)
+        }
       }
       if (optionsToAdd.isNotEmpty()) {
         val addedMarkers = map.addMarkers(optionsToAdd)
