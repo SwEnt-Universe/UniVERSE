@@ -153,7 +153,7 @@ fun SearchProfileScreen(
                     searchQuery = searchQuery,
                     onQueryChange = { searchProfileViewModel.updateSearchQuery(it) },
                     topPadding = paddingValues.calculateTopPadding(),
-                    isSearchBarVisible = isSearchBarVisible.value)
+                    isSearchBarVisible = isSearchBarVisible.value,
                     categories = categories,
                     catSelect = searchProfileViewModel::selectCategory)
 
@@ -194,7 +194,7 @@ fun SearchHeaderOverlay(
     categories: Set<Tag.Category> = emptySet(),
     catSelect: (Tag.Category, Boolean) -> Unit = { _, _ -> }
 ) {
-    val allCats = remember { Tag.tagFromEachCategory.toList() }
+  val allCats = remember { Tag.tagFromEachCategory.toList() }
   val searchBarHeight by
       animateDpAsState(
           targetValue = if (isSearchBarVisible) 56.dp else 0.dp,
@@ -237,16 +237,16 @@ fun SearchHeaderOverlay(
               }
 
           if (isSearchBarVisible) {
+            TagRow(
+                allCats,
+                heightTag = CategoryItemDefaults.HEIGHT_CAT,
+                widthTag = CategoryItemDefaults.WIDTH_CAT,
+                isSelected = { cat -> categories.contains(cat.category) },
+                onTagSelect = { cat -> catSelect(cat.category, true) },
+                onTagReSelect = { cat -> catSelect(cat.category, false) },
+                fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+                isCategory = true)
             Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
-              TagRow(
-                  allCats,
-                  heightTag = CategoryItemDefaults.HEIGHT_CAT,
-                  widthTag = CategoryItemDefaults.WIDTH_CAT,
-                  isSelected = { cat -> categories.contains(cat.category) },
-                  onTagSelect = { cat -> catSelect(cat.category, true) },
-                  onTagReSelect = { cat -> catSelect(cat.category, false) },
-                  fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
-                  isCategory = true)
           }
 
           SearchProfileTabRow(
