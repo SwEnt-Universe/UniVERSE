@@ -1,5 +1,6 @@
 package com.android.universe.ui.common
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -23,11 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 import java.time.format.DateTimeFormatter
+
+private val DOB_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy")
 
 /**
  * A composable function that displays user information in a column layout.
@@ -36,14 +39,17 @@ import java.time.format.DateTimeFormatter
  */
 @Composable
 fun UserInfoColumn(userProfile: UserProfile) {
+  val scrollState = rememberScrollState()
+
   Column {
-    Text(
-        text = "${userProfile.firstName} ${userProfile.lastName}",
-        style = MaterialTheme.typography.headlineLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.testTag("${ProfileContentTestTags.FULL_NAME}_${userProfile.uid}"))
+    Row(modifier = Modifier.horizontalScroll(scrollState)) {
+      Text(
+          text = "${userProfile.firstName} ${userProfile.lastName}",
+          style = MaterialTheme.typography.headlineMedium,
+          color = MaterialTheme.colorScheme.onSurface,
+          overflow = TextOverflow.Clip,
+          modifier = Modifier.testTag("${ProfileContentTestTags.FULL_NAME}_${userProfile.uid}"))
+    }
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
@@ -67,7 +73,7 @@ fun UserInfoColumn(userProfile: UserProfile) {
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
     Text(
-        userProfile.dateOfBirth.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
+        userProfile.dateOfBirth.format(DOB_FORMATTER),
         style = MaterialTheme.typography.bodyLarge,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -149,14 +155,14 @@ fun FollowingOrSettingsButton(
 fun StatCircleColumn(label: String, count: Int, testTag: String) {
   Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.testTag(testTag)) {
     LiquidButton(
-        modifier = Modifier.size(35.dp).clip(CircleShape),
+        modifier = Modifier.size(Dimensions.NumberCircleSize).clip(CircleShape),
         enabled = false,
         isInteractive = false,
         onClick = {},
         contentPadding = Dimensions.PaddingSmall) {
           Text(
               text = "$count",
-              style = MaterialTheme.typography.bodyMedium,
+              style = MaterialTheme.typography.labelSmall,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
               color = MaterialTheme.colorScheme.onSurface)

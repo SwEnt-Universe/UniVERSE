@@ -1,5 +1,6 @@
 package com.android.universe.ui.common
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -55,6 +57,7 @@ fun ProfileContentLayout(
     onToggleFollowing: () -> Unit,
     onSettingsClick: (() -> Unit)? = null
 ) {
+  val scrollState = rememberScrollState()
   Column(modifier = modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
       Column(modifier = Modifier.weight(2f)) {
@@ -80,12 +83,13 @@ fun ProfileContentLayout(
                         Modifier.align(Alignment.TopStart)
                             .padding(Dimensions.PaddingLarge)
                             .testTag("${ProfileContentTestTags.USERNAME}_${userProfile.uid}")) {
-                      Text(
-                          text = userProfile.username,
-                          style = MaterialTheme.typography.labelLarge,
-                          color = MaterialTheme.colorScheme.onPrimary,
-                          maxLines = 1,
-                          overflow = TextOverflow.Ellipsis)
+                      Row(modifier = Modifier.horizontalScroll(scrollState)) {
+                        Text(
+                            text = userProfile.username,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            overflow = TextOverflow.Clip)
+                      }
                     }
               }
         }
