@@ -91,7 +91,7 @@ enum class MapMode {
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
-    onNavigateToEventCreation: () -> Unit,
+    onNavigateToEventCreation: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
@@ -188,7 +188,9 @@ fun MapScreen(
                   onTabSelected = { tab -> onTabSelected(tab) })
           }else{
               FlowBottomMenu(flowTabs = listOf(FlowTab.Back(onClick = { viewModel.switchMapMode(MapMode.NORMAL) }), FlowTab.Confirm(
-                  onClick = {onNavigateToEventCreation()}, enabled = uiState.selectedLocation != null)
+                  onClick = {
+                      onNavigateToEventCreation(uiState.selectedLocation!!.latitude, uiState.selectedLocation!!.longitude)
+                      viewModel.switchMapMode(MapMode.NORMAL) }, enabled = uiState.selectedLocation != null)
               ))
           }
       }) { padding ->
