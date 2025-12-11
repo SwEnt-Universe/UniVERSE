@@ -688,17 +688,17 @@ class MapViewModel(
         val query = EventQuery(user = profile, task = task, context = context)
         val events = ai.generateEvents(query)
 
-        val event = events.firstOrNull() ?: throw IllegalStateException("AI returned no events")
+        var event = events.firstOrNull() ?: throw IllegalStateException("AI returned no events")
+
+        // Replace “OpenAI” placeholder creator with real UID
+        event = event.copy(creator = currentUserId)
 
         // Store temporarily
         eventTemporaryRepository.updateEventAsObject(event)
 
         // Update preview + selection state
         _previewEvent.value = event
-        // creator username lookup
-        val creatorName = userRepository.getUser(event.creator).username
-
-        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = creatorName)
+        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = currentUserId)
 
         // Center camera on preview event
         requestCameraCenter(event.location.toGeoPoint())
