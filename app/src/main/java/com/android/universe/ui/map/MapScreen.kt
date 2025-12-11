@@ -243,7 +243,7 @@ fun MapScreen(
               shape =
                   (RoundedCornerShape(
                       topStart = 0.dp, topEnd = 0.dp, bottomStart = 16.dp, bottomEnd = 16.dp)),
-              modifier = Modifier.fillMaxWidth().height(130.dp)) {
+              modifier = Modifier.fillMaxWidth().height(132.dp)) {
                 Text(
                     "Select your location",
                     modifier = Modifier.fillMaxWidth().align(Alignment.Center),
