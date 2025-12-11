@@ -687,4 +687,123 @@ class MapViewModelTest {
     assertNull(viewModel.previewEvent.value)
     assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
   }
+
+  @Test
+  fun `rejectPreview clears preview and deletes temp event`() = runTest {
+    // Arrange
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+    val generated = EventTestData.dummyEvent1.copy(id = "reject-test")
+
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
+
+    // Create preview the correct way
+    setUserLocation()
+    coEvery { userRepository.getUser(userId) } returns UserTestData.Bob.copy(uid = userId)
+    coEvery { ai.generateEvents(any()) } returns listOf(generated)
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    assertNotNull(viewModel.previewEvent.value)
+
+    // --- Act ---
+    viewModel.rejectPreview()
+    advanceUntilIdle()
+
+    // --- Assert ---
+    coVerify(exactly = 1) { tempRepo.deleteEvent() }
+    assertNull(viewModel.previewEvent.value)
+    assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
+  }
+
+  @Test
+  fun `acceptPreview does nothing when previewEvent is null`() = runTest {
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+
+    // Assert initial state
+    assertNull(viewModel.previewEvent.value)
+
+    // Act
+    viewModel.acceptPreview()
+    advanceUntilIdle()
+
+    // Nothing should have happened
+    coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
+    coVerify(exactly = 0) { tempRepo.deleteEvent() }
+    coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
+    assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
+  }
+
+  @Test
+  fun `acceptPreview sets error and preserves preview when persist fails`() = runTest {
+    // Arrange
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+    val generated = EventTestData.dummyEvent1.copy(id = "fail-test")
+
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+
+    // Required for loadAllEvents
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
+
+    // Populate preview via real API
+    setUserLocation()
+    coEvery { userRepository.getUser(userId) } returns UserTestData.Bob.copy(uid = userId)
+    coEvery { ai.generateEvents(any()) } returns listOf(generated)
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    // Make persist fail
+    coEvery { eventRepository.persistAIEvents(any()) } throws RuntimeException("boom")
+
+    // --- Act ---
+    viewModel.acceptPreview()
+    advanceUntilIdle()
+
+    // --- Assert ---
+    assertEquals("boom", viewModel.uiState.value.error)
+
+    // Preview should NOT be cleared on failure
+    assertEquals(generated, viewModel.previewEvent.value)
+
+    // No temp delete, no reload
+    coVerify(exactly = 0) { tempRepo.deleteEvent() }
+    coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
+  }
 }
