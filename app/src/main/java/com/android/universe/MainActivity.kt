@@ -469,10 +469,7 @@ fun UniverseApp(
                         location = Location(latitude.toDouble(), longitude.toDouble()),
                         onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
                         onSaveEdition = { navController.navigate("selectTagEventEdition/$uid") },
-                        onBack = {
-                          mapViewModel.switchMapMode(MapMode.SELECT_LOCATION)
-                          navigationActions.goBack()
-                        })
+                        onBack = { navigationActions.goBack() })
                   }
 
               composable(
