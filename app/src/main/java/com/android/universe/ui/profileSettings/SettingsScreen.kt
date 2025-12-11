@@ -124,7 +124,6 @@ fun SettingsScreen(
         viewModel.signOut(clear, onLogout)
       },
       onDismiss = { showDialog.value = false })
-  // Box(modifier = Modifier.fillMaxSize()) {
   ScreenLayout(
       modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN),
       bottomBar = {
