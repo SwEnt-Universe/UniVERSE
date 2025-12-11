@@ -125,8 +125,9 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
         .performTextInput("Bob")
 
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
-
-    composeTestRule.onNodeWithTag(SettingsTestTags.FIRST_NAME_TEXT).assertTextContains("Bob")
+    composeTestRule
+        .onNodeWithTag(SettingsTestTags.FIRST_NAME_TEXT, useUnmergedTree = true)
+        .assertTextContains("Bob")
     advanceUntilIdle()
   }
 

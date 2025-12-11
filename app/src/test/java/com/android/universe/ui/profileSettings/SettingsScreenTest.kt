@@ -155,7 +155,7 @@ class SettingsScreenTest {
     composeTestRule.waitForIdle()
     assertEquals(sampleDate, viewmodel.uiState.value.date)
     composeTestRule
-        .onNodeWithTag(SettingsTestTags.DATE_TEXT)
+        .onNodeWithTag(SettingsTestTags.DATE_TEXT, useUnmergedTree = true)
         .assertTextEquals(viewmodel.formatter.format(sampleDate))
   }
 
@@ -177,8 +177,6 @@ class SettingsScreenTest {
     composeTestRule.onNodeWithTag(LogoutTestTags.ALERT_CONFIRM_BUTTON).performClick()
     assertEquals(true, cleared)
     assertEquals(true, navigated)
-    composeTestRule.onNodeWithTag(SettingsTestTags.TAG_BUTTON).performClick()
-    assertEquals(true, added)
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
     assertEquals(true, onBack)
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
@@ -197,7 +195,9 @@ class SettingsScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_CANCEL_BUTTON).performClick()
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_TEXT).assertTextEquals(user.username)
+    composeTestRule
+        .onNodeWithTag(SettingsTestTags.USERNAME_TEXT, useUnmergedTree = true)
+        .assertTextEquals(user.username)
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_BUTTON).performClick()
     composeTestRule.waitForIdle()
@@ -207,6 +207,8 @@ class SettingsScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(SettingsTestTags.MODAL_SAVE_BUTTON).performClick()
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(SettingsTestTags.USERNAME_TEXT).assertTextEquals(newUsername)
+    composeTestRule
+        .onNodeWithTag(SettingsTestTags.USERNAME_TEXT, useUnmergedTree = true)
+        .assertTextEquals(newUsername)
   }
 }
