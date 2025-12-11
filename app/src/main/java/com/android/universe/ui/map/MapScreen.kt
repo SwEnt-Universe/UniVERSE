@@ -91,6 +91,7 @@ enum class MapMode {
  * @param preselectedLocation An optional location to preselect and focus on when the map loads.
  * @param onChatNavigate A callback function invoked when navigating to a chat, with event ID and
  *   title as parameters.
+ * @param onEditButtonClick A callback invoked when the user presses the "Edit" button on an event.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
  *   ViewModel instance initialized with necessary repositories.
  */
@@ -103,6 +104,7 @@ fun MapScreen(
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
+    onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context,
@@ -264,6 +266,7 @@ fun MapScreen(
                       onChatNavigate(eventId, eventTitle)
                     },
                     isUserParticipant = viewModel.isUserParticipant(it.event),
+                    onEditButtonClick = { onEditButtonClick(it.event.id, it.event.location) },
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) },
                     isPreview = isPreview,
                     bottomBar =

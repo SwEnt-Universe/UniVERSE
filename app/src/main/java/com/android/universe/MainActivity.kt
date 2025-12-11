@@ -129,6 +129,11 @@ fun UniverseApp(
     mapViewModel: MapViewModel = viewModel(factory = MapViewModelFactory(context)),
     credentialManager: CredentialManager = CredentialManager.create(context),
 ) {
+
+  val UID = "uid"
+  val LATITUDE = "latitude"
+  val LONGITUDE = "longitude"
+
   val authInstance = remember { FirebaseAuth.getInstance() }
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -240,6 +245,13 @@ fun UniverseApp(
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
               },
+              onEditButtonClick = { uid, location ->
+                navController.navigate(
+                    NavigationScreens.EventEdition.route
+                        .replace("{$UID}", uid)
+                        .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                        .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
+              },
               viewModel = mapViewModel)
         }
 
@@ -248,11 +260,11 @@ fun UniverseApp(
             arguments =
                 listOf(
                     navArgument("eventId") { type = NavType.StringType },
-                    navArgument("latitude") { type = NavType.FloatType },
-                    navArgument("longitude") { type = NavType.FloatType })) { backStackEntry ->
+                    navArgument(LATITUDE) { type = NavType.FloatType },
+                    navArgument(LONGITUDE) { type = NavType.FloatType })) { backStackEntry ->
               val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
-              val lat = backStackEntry.arguments?.getFloat("latitude")?.toDouble() ?: 0.0
-              val lng = backStackEntry.arguments?.getFloat("longitude")?.toDouble() ?: 0.0
+              val lat = backStackEntry.arguments?.getFloat(LATITUDE)?.toDouble() ?: 0.0
+              val lng = backStackEntry.arguments?.getFloat(LONGITUDE)?.toDouble() ?: 0.0
 
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
@@ -268,6 +280,13 @@ fun UniverseApp(
                             .replace("{chatID}", chatID)
                             .replace("{chatName}", chatName)
                             .replace("{userID}", authInstance.currentUser!!.uid))
+                  },
+                  onEditButtonClick = { uid, location ->
+                    navController.navigate(
+                        NavigationScreens.EventEdition.route
+                            .replace("{$UID}", uid)
+                            .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                            .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
                   },
                   viewModel = mapViewModel)
             }
@@ -292,8 +311,15 @@ fun UniverseApp(
                   navController.navigate(
                       NavigationScreens.MapInstance.route
                           .replace("{eventId}", eventId)
-                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
-                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
+                          .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
+                          .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
+                },
+                onEditButtonClick = { uid, location ->
+                  navController.navigate(
+                      NavigationScreens.EventEdition.route
+                          .replace("{$UID}", uid)
+                          .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                          .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
                 })
           }
         }
@@ -339,7 +365,7 @@ fun UniverseApp(
                 uid = authInstance.currentUser!!.uid,
                 onTabSelected = onTabSelected,
                 onEditProfileClick = { uid ->
-                  navController.navigate(NavigationScreens.Settings.route.replace("{uid}", uid))
+                  navController.navigate(NavigationScreens.Settings.route.replace("{$UID}", uid))
                 },
                 onChatNavigate = { chatID, chatName ->
                   navController.navigate(
@@ -353,16 +379,15 @@ fun UniverseApp(
                   navController.navigate(
                       NavigationScreens.MapInstance.route
                           .replace("{eventId}", eventId)
-                          .replace("{latitude}", eventLocation.latitude.toFloat().toString())
-                          .replace("{longitude}", eventLocation.longitude.toFloat().toString()))
+                          .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
+                          .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
                 })
           }
         }
         composable(
             route = NavigationScreens.Settings.route,
-            arguments = listOf(navArgument("uid") { type = NavType.StringType })) { backStackEntry
-              ->
-              val uid = backStackEntry.arguments?.getString("uid") ?: "0"
+            arguments = listOf(navArgument(UID) { type = NavType.StringType })) { backStackEntry ->
+              val uid = backStackEntry.arguments?.getString(UID) ?: "0"
               val vm: SettingsViewModel =
                   viewModel(factory = SettingsViewModel.provideFactory(context, uid))
               SettingsScreen(
@@ -401,10 +426,10 @@ fun UniverseApp(
                   route = NavigationScreens.EventCreation.route,
                   arguments =
                       listOf(
-                          navArgument("latitude") { type = NavType.FloatType },
-                          navArgument("longitude") { type = NavType.FloatType })) { entry ->
-                    val latitude = entry.arguments?.getFloat("latitude") ?: 0f
-                    val longitude = entry.arguments?.getFloat("longitude") ?: 0f
+                          navArgument(LATITUDE) { type = NavType.FloatType },
+                          navArgument(LONGITUDE) { type = NavType.FloatType })) { entry ->
+                    val latitude = entry.arguments?.getFloat(LATITUDE) ?: 0f
+                    val longitude = entry.arguments?.getFloat(LONGITUDE) ?: 0f
 
                     EventCreationScreen(
                         location = Location(latitude.toDouble(), longitude.toDouble()),
@@ -425,6 +450,45 @@ fun UniverseApp(
                     },
                     onBack = { navigationActions.goBack() })
               }
+            }
+
+        navigation(
+            route = NavigationScreens.EventEdition.name,
+            startDestination = NavigationScreens.EventEdition.route) {
+
+              // --- Main Event Creation Screen ---
+              composable(
+                  route = NavigationScreens.EventEdition.route,
+                  arguments =
+                      listOf(
+                          navArgument(LATITUDE) { type = NavType.FloatType },
+                          navArgument(LONGITUDE) { type = NavType.FloatType },
+                          navArgument(UID) { type = NavType.StringType })) { entry ->
+                    val latitude = entry.arguments?.getFloat(LATITUDE) ?: 0f
+                    val longitude = entry.arguments?.getFloat(LONGITUDE) ?: 0f
+                    val uid = entry.arguments?.getString(UID) ?: ""
+
+                    EventCreationScreen(
+                        uidEvent = uid,
+                        location = Location(latitude.toDouble(), longitude.toDouble()),
+                        onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
+                        onSaveEdition = { navController.navigate("selectTagEventEdition/$uid") },
+                        onBack = { navigationActions.goBack() })
+                  }
+
+              composable(
+                  route = NavigationScreens.SelectTagEventEdition.route,
+                  arguments = listOf(navArgument(UID) { type = NavType.StringType })) { entry ->
+                    val uid = entry.arguments?.getString(UID) ?: ""
+                    SelectTagScreen(
+                        selectTagMode = SelectTagMode.EVENT_EDITION,
+                        uid = uid,
+                        navigateOnSave = {
+                          navController.popBackStack(
+                              route = NavigationScreens.Map.route, inclusive = false)
+                        },
+                        onBack = { navigationActions.goBack() })
+                  }
             }
         // --- Add Tags Screen FOR USER---
         composable(

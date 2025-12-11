@@ -15,11 +15,13 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
+import com.android.universe.utils.EventTestData
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -302,7 +304,7 @@ class EventCreationViewModelTest {
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123", location = SAMPLE_LOCATION)
+    viewModel.saveEvent(uidUser = "user123", uidEvent = null, location = SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
     assert(stockedEvent.title == SAMPLE_TITLE)
@@ -328,7 +330,7 @@ class EventCreationViewModelTest {
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123", location = SAMPLE_LOCATION)
+    viewModel.saveEvent(uidUser = "user123", uidEvent = null, location = SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
 
@@ -462,6 +464,49 @@ class EventCreationViewModelTest {
     val stateAfter = viewModel.uiStateEventCreation.value
     assertTrue(stateAfter.isAiAssistVisible)
     assertEquals("", stateAfter.name)
+  }
+
+  @Test
+  fun loadFunctionLoadEventParameters() = runTest {
+    val sampleEvent = EventTestData.futureEventNoTags
+    eventRepository.addEvent(sampleEvent)
+    viewModel.loadUid(sampleEvent.id)
+    testDispatcher.scheduler.advanceUntilIdle()
+    val uiState = viewModel.uiStateEventCreation
+    assertEquals(sampleEvent.title, uiState.value.name)
+    assertEquals(sampleEvent.description, uiState.value.description)
+    assertEquals(sampleEvent.date.toLocalDate(), uiState.value.date)
+    assertEquals(viewModel.formatTime(sampleEvent.date.toLocalTime()), uiState.value.time)
+    assertEquals(sampleEvent.isPrivate, uiState.value.isPrivate)
+  }
+
+  @Test
+  fun loadFunctionLoadEventParametersWhenNull() = runTest {
+    val sampleEvent = EventTestData.futureEventNoTags
+    eventRepository.addEvent(sampleEvent)
+    viewModel.loadUid(null)
+    testDispatcher.scheduler.advanceUntilIdle()
+    val uiState = viewModel.uiStateEventCreation
+    assertEquals("", uiState.value.name)
+    assertEquals(null, uiState.value.description)
+    assertEquals(null, uiState.value.date)
+    assertEquals("", uiState.value.time)
+    assertEquals(false, uiState.value.isPrivate)
+  }
+
+  @Test
+  fun testFormatTime() {
+    val time = LocalTime.of(14, 30)
+    val formatted = viewModel.formatTime(time)
+
+    assertEquals("14:30", formatted)
+  }
+
+  @Test
+  fun testFormatTimeWithNull() {
+    val formatted = viewModel.formatTime(null)
+
+    assertEquals("Select time", formatted)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
