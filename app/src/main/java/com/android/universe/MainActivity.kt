@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.android.universe
 
 import android.annotation.SuppressLint
@@ -47,7 +49,6 @@ import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
-import com.android.universe.ui.eventCreation.EventCreationViewModel
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.map.MapViewModelFactory
