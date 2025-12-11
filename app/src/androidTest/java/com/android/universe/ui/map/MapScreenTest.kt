@@ -92,7 +92,7 @@ class MapScreenTest {
           uid = uid,
           viewModel = viewModel,
           onTabSelected = {},
-          onNavigateToEventCreation = { accessed = true })
+          onNavigateToEventCreation = { _, _ -> accessed = true })
     }
 
     composeTestRule.waitForIdle()
@@ -184,7 +184,7 @@ fun MapScreenTestWrapper(
     uid: String,
     viewModel: MapViewModel,
     onTabSelected: (Tab) -> Unit,
-    onNavigateToEventCreation: () -> Unit = {}
+    onNavigateToEventCreation: (lat: Double, lng: Double) -> Unit = { _, _ -> }
 ) {
   UniverseBackgroundContainer(viewModel) {
     MapScreen(
