@@ -43,6 +43,7 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
+import com.tomtom.sdk.map.display.gesture.MapClickListener
 import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.map.OnlineCachePolicy
@@ -170,6 +171,7 @@ class MapViewModel(
   private val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
   private val markerToEvent = mutableMapOf<String, Event>()
   private lateinit var currentUserId: String
+  private var clickListener: MapClickListener? = null
   private var longClickListener: MapLongClickListener? = null
   private var mapTheme: StyleMode =
       if (applicationContext.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -185,12 +187,11 @@ class MapViewModel(
    * Initializes data loading and starts event polling.
    *
    * @param uid The ID of the current user.
-   * @param locationSelectedCallback Callback triggered when a location is selected via long press.
    */
-  fun init(uid: String, locationSelectedCallback: (Double, Double) -> Unit) {
+  fun init(uid: String) {
     currentUserId = uid
     // Re-attach listener if map is already interactive (e.g., config change)
-    updateLongClickListener(locationSelectedCallback)
+    updateClickListeners()
     loadAllEvents()
     startEventPolling()
   }
@@ -253,8 +254,6 @@ class MapViewModel(
       setInitialCamera(uiState.value.cameraPosition, uiState.value.zoomLevel)
       setAntialiasingMethod(AntialiasingMethod.FastApproximateAntialiasing)
       setUpMapListeners(
-          mode = uiState.value.mapMode,
-          onMapClick = { onMapClick() },
           onMarkerClick = { marker ->
             markerToEvent[marker.tag]?.let { event: Event ->
               onMarkerClick(event)
@@ -278,11 +277,15 @@ class MapViewModel(
   }
 
   /**
-   * Updates the current map interaction mode.
+   * Updates the current map interaction mode. Clears the selected location if switching to NORMAL
+   * mode.
    *
    * @param mapMode The new mode (e.g., NORMAL, SELECT_LOCATION).
    */
-  fun setMapMode(mapMode: MapMode) {
+  fun switchMapMode(mapMode: MapMode) {
+    if (mapMode == MapMode.NORMAL) {
+      _uiState.update { it.copy(selectedLocation = null) }
+    }
     _uiState.update { it.copy(mapMode = mapMode) }
   }
 
@@ -293,7 +296,6 @@ class MapViewModel(
    * Triggers a camera move action via a one-off event.
    *
    * @param target Destination coordinates.
-   * @param currentZoom Current zoom level to maintain or adjust.
    */
   fun onCameraMoveRequest(target: GeoPoint) {
     if (tomTomMap == null) return
@@ -316,24 +318,13 @@ class MapViewModel(
     }
   }
 
-  /** Clears selected location when the map background is clicked. */
-  fun onMapClick() {
-    _uiState.value = _uiState.value.copy(selectedLocation = null)
-  }
-
   /**
-   * Updates state when a location is long-pressed.
+   * modify the location of the uiState when the user select it.
    *
-   * @param latitude Latitude of the selected point.
-   * @param longitude Longitude of the selected point.
+   * @param location the location selected by the user
    */
-  fun onMapLongClick(latitude: Double, longitude: Double) {
-    _uiState.value = _uiState.value.copy(selectedLocation = GeoPoint(latitude, longitude))
-  }
-
-  /** Manually selects a location (primarily for testing). */
   fun selectLocation(location: GeoPoint) {
-    _uiState.value = _uiState.value.copy(selectedLocation = location)
+    _uiState.update { it.copy(selectedLocation = location) }
   }
 
   private fun TomTomMap.setInitialCamera(position: GeoPoint, zoom: Double) {
@@ -341,31 +332,34 @@ class MapViewModel(
   }
 
   private fun TomTomMap.setUpMapListeners(
-      mode: MapMode,
-      onMapClick: () -> Unit,
       onMarkerClick: (Marker) -> Boolean,
       onCameraChange: (GeoPoint, Double) -> Unit
   ) {
-    this.addMapClickListener {
-      if (mode == MapMode.NORMAL) onMapClick()
-      true
-    }
     this.addMarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker) }
     this.addCameraSteadyListener {
       onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
     }
   }
 
-  private fun TomTomMap.setMapLongClickListener(
+  /** Sets up map click and long-click listeners based on the current map mode. */
+  private fun TomTomMap.setMapClickListeners(
       mode: MapMode,
-      onMapLongClick: (GeoPoint) -> Unit,
-      onLocationSelected: (Double, Double) -> Unit
   ) {
+    clickListener =
+        MapClickListener { geoPoint: GeoPoint ->
+              if (mode == MapMode.SELECT_LOCATION) {
+                selectLocation(geoPoint)
+              }
+              true
+            }
+            .let {
+              this.addMapClickListener(it)
+              it
+            }
     longClickListener =
         MapLongClickListener { geoPoint: GeoPoint ->
-              when (mode) {
-                MapMode.NORMAL -> onMapLongClick(geoPoint)
-                MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+              if (mode == MapMode.SELECT_LOCATION) {
+                selectLocation(geoPoint)
               }
               true
             }
@@ -375,13 +369,12 @@ class MapViewModel(
             }
   }
 
-  fun updateLongClickListener(locationSelectedCallback: (Double, Double) -> Unit) {
+  /** Updates map click listeners when mode changes. */
+  fun updateClickListeners() {
     if (uiState.value.isMapInteractive && tomTomMap != null) {
+      clickListener?.let { tomTomMap?.removeMapClickListener(it) }
       longClickListener?.let { tomTomMap?.removeMapLongClickListener(it) }
-      tomTomMap?.setMapLongClickListener(
-          mode = uiState.value.mapMode,
-          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
-          onLocationSelected = locationSelectedCallback)
+      tomTomMap?.setMapClickListeners(mode = uiState.value.mapMode)
     }
   }
 

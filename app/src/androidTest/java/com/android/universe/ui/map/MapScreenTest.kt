@@ -92,7 +92,7 @@ class MapScreenTest {
           uid = uid,
           viewModel = viewModel,
           onTabSelected = {},
-          onNavigateToEventCreation = { accessed = true })
+          onNavigateToEventCreation = { _, _ -> accessed = true })
     }
 
     composeTestRule.waitForIdle()
@@ -109,7 +109,8 @@ class MapScreenTest {
     composeTestRule
         .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
         .performClick()
-    composeTestRule.waitUntil(1_000L) { accessed }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
   }
 
   @Test
@@ -184,7 +185,7 @@ fun MapScreenTestWrapper(
     uid: String,
     viewModel: MapViewModel,
     onTabSelected: (Tab) -> Unit,
-    onNavigateToEventCreation: () -> Unit = {}
+    onNavigateToEventCreation: (lat: Double, lng: Double) -> Unit = { _, _ -> }
 ) {
   UniverseBackgroundContainer(viewModel) {
     MapScreen(

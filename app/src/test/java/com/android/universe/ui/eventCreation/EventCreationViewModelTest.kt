@@ -56,6 +56,7 @@ class EventCreationViewModelTest {
     val BAD_SAMPLE_DATE: LocalDate = LocalDate.of(1900, 12, 12)
     const val SAMPLE_TIME = "12:12"
     const val BAD_SAMPLE_TIME = "23:78"
+    val SAMPLE_LOCATION = Location(0.0, 0.0)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -223,7 +224,6 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
-    viewModel.setLocation(0.0, 0.0)
 
     assertTrue(viewModel.validateAll())
   }
@@ -289,19 +289,6 @@ class EventCreationViewModelTest {
   }
 
   @Test
-  fun validateAllFailsWithoutLocation() {
-    viewModel.setEventName(SAMPLE_TITLE)
-    viewModel.setEventDescription(SAMPLE_DESCRIPTION)
-    viewModel.setDate(SAMPLE_DATE)
-    viewModel.setTime(SAMPLE_TIME)
-
-    // No location set here
-
-    assertFalse(viewModel.validateAll())
-  }
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  @Test
   fun testSaveEvent() = runTest {
     viewModel.setEventName(SAMPLE_TITLE)
 
@@ -309,14 +296,13 @@ class EventCreationViewModelTest {
 
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
-    viewModel.setLocation(0.0, 0.0)
 
     assertEquals(
         viewModel.formatDate(viewModel.uiStateEventCreation.value.date), SAMPLE_DATE_FORMAT)
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123")
+    viewModel.saveEvent(uid = "user123", location = SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
     assert(stockedEvent.title == SAMPLE_TITLE)
@@ -332,19 +318,17 @@ class EventCreationViewModelTest {
     assert(stockedEvent.date == expectedDate)
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testSavePrivateEvent() = runTest {
     viewModel.setEventName(SAMPLE_TITLE)
     viewModel.setEventDescription(SAMPLE_DESCRIPTION)
     viewModel.setDate(SAMPLE_DATE)
     viewModel.setTime(SAMPLE_TIME)
-    viewModel.setLocation(0.0, 0.0)
     viewModel.setPrivacy(true)
 
     testDispatcher.scheduler.advanceUntilIdle()
 
-    viewModel.saveEvent(uid = "user123")
+    viewModel.saveEvent(uid = "user123", location = SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
     val stockedEvent = eventTemporaryRepository.getEvent()
 
@@ -391,7 +375,6 @@ class EventCreationViewModelTest {
     assertTrue(state.aiPromptValid is ValidationState.Invalid)
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testGenerateProposalSuccess() = runTest {
     viewModel.showAiAssist()
@@ -410,7 +393,6 @@ class EventCreationViewModelTest {
     assertEquals("A smooth evening.", state.proposal?.description)
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testGenerateProposalFailure() = runTest {
     viewModel.showAiAssist()

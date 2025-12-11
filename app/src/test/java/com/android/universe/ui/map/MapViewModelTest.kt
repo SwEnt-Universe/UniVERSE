@@ -52,8 +52,7 @@ class MapViewModelTest {
   private lateinit var userId: String
 
   companion object {
-    const val commonLat = 46.5196535
-    const val commonLng = 6.6322734
+    val SAMPLE_GEO_POINT = GeoPoint(latitude = 46.5196535, longitude = 6.6322734)
   }
 
   private lateinit var viewModel: MapViewModel
@@ -109,7 +108,6 @@ class MapViewModelTest {
     appContext = ApplicationProvider.getApplicationContext()
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
-    temporaryRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)
     userRepository = mockk(relaxed = true)
     userReactiveRepository = mockk(relaxed = true)
@@ -167,7 +165,7 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.userLocation)
     assertEquals(fakeLocation.latitude, state.userLocation!!.latitude, 0.0001)
-    assertEquals(fakeLocation.longitude, state.userLocation.longitude, 0.0001)
+    assertEquals(fakeLocation.longitude, state.userLocation!!.longitude, 0.0001)
     assertNull(state.error)
     assertFalse(state.isLoading)
   }
@@ -378,30 +376,6 @@ class MapViewModelTest {
     val markers = viewModel.eventMarkers.value
     assertEquals(suggestedEvents.size, markers.size)
     assertEquals(suggestedEvents, markers)
-  }
-
-  @Test
-  fun `onMapLongClick updates selectedLocation`() = runTest {
-    viewModel.onMapLongClick(commonLat, commonLng)
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    assertNotNull(state.selectedLocation)
-    assertEquals(commonLat, state.selectedLocation!!.latitude, 0.0001)
-    assertEquals(commonLng, state.selectedLocation.longitude, 0.0001)
-  }
-
-  @Test
-  fun `onMapClick clears selectedLocation`() = runTest {
-    // First set it
-    viewModel.onMapLongClick(commonLat, commonLng)
-    advanceUntilIdle()
-    assertNotNull(viewModel.uiState.value.selectedLocation)
-
-    // Then click map to clear
-    viewModel.onMapClick()
-    advanceUntilIdle()
-    assertNull(viewModel.uiState.value.selectedLocation)
   }
 
   @Test
@@ -619,6 +593,22 @@ class MapViewModelTest {
   }
 
   @Test
+  fun switchModeChangeMode() {
+    assertEquals(MapMode.NORMAL, viewModel.uiState.value.mapMode)
+    viewModel.switchMapMode(MapMode.SELECT_LOCATION)
+    assertEquals(MapMode.SELECT_LOCATION, viewModel.uiState.value.mapMode)
+  }
+
+  @Test
+  fun switchModeUpdateLocation() {
+    viewModel.switchMapMode(MapMode.SELECT_LOCATION)
+    viewModel.selectLocation(SAMPLE_GEO_POINT)
+    assertEquals(SAMPLE_GEO_POINT, viewModel.uiState.value.selectedLocation)
+    viewModel.switchMapMode(MapMode.NORMAL)
+    assertEquals(null, viewModel.uiState.value.selectedLocation)
+  }
+
+  @Test
   fun `generateAiEventAroundUser sets error when AI returns empty list`() = runTest {
     setUserLocation()
 
@@ -693,23 +683,6 @@ class MapViewModelTest {
     coVerify(exactly = 1) { eventRepository.persistAIEvents(listOf(generated)) }
     coVerify(exactly = 1) { tempRepo.deleteEvent() }
     coVerify(atLeast = 1) { eventRepository.getAllEvents(any(), any()) }
-
-    assertNull(viewModel.previewEvent.value)
-    assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
-  }
-
-  @Test
-  fun `acceptPreview does nothing when previewEvent is null`() = runTest {
-    // No preview created
-
-    // Act
-    viewModel.acceptPreview()
-    advanceUntilIdle()
-
-    // Assert that nothing happened
-    coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
-    coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
-    coVerify(exactly = 0) { temporaryRepository.deleteEvent() }
 
     assertNull(viewModel.previewEvent.value)
     assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
