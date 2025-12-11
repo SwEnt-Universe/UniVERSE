@@ -13,6 +13,9 @@ object UserTestData {
       (Tag.getTagsForCategory(Tag.Category.TOPIC) + Tag.getTagsForCategory(Tag.Category.FOOD))
           .toSet()
 
+  val followers = setOf("user_1", "user_2", "user_3")
+  val following = setOf("user_4", "user_5")
+
   private val DummyDate = LocalDate.of(2000, 8, 11)
   private val BaseUser =
       UserProfile(
@@ -68,7 +71,8 @@ object UserTestData {
 
   val NullDescription = BaseUser.copy(uid = "21", description = null)
   val ManyTagsUser = BaseUser.copy(uid = "22", tags = manyTags)
-  val SomeTagsUser = BaseUser.copy(uid = "23", tags = someTags)
+  val SomeTagsUser =
+      BaseUser.copy(uid = "23", tags = someTags, followers = followers, following = following)
 
   val NoTagsUser = BaseUser.copy(uid = "23", tags = noTag)
 }

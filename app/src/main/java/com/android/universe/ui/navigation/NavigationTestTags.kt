@@ -17,6 +17,7 @@ object NavigationTestTags {
   const val PROFILE_SCREEN = "ProfileScreen"
   const val SIGN_IN_SCREEN = "SignInScreen"
   const val ADD_PROFILE_SCREEN = "AddProfileScreen"
+  const val SEARCH_PROFILE_SCREEN = "SearchProfileScreen"
   const val SETTINGS_SCREEN = "SettingsScreen"
   const val SELECT_TAG_SCREEN_USER = "SelectTagScreenUser"
   const val SELECT_TAG_SCREEN_EVENT = "SelectTagScreenEvent"
@@ -32,6 +33,7 @@ object NavigationTestTags {
   const val EVENT_TAB = "EventsTab"
   const val MAP_TAB = "MapTab"
   const val PROFILE_TAB = "ProfileTab"
+  const val COMMUNITY_TAB = "CommunityTab"
 
   /**
    * Returns the appropriate test tag for a given [Tab] in the bottom navigation menu. This allows
@@ -45,6 +47,7 @@ object NavigationTestTags {
         is Tab.Map -> MAP_TAB
         is Tab.Profile -> PROFILE_TAB
         is Tab.Event -> EVENT_TAB
+        is Tab.Community -> COMMUNITY_TAB
       }
 
   /**
@@ -63,6 +66,7 @@ object NavigationTestTags {
         is NavigationScreens.Profile -> PROFILE_SCREEN
         is NavigationScreens.SignIn -> SIGN_IN_SCREEN
         is NavigationScreens.AddProfile -> ADD_PROFILE_SCREEN
+        is NavigationScreens.SearchProfile -> SEARCH_PROFILE_SCREEN
         is NavigationScreens.Settings -> SETTINGS_SCREEN
         is NavigationScreens.SelectTagUser -> SELECT_TAG_SCREEN_USER
         is NavigationScreens.SelectTagEvent -> SELECT_TAG_SCREEN_EVENT

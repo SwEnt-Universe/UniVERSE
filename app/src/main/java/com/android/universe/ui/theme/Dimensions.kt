@@ -83,7 +83,6 @@ object Dimensions {
   // Card
   val CardImageHeight = 170.dp
   val CardButtonHeight = 45f
-  val CardButtonWidth = 100f
   val CardButtonWidthDp = 100.dp
   val CardDividerThickness = 1.8.dp
 
@@ -91,6 +90,7 @@ object Dimensions {
   val CardImageTagOverlayHeight = 25f
   val CardImageTagOverlayWidth = 100f
   val CardImageTagOverlayWidthDp = 140.dp
+  val NumberCircleSize = 32.dp
 
   // Box size
   val BoxDescriptionSize = 80.dp
