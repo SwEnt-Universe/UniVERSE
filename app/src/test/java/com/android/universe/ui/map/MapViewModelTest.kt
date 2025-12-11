@@ -599,4 +599,14 @@ class MapViewModelTest {
 
     assertNull(viewModel.uiState.value.pendingCameraCenter)
   }
+
+  @Test
+  fun `selectCategory all actions`() {
+    val cat = Tag.Category.FOOD
+    viewModel.selectCategory(cat, true)
+    viewModel.uiState.value.markers.all { it.event.tags.none { e -> e.category != cat } }
+    assertEquals(setOf(cat), viewModel.categories.value)
+    viewModel.selectCategory(cat, false)
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
+  }
 }
