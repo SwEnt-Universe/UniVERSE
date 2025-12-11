@@ -188,12 +188,9 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
       down(center)
       advanceEventTime(1_000)
     }
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
-    // We use up after the navigation to the event screen test is done
-    composeTestRule.onNodeWithTag(EventCreationTestTags.CREATION_EVENT_TITLE).performTouchInput {
-      up()
-    }
 
     composeTestRule.waitUntil(5_000L) {
       composeTestRule.onNodeWithTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD).isDisplayed()

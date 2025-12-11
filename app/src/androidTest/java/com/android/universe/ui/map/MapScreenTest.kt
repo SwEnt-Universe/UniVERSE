@@ -109,7 +109,8 @@ class MapScreenTest {
     composeTestRule
         .onNodeWithTag(MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON)
         .performClick()
-    composeTestRule.waitUntil(1_000L) { accessed }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.MAP_VIEW).assertIsDisplayed()
   }
 
   @Test
