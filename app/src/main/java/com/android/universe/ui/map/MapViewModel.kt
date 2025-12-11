@@ -316,7 +316,7 @@ class MapViewModel(
    *
    * @param location the location selected by the user
    */
-  private fun selectLocation(location: GeoPoint) {
+  fun selectLocation(location: GeoPoint) {
     _uiState.update { it.copy(selectedLocation = location) }
   }
 
