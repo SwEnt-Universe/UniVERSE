@@ -56,6 +56,7 @@ object MapScreenTestTags {
   const val CREATE_EVENT_BUTTON = "create_event_button"
   const val EVENT_INFO_POPUP = "event_info_popup"
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
+  const val SELECT_LOCATION_TEXT = "select_location_text"
 }
 
 /**
@@ -243,7 +244,10 @@ fun MapScreen(
               shape =
                   (RoundedCornerShape(
                       topStart = 0.dp, topEnd = 0.dp, bottomStart = 16.dp, bottomEnd = 16.dp)),
-              modifier = Modifier.fillMaxWidth().height(132.dp)) {
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .height(132.dp)
+                      .testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {
                 Text(
                     "Select your location",
                     modifier = Modifier.fillMaxWidth().align(Alignment.Center),

@@ -23,7 +23,6 @@ import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.event.EventCardTestTags
 import com.android.universe.ui.eventCreation.EventCreationTestTags
 import com.android.universe.ui.map.MapCreateEventModalTestTags
-import com.android.universe.ui.map.MapMode
 import com.android.universe.ui.map.MapScreenTestTags
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.map.MapViewModelFactory
@@ -183,7 +182,9 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     // 3. SET LOCATION BY CLICKING ON MAP
     // —————————————————————————————————————
     composeTestRule.waitUntil(10_000L) {
-      mapViewModel.uiState.value.mapMode == MapMode.SELECT_LOCATION
+      composeTestRule
+          .onNodeWithTagWithUnmergedTree(MapScreenTestTags.SELECT_LOCATION_TEXT)
+          .isDisplayed()
     }
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
