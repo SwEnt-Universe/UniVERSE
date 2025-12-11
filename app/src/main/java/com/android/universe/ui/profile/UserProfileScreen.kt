@@ -28,13 +28,16 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -113,6 +116,65 @@ fun UserProfileScreen(
 
   val profileContentHeightDp = with(density) { profileContentHeightPx.toDp() }
   val tabRowHeightDp = with(density) { tabRowHeightPx.toDp() }
+
+  val totalCollapsibleHeightPx = profileContentHeightPx + elementSpacingPx
+
+  LaunchedEffect(
+      pagerState.currentPage,
+      historyListState.firstVisibleItemScrollOffset,
+      historyListState.firstVisibleItemIndex,
+      totalCollapsibleHeightPx) {
+        if (pagerState.currentPage == 0 && totalCollapsibleHeightPx > 0) {
+          val scrollOffset = historyListState.firstVisibleItemScrollOffset
+          val firstIndex = historyListState.firstVisibleItemIndex
+
+          val collapseAmount =
+              if (firstIndex == 0) scrollOffset.toFloat() else totalCollapsibleHeightPx
+
+          val targetOffset =
+              if (incomingListState.firstVisibleItemIndex == 0)
+                  incomingListState.firstVisibleItemScrollOffset
+              else totalCollapsibleHeightPx.toInt()
+
+          if (collapseAmount >= totalCollapsibleHeightPx) {
+            if (targetOffset < totalCollapsibleHeightPx) {
+              incomingListState.scrollToItem(0, totalCollapsibleHeightPx.toInt())
+            }
+          } else {
+            if (targetOffset != collapseAmount.toInt()) {
+              incomingListState.scrollToItem(0, collapseAmount.toInt())
+            }
+          }
+        }
+      }
+
+  LaunchedEffect(
+      pagerState.currentPage,
+      incomingListState.firstVisibleItemScrollOffset,
+      incomingListState.firstVisibleItemIndex,
+      totalCollapsibleHeightPx) {
+        if (pagerState.currentPage == 1 && totalCollapsibleHeightPx > 0) {
+          val scrollOffset = incomingListState.firstVisibleItemScrollOffset
+          val firstIndex = incomingListState.firstVisibleItemIndex
+
+          val collapseAmount =
+              if (firstIndex == 0) scrollOffset.toFloat() else totalCollapsibleHeightPx
+          val targetOffset =
+              if (historyListState.firstVisibleItemIndex == 0)
+                  historyListState.firstVisibleItemScrollOffset
+              else totalCollapsibleHeightPx.toInt()
+
+          if (collapseAmount >= totalCollapsibleHeightPx) {
+            if (targetOffset < totalCollapsibleHeightPx) {
+              historyListState.scrollToItem(0, totalCollapsibleHeightPx.toInt())
+            }
+          } else {
+            if (targetOffset != collapseAmount.toInt()) {
+              historyListState.scrollToItem(0, collapseAmount.toInt())
+            }
+          }
+        }
+      }
 
   // Synchronization Logic
   val headerOffsetPx by remember {
@@ -231,6 +293,30 @@ fun ProfileEventList(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
+  val density = LocalDensity.current
+  var footerHeight by remember { mutableStateOf(0.dp) }
+
+  val bottomPaddingDp = 80.dp
+
+  LaunchedEffect(events, listState) {
+    snapshotFlow { listState.layoutInfo }
+        .collect { layoutInfo ->
+          val visibleItems = layoutInfo.visibleItemsInfo
+          val viewportHeight = layoutInfo.viewportSize.height
+
+          if (visibleItems.isNotEmpty()) {
+            val eventsHeightPx =
+                visibleItems.filter { it.index > 0 && it.index <= events.size }.sumOf { it.size }
+
+            val bottomPaddingPx = with(density) { bottomPaddingDp.toPx() }
+
+            val neededPx = (viewportHeight - eventsHeightPx - bottomPaddingPx).coerceAtLeast(0f)
+
+            footerHeight = with(density) { neededPx.toDp() }
+          }
+        }
+  }
+
   LazyColumn(
       state = listState,
       contentPadding = PaddingValues(bottom = 80.dp),
@@ -256,6 +342,7 @@ fun ProfileEventList(
                     viewModel = eventViewModel)
               }
         }
+        item(key = "safety_spacer") { Spacer(modifier = Modifier.height(footerHeight)) }
       }
 }
 
