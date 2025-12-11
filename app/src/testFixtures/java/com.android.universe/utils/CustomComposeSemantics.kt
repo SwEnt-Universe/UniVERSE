@@ -3,8 +3,9 @@ package com.android.universe.utils
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.SemanticsNodeInteraction
 
-object CustomSemanticsMatcher {
+object CustomComposeSemantics {
 
   /**
    * Returns a [SemanticsMatcher] that checks if a node's [SemanticsProperties.TestTag] starts with
@@ -19,4 +20,13 @@ object CustomSemanticsMatcher {
       testTag.startsWith(prefix)
     }
   }
+
+  fun SemanticsNodeInteraction.hasText(
+      value: String,
+      substring: Boolean = false,
+      ignoreCase: Boolean = false,
+  ): Boolean =
+      androidx.compose.ui.test
+          .hasText(value, substring = substring, ignoreCase = ignoreCase)
+          .matches(this.fetchSemanticsNode())
 }
