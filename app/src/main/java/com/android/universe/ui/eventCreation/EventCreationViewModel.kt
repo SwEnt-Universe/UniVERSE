@@ -81,6 +81,7 @@ data class EventCreationUIState(
     val timeError: String? = null,
     val eventPicture: ByteArray? = null,
     val location: Location? = null,
+    val isPrivate: Boolean = false,
     val onboardingState: MutableMap<OnboardingState, Boolean> =
         mutableMapOf(
             OnboardingState.ENTER_EVENT_TITLE to false,
@@ -269,6 +270,15 @@ class EventCreationViewModel(
   }
 
   /**
+   * Update the privacy setting of the event.
+   *
+   * @param isPrivate true if the event should be private (followers only).
+   */
+  fun setPrivacy(isPrivate: Boolean) {
+    eventCreationUiState.value = eventCreationUiState.value.copy(isPrivate = isPrivate)
+  }
+
+  /**
    * Updates the event image state with the provided URI.
    *
    * @param uri the URI of the image selected by the user.
@@ -353,6 +363,7 @@ class EventCreationViewModel(
               creator = uid,
               participants = setOf(uid),
               location = loc,
+              isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {
           Log.e("EventCreationViewModel", "Error saving event: ${e.message}")

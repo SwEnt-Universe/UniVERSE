@@ -1,5 +1,6 @@
 package com.android.universe.ui.event
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.universe.model.event.Event
@@ -12,7 +13,10 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.search.SearchEngine
+import com.android.universe.ui.search.SearchEngine.categoryCoverageComparator
 import java.time.LocalDateTime
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,8 +38,10 @@ import kotlinx.coroutines.launch
  * @property creator The name of the event creator.
  * @property participants The number of participants in the event.
  * @property location The location of the event.
+ * @param isPrivate Whether the event is private.
  * @property index The index of the event in the list.
  * @property joined Whether the current user has joined the event.
+ * @param eventPicture The picture of the event.
  */
 data class EventUIState(
     val id: String = "",
@@ -46,6 +52,7 @@ data class EventUIState(
     val creator: String = "",
     val participants: Int = 0,
     val location: Location = Location(0.0, 0.0),
+    val isPrivate: Boolean = false,
     val index: Int = 0,
     val joined: Boolean = false,
     val eventPicture: ByteArray? = null
@@ -131,12 +138,14 @@ class EventViewModel(
   /** Backing property for the list of event UI states. */
   private val _eventsState = MutableStateFlow<List<EventUIState>>(emptyList())
   private var localList = emptyList<Event>()
+  private val _categories = MutableStateFlow<Set<Tag.Category>>(emptySet())
 
   private val _uiState = MutableStateFlow(UiState())
   val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
   /** Publicly exposed StateFlow of event UI states. */
   val eventsState: StateFlow<List<EventUIState>> = _eventsState.asStateFlow()
+  val categories: StateFlow<Set<Tag.Category>> = _categories.asStateFlow()
 
   var storedUid = ""
 
@@ -162,7 +171,20 @@ class EventViewModel(
    */
   fun loadEvents() {
     viewModelScope.launch {
-      val events = eventRepository.getAllEvents()
+      val following =
+          try {
+            if (storedUid.isNotEmpty()) {
+              userRepository.getUser(storedUid).following.toSet()
+            } else {
+              emptySet()
+            }
+          } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.e("EventViewModel", "Failed to fetch user following list", e)
+            emptySet()
+          }
+
+      val events = eventRepository.getAllEvents(storedUid, following)
       localList = events
 
       if (userReactiveRepository != null) {
@@ -178,7 +200,10 @@ class EventViewModel(
                   events.mapIndexed { index, event ->
                     val user = usersMap[event.creator]
                     event.toUIState(
-                        user, index = index, joined = event.participants.contains(storedUid))
+                        user,
+                        index = index,
+                        joined = event.participants.contains(storedUid),
+                        isPrivate = event.isPrivate)
                   }
                 }
             .collect { uiStates -> _eventsState.value = uiStates }
@@ -188,11 +213,30 @@ class EventViewModel(
               event.toUIState(
                   userRepository.getUser(event.creator),
                   index = index,
-                  joined = event.participants.contains(storedUid))
+                  joined = event.participants.contains(storedUid),
+                  isPrivate = event.isPrivate)
             }
         _eventsState.value = uiStates
       }
     }
+  }
+
+  /**
+   * Adds a category to the list of categories.
+   *
+   * @param category The category to add.
+   */
+  fun selectCategory(category: Tag.Category) {
+    _categories.value += category
+  }
+
+  /**
+   * Removes a category from the list of categories.
+   *
+   * @param category The category to remove.
+   */
+  fun deselectCategory(category: Tag.Category) {
+    _categories.value -= category
   }
 
   /**
@@ -201,11 +245,13 @@ class EventViewModel(
    * @param user The creator of the event.
    * @param index The index of the event in the list.
    * @param joined Whether the current user has joined the event.
+   * @param isPrivate Whether the event is private..
    */
   private fun Event.toUIState(
       user: UserProfile?,
       index: Int = 0,
-      joined: Boolean = false
+      joined: Boolean = false,
+      isPrivate: Boolean = false
   ): EventUIState {
     return EventUIState(
         id = id,
@@ -216,6 +262,7 @@ class EventViewModel(
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
         participants = participants.size,
         location = location,
+        isPrivate = isPrivate,
         index = index,
         joined = joined,
         eventPicture = eventPicture)
@@ -279,6 +326,14 @@ class EventViewModel(
   }
 
   val filteredEvents: StateFlow<List<EventUIState>> =
-      combine(eventsState, _searchQuery) { events, query -> filterEvents(events, query) }
+      combine(eventsState, _searchQuery, _categories) { events, query, cats ->
+            val filtered =
+                filterEvents(events, query).filter { SearchEngine.tagMatch(it.tags, cats) }
+            if (cats.isNotEmpty()) { // don't waste performance on sorting if it's not filtered
+              val comparator =
+                  categoryCoverageComparator<EventUIState>(cats) { state -> state.tags }
+              filtered.sortedWith(comparator).reversed()
+            } else filtered
+          }
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }

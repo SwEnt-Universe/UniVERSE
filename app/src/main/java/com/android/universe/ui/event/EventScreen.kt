@@ -5,8 +5,12 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,8 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
+import com.android.universe.ui.common.TagRow
+import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.components.LiquidSearchBarTestTags
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -77,6 +85,8 @@ fun EventScreen(
   }
   val events by viewModel.filteredEvents.collectAsState()
   val focusManager = LocalFocusManager.current
+  val allCats = Tag.tagFromEachCategory.toList()
+  val categories by viewModel.categories.collectAsState()
 
   Scaffold(
       containerColor = Color.Transparent,
@@ -99,6 +109,18 @@ fun EventScreen(
                               start = PaddingMedium,
                               end = PaddingMedium)
                           .testTag(LiquidSearchBarTestTags.SEARCH_BAR))
+              Box(modifier = Modifier.fillMaxWidth()) {
+                TagRow(
+                    allCats,
+                    heightTag = CategoryItemDefaults.HEIGHT_CAT,
+                    widthTag = CategoryItemDefaults.WIDTH_CAT,
+                    isSelected = { cat -> categories.contains(cat.category) },
+                    onTagSelect = { cat -> viewModel.selectCategory(cat.category) },
+                    onTagReSelect = { cat -> viewModel.deselectCategory(cat.category) },
+                    fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+                    isCategory = true)
+              }
+              Spacer(modifier = Modifier.height(PaddingMedium))
 
               LazyColumn(
                   modifier = Modifier.fillMaxSize().testTag(EventScreenTestTags.EVENTS_LIST),

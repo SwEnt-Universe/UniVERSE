@@ -26,11 +26,15 @@ class EventRepositoryProviderTest {
 
     val fakeRepo =
         object : EventRepository {
-          override suspend fun getAllEvents() = emptyList<Event>()
+          override suspend fun getAllEvents(
+              requestorId: String,
+              usersRequestorFollows: Set<String>
+          ): List<Event> = emptyList()
 
           override suspend fun getEvent(eventId: String) = event1
 
-          override suspend fun getSuggestedEventsForUser(user: UserProfile) = emptyList<Event>()
+          override suspend fun getSuggestedEventsForUser(user: UserProfile): List<Event> =
+              emptyList()
 
           override suspend fun getUserInvolvedEvents(userId: String): List<Event> = emptyList()
 

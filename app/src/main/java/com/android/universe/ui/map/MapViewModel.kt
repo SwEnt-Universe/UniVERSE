@@ -3,6 +3,7 @@ package com.android.universe.ui.map
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.view.ViewGroup
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
@@ -40,14 +41,17 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
+import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.map.OnlineCachePolicy
 import com.tomtom.sdk.map.display.marker.Marker
 import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
+import com.tomtom.sdk.map.display.style.StyleMode
 import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -70,6 +74,11 @@ private const val CACHE_SIZE = 50L * 1024 * 1024
 private const val DEFAULT_ZOOM = 15.0
 private const val DEFAULT_TILT = 45.0
 
+private const val LIGHT_STYLE =
+    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
+private const val DARK_STYLE =
+    "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTuOfCEvj1xLZYKOA_LMlky3/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
+
 /** UI state for the Map screen. */
 data class MapUiState(
     val isLoading: Boolean = true,
@@ -80,6 +89,7 @@ data class MapUiState(
     val isLocationPermissionGranted: Boolean = false,
     val isMapInteractive: Boolean = false,
     val mapMode: MapMode = MapMode.NORMAL,
+    val pendingCameraCenter: GeoPoint? = null,
     // Defaults to Lausanne
     val cameraPosition: GeoPoint = GeoPoint(46.5196535, 6.6322734),
     val zoomLevel: Double = 14.0
@@ -137,9 +147,15 @@ class MapViewModel(
   /** List of events to display as markers. */
   val eventMarkers: StateFlow<List<Event>> = _eventMarkers.asStateFlow()
 
-  private val _selectedEvent = MutableStateFlow<Event?>(null)
+  sealed interface EventSelectionState {
+    data object None : EventSelectionState
+
+    data class Selected(val event: Event, val creator: String) : EventSelectionState
+  }
+
+  private val _selectedEvent = MutableStateFlow<EventSelectionState>(EventSelectionState.None)
   /** The currently selected event, if any. */
-  val selectedEvent: StateFlow<Event?> = _selectedEvent.asStateFlow()
+  val selectedEvent: StateFlow<EventSelectionState> = _selectedEvent.asStateFlow()
 
   // Map & Location Internal State
   @SuppressLint("StaticFieldLeak") private var tomtomMapView: MapView? = null
@@ -147,6 +163,12 @@ class MapViewModel(
   private val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
   private val markerToEvent = mutableMapOf<String, Event>()
   private lateinit var currentUserId: String
+  private var longClickListener: MapLongClickListener? = null
+  private var mapTheme: StyleMode =
+      if (applicationContext.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+          Configuration.UI_MODE_NIGHT_YES)
+          StyleMode.DARK
+      else StyleMode.MAIN
 
   // Jobs
   private var locationTrackingJob: Job? = null
@@ -161,12 +183,7 @@ class MapViewModel(
   fun init(uid: String, locationSelectedCallback: (Double, Double) -> Unit) {
     currentUserId = uid
     // Re-attach listener if map is already interactive (e.g., config change)
-    if (uiState.value.isMapInteractive && tomTomMap != null) {
-      tomTomMap!!.setMapLongClickListener(
-          mode = uiState.value.mapMode,
-          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
-          onLocationSelected = locationSelectedCallback)
-    }
+    updateLongClickListener(locationSelectedCallback)
     loadAllEvents()
     startEventPolling()
   }
@@ -179,6 +196,11 @@ class MapViewModel(
     stopEventPolling()
   }
 
+  fun setTheme(isDarkTheme: Boolean) {
+    if (isDarkTheme) this.mapTheme = StyleMode.DARK else this.mapTheme = StyleMode.MAIN
+    tomTomMap?.setStyleMode(this.mapTheme)
+  }
+
   /**
    * Creates or returns the existing MapView instance. Use this to attach the map to the View
    * hierarchy.
@@ -188,10 +210,7 @@ class MapViewModel(
       val mapOptions =
           MapOptions(
               mapKey = BuildConfig.TOMTOM_API_KEY,
-              mapStyle =
-                  StyleDescriptor(
-                      "https://api.tomtom.com/style/2/custom/style/dG9tdG9tQEBAZUJrOHdFRXJIM0oySEUydTsd6ZOYVIJPYKLNwZiNGdLE/drafts/0.json?key=oICGv96tZpkxbJRieRSfAKcW8fmNuUWx"
-                          .toUri()),
+              mapStyle = StyleDescriptor(uri = LIGHT_STYLE.toUri(), darkUri = DARK_STYLE.toUri()),
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
       tomtomMapView = MapView(applicationContext, mapOptions)
@@ -335,12 +354,27 @@ class MapViewModel(
       onMapLongClick: (GeoPoint) -> Unit,
       onLocationSelected: (Double, Double) -> Unit
   ) {
-    this.addMapLongClickListener { geoPoint ->
-      when (mode) {
-        MapMode.NORMAL -> onMapLongClick(geoPoint)
-        MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
-      }
-      true
+    longClickListener =
+        MapLongClickListener { geoPoint: GeoPoint ->
+              when (mode) {
+                MapMode.NORMAL -> onMapLongClick(geoPoint)
+                MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+              }
+              true
+            }
+            .let {
+              this.addMapLongClickListener(it)
+              it
+            }
+  }
+
+  fun updateLongClickListener(locationSelectedCallback: (Double, Double) -> Unit) {
+    if (uiState.value.isMapInteractive && tomTomMap != null) {
+      longClickListener?.let { tomTomMap?.removeMapLongClickListener(it) }
+      tomTomMap?.setMapLongClickListener(
+          mode = uiState.value.mapMode,
+          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
+          onLocationSelected = locationSelectedCallback)
     }
   }
 
@@ -402,7 +436,16 @@ class MapViewModel(
   fun loadAllEvents() {
     viewModelScope.launch {
       try {
-        val events = eventRepository.getAllEvents()
+        val following =
+            try {
+              userRepository.getUser(currentUserId).following.toSet()
+            } catch (e: Exception) {
+              if (e is CancellationException) throw e
+              android.util.Log.e("MapViewModel", "Failed to fetch user following list", e)
+              emptySet()
+            }
+
+        val events = eventRepository.getAllEvents(currentUserId, following)
         _eventMarkers.value = events
 
         if (userReactiveRepository != null) {
@@ -426,6 +469,7 @@ class MapViewModel(
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
+        if (e is CancellationException) throw e
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
@@ -509,25 +553,10 @@ class MapViewModel(
         val events = eventRepository.getSuggestedEventsForUser(user)
         _eventMarkers.value = events
       } catch (e: Exception) {
+        if (e is CancellationException) throw e
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
-  }
-
-  /**
-   * Fetches a username asynchronously.
-   *
-   * @param uid The user ID to fetch.
-   * @return The username (Note: returns default "" immediately as launch is async).
-   */
-  fun getEventCreatorUsername(uid: String): String {
-    var username = ""
-    viewModelScope.launch {
-      val user = userRepository.getUser(uid)
-      username = user.username
-      return@launch
-    }
-    return username
   }
 
   /** Handles a click on an event marker. */
@@ -537,7 +566,12 @@ class MapViewModel(
 
   /** Sets the currently active event in the state. */
   fun selectEvent(event: Event?) {
-    viewModelScope.launch { _selectedEvent.emit(event) }
+    viewModelScope.launch {
+      if (event == null) _selectedEvent.emit(EventSelectionState.None)
+      else
+          _selectedEvent.emit(
+              EventSelectionState.Selected(event, userRepository.getUser(event.creator).username))
+    }
   }
 
   /**
@@ -559,7 +593,10 @@ class MapViewModel(
         eventRepository.updateEvent(event.id, updatedEvent)
 
         // Update the selected event to reflect the change
-        _selectedEvent.value = updatedEvent
+        _selectedEvent.update {
+          it as EventSelectionState.Selected
+          it.copy(event = updatedEvent)
+        }
       } catch (e: NoSuchElementException) {
         _uiState.update { it.copy(error = "No event ${event.title} found") }
       }
@@ -577,7 +614,10 @@ class MapViewModel(
    * @param radiusKm Max radius for generation.
    * @param timeFrame Time frame for context (e.g., "today").
    */
-  fun generateAiEventAroundUser(radiusKm: Int = MAX_RADIUS_KM, timeFrame: String = "today") {
+  fun generateAiEventAroundUser(
+      radiusKm: Int = MAX_RADIUS_KM,
+      timeFrame: String = "today",
+  ) {
     val userLoc =
         uiState.value.userLocation
             ?: run {
@@ -599,11 +639,38 @@ class MapViewModel(
         val events = ai.generateEvents(query)
 
         eventRepository.persistAIEvents(events)
+        val event = events.firstOrNull() ?: throw IllegalStateException("AI returned no events")
         loadAllEvents()
+
+        // Request to center on new event
+        requestCameraCenter(GeoPoint(event.location.latitude, event.location.longitude))
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
       }
     }
+  }
+
+  /**
+   * Requests the map camera to center on the given geographic point.
+   *
+   * This does not move the camera directly. Instead, it updates the UI state with a
+   * `pendingCameraCenter` value, which the UI layer (e.g., `MapScreen`) can observe and react to by
+   * performing the actual camera movement on the map instance.
+   *
+   * @param point The target geographic coordinate to center the camera on.
+   */
+  fun requestCameraCenter(point: GeoPoint) {
+    _uiState.update { it.copy(pendingCameraCenter = point) }
+  }
+
+  /**
+   * Clears any previously requested camera-center action.
+   *
+   * Call after the UI has consumed and applied the pending camera movement. Prevents the same
+   * camera command from being executed multiple times.
+   */
+  fun clearPendingCameraCenter() {
+    _uiState.update { it.copy(pendingCameraCenter = null) }
   }
 
   private fun mapEventToMarker(event: Event): MapMarkerUiModel {

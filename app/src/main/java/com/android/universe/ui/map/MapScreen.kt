@@ -133,6 +133,8 @@ fun MapScreen(
     }
   }
 
+  LaunchedEffect(uiState.mapMode) { viewModel.updateLongClickListener(onLocationSelected) }
+
   // --- 2. Reactive Updates (Side Effects) ---
 
   // Sync Markers
@@ -159,6 +161,15 @@ fun MapScreen(
     }
   }
 
+  // Listen for camera-center requests. Performs centering and clears request.
+  LaunchedEffect(uiState.pendingCameraCenter, uiState.isMapInteractive) {
+    val target = uiState.pendingCameraCenter
+    if (target != null && uiState.isMapInteractive) {
+      viewModel.onCameraMoveRequest(target)
+      viewModel.clearPendingCameraCenter()
+    }
+  }
+
   // --- 3. UI Structure ---
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
@@ -181,16 +192,18 @@ fun MapScreen(
             }
           }
 
-          selectedEvent?.let { event ->
-            EventInfoPopup(
-                modifier = Modifier.padding(padding),
-                event = event,
-                creator = viewModel.getEventCreatorUsername(event.creator),
-                onDismiss = { viewModel.selectEvent(null) },
-                onChatNavigate = onChatNavigate,
-                isUserParticipant = viewModel.isUserParticipant(event),
-                onToggleEventParticipation = { viewModel.toggleEventParticipation(event) })
+          selectedEvent.let {
+            if (it is MapViewModel.EventSelectionState.Selected)
+                EventInfoPopup(
+                    modifier = Modifier.padding(padding),
+                    event = it.event,
+                    creator = it.creator,
+                    onDismiss = { viewModel.selectEvent(null) },
+                    onChatNavigate = onChatNavigate,
+                    isUserParticipant = viewModel.isUserParticipant(it.event),
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
           }
+
           MapCreateEventModal(
               isPresented = showMapModal,
               onDismissRequest = { showMapModal = false },

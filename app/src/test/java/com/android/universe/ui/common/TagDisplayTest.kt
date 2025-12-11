@@ -21,6 +21,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
 import com.android.universe.utils.setContentWithStubBackdrop
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -431,5 +432,21 @@ class TagDisplayTest {
 
     assertEquals("Tags should be in the same row", tag1Bounds.top, tag2Bounds.top, 5.0f)
     assertTrue("Tag 2 should be to the right of Tag 1", tag2Bounds.left >= tag1Bounds.right)
+  }
+
+  @Test
+  fun categoryRowExists() {
+    val select = MutableStateFlow(false)
+    composeTestRule.setContentWithStubBackdrop {
+      TagRow(
+          tags = Tag.tagFromEachCategory.toList(),
+          isSelected = { select.value },
+          onTagSelect = { select.value = true },
+          onTagReSelect = { select.value = false },
+          isCategory = true)
+    }
+    composeTestRule
+        .onNodeWithTag(CategoryRowTestTag.ROW_TAG, useUnmergedTree = true)
+        .assertIsDisplayed()
   }
 }

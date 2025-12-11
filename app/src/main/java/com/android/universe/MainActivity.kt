@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.LinearProgressIndicator
@@ -14,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.core.view.WindowCompat
@@ -58,6 +61,7 @@ import com.android.universe.ui.profileCreation.AddProfile
 import com.android.universe.ui.profileCreation.AddProfileViewModel
 import com.android.universe.ui.profileSettings.SettingsScreen
 import com.android.universe.ui.profileSettings.SettingsViewModel
+import com.android.universe.ui.searchProfile.SearchProfileScreen
 import com.android.universe.ui.selectTag.SelectTagMode
 import com.android.universe.ui.selectTag.SelectTagScreen
 import com.android.universe.ui.signIn.SignInScreen
@@ -85,6 +89,15 @@ class MainActivity : ComponentActivity() {
     Firebase.firestore.persistentCacheIndexManager?.apply { enableIndexAutoCreation() }
 
     setContent {
+      // Enables a live dark/light-mode swap of the system bottom menu (if enabled)
+      val isDarkTheme = isSystemInDarkTheme()
+      val view = LocalView.current
+      SideEffect {
+        mapViewModel.setTheme(isDarkTheme)
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.isAppearanceLightNavigationBars = !isDarkTheme
+      }
+
       UniverseTheme {
         val backgroundColor = Color.Transparent
         val backdrop = rememberLayerBackdrop {
@@ -368,6 +381,19 @@ fun UniverseApp(
                     credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
                   })
             }
+
+        navigation(
+            route = NavigationScreens.SearchProfile.name,
+            startDestination = NavigationScreens.SearchProfile.route) {
+              composable(route = NavigationScreens.SearchProfile.route) {
+                SearchProfileScreen(
+                    uid = authInstance.currentUser!!.uid,
+                    onTabSelected = onTabSelected,
+                    onChatNavigate = {},
+                    onCardClick = {})
+              }
+            }
+
         navigation(
             route = NavigationScreens.EventCreation.name,
             startDestination = NavigationScreens.EventCreation.route) {
@@ -379,6 +405,7 @@ fun UniverseApp(
                         viewModelStoreOwner = entry,
                         factory = EventCreationViewModel.provideFactory(context))
 
+                mapViewModel.setMapMode(MapMode.NORMAL)
                 EventCreationScreen(
                     eventCreationViewModel = vm,
                     onSelectLocation = {

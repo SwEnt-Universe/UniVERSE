@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -61,7 +62,10 @@ fun LiquidTopBar(navigationIcon: @Composable (() -> Unit) = {}, title: @Composab
 @Composable
 fun TopBarBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
   IconButton(onClick = onClick, modifier = modifier.testTag(NavigationTestTags.BACK_BUTTON)) {
-    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+    Icon(
+        Icons.AutoMirrored.Filled.ArrowBack,
+        contentDescription = "Back",
+        tint = MaterialTheme.colorScheme.onSurface)
   }
 }
 
@@ -79,5 +83,6 @@ fun TopBarTitle(text: String, modifier: Modifier = Modifier) {
       text = text,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
+      color = MaterialTheme.colorScheme.onSurface,
       modifier = modifier.testTag(TopBarTestTags.TOP_BAR_TITLE))
 }

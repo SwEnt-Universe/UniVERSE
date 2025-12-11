@@ -149,15 +149,16 @@ fun TagColumn(
 /**
  * A Composable that displays a horizontal row of tags.
  *
- * This component renders a scrollable list of [TagItem]s arranged horizontally. It supports
- * interactive selection and can optionally apply a visual fade effect at the left and right edges
- * to indicate scrolling content.
+ * This component renders a scrollable list of [TagItem]s (or Category Items) arranged horizontally.
+ * It supports interactive selection and can optionally apply a visual fade effect at the left and
+ * right edges to indicate scrolling content.
  *
  * @param tags The list of [Tag] objects to display.
  * @param modifierTags Modifier to be applied to each individual [TagItem].
  * @param modifierBox Modifier to be applied to the outer container of the row.
  * @param heightTag The fixed height for each [TagItem]. Defaults to [TagItemDefaults.HEIGHT_TAG].
  * @param widthList The fixed width of the entire row. Defaults to [TagGroupDefaults.DefaultWidth].
+ * @param widthTag The fixed width for each [TagItem]. Defaults to [TagItemDefaults.WIDTH_TAG].
  * @param isSelectable Whether the tags can be interacted with (selected/deselected).
  * @param isSelected A lambda that returns true if a given [Tag] is currently selected.
  * @param onTagSelect Callback invoked when an unselected tag is clicked.
@@ -166,6 +167,7 @@ fun TagColumn(
  * @param state The [LazyListState] to control or observe the scrolling state.
  * @param fade If true, applies a transparency gradient fade to the left and right edges.
  * @param fadeWidth The width of the fade effect in Dp. Defaults to 10% of [widthList].
+ * @param isCategory Whether the tags should be considered as a category
  */
 @Composable
 fun TagRow(
@@ -173,6 +175,7 @@ fun TagRow(
     modifierTags: Modifier = Modifier,
     modifierBox: Modifier = Modifier,
     heightTag: Float = TagItemDefaults.HEIGHT_TAG,
+    widthTag: Float = TagItemDefaults.WIDTH_TAG,
     widthList: Dp = TagGroupDefaults.DefaultWidth,
     isSelectable: Boolean = true,
     isSelected: (Tag) -> Boolean,
@@ -181,29 +184,33 @@ fun TagRow(
     tagElement: ((Tag) -> String)? = null,
     state: LazyListState = rememberLazyListState(),
     fade: Boolean = true,
-    fadeWidth: Dp = widthList * 0.1f
+    fadeWidth: Dp = widthList * 0.1f,
+    isCategory: Boolean = false
 ) {
-
+  val spacing = if (isCategory) Dimensions.PaddingMedium else TagGroupDefaults.DefaultInterPaddingH
+  val rowTag = if (isCategory) CategoryRowTestTag.ROW_TAG else TagGroupTestTag.tagRow(tags)
   LazyRow(
       state = state,
-      horizontalArrangement = Arrangement.spacedBy(TagGroupDefaults.DefaultInterPaddingH),
+      horizontalArrangement = Arrangement.spacedBy(spacing),
       contentPadding = PaddingValues(horizontal = TagGroupDefaults.DefaultInterPaddingH),
       modifier =
           modifierBox
               .width(widthList)
-              .testTag(TagGroupTestTag.tagRow(tags))
+              .testTag(rowTag)
               .fadingEdge(visible = fade, fadeSize = fadeWidth, isVertical = false)) {
         items(tags) { tag ->
           TagItem(
               tag = tag,
               heightTag = heightTag,
+              widthTag = widthTag,
               isSelectable = isSelectable,
               isSelected = isSelected(tag),
               onSelect = { tag -> onTagSelect(tag) },
               onDeSelect = { tag -> onTagReSelect(tag) },
               modifier =
                   modifierTags.then(
-                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier))
+                      if (tagElement != null) Modifier.testTag(tagElement(tag)) else Modifier),
+              isCategory = isCategory)
         }
       }
 }
@@ -276,6 +283,7 @@ fun TagGroup(
                 Text(
                     title,
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier =
                         Modifier.fillMaxWidth()
                             .padding(top = outerPaddingV, bottom = Dimensions.PaddingSmall),
@@ -380,4 +388,8 @@ private fun Modifier.fadingEdge(
             }
         drawRect(brush = brush, blendMode = BlendMode.DstIn)
       }
+}
+
+object CategoryRowTestTag {
+  const val ROW_TAG = "CategoryRowRowTestTag"
 }

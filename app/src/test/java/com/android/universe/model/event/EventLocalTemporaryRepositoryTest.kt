@@ -26,6 +26,7 @@ class EventLocalTemporaryRepositoryTest {
             creator = "Test user",
             participants = setOf("Test user"),
             location = Location(0.0, 0.0),
+            isPrivate = false,
             eventPicture = null)
     val temporaryEvent2 =
         Event(
@@ -37,6 +38,7 @@ class EventLocalTemporaryRepositoryTest {
             creator = "Test user 2",
             participants = setOf("Test user 2"),
             location = Location(0.1, 0.1),
+            isPrivate = true,
             eventPicture = null)
   }
 
@@ -56,6 +58,7 @@ class EventLocalTemporaryRepositoryTest {
         creator = fakeEvent.creator,
         participants = fakeEvent.participants,
         location = fakeEvent.location,
+        isPrivate = fakeEvent.isPrivate,
         eventPicture = fakeEvent.eventPicture)
 
     assertEquals(fakeEvent, repository.getEvent())
@@ -72,6 +75,7 @@ class EventLocalTemporaryRepositoryTest {
         creator = fakeEvent.creator,
         participants = fakeEvent.participants,
         location = fakeEvent.location,
+        isPrivate = fakeEvent.isPrivate,
         eventPicture = fakeEvent.eventPicture)
     val fakeEvent2 = EventLocalTemporaryTestValues.temporaryEvent2
     repository.updateEvent(
@@ -82,6 +86,7 @@ class EventLocalTemporaryRepositoryTest {
         creator = fakeEvent2.creator,
         participants = fakeEvent2.participants,
         location = fakeEvent2.location,
+        isPrivate = fakeEvent2.isPrivate,
         eventPicture = fakeEvent2.eventPicture)
 
     assertEquals(fakeEvent2, repository.getEvent())
@@ -108,6 +113,7 @@ class EventLocalTemporaryRepositoryTest {
         creator = fakeEvent.creator,
         participants = fakeEvent.participants,
         location = fakeEvent.location,
+        isPrivate = fakeEvent.isPrivate,
         eventPicture = fakeEvent.eventPicture)
     repository.deleteEvent()
     try {
