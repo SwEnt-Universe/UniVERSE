@@ -115,12 +115,16 @@ class SelectTagViewModel(
    */
   private fun loadTags() {
     viewModelScope.launch {
-      if (mode == SelectTagMode.USER_PROFILE)
-          _selectedTags.value = userRepository.getUser(uid).tags.toList()
-      else if (mode == SelectTagMode.SETTINGS)
-          _selectedTags.value = tagRepository.getTags().toList()
-      else if (mode == SelectTagMode.EVENT_EDITION)
-          _selectedTags.value = eventRepository.getEvent(uid).tags.toList()
+      when (mode) {
+        SelectTagMode.USER_PROFILE ->
+            _selectedTags.value = userRepository.getUser(uid).tags.toList()
+
+        SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
+        SelectTagMode.EVENT_EDITION ->
+            _selectedTags.value = eventRepository.getEvent(uid).tags.toList()
+
+        else -> {}
+      }
     }
   }
 
