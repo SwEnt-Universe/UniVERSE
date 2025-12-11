@@ -34,6 +34,7 @@ import com.android.universe.model.tag.Tag.Category.TRAVEL
 import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
+import com.android.universe.ui.search.SearchEngine
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
@@ -41,6 +42,7 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
+import com.tomtom.sdk.map.display.gesture.MapClickListener
 import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.map.OnlineCachePolicy
@@ -49,6 +51,7 @@ import com.tomtom.sdk.map.display.marker.MarkerOptions
 import com.tomtom.sdk.map.display.style.StyleDescriptor
 import com.tomtom.sdk.map.display.style.StyleMode
 import com.tomtom.sdk.map.display.ui.MapView
+import com.tomtom.sdk.map.display.ui.Margin
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
 import kotlin.coroutines.cancellation.CancellationException
@@ -138,6 +141,8 @@ class MapViewModel(
               zoomLevel = prefs.getFloat(KEY_CAMERA_ZOOM, 14f).toDouble()))
   /** Observable UI state. */
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+  private val _categories = MutableStateFlow<Set<Category>>(emptySet())
+  val categories: StateFlow<Set<Category>> = _categories.asStateFlow()
 
   private val _mapActions = Channel<MapAction>(Channel.BUFFERED)
   /** Stream of one-off map actions. */
@@ -163,6 +168,7 @@ class MapViewModel(
   private val locationProvider: LocationProvider? = locationRepository.getLocationProvider()
   private val markerToEvent = mutableMapOf<String, Event>()
   private lateinit var currentUserId: String
+  private var clickListener: MapClickListener? = null
   private var longClickListener: MapLongClickListener? = null
   private var mapTheme: StyleMode =
       if (applicationContext.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -178,12 +184,11 @@ class MapViewModel(
    * Initializes data loading and starts event polling.
    *
    * @param uid The ID of the current user.
-   * @param locationSelectedCallback Callback triggered when a location is selected via long press.
    */
-  fun init(uid: String, locationSelectedCallback: (Double, Double) -> Unit) {
+  fun init(uid: String) {
     currentUserId = uid
     // Re-attach listener if map is already interactive (e.g., config change)
-    updateLongClickListener(locationSelectedCallback)
+    updateClickListeners()
     loadAllEvents()
     startEventPolling()
   }
@@ -211,9 +216,17 @@ class MapViewModel(
           MapOptions(
               mapKey = BuildConfig.TOMTOM_API_KEY,
               mapStyle = StyleDescriptor(uri = LIGHT_STYLE.toUri(), darkUri = DARK_STYLE.toUri()),
+              styleMode = mapTheme,
               onlineCachePolicy = OnlineCachePolicy.Custom(CACHE_SIZE),
               renderToTexture = true)
-      tomtomMapView = MapView(applicationContext, mapOptions)
+      val view = MapView(applicationContext, mapOptions)
+      view.compassButton.margin =
+          Margin(
+              top = (applicationContext.resources.displayMetrics.heightPixels * 0.12f).toInt(),
+              left = 0,
+              right = 30,
+              bottom = 0)
+      tomtomMapView = view
       tomtomMapView?.onCreate(null)
       tomtomMapView?.configureUiSettings()
       tomtomMapView?.getMapAsync { onMapReady(it) }
@@ -246,8 +259,6 @@ class MapViewModel(
       setInitialCamera(uiState.value.cameraPosition, uiState.value.zoomLevel)
       setAntialiasingMethod(AntialiasingMethod.FastApproximateAntialiasing)
       setUpMapListeners(
-          mode = uiState.value.mapMode,
-          onMapClick = { onMapClick() },
           onMarkerClick = { marker ->
             markerToEvent[marker.tag]?.let { event: Event ->
               onMarkerClick(event)
@@ -271,11 +282,15 @@ class MapViewModel(
   }
 
   /**
-   * Updates the current map interaction mode.
+   * Updates the current map interaction mode. Clears the selected location if switching to NORMAL
+   * mode.
    *
    * @param mapMode The new mode (e.g., NORMAL, SELECT_LOCATION).
    */
-  fun setMapMode(mapMode: MapMode) {
+  fun switchMapMode(mapMode: MapMode) {
+    if (mapMode == MapMode.NORMAL) {
+      _uiState.update { it.copy(selectedLocation = null) }
+    }
     _uiState.update { it.copy(mapMode = mapMode) }
   }
 
@@ -286,7 +301,6 @@ class MapViewModel(
    * Triggers a camera move action via a one-off event.
    *
    * @param target Destination coordinates.
-   * @param currentZoom Current zoom level to maintain or adjust.
    */
   fun onCameraMoveRequest(target: GeoPoint) {
     if (tomTomMap == null) return
@@ -309,24 +323,13 @@ class MapViewModel(
     }
   }
 
-  /** Clears selected location when the map background is clicked. */
-  fun onMapClick() {
-    _uiState.value = _uiState.value.copy(selectedLocation = null)
-  }
-
   /**
-   * Updates state when a location is long-pressed.
+   * modify the location of the uiState when the user select it.
    *
-   * @param latitude Latitude of the selected point.
-   * @param longitude Longitude of the selected point.
+   * @param location the location selected by the user
    */
-  fun onMapLongClick(latitude: Double, longitude: Double) {
-    _uiState.value = _uiState.value.copy(selectedLocation = GeoPoint(latitude, longitude))
-  }
-
-  /** Manually selects a location (primarily for testing). */
   fun selectLocation(location: GeoPoint) {
-    _uiState.value = _uiState.value.copy(selectedLocation = location)
+    _uiState.update { it.copy(selectedLocation = location) }
   }
 
   private fun TomTomMap.setInitialCamera(position: GeoPoint, zoom: Double) {
@@ -334,31 +337,34 @@ class MapViewModel(
   }
 
   private fun TomTomMap.setUpMapListeners(
-      mode: MapMode,
-      onMapClick: () -> Unit,
       onMarkerClick: (Marker) -> Boolean,
       onCameraChange: (GeoPoint, Double) -> Unit
   ) {
-    this.addMapClickListener {
-      if (mode == MapMode.NORMAL) onMapClick()
-      true
-    }
     this.addMarkerClickListener { clickedMarker -> onMarkerClick(clickedMarker) }
     this.addCameraSteadyListener {
       onCameraChange(this.cameraPosition.position, this.cameraPosition.zoom)
     }
   }
 
-  private fun TomTomMap.setMapLongClickListener(
+  /** Sets up map click and long-click listeners based on the current map mode. */
+  private fun TomTomMap.setMapClickListeners(
       mode: MapMode,
-      onMapLongClick: (GeoPoint) -> Unit,
-      onLocationSelected: (Double, Double) -> Unit
   ) {
+    clickListener =
+        MapClickListener { geoPoint: GeoPoint ->
+              if (mode == MapMode.SELECT_LOCATION) {
+                selectLocation(geoPoint)
+              }
+              true
+            }
+            .let {
+              this.addMapClickListener(it)
+              it
+            }
     longClickListener =
         MapLongClickListener { geoPoint: GeoPoint ->
-              when (mode) {
-                MapMode.NORMAL -> onMapLongClick(geoPoint)
-                MapMode.SELECT_LOCATION -> onLocationSelected(geoPoint.latitude, geoPoint.longitude)
+              if (mode == MapMode.SELECT_LOCATION) {
+                selectLocation(geoPoint)
               }
               true
             }
@@ -368,13 +374,12 @@ class MapViewModel(
             }
   }
 
-  fun updateLongClickListener(locationSelectedCallback: (Double, Double) -> Unit) {
+  /** Updates map click listeners when mode changes. */
+  fun updateClickListeners() {
     if (uiState.value.isMapInteractive && tomTomMap != null) {
+      clickListener?.let { tomTomMap?.removeMapClickListener(it) }
       longClickListener?.let { tomTomMap?.removeMapLongClickListener(it) }
-      tomTomMap?.setMapLongClickListener(
-          mode = uiState.value.mapMode,
-          onMapLongClick = { pos -> onMapLongClick(pos.latitude, pos.longitude) },
-          onLocationSelected = locationSelectedCallback)
+      tomTomMap?.setMapClickListeners(mode = uiState.value.mapMode)
     }
   }
 
@@ -476,6 +481,39 @@ class MapViewModel(
   }
 
   /**
+   * Selects a category and updates the markers according to the new filter.
+   *
+   * @param category The category to select.
+   * @param select Whether to select or deselect the category. true means selecting, false means
+   *   deselecting.
+   */
+  fun selectCategory(category: Category, select: Boolean) {
+
+    if (select) {
+      _categories.update { it + category }
+    } else {
+      _categories.update { it - category }
+    }
+    if (_categories.value.isEmpty()) {
+      _uiState.update { it.copy(markers = _eventMarkers.value.map { e -> mapEventToMarker(e) }) }
+    } else {
+      _uiState.update {
+        it.copy(
+            markers =
+                _eventMarkers.value
+                    .filter { e -> SearchEngine.tagMatch(e.tags, categories.value) }
+                    .map { e -> mapEventToMarker(e) })
+      }
+    }
+  }
+
+  /** Clears the filter. To be used when navigating away from the screen. */
+  fun resetFilter() {
+    _categories.update { emptySet() }
+    _uiState.update { it.copy(markers = _eventMarkers.value.map { e -> mapEventToMarker(e) }) }
+  }
+
+  /**
    * Polls events periodically.
    *
    * @param intervalMinutes Minutes between poll attempts.
@@ -517,7 +555,10 @@ class MapViewModel(
           withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
 
       if (markersToRemove.isNotEmpty()) {
-        markersToRemove.forEach { markerToEvent.remove(it) }
+        markersToRemove.forEach {
+          map.removeMarkers(it)
+          markerToEvent.remove(it)
+        }
       }
       if (optionsToAdd.isNotEmpty()) {
         val addedMarkers = map.addMarkers(optionsToAdd)

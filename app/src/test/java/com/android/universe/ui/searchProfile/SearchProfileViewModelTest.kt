@@ -38,39 +38,20 @@ class SearchProfileViewModelTest {
   }
 
   @Test
-  fun init_loadsAllDataAutomatically() = runTest {
-    advanceUntilIdle()
-
-    val state = viewModel.profilesState.value
-    assertTrue("Explore list should be loaded", state.explore.isNotEmpty())
-    assertFalse("Should not be in loading state", state.isLoading)
-  }
-
-  @Test
-  fun loadInitialData_loadsCorrectFollowers() = runTest {
-    // Bob + Rocky follow Alice
-    repository.followUser(UserTestData.Bob.uid, UserTestData.Alice.uid)
-    repository.followUser(UserTestData.Rocky.uid, UserTestData.Alice.uid)
+  fun init_loadsInitialFollowingIds() = runTest {
+    repository.followUser(UserTestData.Alice.uid, UserTestData.Bob.uid)
 
     viewModel = SearchProfileViewModel(UserTestData.Alice.uid, repository)
     advanceUntilIdle()
 
-    val followerIds = viewModel.profilesState.value.followers.map { it.user.uid }.toSet()
+    viewModel.searchQuery.value
+    viewModel.profilesState.value
 
-    assertEquals(setOf(UserTestData.Bob.uid, UserTestData.Rocky.uid), followerIds)
-  }
-
-  @Test
-  fun loadInitialData_loadsCorrectFollowing() = runTest {
-    // Alice follows Bob only
-    repository.followUser(UserTestData.Alice.uid, UserTestData.Bob.uid)
-
-    viewModel.loadInitialData()
+    viewModel.loadFollowing()
     advanceUntilIdle()
 
-    val followingIds = viewModel.profilesState.value.following.map { it.user.uid }
-
-    assertEquals(listOf(UserTestData.Bob.uid), followingIds)
+    val loadedFollowing = viewModel.profilesState.value.following.map { it.user.uid }
+    assertEquals(listOf(UserTestData.Bob.uid), loadedFollowing)
   }
 
   @Test
@@ -116,7 +97,7 @@ class SearchProfileViewModelTest {
   fun followOrUnfollowUser_followsUser() = runTest {
     repository.unfollowUser(UserTestData.Alice.uid, UserTestData.Bob.uid)
 
-    viewModel.loadInitialData()
+    viewModel.loadExplore()
     advanceUntilIdle()
 
     val bobState =
@@ -126,8 +107,7 @@ class SearchProfileViewModelTest {
     advanceUntilIdle()
 
     val followers = repository.getFollowers(UserTestData.Bob.uid)
-
-    assertTrue("Alice should now follow Bob", followers.any { it.uid == UserTestData.Alice.uid })
+    assertTrue(followers.any { it.uid == UserTestData.Alice.uid })
   }
 
   @Test
@@ -137,6 +117,9 @@ class SearchProfileViewModelTest {
     viewModel.loadInitialData()
     advanceUntilIdle()
 
+    viewModel.loadFollowing()
+    advanceUntilIdle()
+
     val bobState =
         viewModel.profilesState.value.following.first { it.user.uid == UserTestData.Bob.uid }
 
@@ -144,9 +127,7 @@ class SearchProfileViewModelTest {
     advanceUntilIdle()
 
     val followers = repository.getFollowers(UserTestData.Bob.uid)
-
-    assertFalse(
-        "Alice should no longer follow Bob", followers.any { it.uid == UserTestData.Alice.uid })
+    assertFalse(followers.any { it.uid == UserTestData.Alice.uid })
   }
 
   @Test

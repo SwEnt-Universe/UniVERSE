@@ -51,8 +51,7 @@ class MapViewModelTest {
   private lateinit var userId: String
 
   companion object {
-    const val commonLat = 46.5196535
-    const val commonLng = 6.6322734
+    val SAMPLE_GEO_POINT = GeoPoint(latitude = 46.5196535, longitude = 6.6322734)
   }
 
   private lateinit var viewModel: MapViewModel
@@ -164,7 +163,7 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.userLocation)
     assertEquals(fakeLocation.latitude, state.userLocation!!.latitude, 0.0001)
-    assertEquals(fakeLocation.longitude, state.userLocation.longitude, 0.0001)
+    assertEquals(fakeLocation.longitude, state.userLocation!!.longitude, 0.0001)
     assertNull(state.error)
     assertFalse(state.isLoading)
   }
@@ -378,30 +377,6 @@ class MapViewModelTest {
   }
 
   @Test
-  fun `onMapLongClick updates selectedLocation`() = runTest {
-    viewModel.onMapLongClick(commonLat, commonLng)
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    assertNotNull(state.selectedLocation)
-    assertEquals(commonLat, state.selectedLocation!!.latitude, 0.0001)
-    assertEquals(commonLng, state.selectedLocation.longitude, 0.0001)
-  }
-
-  @Test
-  fun `onMapClick clears selectedLocation`() = runTest {
-    // First set it
-    viewModel.onMapLongClick(commonLat, commonLng)
-    advanceUntilIdle()
-    assertNotNull(viewModel.uiState.value.selectedLocation)
-
-    // Then click map to clear
-    viewModel.onMapClick()
-    advanceUntilIdle()
-    assertNull(viewModel.uiState.value.selectedLocation)
-  }
-
-  @Test
   fun `polling requests update events`() = runTest {
     // Because we injected testDispatcher into the ViewModel, delay() will obey advanceTimeBy
     val intervalMin = 1L
@@ -598,5 +573,39 @@ class MapViewModelTest {
     advanceUntilIdle()
 
     assertNull(viewModel.uiState.value.pendingCameraCenter)
+  }
+
+  @Test
+  fun switchModeChangeMode() {
+    assertEquals(MapMode.NORMAL, viewModel.uiState.value.mapMode)
+    viewModel.switchMapMode(MapMode.SELECT_LOCATION)
+    assertEquals(MapMode.SELECT_LOCATION, viewModel.uiState.value.mapMode)
+  }
+
+  @Test
+  fun switchModeUpdateLocation() {
+    viewModel.switchMapMode(MapMode.SELECT_LOCATION)
+    viewModel.selectLocation(SAMPLE_GEO_POINT)
+    assertEquals(SAMPLE_GEO_POINT, viewModel.uiState.value.selectedLocation)
+    viewModel.switchMapMode(MapMode.NORMAL)
+    assertEquals(null, viewModel.uiState.value.selectedLocation)
+  }
+
+  @Test
+  fun `selectCategory all actions`() {
+    val cat = Tag.Category.FOOD
+    viewModel.selectCategory(cat, true)
+    viewModel.uiState.value.markers.all { it.event.tags.none { e -> e.category != cat } }
+    assertEquals(setOf(cat), viewModel.categories.value)
+    viewModel.selectCategory(cat, false)
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
+  }
+
+  @Test
+  fun `resetFilter empties categories`() {
+    val cat = Tag.Category.FOOD
+    viewModel.selectCategory(cat, true)
+    viewModel.resetFilter()
+    assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
   }
 }
