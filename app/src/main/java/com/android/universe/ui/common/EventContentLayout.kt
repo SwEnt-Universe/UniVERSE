@@ -140,7 +140,7 @@ fun EventContentLayout(
               Text(
                   text = title,
                   style = MaterialTheme.typography.titleLarge,
-                  color = Color.White,
+                  color = MaterialTheme.colorScheme.onSurface,
                   maxLines = 1,
                   overflow = TextOverflow.Ellipsis,
                   modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
