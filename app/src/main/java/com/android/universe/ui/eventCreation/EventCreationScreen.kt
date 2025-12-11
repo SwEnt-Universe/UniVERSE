@@ -91,18 +91,21 @@ object EventCreationDefaults {
  * selecting a location, and picking a date. It also provides an AI Assistant flow to generate event
  * details automatically.
  *
+ * @param uidEvent the unique identifier of the event being edited, or null for a new event.
  * @param eventCreationViewModel the viewModel that holds the state and logic for event creation.
  * @param location the location of the event.
  * @param onSave callback triggered when the user successfully saves the event.
+ * @param onSaveEdition callback triggered when the user successfully edits the event.
  * @param onBack callback triggered when the user clicks the back button.
  */
 @Composable
 fun EventCreationScreen(
-    uid: String? = null,
+    uidEvent: String? = null,
     eventCreationViewModel: EventCreationViewModel =
         viewModel(factory = EventCreationViewModel.provideFactory(LocalContext.current)),
     location: Location,
     onSave: () -> Unit = {},
+    onSaveEdition: (uid: String) -> Unit = { _ -> },
     onBack: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
@@ -135,11 +138,12 @@ fun EventCreationScreen(
     }
   } else {
     StandardEventCreationForm(
-        uid = uid,
+        uidEvent = uidEvent,
         uiState = uiState.value,
         eventCreationViewModel = eventCreationViewModel,
         location = location,
         onSave = onSave,
+        onSaveEdition = onSaveEdition,
         onBack = onBack)
   }
 }
@@ -151,10 +155,12 @@ fun EventCreationScreen(
  * Location. It handles user interaction by calling methods on the [eventCreationViewModel] and
  * triggers navigation via the provided callbacks.
  *
+ * @param uidEvent The unique identifier of the event being edited, or null for a new event.
  * @param uiState The current UI state containing form data and validation results.
  * @param eventCreationViewModel The ViewModel to update state and trigger logic.
  * @param location the location of the event.
  * @param onSave Callback triggered when the event is successfully saved.
+ * @param onSaveEdition Callback triggered when the event is successfully edited.
  * @param onBack Callback to return to the previous screen.
  */
 @Composable
@@ -164,6 +170,7 @@ fun StandardEventCreationForm(
     eventCreationViewModel: EventCreationViewModel,
     location: Location,
     onSave: () -> Unit,
+    onSaveEdition: (uid: String) -> Unit = { _ -> },
     onBack: () -> Unit
 ) {
   val eventImage = uiState.eventPicture
@@ -176,15 +183,18 @@ fun StandardEventCreationForm(
           onClick = {
             val currentUser = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUser != null) {
-              eventCreationViewModel.saveEvent(uidUser = currentUser, uidEvent = uidEvent, location = location)
-              onSave()
+              eventCreationViewModel.saveEvent(
+                  uidUser = currentUser, uidEvent = uidEvent, location = location)
+              if (uidEvent == null) {
+                onSave()
+              } else {
+                onSaveEdition(uidEvent)
+              }
             }
           },
           enabled = eventCreationViewModel.validateAll())
 
-    LaunchedEffect(uidEvent){
-        eventCreationViewModel.loadUid(uidEvent)
-    }
+  LaunchedEffect(uidEvent) { eventCreationViewModel.loadUid(uidEvent) }
   ScreenLayout(
       bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
       content = { paddingValues ->
