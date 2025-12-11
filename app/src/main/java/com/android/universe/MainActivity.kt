@@ -1,5 +1,3 @@
-@file:Suppress("NAME_SHADOWING")
-
 package com.android.universe
 
 import android.annotation.SuppressLint
