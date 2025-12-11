@@ -577,9 +577,10 @@ class MapViewModelTest {
 
         // ---- STATE ASSERTIONS ----
 
-        // Preview and selection are set
         assertEquals(generatedEvent, viewModel.previewEvent.value)
-        assertEquals(generatedEvent, viewModel.selectedEvent.value)
+
+        val sel = viewModel.selectedEvent.value as MapViewModel.EventSelectionState.Selected
+        assertEquals(generatedEvent, sel.event)
 
         // No error
         assertNull(viewModel.uiState.value.error)
