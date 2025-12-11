@@ -71,7 +71,6 @@ object SearchProfileScreenTestTags {
  *
  * @param uid The user ID of the current user.
  * @param onTabSelected Callback function invoked when a bottom navigation tab is selected.
- * @param onChatNavigate Callback function invoked when the chat button is clicked.
  * @param onCardClick Callback function invoked when a profile card is clicked.
  * @param searchProfileViewModel The [SearchProfileViewModel] used to manage UI state and handle
  *   user interactions.
@@ -81,7 +80,6 @@ object SearchProfileScreenTestTags {
 fun SearchProfileScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit = {},
-    onChatNavigate: () -> Unit = {},
     onCardClick: () -> Unit = {},
     searchProfileViewModel: SearchProfileViewModel = viewModel { SearchProfileViewModel(uid) },
 ) {
@@ -120,7 +118,6 @@ fun SearchProfileScreen(
                     followingProfiles = profilesState.following,
                     isLoading = profilesState.isLoading,
                     searchProfileViewModel = searchProfileViewModel,
-                    onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick)
 
                 SearchHeaderOverlay(
@@ -192,7 +189,6 @@ fun SearchHeaderOverlay(
  * @param isLoading A boolean indicating whether the profile data is currently being loaded.
  * @param searchProfileViewModel The [SearchProfileViewModel] used to handle user interactions such
  *   as following or unfollowing users.
- * @param onChatNavigate Callback function invoked when the chat button is clicked.
  * @param onCardClick Callback function invoked when a profile card is clicked.
  */
 @Composable
@@ -206,7 +202,6 @@ fun SearchProfileContentPager(
     followingProfiles: List<ProfileUIState>,
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
-    onChatNavigate: () -> Unit = {},
     onCardClick: () -> Unit = {}
 ) {
   var headerHeight by remember { mutableStateOf(180.dp) }
@@ -238,7 +233,6 @@ fun SearchProfileContentPager(
               isLoading = isLoading,
               searchProfileViewModel = searchProfileViewModel,
               topPadding = headerHeight,
-              onChatNavigate = onChatNavigate,
               onCardClick = onCardClick)
         }
       }
@@ -255,7 +249,6 @@ fun SearchProfileContentPager(
  *   as following or unfollowing users.
  * @param topPadding The top padding to be applied to the list, typically to account for overlaying
  *   UI elements.
- * @param onChatNavigate Callback function invoked when the chat button is clicked.
  * @param onCardClick Callback function invoked when a profile card is clicked.
  */
 @Composable
@@ -265,7 +258,6 @@ fun ProfileList(
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
     topPadding: Dp,
-    onChatNavigate: () -> Unit = {},
     onCardClick: () -> Unit = {}
 ) {
   LazyColumn(
@@ -309,7 +301,6 @@ fun ProfileList(
                 ProfileCard(
                     profile = profile,
                     viewModel = searchProfileViewModel,
-                    onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick)
               }
         }

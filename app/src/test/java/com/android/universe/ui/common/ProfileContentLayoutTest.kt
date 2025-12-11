@@ -8,7 +8,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
@@ -24,23 +23,14 @@ class ProfileContentLayoutTest {
 
   private fun setProfileContent(
       isFollowing: Boolean = true,
-      onChatClick: () -> Unit = {},
       onToggleFollowing: () -> Unit = {},
-      onSettingsClick: (() -> Unit)? = null,
-      actionRowEnabled: Boolean = true,
-      followers: Int? = 0,
-      following: Int? = 0
+      onSettingsClick: (() -> Unit)? = null
   ) {
     composeTestRule.setContentWithStubBackdrop {
       ProfileContentLayout(
           modifier = Modifier.fillMaxSize(),
           userProfile = testUserProfile,
-          followers = followers,
-          following = following,
           isFollowing = isFollowing,
-          heightTagList = 260.dp,
-          actionRowEnabled = actionRowEnabled,
-          onChatClick = onChatClick,
           onToggleFollowing = onToggleFollowing,
           onSettingsClick = onSettingsClick)
     }
@@ -48,8 +38,7 @@ class ProfileContentLayoutTest {
 
   @Test
   fun profileContent_displaysUserInfoCorrectly() {
-    setProfileContent(followers = 10, following = 5)
-
+    setProfileContent()
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.FULL_NAME}_${testUserProfile.uid}")
         .assertExists()
@@ -89,39 +78,6 @@ class ProfileContentLayoutTest {
   }
 
   @Test
-  fun profileContent_actionsRow_isNotDisplayed_whenActionRowEnabledFalse() {
-    setProfileContent(actionRowEnabled = false)
-
-    composeTestRule
-        .onNodeWithTag("${ProfileContentTestTags.CHAT_BUTTON}_${testUserProfile.uid}")
-        .assertDoesNotExist()
-
-    composeTestRule
-        .onNodeWithTag("${ProfileContentTestTags.ADD_BUTTON}_${testUserProfile.uid}")
-        .assertDoesNotExist()
-  }
-
-  @Test
-  fun profileContent_actionsRow_isDisplayed_whenActionRowEnabledTrue() {
-    var chatClicked = false
-    var onToggleFollowingClicked = false
-
-    setProfileContent(
-        onChatClick = { chatClicked = true },
-        onToggleFollowing = { onToggleFollowingClicked = true })
-
-    composeTestRule
-        .onNodeWithTag("${ProfileContentTestTags.CHAT_BUTTON}_${testUserProfile.uid}")
-        .performClick()
-    assert(chatClicked)
-
-    composeTestRule
-        .onNodeWithTag("${ProfileContentTestTags.ADD_BUTTON}_${testUserProfile.uid}")
-        .performClick()
-    assert(onToggleFollowingClicked)
-  }
-
-  @Test
   fun profileContent_tagsAreDisplayed() {
     setProfileContent()
 
@@ -132,13 +88,12 @@ class ProfileContentLayoutTest {
 
   @Test
   fun profileContent_displaysFollowersAndFollowingCounts() {
-    setProfileContent(followers = 100, following = 50)
-
+    setProfileContent()
     composeTestRule
         .onNodeWithTag("${ProfileContentTestTags.FOLLOWERS_COUNT}_${testUserProfile.uid}")
         .assertExists()
 
-    composeTestRule.onNodeWithText("100").assertExists()
+    composeTestRule.onNodeWithText("3").assertExists()
 
     composeTestRule.onNodeWithText("followers").assertExists()
 
@@ -146,7 +101,7 @@ class ProfileContentLayoutTest {
         .onNodeWithTag("${ProfileContentTestTags.FOLLOWING_COUNT}_${testUserProfile.uid}")
         .assertExists()
 
-    composeTestRule.onNodeWithText("50").assertExists()
+    composeTestRule.onNodeWithText("2").assertExists()
 
     composeTestRule.onNodeWithText("following").assertExists()
   }
