@@ -58,8 +58,6 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
 
   companion object {
     var fakeUser = UserTestData.Bob
-    const val FAKE_EMAIL = UserTestData.bobEmail
-    const val FAKE_PASS = UserTestData.bobPassword
     val FAKE_EVENT = EventTestData.futureEventNoTags
     const val TIME_INPUT = "13:25"
   }
@@ -72,6 +70,9 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
   private lateinit var mapViewModel: MapViewModel
   private lateinit var context: Context
 
+  private lateinit var userEmail: String
+  private lateinit var userUid: String
+
   @Before
   override fun setUp() {
     super.setUp()
@@ -83,10 +84,14 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     every { DefaultDP.main } returns Dispatchers.Main
 
     runTest {
-      val uid = createTestUser(fakeUser, FAKE_EMAIL, FAKE_PASS)
-      fakeUser = fakeUser.copy(uid = uid)
+      createRandomTestUser(fakeUser).let {
+        userEmail = it.first
+        userUid = it.second
+      }
+      fakeUser = fakeUser.copy(uid = userUid)
       Firebase.auth.signOut()
       advanceUntilIdle()
+
       composeTestRule.setContentWithStubBackdrop {
         UniverseTheme {
           UniverseBackgroundContainer(mapViewModel) { UniverseApp(mapViewModel = mapViewModel) }
@@ -116,7 +121,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule
         .onNodeWithTagWithUnmergedTree(FormTestTags.EMAIL_FIELD)
         .performClick()
-        .performTextInput(FAKE_EMAIL)
+        .performTextInput(userEmail)
 
     composeTestRule
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
@@ -130,7 +135,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule
         .onNodeWithTagWithUnmergedTree(FormTestTags.PASSWORD_FIELD)
         .performClick()
-        .performTextInput(FAKE_PASS)
+        .performTextInput(PASSWORD)
 
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
 

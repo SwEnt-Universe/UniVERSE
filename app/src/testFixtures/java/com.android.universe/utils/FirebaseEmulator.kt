@@ -21,7 +21,7 @@ object FirebaseEmulator {
   private const val ANDROID_EMULATOR_HOST = "10.0.2.2"
 
   const val AUTH_PORT = 9099
-  private const val FIRESTORE_PORT = 8080
+  const val FIRESTORE_PORT = 8080
 
   val auth: FirebaseAuth
     get() = Firebase.auth

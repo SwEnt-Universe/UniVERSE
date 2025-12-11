@@ -267,7 +267,7 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
         .onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON)
         .assertIsDisplayed()
         .performClick()
-
+    advanceUntilIdle()
     // Wait max 30 second for the email validation to occur, we should arrive on the
     // AddProfileScreen
     composeTestRule.waitUntil(60_000L) {
