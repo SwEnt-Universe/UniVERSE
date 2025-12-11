@@ -32,8 +32,6 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.internal.format
-import okhttp3.internal.notify
 
 enum class OnboardingState {
   ENTER_EVENT_TITLE,
@@ -46,7 +44,6 @@ enum class OnboardingState {
  *
  * @param name the name of the event.
  * @param description the description of the event.
- * @param minute the minute of the event.
  * @param date the date of the event.
  * @param time the time of the event.
  * @param titleError the error message for the title.
@@ -199,21 +196,33 @@ class EventCreationViewModel(
     }
   }
 
-    fun loadUid(uid: String?){
-        viewModelScope.launch(DefaultDP.io){
-            if (uid != null) {
-                val event = eventRepository.getEvent(uid)
-                val eventDate = event.date.toLocalDate()
-                val eventTime = event.date.toLocalTime()
-                eventCreationUiState.value = eventCreationUiState.value.copy(
-                    name = event.title,
-                    description = event.description ?: "",
-                    date = eventDate,
-                    time = formatTime(eventTime))
-            }
-        }
+  /**
+   * Loads an existing event from its unique identifier and updates the UI state of the event
+   * creation/editing screen accordingly.
+   *
+   * This function is typically used when entering the event edition flow. It retrieves the event
+   * corresponding to the given `uid`, extracts its fields, and populates the `eventCreationUiState`
+   * so that the UI is pre-filled with the event's current data.
+   *
+   * The event is loaded asynchronously using a ViewModel coroutine on the I/O dispatcher.
+   *
+   * @param uid The unique identifier of the event to load. If null, nothing is loaded.
+   */
+  fun loadUid(uid: String?) {
+    viewModelScope.launch(DefaultDP.io) {
+      if (uid != null) {
+        val event = eventRepository.getEvent(uid)
+        val eventDate = event.date.toLocalDate()
+        val eventTime = event.date.toLocalTime()
+        eventCreationUiState.value =
+            eventCreationUiState.value.copy(
+                name = event.title,
+                description = event.description ?: "",
+                date = eventDate,
+                time = formatTime(eventTime))
+      }
     }
-
+  }
 
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
@@ -325,14 +334,14 @@ class EventCreationViewModel(
     return if (date == null) "Select date" else date.format(formatter)
   }
 
-    /**
-     * Format the date to a string.
-     *
-     * @param date the date to format.
-     */
-    fun formatTime(time: LocalTime?): String {
-        return if (time == null) "Select time" else time.format(timeFormatter)
-    }
+  /**
+   * Format the date to a string.
+   *
+   * @param date the date to format.
+   */
+  fun formatTime(time: LocalTime?): String {
+    return if (time == null) "Select time" else time.format(timeFormatter)
+  }
 
   /**
    * Save the event with all the parameters selected by the user in the event repository.
