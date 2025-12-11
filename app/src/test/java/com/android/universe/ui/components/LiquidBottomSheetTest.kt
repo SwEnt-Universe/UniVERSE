@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -127,14 +126,11 @@ class LiquidBottomSheetTest {
   @Test
   fun liquidBottomSheet_appliesCustomStylingAndParameters() {
     composeTestRule.setContentWithStubBackdrop {
-      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-
       UniverseTheme {
         LiquidBottomSheet(
             isPresented = true,
             onDismissRequest = {},
             modifier = Modifier.testTag(TEST_TAG),
-            sheetState = sheetState,
             sheetMaxWidth = 400.dp,
             shape = RoundedCornerShape(0.dp),
             containerColor = Color.Blue.copy(alpha = 0.5f),

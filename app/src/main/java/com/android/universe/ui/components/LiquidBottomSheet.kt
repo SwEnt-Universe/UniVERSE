@@ -1,5 +1,6 @@
 package com.android.universe.ui.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,18 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.DrawerDefaults.scrimColor
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetDefaults
-import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.material3.ModalBottomSheetProperties
-import androidx.compose.material3.ScaffoldDefaults.contentWindowInsets
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,8 +41,6 @@ import com.android.universe.ui.theme.Dimensions
  * @param onDismissRequest The callback invoked when the user taps the scrim or drags the sheet
  *   away.
  * @param modifier The modifier to be applied to the bottom sheet layout.
- * @param sheetState The state of the bottom sheet. Defaults to [rememberModalBottomSheetState] with
- *   `skipPartiallyExpanded = true`.
  * @param sheetMaxWidth The maximum width of the bottom sheet.
  * @param shape The shape of the bottom sheet. This is applied to both the interaction bounds and
  *   the clipping of the liquid effect.
@@ -72,7 +68,6 @@ fun LiquidBottomSheet(
     isPresented: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     sheetMaxWidth: Dp = BottomSheetDefaults.SheetMaxWidth,
     shape: Shape = BottomSheetDefaults.ExpandedShape,
     containerColor: Color = Color.Transparent,
@@ -88,50 +83,56 @@ fun LiquidBottomSheet(
     bottomBar: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-  if (isPresented) {
-    ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        modifier = modifier,
-        sheetState = sheetState,
-        sheetMaxWidth = sheetMaxWidth,
-        shape = shape,
-        containerColor = Color.Transparent,
-        contentColor = contentColor,
-        tonalElevation = tonalElevation,
-        scrimColor = scrimColor,
-        dragHandle = null,
-        contentWindowInsets = contentWindowInsets,
-        properties = properties) {
-          LiquidBox(
-              modifier = Modifier.fillMaxWidth().clip(shape),
-              shape = shape,
-              color = containerColor,
-              blurRadius = blurRadius,
-              refractionHeight = refractionHeight,
-              refractionAmount = refractionAmount) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                  if (dragHandle != null) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                        contentAlignment = Alignment.Center) {
-                          dragHandle()
-                        }
-                  }
+  val uiMode = isSystemInDarkTheme()
+  key(uiMode) {
+    // sheetState must be keyed because of an internal caching bug in ModalBottomSheet’s internal
+    // composition root
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    if (isPresented) {
+      ModalBottomSheet(
+          onDismissRequest = onDismissRequest,
+          modifier = modifier,
+          sheetState = sheetState,
+          sheetMaxWidth = sheetMaxWidth,
+          shape = shape,
+          containerColor = Color.Transparent,
+          contentColor = contentColor,
+          tonalElevation = tonalElevation,
+          scrimColor = scrimColor,
+          dragHandle = null,
+          contentWindowInsets = contentWindowInsets,
+          properties = properties) {
+            LiquidBox(
+                modifier = Modifier.fillMaxWidth().clip(shape),
+                shape = shape,
+                color = containerColor,
+                blurRadius = blurRadius,
+                refractionHeight = refractionHeight,
+                refractionAmount = refractionAmount) {
+                  Column(modifier = Modifier.fillMaxWidth()) {
+                    if (dragHandle != null) {
+                      Box(
+                          modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                          contentAlignment = Alignment.Center) {
+                            dragHandle()
+                          }
+                    }
 
-                  content()
+                    content()
 
-                  bottomBar?.let {
-                    Box(
-                        modifier =
-                            Modifier.fillMaxWidth()
-                                .padding(vertical = Dimensions.PaddingExtraLarge),
-                        contentAlignment = Alignment.Center) {
-                          it()
-                        }
+                    bottomBar?.let {
+                      Box(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(vertical = Dimensions.PaddingExtraLarge),
+                          contentAlignment = Alignment.Center) {
+                            it()
+                          }
+                    }
                   }
                 }
-              }
-        }
+          }
+    }
   }
 }
 

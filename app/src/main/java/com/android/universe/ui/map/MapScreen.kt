@@ -109,7 +109,7 @@ fun MapScreen(
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
-          eventTemporaryRepository = EventTemporaryRepositoryProvider.repository,
+          EventTemporaryRepositoryProvider.repository,
           UserRepositoryProvider.repository,
       )
     }
@@ -272,7 +272,7 @@ fun MapScreen(
                             FlowBottomMenu(
                                 flowTabs =
                                     listOf(
-                                        FlowTab.Back { viewModel.rejectPreview() },
+                                        FlowTab.Back(onClick = { viewModel.rejectPreview() }),
                                         FlowTab.Confirm(
                                             { viewModel.acceptPreview() }, enabled = true)))
                           }

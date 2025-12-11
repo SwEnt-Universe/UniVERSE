@@ -64,8 +64,9 @@ sealed class FlowTab(
    * provided `onClick` action, typically used for navigating to the previous screen.
    *
    * @param onClick The lambda function to be executed when the back tab is clicked.
+   * @param testTag A unique string used to identify the tab in UI tests.
    */
-  class Back(onClick: () -> Unit) :
+  class Back(onClick: () -> Unit, testTag: String = FlowBottomMenuTestTags.BACK_BUTTON) :
       FlowTab(
           icon = {
             Icon(
@@ -74,7 +75,7 @@ sealed class FlowTab(
                 modifier = Modifier.size(Dimensions.IconSizeLarge))
           },
           label = "Back",
-          testTag = FlowBottomMenuTestTags.BACK_BUTTON,
+          testTag = testTag,
           onClick = onClick)
 
   /**
@@ -84,8 +85,13 @@ sealed class FlowTab(
    * @param onClick The lambda function to be executed when the confirm tab is clicked.
    * @param enabled A boolean indicating whether the confirm action is enabled. If false, the icon
    *   is dimmed.
+   * @param testTag A unique string used to identify the tab in UI tests.
    */
-  class Confirm(onClick: () -> Unit, enabled: Boolean) :
+  class Confirm(
+      onClick: () -> Unit,
+      enabled: Boolean,
+      testTag: String = FlowBottomMenuTestTags.CONFIRM_BUTTON
+  ) :
       FlowTab(
           icon = {
             Icon(
@@ -97,7 +103,7 @@ sealed class FlowTab(
                     else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
           },
           label = "Confirm",
-          testTag = FlowBottomMenuTestTags.CONFIRM_BUTTON,
+          testTag = testTag,
           onClick =
               if (enabled) onClick
               else {

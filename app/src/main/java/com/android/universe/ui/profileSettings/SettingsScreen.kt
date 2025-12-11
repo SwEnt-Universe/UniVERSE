@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -54,6 +55,7 @@ import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidImagePicker
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationTestTags
@@ -122,36 +124,49 @@ fun SettingsScreen(
         viewModel.signOut(clear, onLogout)
       },
       onDismiss = { showDialog.value = false })
-  Box(modifier = Modifier.fillMaxSize().testTag(NavigationTestTags.SETTINGS_SCREEN)) {
-    Column(
-        modifier = Modifier.padding(top = Dimensions.PaddingExtraLarge),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingExtraLarge)) {
-          Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-          LiquidImagePicker(
-              uiState.profilePicture,
-              onPickImage = { launcher.launch("image/*") },
-              modifier =
-                  Modifier.testTag(SettingsTestTags.PICTURE)
-                      .width(Dimensions.LiquidImagePickerWidth)
-                      .height(Dimensions.LiquidImagePickerHeight),
-              onDeleteImage = { viewModel.deleteImage() })
-          LiquidBox(
-              modifier = Modifier.fillMaxSize(),
-              shape = BottomSheetDefaults.ExpandedShape,
-              enableLens = false) {
+  ScreenLayout(
+      modifier = Modifier.testTag(NavigationTestTags.SETTINGS_SCREEN),
+      bottomBar = {
+        FlowBottomMenu(
+            listOf(
+                FlowTab.Back(onClick = onBack),
+                FlowTab.Confirm(
+                    onClick = { viewModel.saveProfile(uid, onConfirm) },
+                    enabled =
+                        uiState.dateValidation == ValidationState.Valid ||
+                            uiState.dateValidation == ValidationState.Neutral),
+                FlowTab.Logout(onClick = { showDialog.value = true })))
+      }) { paddingValues ->
+        Column(
+            modifier = Modifier.padding(top = Dimensions.PaddingExtraLarge),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingExtraLarge)) {
+              Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
+              LiquidImagePicker(
+                  uiState.profilePicture,
+                  onPickImage = { launcher.launch("image/*") },
+                  modifier =
+                      Modifier.testTag(SettingsTestTags.PICTURE)
+                          .width(Dimensions.LiquidImagePickerWidth)
+                          .height(Dimensions.LiquidImagePickerHeight),
+                  onDeleteImage = { viewModel.deleteImage() })
+              LiquidBox(
+                  modifier = Modifier.fillMaxSize(),
+                  shape = BottomSheetDefaults.ExpandedShape,
+              ) {
                 Column(
                     modifier =
                         Modifier.testTag(SettingsTestTags.LIQUID_BOX_CONTENT)
                             .fillMaxSize()
-                            .verticalScroll(state = rememberScrollState())
                             .padding(
                                 horizontal = Dimensions.PaddingExtraLarge,
-                                vertical = Dimensions.PaddingLarge),
+                                vertical = Dimensions.PaddingLarge)
+                            .verticalScroll(state = rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(Dimensions.PaddingLarge)) {
                       Text(
-                          FieldTitles.AUTHENTICATION,
-                          style = SettingsScreenStyles.sectionTitleStyle())
+                          text = FieldTitles.AUTHENTICATION,
+                          style = SettingsScreenStyles.sectionTitleStyle(),
+                          color = MaterialTheme.colorScheme.onSurface)
                       FieldModifier(
                           modifier = Modifier.testTag(SettingsTestTags.EMAIL_TEXT),
                           editModifier = Modifier.testTag(SettingsTestTags.EMAIL_BUTTON),
@@ -170,7 +185,10 @@ fun SettingsScreen(
                             trailingIcon = Icons.Default.Edit,
                             onClick = { viewModel.setModalType(ModalType.PASSWORD) })
                       }
-                      Text(FieldTitles.PROFILE, style = SettingsScreenStyles.sectionTitleStyle())
+                      Text(
+                          text = FieldTitles.PROFILE,
+                          style = SettingsScreenStyles.sectionTitleStyle(),
+                          color = MaterialTheme.colorScheme.onSurface)
                       FieldModifier(
                           modifier = Modifier.testTag(SettingsTestTags.USERNAME_TEXT),
                           editModifier = Modifier.testTag(SettingsTestTags.USERNAME_BUTTON),
@@ -237,88 +255,83 @@ fun SettingsScreen(
                           trailingIcon = Icons.Default.Edit,
                           onClick = { onAddTag() })
                       // Padding to cover for the bottom bar and prevent overlap issues
-                      Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
-                      Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
+                      Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
                     }
               }
-        }
-    LiquidBottomSheet(
-        isPresented = uiState.showModal, onDismissRequest = { viewModel.stopModal() }) {
-          Column(
-              modifier =
-                  Modifier.height(bottomSheetSize)
-                      .padding(
-                          horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingMedium)
-                      .testTag(SettingsTestTags.MODAL_POPUP)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween) {
-                      Text(
-                          text = uiState.modalType!!.fieldName,
-                          fontSize = 32.sp,
-                          modifier = Modifier.testTag(SettingsTestTags.MODAL_TITLE))
-                      Row {
-                        Text(
-                            text = "Cancel",
-                            modifier =
-                                Modifier.clickable(onClick = { viewModel.stopModal() })
-                                    .testTag(SettingsTestTags.MODAL_CANCEL_BUTTON))
-                        Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
-                        val enabled =
-                            uiState.modalValState == ValidationState.Valid ||
-                                uiState.modalValState == ValidationState.Neutral
-                        Text(
-                            text = "Save",
-                            modifier =
-                                Modifier.clickable(
-                                        enabled = enabled, onClick = { viewModel.saveTempModal() })
-                                    .testTag(SettingsTestTags.MODAL_SAVE_BUTTON))
-                      }
-                    }
-                Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
-                CustomTextField(
-                    modifier = Modifier.testTag(SettingsTestTags.CUSTOMFIELD),
-                    label = "",
-                    isPassword = uiState.modalType == ModalType.PASSWORD,
-                    placeholder = uiState.modalType!!.fieldName,
-                    onValueChange = { str -> viewModel.setModalText(str) },
-                    value = uiState.modalText!!,
-                    validationState = uiState.modalValState)
-                Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
+            }
+        LiquidBottomSheet(
+            isPresented = uiState.showModal, onDismissRequest = { viewModel.stopModal() }) {
+              ScreenLayout(
+                  modifier =
+                      Modifier.height(bottomSheetSize)
+                          .padding(
+                              horizontal = Dimensions.PaddingLarge,
+                              vertical = Dimensions.PaddingMedium)
+                          .testTag(SettingsTestTags.MODAL_POPUP),
+                  bottomBar = {
+                    val enabled =
+                        uiState.modalValState == ValidationState.Valid ||
+                            uiState.modalValState == ValidationState.Neutral
+                    FlowBottomMenu(
+                        flowTabs =
+                            listOf(
+                                FlowTab.Back(
+                                    onClick = viewModel::stopModal,
+                                    testTag = SettingsTestTags.MODAL_CANCEL_BUTTON),
+                                FlowTab.Confirm(
+                                    onClick = viewModel::saveTempModal,
+                                    enabled = enabled,
+                                    testTag = SettingsTestTags.MODAL_SAVE_BUTTON)))
+                  }) {
+                    Column(
+                        modifier =
+                            Modifier.height(bottomSheetSize)
+                                .padding(
+                                    horizontal = Dimensions.PaddingLarge,
+                                    vertical = Dimensions.PaddingMedium)) {
+                          Row(
+                              modifier = Modifier.fillMaxWidth(),
+                              verticalAlignment = Alignment.CenterVertically,
+                              horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    text = uiState.modalType!!.fieldName,
+                                    fontSize = 32.sp,
+                                    modifier = Modifier.testTag(SettingsTestTags.MODAL_TITLE))
+                              }
+                          CustomTextField(
+                              modifier = Modifier.testTag(SettingsTestTags.CUSTOMFIELD),
+                              label = "",
+                              isPassword = uiState.modalType == ModalType.PASSWORD,
+                              placeholder = uiState.modalType!!.fieldName,
+                              onValueChange = { str -> viewModel.setModalText(str) },
+                              value = uiState.modalText!!,
+                              validationState = uiState.modalValState)
+                          Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
+                        }
+                  }
+            }
+        UniversalDatePickerDialog(
+            modifier = Modifier.testTag(SettingsTestTags.DATE_DIALOG),
+            visible = showDate.value,
+            initialDate = uiState.date ?: time.minusYears(InputLimits.MIN_AGE.toLong()),
+            yearRange =
+                IntRange(time.year - 100, time.minusYears(InputLimits.MIN_AGE.toLong()).year),
+            onDismiss = { showDate.value = false },
+            onConfirm = {
+              viewModel.setDate(it)
+              showDate.value = false
+            })
+
+        if (uiState.isLoading) {
+          Box(
+              Modifier.fillMaxSize()
+                  .background(MaterialTheme.colorScheme.background)
+                  .testTag(SettingsTestTags.LOADING_ICON),
+              contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
               }
         }
-    UniversalDatePickerDialog(
-        modifier = Modifier.testTag(SettingsTestTags.DATE_DIALOG),
-        visible = showDate.value,
-        initialDate = uiState.date ?: time.minusYears(InputLimits.MIN_AGE.toLong()),
-        yearRange = IntRange(time.year - 100, time.minusYears(InputLimits.MIN_AGE.toLong()).year),
-        onDismiss = { showDate.value = false },
-        onConfirm = {
-          viewModel.setDate(it)
-          showDate.value = false
-        })
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-      FlowBottomMenu(
-          listOf(
-              FlowTab.Back(onClick = onBack),
-              FlowTab.Confirm(
-                  onClick = { viewModel.saveProfile(uid, onConfirm) },
-                  enabled =
-                      uiState.dateValidation == ValidationState.Valid ||
-                          uiState.dateValidation == ValidationState.Neutral),
-              FlowTab.Logout(onClick = { showDialog.value = true })))
-    }
-    if (uiState.isLoading) {
-      Box(
-          Modifier.fillMaxSize()
-              .background(MaterialTheme.colorScheme.background)
-              .testTag(SettingsTestTags.LOADING_ICON),
-          contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-          }
-    }
-  }
+      }
 }
 
 /**
@@ -343,25 +356,40 @@ fun FieldModifier(
     trailingIcon: ImageVector,
     onClick: () -> Unit = {}
 ) {
-  Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      if (leadingIcon != null) {
-        Icon(imageVector = leadingIcon, contentDescription = title)
-        Spacer(modifier = Modifier.width(Dimensions.PaddingSmall))
+  Row(
+      modifier = editModifier.fillMaxWidth().clickable(onClick = onClick),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start) {
+              if (leadingIcon != null) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = title,
+                    tint = MaterialTheme.colorScheme.onSurface)
+                Spacer(modifier = Modifier.width(Dimensions.PaddingLarge))
+              }
+              Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = endText,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = modifier,
+                    textAlign = TextAlign.Start)
+              }
+            }
+        Icon(
+            imageVector = trailingIcon,
+            contentDescription = "Edit $title",
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(Dimensions.IconSizeMedium))
       }
-      Text(text = title)
-    }
-    Spacer(modifier = Modifier.weight(1f))
-    Text(
-        text = endText,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier.weight(1f, fill = true),
-        textAlign = TextAlign.End)
-    Spacer(modifier = Modifier.weight(0.01f))
-    Icon(
-        imageVector = trailingIcon,
-        contentDescription = "Edit $title",
-        modifier = editModifier.clickable(onClick = onClick))
-  }
 }
