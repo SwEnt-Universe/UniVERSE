@@ -219,7 +219,8 @@ class EventCreationViewModel(
                 name = event.title,
                 description = event.description ?: "",
                 date = eventDate,
-                time = formatTime(eventTime))
+                time = formatTime(eventTime),
+                isPrivate = event.isPrivate)
       }
     }
   }

@@ -477,6 +477,7 @@ class EventCreationViewModelTest {
     assertEquals(sampleEvent.description, uiState.value.description)
     assertEquals(sampleEvent.date.toLocalDate(), uiState.value.date)
     assertEquals(viewModel.formatTime(sampleEvent.date.toLocalTime()), uiState.value.time)
+    assertEquals(sampleEvent.isPrivate, uiState.value.isPrivate)
   }
 
   @Test
@@ -490,6 +491,7 @@ class EventCreationViewModelTest {
     assertEquals(null, uiState.value.description)
     assertEquals(null, uiState.value.date)
     assertEquals("", uiState.value.time)
+    assertEquals(false, uiState.value.isPrivate)
   }
 
   @Test
