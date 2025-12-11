@@ -47,6 +47,7 @@ import com.android.universe.ui.common.UniverseBackgroundContainer
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
+import com.android.universe.ui.map.MapMode
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.map.MapViewModelFactory
@@ -408,7 +409,10 @@ fun UniverseApp(
                     EventCreationScreen(
                         location = Location(latitude.toDouble(), longitude.toDouble()),
                         onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
-                        onBack = { navigationActions.goBack() })
+                        onBack = {
+                          mapViewModel.switchMapMode(MapMode.SELECT_LOCATION)
+                          navigationActions.goBack()
+                        })
                   }
 
               composable(NavigationScreens.SelectTagEvent.route) {
