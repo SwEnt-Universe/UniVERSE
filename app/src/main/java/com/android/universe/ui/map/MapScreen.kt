@@ -7,9 +7,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
@@ -25,15 +30,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserRepositoryProvider
+import com.android.universe.ui.common.TagRow
+import com.android.universe.ui.components.CategoryItemDefaults
+import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.components.ScreenLayoutWithBox
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -47,6 +61,7 @@ object MapScreenTestTags {
   const val CREATE_EVENT_BUTTON = "create_event_button"
   const val EVENT_INFO_POPUP = "event_info_popup"
   const val EVENT_JOIN_LEAVE_BUTTON = "event_join_leave_button"
+  const val SELECT_LOCATION_TEXT = "select_location_text"
 }
 
 /**
@@ -82,12 +97,11 @@ enum class MapMode {
 fun MapScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit,
-    onNavigateToEventCreation: () -> Unit,
+    onNavigateToEventCreation: (latitude: Double, longitude: Double) -> Unit = { _, _ -> },
     context: Context = LocalContext.current,
     preselectedEventId: String? = null,
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    onLocationSelected: (Double, Double) -> Unit = { _, _ -> },
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context,
@@ -100,7 +114,8 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
-
+  val categoryList = Tag.tagFromEachCategory.toList()
+  val categories by viewModel.categories.collectAsState()
   // --- 1. Permissions & Initialization ---
 
   val permissionLauncher =
@@ -116,7 +131,7 @@ fun MapScreen(
           })
 
   LaunchedEffect(uiState.isMapInteractive) {
-    viewModel.init(uid, onLocationSelected) // Start polling, etc.
+    viewModel.init(uid) // Start polling, etc.
     val hasFine =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
@@ -133,7 +148,7 @@ fun MapScreen(
     }
   }
 
-  LaunchedEffect(uiState.mapMode) { viewModel.updateLongClickListener(onLocationSelected) }
+  LaunchedEffect(uiState.mapMode) { viewModel.updateClickListeners() }
 
   // --- 2. Reactive Updates (Side Effects) ---
 
@@ -174,11 +189,50 @@ fun MapScreen(
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
-        NavigationBottomMenu(selectedTab = Tab.Map, onTabSelected = { tab -> onTabSelected(tab) })
+        if (uiState.mapMode == MapMode.NORMAL) {
+          NavigationBottomMenu(
+              selectedTab = Tab.Map,
+              onTabSelected = { tab ->
+                viewModel.resetFilter()
+                onTabSelected(tab)
+              })
+        } else {
+          FlowBottomMenu(
+              flowTabs =
+                  listOf(
+                      FlowTab.Back(onClick = { viewModel.switchMapMode(MapMode.NORMAL) }),
+                      FlowTab.Confirm(
+                          onClick = {
+                            viewModel.resetFilter()
+                            onNavigateToEventCreation(
+                                uiState.selectedLocation!!.latitude,
+                                uiState.selectedLocation!!.longitude)
+                            viewModel.switchMapMode(MapMode.NORMAL)
+                          },
+                          enabled = uiState.selectedLocation != null)))
+        }
       }) { padding ->
         MapBox(uiState = uiState) {
+          BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val screenHeight = maxHeight
+            val topOffset = screenHeight * 0.05f
+
+            TagRow(
+                categoryList,
+                modifierBox = Modifier.offset(y = topOffset),
+                heightTag = CategoryItemDefaults.HEIGHT_CAT,
+                widthTag = CategoryItemDefaults.WIDTH_CAT,
+                isSelected = { cat -> categories.contains(cat.category) },
+                onTagSelect = { cat -> viewModel.selectCategory(cat.category, true) },
+                onTagReSelect = { cat -> viewModel.selectCategory(cat.category, false) },
+                fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+                isCategory = true)
+          }
+
           // Create Event Button
-          AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
+          if (uiState.mapMode == MapMode.NORMAL) {
+            AddEventButton(onClick = { showMapModal = true }, boxScope = this, padding = padding)
+          }
           // Overlays
           if (uiState.isLoading) {
             CircularProgressIndicator(
@@ -199,7 +253,10 @@ fun MapScreen(
                     event = it.event,
                     creator = it.creator,
                     onDismiss = { viewModel.selectEvent(null) },
-                    onChatNavigate = onChatNavigate,
+                    onChatNavigate = { eventId, eventTitle ->
+                      viewModel.resetFilter()
+                      onChatNavigate(eventId, eventTitle)
+                    },
                     isUserParticipant = viewModel.isUserParticipant(it.event),
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
           }
@@ -209,9 +266,26 @@ fun MapScreen(
               onDismissRequest = { showMapModal = false },
               onAiCreate = { viewModel.generateAiEventAroundUser() },
               onManualCreate = {
-                onNavigateToEventCreation()
+                viewModel.switchMapMode(MapMode.SELECT_LOCATION)
                 showMapModal = false
               })
+        }
+        if (uiState.mapMode == MapMode.SELECT_LOCATION) {
+          LiquidBox(
+              shape =
+                  (RoundedCornerShape(
+                      topStart = 0.dp, topEnd = 0.dp, bottomStart = 16.dp, bottomEnd = 16.dp)),
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .height(132.dp)
+                      .testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {
+                Text(
+                    "Select your location",
+                    modifier = Modifier.fillMaxWidth().align(Alignment.Center),
+                    fontSize = 32.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface)
+              }
         }
       }
 }

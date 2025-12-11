@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,23 +22,27 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
@@ -51,6 +54,7 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.common.ProfileContentLayout
 import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.event.EventCard
 import com.android.universe.ui.event.EventUIState
 import com.android.universe.ui.event.EventViewModel
@@ -114,6 +118,30 @@ fun UserProfileScreen(
   val profileContentHeightDp = with(density) { profileContentHeightPx.toDp() }
   val tabRowHeightDp = with(density) { tabRowHeightPx.toDp() }
 
+  // The total distance the header can scroll before sticking (User Info Height + Gap).
+  val totalCollapsibleHeightPx = profileContentHeightPx + elementSpacingPx
+
+  // Since we have two separate LazyLists (History and Incoming), their scroll positions
+  // are naturally independent. However, the sticky header (User Profile Info) is shared.
+  // We must sync the scroll state of the hidden list to match the active list so that
+  // when the user switches tabs, the header doesn't "jump".
+
+  // Sync Logic: History -> Incoming
+  ScrollSyncEffect(
+      pagerState = pagerState,
+      activeListState = historyListState,
+      targetListState = incomingListState,
+      activePageIndex = 0,
+      totalCollapsibleHeightPx = totalCollapsibleHeightPx)
+
+  // Sync Logic: Incoming -> History
+  ScrollSyncEffect(
+      pagerState = pagerState,
+      activeListState = incomingListState,
+      targetListState = historyListState,
+      activePageIndex = 1,
+      totalCollapsibleHeightPx = totalCollapsibleHeightPx)
+
   // Synchronization Logic
   val headerOffsetPx by remember {
     derivedStateOf {
@@ -123,44 +151,101 @@ fun UserProfileScreen(
 
       if (currentListState.firstVisibleItemIndex == 0) {
         val scrollOffset = currentListState.firstVisibleItemScrollOffset.toFloat()
+        // Move header up by scroll amount, but don't move past the collapsible height
         -scrollOffset.coerceIn(0f, totalCollapsibleHeightPx)
       } else {
+        // If we scrolled past index 0, the header is fully hidden (sticky state)
         -totalCollapsibleHeightPx
       }
     }
   }
 
-  Scaffold(
-      containerColor = Color.Transparent,
-      modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
-      contentWindowInsets = WindowInsets(0, 0, 0, 0),
-      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { _ ->
-        LiquidBox(
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
-              Box(modifier = Modifier.fillMaxSize().padding(top = Dimensions.PaddingExtraLarge)) {
-                ProfileContentPager(
-                    pagerState = pagerState,
-                    historyListState = historyListState,
-                    incomingListState = incomingListState,
-                    historyEvents = userUIState.historyEvents,
-                    incomingEvents = userUIState.incomingEvents,
-                    eventViewModel = eventViewModel,
-                    spacerHeightDp = profileContentHeightDp + elementSpacingDp,
-                    clipPaddingDp = tabRowHeightDp,
-                    onChatNavigate = onChatNavigate,
-                    onCardClick = onCardClick)
+  ScreenLayout(
+      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) },
+      modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN)) { paddingValues ->
+        val bottomPadding = paddingValues.calculateBottomPadding()
+        val topPadding = paddingValues.calculateTopPadding()
+        Box(modifier = Modifier.fillMaxSize()) {
+          LiquidBox(
+              modifier = Modifier.fillMaxSize(),
+              shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
+                Box(modifier = Modifier.fillMaxSize().padding(top = topPadding).clipToBounds()) {
+                  Box(modifier = Modifier.fillMaxSize()) {
+                    ProfileContentPager(
+                        pagerState = pagerState,
+                        historyListState = historyListState,
+                        incomingListState = incomingListState,
+                        historyEvents = userUIState.historyEvents,
+                        incomingEvents = userUIState.incomingEvents,
+                        eventViewModel = eventViewModel,
+                        spacerHeightDp = profileContentHeightDp + elementSpacingDp,
+                        clipPaddingDp = tabRowHeightDp,
+                        listBottomPadding = bottomPadding,
+                        onChatNavigate = onChatNavigate,
+                        onCardClick = onCardClick)
 
-                ProfileHeaderOverlay(
-                    headerOffsetPx = headerOffsetPx,
-                    userProfile = userUIState.userProfile,
-                    pagerState = pagerState,
-                    gapHeightDp = elementSpacingDp,
-                    onProfileHeightMeasured = { profileContentHeightPx = it },
-                    onTabHeightMeasured = { tabRowHeightPx = it },
-                    onEditProfileClick = { onEditProfileClick(uid) })
+                    ProfileHeaderOverlay(
+                        headerOffsetPx = headerOffsetPx,
+                        userProfile = userUIState.userProfile,
+                        pagerState = pagerState,
+                        gapHeightDp = elementSpacingDp,
+                        onProfileHeightMeasured = { profileContentHeightPx = it },
+                        onTabHeightMeasured = { tabRowHeightPx = it },
+                        onEditProfileClick = { onEditProfileClick(uid) })
+                  }
+                }
               }
+        }
+      }
+}
+
+/**
+ * Helper Composable to synchronize scroll state between two lists. It listens to the active list's
+ * scroll and updates the target list to match the header collapse state.
+ *
+ * @param pagerState The state object for the [HorizontalPager].
+ * @param activeListState The scroll state for the active list.
+ * @param targetListState The scroll state for the target list.
+ * @param activePageIndex The index of the active list.
+ */
+@Composable
+private fun ScrollSyncEffect(
+    pagerState: PagerState,
+    activeListState: LazyListState,
+    targetListState: LazyListState,
+    activePageIndex: Int,
+    totalCollapsibleHeightPx: Float
+) {
+  LaunchedEffect(
+      pagerState.currentPage,
+      activeListState.firstVisibleItemScrollOffset,
+      activeListState.firstVisibleItemIndex,
+      totalCollapsibleHeightPx) {
+        // Only run this effect if the Pager is currently on the active page for this source list
+        if (pagerState.currentPage == activePageIndex && totalCollapsibleHeightPx > 0) {
+          val scrollOffset = activeListState.firstVisibleItemScrollOffset
+          val firstIndex = activeListState.firstVisibleItemIndex
+
+          val collapseAmount =
+              if (firstIndex == 0) scrollOffset.toFloat() else totalCollapsibleHeightPx
+
+          val targetOffset =
+              if (targetListState.firstVisibleItemIndex == 0)
+                  targetListState.firstVisibleItemScrollOffset
+              else totalCollapsibleHeightPx.toInt()
+
+          if (collapseAmount >= totalCollapsibleHeightPx) {
+            // Active header is fully collapsed: Ensure target is also at least fully collapsed
+            if (targetOffset < totalCollapsibleHeightPx) {
+              targetListState.scrollToItem(0, totalCollapsibleHeightPx.toInt())
             }
+          } else {
+            // Active header is partially visible: Target must match exactly
+            if (targetOffset != collapseAmount.toInt()) {
+              targetListState.scrollToItem(0, collapseAmount.toInt())
+            }
+          }
+        }
       }
 }
 
@@ -191,6 +276,7 @@ fun ProfileContentPager(
     eventViewModel: EventViewModel,
     spacerHeightDp: Dp,
     clipPaddingDp: Dp,
+    listBottomPadding: Dp,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
@@ -207,6 +293,7 @@ fun ProfileContentPager(
             eventViewModel = eventViewModel,
             headerSpacerHeight = spacerHeightDp,
             topClipPadding = clipPaddingDp,
+            bottomContentPadding = listBottomPadding,
             onChatNavigate = onChatNavigate,
             onCardClick = onCardClick)
       }
@@ -228,12 +315,54 @@ fun ProfileEventList(
     eventViewModel: EventViewModel,
     headerSpacerHeight: Dp,
     topClipPadding: Dp,
+    bottomContentPadding: Dp,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
+  val density = LocalDensity.current
+  val configuration = LocalConfiguration.current
+
+  // If we start with 0, a short list cannot accept the scroll offset from the other tab
+  // during the initial sync, causing the header to expand (jump).
+  val screenHeight = configuration.screenHeightDp.dp
+  var footerHeight by remember { mutableStateOf(screenHeight) }
+
+  // We want the user to be able to scroll until the sticky header hits the top.
+  // If the list content is too short, the LazyColumn won't scroll that far.
+  // We calculate exactly how much extra space (footer) is needed to allow this scroll.
+  LaunchedEffect(events, listState) {
+    snapshotFlow { listState.layoutInfo }
+        .collect { layoutInfo ->
+          val visibleItems = layoutInfo.visibleItemsInfo
+          val viewportHeight = layoutInfo.viewportSize.height
+
+          if (visibleItems.isNotEmpty() && events.isNotEmpty()) {
+            val lastEventIndex = events.size
+            val isLastItemVisible = visibleItems.any { it.index == lastEventIndex }
+
+            // Only calculate footer if the end of the list is visible (i.e., it's short)
+            if (isLastItemVisible) {
+              val eventsHeightPx =
+                  visibleItems.filter { it.index > 0 && it.index <= events.size }.sumOf { it.size }
+
+              val bottomPaddingPx = with(density) { bottomContentPadding.toPx() }
+
+              // Formula: Viewport - Events - BottomPadding
+              // This ensures that (Events + Footer) fills the Viewport exactly,
+              // leaving the HeaderSpacer as the only scrollable distance.
+              val neededPx = (viewportHeight - eventsHeightPx - bottomPaddingPx).coerceAtLeast(0f)
+              footerHeight = with(density) { neededPx.toDp() }
+            } else {
+              // List is naturally long enough, no artificial footer needed.
+              footerHeight = 0.dp
+            }
+          }
+        }
+  }
+
   LazyColumn(
       state = listState,
-      contentPadding = PaddingValues(bottom = 80.dp),
+      contentPadding = PaddingValues(bottom = bottomContentPadding),
       modifier =
           Modifier.fillMaxSize()
               .padding(top = topClipPadding)
@@ -256,6 +385,8 @@ fun ProfileEventList(
                     viewModel = eventViewModel)
               }
         }
+        // Ensures the list is tall enough to scroll the header away.
+        item(key = "safety_spacer") { Spacer(modifier = Modifier.height(footerHeight)) }
       }
 }
 
@@ -299,10 +430,6 @@ fun ProfileHeaderOverlay(
               ProfileContentLayout(
                   modifier = Modifier,
                   userProfile = userProfile,
-                  followers = 0,
-                  following = 0,
-                  heightTagList = 200.dp,
-                  onChatClick = {},
                   onToggleFollowing = {},
                   onSettingsClick = onEditProfileClick)
             }

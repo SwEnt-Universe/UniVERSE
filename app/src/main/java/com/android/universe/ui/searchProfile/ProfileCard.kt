@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
 import com.android.universe.ui.common.ProfileContentLayout
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.theme.CardShape
@@ -22,14 +21,12 @@ object ProfileCardTestTags {
  * @param profile The [ProfileUIState] object containing profile details to be displayed.
  * @param viewModel The [SearchProfileViewModel] used to handle user interactions such as following
  *   or unfollowing the user.
- * @param onChatNavigate Callback function invoked when the chat button is clicked.
  * @param onCardClick Callback function invoked when the card is clicked.
  */
 @Composable
 fun ProfileCard(
     profile: ProfileUIState,
     viewModel: SearchProfileViewModel,
-    onChatNavigate: () -> Unit,
     onCardClick: () -> Unit
 ) {
   LiquidBox(
@@ -41,12 +38,7 @@ fun ProfileCard(
         ProfileContentLayout(
             modifier = Modifier,
             userProfile = profile.user,
-            followers = profile.user.followers.size,
-            following = profile.user.following.size,
-            heightTagList = 260.dp,
-            actionRowEnabled = true,
             isFollowing = profile.isFollowing,
-            onChatClick = { onChatNavigate() },
             onToggleFollowing = { viewModel.followOrUnfollowUser(profile) },
         )
       }
