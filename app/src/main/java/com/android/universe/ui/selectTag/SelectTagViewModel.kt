@@ -119,7 +119,7 @@ class SelectTagViewModel(
           _selectedTags.value = userRepository.getUser(uid).tags.toList()
       else if (mode == SelectTagMode.SETTINGS)
           _selectedTags.value = tagRepository.getTags().toList()
-      else if (mode == SelectTagMode.EVENT_CREATION)
+      else if (mode == SelectTagMode.EVENT_EDITION)
           _selectedTags.value = eventRepository.getEvent(uid).tags.toList()
     }
   }
@@ -139,7 +139,8 @@ class SelectTagViewModel(
           eventTemporaryRepository.deleteEvent()
         }
         SelectTagMode.EVENT_EDITION -> {
-          eventRepository.updateEvent(uid, eventTemporaryRepository.getEvent().copy(tags = _selectedTags.value.toSet()))
+          eventRepository.updateEvent(
+              uid, eventTemporaryRepository.getEvent().copy(tags = _selectedTags.value.toSet()))
           eventTemporaryRepository.deleteEvent()
         }
         SelectTagMode.SETTINGS -> tagRepository.updateTags(_selectedTags.value.toSet())
