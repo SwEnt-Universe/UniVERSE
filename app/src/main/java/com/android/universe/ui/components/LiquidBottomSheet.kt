@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.android.universe.ui.theme.Dimensions
 
 /**
  * A customized [ModalBottomSheet] implementation that applies a "liquid" or "glassmorphism" visual
@@ -58,6 +59,7 @@ import androidx.compose.ui.unit.dp
  * @param refractionHeight The apparent height of the liquid lens, affecting the refraction
  *   calculation. Defaults to 24.dp.
  * @param refractionAmount The intensity of the displacement/refraction effect. Defaults to 24.dp.
+ * @param bottomBar optional bottom bar displaying options
  * @param content The content to be displayed inside the bottom sheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +80,8 @@ fun LiquidBottomSheet(
     blurRadius: Dp = 16.dp,
     refractionHeight: Dp = 24.dp,
     refractionAmount: Dp = 24.dp,
-    content: @Composable ColumnScope.() -> Unit
+    bottomBar: @Composable (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
   val uiMode = isSystemInDarkTheme()
   key(uiMode) {
@@ -116,6 +119,16 @@ fun LiquidBottomSheet(
                     }
 
                     content()
+
+                    bottomBar?.let {
+                      Box(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(vertical = Dimensions.PaddingExtraLarge),
+                          contentAlignment = Alignment.Center) {
+                            it()
+                          }
+                    }
                   }
                 }
           }

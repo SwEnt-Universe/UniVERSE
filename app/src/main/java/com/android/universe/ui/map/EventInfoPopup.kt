@@ -26,6 +26,7 @@ import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
+import com.google.firebase.auth.FirebaseAuth
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import java.time.LocalDateTime
 
@@ -41,6 +42,9 @@ import java.time.LocalDateTime
  * @param onChatNavigate Callback function invoked when the user clicks on the chat button.
  * @param onToggleEventParticipation Callback function invoked when the user toggles their
  *   participation status.
+ * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
+ * @param isPreview modifies options if used to preview AI event suggestion
+ * @param bottomBar optional bottom bar displaying options
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +55,10 @@ fun EventInfoPopup(
     isUserParticipant: Boolean,
     onDismiss: () -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
-    onToggleEventParticipation: () -> Unit
+    onToggleEventParticipation: () -> Unit,
+    isPreview: Boolean = false,
+    bottomBar: @Composable (() -> Unit)? = null,
+    onEditButtonClick: () -> Unit = {}
 ) {
   Box(
       modifier =
@@ -69,7 +76,8 @@ fun EventInfoPopup(
                   modifier = Modifier.fillMaxWidth(),
                   isPresented = true,
                   shape = MaterialTheme.shapes.large,
-                  onDismissRequest = onDismiss) {
+                  onDismissRequest = onDismiss,
+                  bottomBar = bottomBar) {
                     EventContentLayout(
                         modifier = Modifier.padding(Dimensions.PaddingLarge),
                         eventId = event.id,
@@ -89,8 +97,11 @@ fun EventInfoPopup(
                         isUserParticipant = isUserParticipant,
                         isPrivate = event.isPrivate,
                         onToggleEventParticipation = onToggleEventParticipation,
+                        onEditClick = { onEditButtonClick() },
                         onChatClick = { onChatNavigate(event.id, event.title) },
-                    )
+                        isUserOwner =
+                            FirebaseAuth.getInstance().currentUser?.uid!! == event.creator,
+                        showActions = !isPreview)
                   }
             }
       }
@@ -116,6 +127,7 @@ private fun EventInfoPopUpPreview() {
         creator = "",
         isUserParticipant = true,
         onDismiss = {},
-        onChatNavigate = { _, _ -> }) {}
+        onChatNavigate = { _, _ -> },
+        onToggleEventParticipation = {})
   }
 }

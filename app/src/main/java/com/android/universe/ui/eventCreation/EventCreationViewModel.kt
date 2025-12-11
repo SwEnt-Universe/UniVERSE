@@ -44,11 +44,6 @@ enum class OnboardingState {
  *
  * @param name the name of the event.
  * @param description the description of the event.
- * @param day the day of the event.
- * @param month the month of the event.
- * @param year the year of the event.
- * @param hour the hour of the event.
- * @param minute the minute of the event.
  * @param date the date of the event.
  * @param time the time of the event.
  * @param titleError the error message for the title.
@@ -67,11 +62,6 @@ enum class OnboardingState {
 data class EventCreationUIState(
     val name: String = "",
     val description: String? = null,
-    val day: String = "",
-    val month: String = "",
-    val year: String = "",
-    val hour: String = "",
-    val minute: String = "",
     val date: LocalDate? = null,
     val time: String = "",
     val titleError: String? = null,
@@ -206,6 +196,35 @@ class EventCreationViewModel(
     }
   }
 
+  /**
+   * Loads an existing event from its unique identifier and updates the UI state of the event
+   * creation/editing screen accordingly.
+   *
+   * This function is typically used when entering the event edition flow. It retrieves the event
+   * corresponding to the given `uid`, extracts its fields, and populates the `eventCreationUiState`
+   * so that the UI is pre-filled with the event's current data.
+   *
+   * The event is loaded asynchronously using a ViewModel coroutine on the I/O dispatcher.
+   *
+   * @param uid The unique identifier of the event to load. If null, nothing is loaded.
+   */
+  fun loadUid(uid: String?) {
+    viewModelScope.launch(DefaultDP.io) {
+      if (uid != null) {
+        val event = eventRepository.getEvent(uid)
+        val eventDate = event.date.toLocalDate()
+        val eventTime = event.date.toLocalTime()
+        eventCreationUiState.value =
+            eventCreationUiState.value.copy(
+                name = event.title,
+                description = event.description ?: "",
+                date = eventDate,
+                time = formatTime(eventTime),
+                isPrivate = event.isPrivate)
+      }
+    }
+  }
+
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
   val uiStateEventCreation = eventCreationUiState.asStateFlow()
 
@@ -317,16 +336,25 @@ class EventCreationViewModel(
   }
 
   /**
+   * Format the date to a string.
+   *
+   * @param date the date to format.
+   */
+  fun formatTime(time: LocalTime?): String {
+    return if (time == null) "Select time" else time.format(timeFormatter)
+  }
+
+  /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
-   * @param uid the uid of the Current User.
+   * @param uidUser the uid of the Current User.
    * @param location the location of the event.
    */
-  fun saveEvent(uid: String, location: Location) {
+  fun saveEvent(uidUser: String, uidEvent: String?, location: Location) {
     if (validateAll()) {
       viewModelScope.launch {
         try {
-          val id = eventRepository.getNewID()
+          val id = uidEvent ?: eventRepository.getNewID()
 
           val internalDate = uiStateEventCreation.value.date
           val internalTime = LocalTime.parse(uiStateEventCreation.value.time, timeFormatter)
@@ -338,8 +366,8 @@ class EventCreationViewModel(
               title = eventCreationUiState.value.name,
               description = eventCreationUiState.value.description,
               dateTime = eventDateTime,
-              creator = uid,
-              participants = setOf(uid),
+              creator = uidUser,
+              participants = setOf(uidUser),
               location = location,
               isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)
