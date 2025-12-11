@@ -299,10 +299,6 @@ fun ProfileHeaderOverlay(
               ProfileContentLayout(
                   modifier = Modifier,
                   userProfile = userProfile,
-                  followers = 0,
-                  following = 0,
-                  heightTagList = 200.dp,
-                  onChatClick = {},
                   onToggleFollowing = {},
                   onSettingsClick = onEditProfileClick)
             }

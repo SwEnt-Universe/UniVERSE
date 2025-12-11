@@ -389,7 +389,6 @@ fun UniverseApp(
                 SearchProfileScreen(
                     uid = authInstance.currentUser!!.uid,
                     onTabSelected = onTabSelected,
-                    onChatNavigate = {},
                     onCardClick = {})
               }
             }
