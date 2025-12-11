@@ -158,21 +158,23 @@ fun SearchHeaderOverlay(
     topPadding: Dp
 ) {
 
-  Surface(modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER), color = Color.Transparent) {
-    Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding)) {
-      LiquidSearchBar(
-          query = searchQuery,
-          onQueryChange = onQueryChange,
-          modifier =
-              Modifier.padding(horizontal = Dimensions.PaddingLarge)
-                  .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
+  Surface(
+      modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER),
+      color = Color.Transparent) {
+        Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding)) {
+          LiquidSearchBar(
+              query = searchQuery,
+              onQueryChange = onQueryChange,
+              modifier =
+                  Modifier.padding(horizontal = Dimensions.PaddingLarge)
+                      .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
 
-      Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+          Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
 
-      SearchProfileTabRow(
-          pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
-    }
-  }
+          SearchProfileTabRow(
+              pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
+        }
+      }
 }
 
 /**
