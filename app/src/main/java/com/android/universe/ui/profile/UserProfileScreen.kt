@@ -126,75 +126,21 @@ fun UserProfileScreen(
   // We must sync the scroll state of the hidden list to match the active list so that
   // when the user switches tabs, the header doesn't "jump".
 
-  // Sync Logic: Active (History) -> Target (Incoming)
-  LaunchedEffect(
-      pagerState.currentPage,
-      historyListState.firstVisibleItemScrollOffset,
-      historyListState.firstVisibleItemIndex,
-      totalCollapsibleHeightPx) {
-        // Only sync if History is the active page
-        if (pagerState.currentPage == 0 && totalCollapsibleHeightPx > 0) {
-          val scrollOffset = historyListState.firstVisibleItemScrollOffset
-          val firstIndex = historyListState.firstVisibleItemIndex
+  // Sync Logic: History -> Incoming
+  ScrollSyncEffect(
+      pagerState = pagerState,
+      activeListState = historyListState,
+      targetListState = incomingListState,
+      activePageIndex = 0,
+      totalCollapsibleHeightPx = totalCollapsibleHeightPx)
 
-          // Calculate how much the header is currently collapsed in the active list.
-          // If index > 0, we've scrolled past the header, so it's fully collapsed.
-          val collapseAmount =
-              if (firstIndex == 0) scrollOffset.toFloat() else totalCollapsibleHeightPx
-
-          // Determine the current state of the inactive list (Incoming)
-          val targetOffset =
-              if (incomingListState.firstVisibleItemIndex == 0)
-                  incomingListState.firstVisibleItemScrollOffset
-              else totalCollapsibleHeightPx.toInt()
-
-          if (collapseAmount >= totalCollapsibleHeightPx) {
-            // Active header is FULLY COLLAPSED.
-            // We ensure the target list is also at least fully collapsed.
-            // We don't force it to match exactly if the user has scrolled *further* down
-            // on the inactive list, as that would lose their place.
-            if (targetOffset < totalCollapsibleHeightPx) {
-              incomingListState.scrollToItem(0, totalCollapsibleHeightPx.toInt())
-            }
-          } else {
-            // Active header is PARTIALLY VISIBLE.
-            // The target list MUST match this exactly to ensure the header aligns perfectly.
-            if (targetOffset != collapseAmount.toInt()) {
-              incomingListState.scrollToItem(0, collapseAmount.toInt())
-            }
-          }
-        }
-      }
-
-  // Sync Logic: Active (Incoming) -> Target (History)
-  // (Identical logic mirrored for when Incoming is the active tab)
-  LaunchedEffect(
-      pagerState.currentPage,
-      incomingListState.firstVisibleItemScrollOffset,
-      incomingListState.firstVisibleItemIndex,
-      totalCollapsibleHeightPx) {
-        if (pagerState.currentPage == 1 && totalCollapsibleHeightPx > 0) {
-          val scrollOffset = incomingListState.firstVisibleItemScrollOffset
-          val firstIndex = incomingListState.firstVisibleItemIndex
-
-          val collapseAmount =
-              if (firstIndex == 0) scrollOffset.toFloat() else totalCollapsibleHeightPx
-          val targetOffset =
-              if (historyListState.firstVisibleItemIndex == 0)
-                  historyListState.firstVisibleItemScrollOffset
-              else totalCollapsibleHeightPx.toInt()
-
-          if (collapseAmount >= totalCollapsibleHeightPx) {
-            if (targetOffset < totalCollapsibleHeightPx) {
-              historyListState.scrollToItem(0, totalCollapsibleHeightPx.toInt())
-            }
-          } else {
-            if (targetOffset != collapseAmount.toInt()) {
-              historyListState.scrollToItem(0, collapseAmount.toInt())
-            }
-          }
-        }
-      }
+  // Sync Logic: Incoming -> History
+  ScrollSyncEffect(
+      pagerState = pagerState,
+      activeListState = incomingListState,
+      targetListState = historyListState,
+      activePageIndex = 1,
+      totalCollapsibleHeightPx = totalCollapsibleHeightPx)
 
   // Synchronization Logic
   val headerOffsetPx by remember {
@@ -249,6 +195,56 @@ fun UserProfileScreen(
                   }
                 }
               }
+        }
+      }
+}
+
+/**
+ * Helper Composable to synchronize scroll state between two lists. It listens to the active list's
+ * scroll and updates the target list to match the header collapse state.
+ *
+ * @param pagerState The state object for the [HorizontalPager].
+ * @param activeListState The scroll state for the active list.
+ * @param targetListState The scroll state for the target list.
+ * @param activePageIndex The index of the active list.
+ */
+@Composable
+private fun ScrollSyncEffect(
+    pagerState: PagerState,
+    activeListState: LazyListState,
+    targetListState: LazyListState,
+    activePageIndex: Int,
+    totalCollapsibleHeightPx: Float
+) {
+  LaunchedEffect(
+      pagerState.currentPage,
+      activeListState.firstVisibleItemScrollOffset,
+      activeListState.firstVisibleItemIndex,
+      totalCollapsibleHeightPx) {
+        // Only run this effect if the Pager is currently on the active page for this source list
+        if (pagerState.currentPage == activePageIndex && totalCollapsibleHeightPx > 0) {
+          val scrollOffset = activeListState.firstVisibleItemScrollOffset
+          val firstIndex = activeListState.firstVisibleItemIndex
+
+          val collapseAmount =
+              if (firstIndex == 0) scrollOffset.toFloat() else totalCollapsibleHeightPx
+
+          val targetOffset =
+              if (targetListState.firstVisibleItemIndex == 0)
+                  targetListState.firstVisibleItemScrollOffset
+              else totalCollapsibleHeightPx.toInt()
+
+          if (collapseAmount >= totalCollapsibleHeightPx) {
+            // Active header is fully collapsed: Ensure target is also at least fully collapsed
+            if (targetOffset < totalCollapsibleHeightPx) {
+              targetListState.scrollToItem(0, totalCollapsibleHeightPx.toInt())
+            }
+          } else {
+            // Active header is partially visible: Target must match exactly
+            if (targetOffset != collapseAmount.toInt()) {
+              targetListState.scrollToItem(0, collapseAmount.toInt())
+            }
+          }
         }
       }
 }
