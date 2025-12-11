@@ -48,7 +48,6 @@ import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
 import com.android.universe.ui.eventCreation.EventCreationViewModel
-import com.android.universe.ui.map.MapMode
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.map.MapViewModelFactory
@@ -230,8 +229,7 @@ fun UniverseApp(
           MapScreen(
               uid = authInstance.currentUser!!.uid,
               onTabSelected = onTabSelected,
-              onNavigateToEventCreation = {
-                navController.navigate(NavigationScreens.EventCreation.route)
+              onNavigateToEventCreation = {lat, lng -> navController.navigate("eventCreation/$lat/$lng")
               },
               onChatNavigate = { chatID, chatName ->
                 navController.navigate(
@@ -258,8 +256,7 @@ fun UniverseApp(
               MapScreen(
                   uid = authInstance.currentUser!!.uid,
                   onTabSelected = onTabSelected,
-                  onNavigateToEventCreation = {
-                    navController.navigate(NavigationScreens.EventCreation.route)
+                  onNavigateToEventCreation = {lat, lng -> navController.navigate("eventCreation/$lat/$lng")
                   },
                   preselectedEventId = eventId,
                   preselectedLocation = Location(lat, lng),
@@ -398,50 +395,20 @@ fun UniverseApp(
             startDestination = NavigationScreens.EventCreation.route) {
 
               // --- Main Event Creation Screen ---
-              composable(NavigationScreens.EventCreation.route) { entry ->
-                val vm: EventCreationViewModel =
-                    viewModel(
-                        viewModelStoreOwner = entry,
-                        factory = EventCreationViewModel.provideFactory(context))
+              composable(route = NavigationScreens.EventCreation.route,
+                  arguments =
+                      listOf(
+                          navArgument("latitude") { type = NavType.FloatType },
+                          navArgument("longitude") { type = NavType.FloatType })) { entry ->
+                  val latitude = entry.arguments?.getFloat("latitude") ?: 0f
+                  val longitude = entry.arguments?.getFloat("longitude") ?: 0f
 
-                mapViewModel.setMapMode(MapMode.NORMAL)
                 EventCreationScreen(
-                    eventCreationViewModel = vm,
-                    onSelectLocation = {
-                      navController.navigate(NavigationScreens.SelectLocation.route)
-                    },
+                    location = Location(latitude.toDouble(), longitude.toDouble()),
                     onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
                     onBack = { navigationActions.goBack() })
               }
 
-              // --- Location Picker Screen ---
-              composable(NavigationScreens.SelectLocation.route) { backStackEntry ->
-                // IMPORTANT: Share parent VM
-                val parentEntry =
-                    remember(backStackEntry) {
-                      navController.getBackStackEntry(NavigationScreens.EventCreation.route)
-                    }
-
-                val vm: EventCreationViewModel =
-                    viewModel(
-                        viewModelStoreOwner = parentEntry,
-                        factory = EventCreationViewModel.provideFactory(context))
-                mapViewModel.setMapMode(MapMode.SELECT_LOCATION)
-
-                MapScreen(
-                    uid = authInstance.currentUser!!.uid,
-                    onTabSelected = {},
-                    onNavigateToEventCreation = {
-                      navController.navigate(NavigationScreens.EventCreation.route)
-                    },
-                    onLocationSelected = { lat, lon ->
-                      vm.setLocation(lat, lon)
-                      navController.popBackStack()
-                    },
-                    viewModel = mapViewModel)
-              }
-
-              // --- Add Tags Screen FOR EVENT---
               composable(NavigationScreens.SelectTagEvent.route) {
                 SelectTagScreen(
                     selectTagMode = SelectTagMode.EVENT_CREATION,
