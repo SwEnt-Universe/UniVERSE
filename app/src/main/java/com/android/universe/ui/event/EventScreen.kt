@@ -58,6 +58,7 @@ object EventScreenTestTags {
  *   clicked, with the event ID and title as parameters.
  * @param onCardClick A callback function invoked when an event card is clicked, with the event ID
  *   and location as parameters.
+ * @param onEditButtonClick A callback invoked when the user presses the "Edit" button on an event.
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -66,7 +67,8 @@ fun EventScreen(
     uid: String = "",
     viewModel: EventViewModel = viewModel(),
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
@@ -130,7 +132,8 @@ fun EventScreen(
                           event = event,
                           viewModel = viewModel,
                           onChatNavigate = onChatNavigate,
-                          onCardClick = onCardClick)
+                          onCardClick = onCardClick,
+                          onEditButtonClick = onEditButtonClick)
                     }
                   }
             }
