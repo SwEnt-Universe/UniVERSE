@@ -50,7 +50,8 @@ class EventContentLayoutTest {
           isUserParticipant = isUserParticipant,
           isPrivate = isPrivate,
           onToggleEventParticipation = { participationClicked = true },
-          onChatClick = { chatClicked = true })
+          onChatClick = { chatClicked = true },
+          isUserOwner = false)
     }
   }
 

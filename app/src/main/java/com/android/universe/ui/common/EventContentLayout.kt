@@ -46,11 +46,13 @@ private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
  * @param tags List of event tags.
  * @param participants Number of people attending.
  * @param creator Event author/creator name.
+ * @param isUserOwner Boolean indicating if the current user is the event owner.
  * @param imageContent Composable that renders the event image.
  * @param isUserParticipant Whether the user is part of the event.
  * @param isPrivate Whether the event is private.
  * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
  * @param onChatClick Callback for chat button.
+ * @param onEditClick Callback invoked when the user presses the "Edit" button on an event.
  */
 @Composable
 fun EventContentLayout(
@@ -62,12 +64,14 @@ fun EventContentLayout(
     tags: List<Tag>,
     participants: Int,
     creator: String,
+    isUserOwner: Boolean,
     imageContent: @Composable () -> Unit,
     isUserParticipant: Boolean,
     isPrivate: Boolean,
     onToggleEventParticipation: () -> Unit,
-    onChatClick: () -> Unit,
     showActions: Boolean = true,
+    onChatClick: () -> Unit,
+    onEditClick: () -> Unit = {}
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -172,8 +176,10 @@ fun EventContentLayout(
           participants = participants,
           creator = creator,
           isUserParticipant = isUserParticipant,
+          isUserOwner = isUserOwner,
           onToggleEventParticipation = onToggleEventParticipation,
-          onChatClick = onChatClick)
+          onChatClick = onChatClick,
+          onEditClick = onEditClick)
     }
   }
 }
