@@ -698,7 +698,7 @@ class MapViewModel(
 
         // Update preview + selection state
         _previewEvent.value = event
-        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = currentUserId)
+        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = profile.username)
 
         // Center camera on preview event
         requestCameraCenter(event.location.toGeoPoint())
