@@ -162,7 +162,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).performClick()
 
     // Wait for Manual Create button inside the popup modal
-    composeTestRule.waitUntil(10_000L) {
+    /*composeTestRule.waitUntil(10_000L) {
       runCatching {
             composeTestRule
                 .onAllNodesWithTag(
@@ -171,7 +171,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
                 .assertExists()
           }
           .isSuccess
-    }
+    }*/
     composeTestRule
         .onAllNodesWithTag(
             MapCreateEventModalTestTags.MANUAL_CREATE_EVENT_BUTTON, useUnmergedTree = true)
@@ -190,8 +190,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput {
       down(center)
       advanceEventTime(1000L)
-      up()
     }
+
+    composeTestRule.onNodeWithTag(MapScreenTestTags.INTERACTABLE).performTouchInput { up() }
+
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
     composeTestRule.waitForIdle()
