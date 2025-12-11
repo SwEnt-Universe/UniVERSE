@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.event.EventRepositoryProvider
+import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.TomTomLocationRepository
 import com.android.universe.model.tag.Tag
@@ -108,14 +109,18 @@ fun MapScreen(
           context.getSharedPreferences("map_pref", Context.MODE_PRIVATE),
           TomTomLocationRepository(context),
           EventRepositoryProvider.repository,
-          UserRepositoryProvider.repository)
+          EventTemporaryRepositoryProvider.repository,
+          UserRepositoryProvider.repository,
+      )
     }
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
+  val preview = viewModel.previewEvent.collectAsState()
   val categoryList = Tag.tagFromEachCategory.toList()
   val categories by viewModel.categories.collectAsState()
+
   // --- 1. Permissions & Initialization ---
 
   val permissionLauncher =
@@ -247,6 +252,7 @@ fun MapScreen(
           }
 
           selectedEvent.let {
+            val isPreview = preview.value != null
             if (it is MapViewModel.EventSelectionState.Selected)
                 EventInfoPopup(
                     modifier = Modifier.padding(padding),
@@ -258,7 +264,19 @@ fun MapScreen(
                       onChatNavigate(eventId, eventTitle)
                     },
                     isUserParticipant = viewModel.isUserParticipant(it.event),
-                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) })
+                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) },
+                    isPreview = isPreview,
+                    bottomBar =
+                        if (isPreview) {
+                          {
+                            FlowBottomMenu(
+                                flowTabs =
+                                    listOf(
+                                        FlowTab.Back(onClick = { viewModel.rejectPreview() }),
+                                        FlowTab.Confirm(
+                                            { viewModel.acceptPreview() }, enabled = true)))
+                          }
+                        } else null)
           }
 
           MapCreateEventModal(

@@ -66,7 +66,8 @@ fun EventContentLayout(
     isUserParticipant: Boolean,
     isPrivate: Boolean,
     onToggleEventParticipation: () -> Unit,
-    onChatClick: () -> Unit
+    onChatClick: () -> Unit,
+    showActions: Boolean = true,
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -165,12 +166,14 @@ fun EventContentLayout(
 
     Spacer(Modifier.height(Dimensions.SpacerLarge))
 
-    EventCardActionsRow(
-        eventId = eventId,
-        participants = participants,
-        creator = creator,
-        isUserParticipant = isUserParticipant,
-        onToggleEventParticipation = onToggleEventParticipation,
-        onChatClick = onChatClick)
+    if (showActions) {
+      EventCardActionsRow(
+          eventId = eventId,
+          participants = participants,
+          creator = creator,
+          isUserParticipant = isUserParticipant,
+          onToggleEventParticipation = onToggleEventParticipation,
+          onChatClick = onChatClick)
+    }
   }
 }

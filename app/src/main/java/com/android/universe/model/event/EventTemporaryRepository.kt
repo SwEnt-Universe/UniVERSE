@@ -29,6 +29,8 @@ interface EventTemporaryRepository {
       eventPicture: ByteArray?
   )
 
+  suspend fun updateEventAsObject(event: Event)
+
   /** Return the current stocked event. */
   suspend fun getEvent(): Event
 

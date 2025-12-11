@@ -8,6 +8,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.AIEventGen
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
+import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
@@ -58,6 +59,7 @@ class MapViewModelTest {
   private lateinit var appContext: Context
   private lateinit var locationRepository: LocationRepository
   private lateinit var eventRepository: EventRepository
+  private lateinit var temporaryRepository: EventTemporaryRepository
   private lateinit var userRepository: UserRepository
   private lateinit var userReactiveRepository: UserReactiveRepository
   private lateinit var ai: AIEventGen
@@ -520,7 +522,7 @@ class MapViewModelTest {
       }
 
   @Test
-  fun `generateAiEventAroundUser invokes AI generateEvents then persists and reloads events`() =
+  fun `generateAiEventAroundUser invokes AI and sets preview state but does not persist`() =
       runTest {
         // Arrange
         setUserLocation(46.5, 6.5)
@@ -528,24 +530,39 @@ class MapViewModelTest {
         val fakeUser = UserTestData.Bob.copy(uid = userId)
         coEvery { userRepository.getUser(userId) } returns fakeUser
 
-        val generatedEvents = listOf(EventTestData.dummyEvent1.copy(id = "ai-event"))
-        coEvery { ai.generateEvents(any()) } returns generatedEvents
+        val generatedEvent =
+            EventTestData.dummyEvent1.copy(id = "ai-event", location = Location(46.5, 6.5))
+        coEvery { ai.generateEvents(any()) } returns listOf(generatedEvent)
 
-        coEvery { eventRepository.persistAIEvents(any()) } returns generatedEvents
-
-        coEvery { eventRepository.getAllEvents(any(), any()) } returns generatedEvents
-
+        // Act
         viewModel.generateAiEventAroundUser(radiusKm = 42, timeFrame = "tonight")
         advanceUntilIdle()
 
-        // Verified atLeast = 1 because it's called once for generation context
-        // AND once inside loadAllEvents for privacy filtering.
-        coVerify(atLeast = 1) { userRepository.getUser(userId) }
+        // ---- VERIFY BEHAVIOR ----
+
+        // User is fetched exactly once
+        coVerify(exactly = 1) { userRepository.getUser(userId) }
+
+        // AI called exactly once
         coVerify(exactly = 1) { ai.generateEvents(any()) }
-        coVerify(exactly = 1) { eventRepository.persistAIEvents(any()) }
-        coVerify(exactly = 1) { eventRepository.getAllEvents(any(), any()) }
+
+        // Should NOT persist anything (that now happens only in acceptPreview)
+        coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
+
+        // Should NOT reload events (also moved to acceptPreview)
+        coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
+
+        // ---- STATE ASSERTIONS ----
+        assertEquals(generatedEvent, viewModel.previewEvent.value)
+
+        val sel = viewModel.selectedEvent.value as MapViewModel.EventSelectionState.Selected
+        assertEquals(generatedEvent, sel.event)
 
         assertNull(viewModel.uiState.value.error)
+
+        // Camera center request
+        assertEquals(
+            generatedEvent.location.toGeoPoint(), viewModel.uiState.value.pendingCameraCenter)
       }
 
   @Test
@@ -589,6 +606,205 @@ class MapViewModelTest {
     assertEquals(SAMPLE_GEO_POINT, viewModel.uiState.value.selectedLocation)
     viewModel.switchMapMode(MapMode.NORMAL)
     assertEquals(null, viewModel.uiState.value.selectedLocation)
+  }
+
+  @Test
+  fun `generateAiEventAroundUser sets error when AI returns empty list`() = runTest {
+    setUserLocation()
+
+    val fakeUser = UserTestData.Bob.copy(uid = userId)
+    coEvery { userRepository.getUser(userId) } returns fakeUser
+    coEvery { ai.generateEvents(any()) } returns emptyList()
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    assertEquals("AI returned no events", viewModel.uiState.value.error)
+  }
+
+  @Test
+  fun `generateAiEventAroundUser handles AI exception`() = runTest {
+    setUserLocation()
+
+    coEvery { userRepository.getUser(any()) } returns UserTestData.Bob
+    coEvery { ai.generateEvents(any()) } throws RuntimeException("AI failed")
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    assertEquals("AI failed", viewModel.uiState.value.error)
+  }
+
+  @Test
+  fun `acceptPreview persists event clears preview and reloads events`() = runTest {
+    // Arrange
+    setUserLocation()
+
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+    val generated = EventTestData.dummyEvent1.copy(id = "accept-test")
+
+    // Rebuild ViewModel using mocked temp repo
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+
+    // Required for loadAllEvents
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
+
+    // Mock AI generation so preview is created legitimately
+    val fakeUser = UserTestData.Bob.copy(uid = userId)
+    coEvery { userRepository.getUser(userId) } returns fakeUser
+    coEvery { ai.generateEvents(any()) } returns listOf(generated)
+
+    // Mock reload call
+    coEvery { eventRepository.persistAIEvents(any()) } returns listOf(generated)
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns listOf(generated)
+
+    // Create preview using actual public API
+    setUserLocation()
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    // --- Act ---
+    viewModel.acceptPreview()
+    advanceUntilIdle()
+
+    // --- Assert ---
+    coVerify(exactly = 1) { eventRepository.persistAIEvents(listOf(generated)) }
+    coVerify(exactly = 1) { tempRepo.deleteEvent() }
+    coVerify(atLeast = 1) { eventRepository.getAllEvents(any(), any()) }
+
+    assertNull(viewModel.previewEvent.value)
+    assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
+  }
+
+  @Test
+  fun `rejectPreview clears preview and deletes temp event`() = runTest {
+    // Arrange
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+    val generated = EventTestData.dummyEvent1.copy(id = "reject-test")
+
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
+
+    // Create preview the correct way
+    setUserLocation()
+    coEvery { userRepository.getUser(userId) } returns UserTestData.Bob.copy(uid = userId)
+    coEvery { ai.generateEvents(any()) } returns listOf(generated)
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    assertNotNull(viewModel.previewEvent.value)
+
+    // --- Act ---
+    viewModel.rejectPreview()
+    advanceUntilIdle()
+
+    // --- Assert ---
+    coVerify(exactly = 1) { tempRepo.deleteEvent() }
+    assertNull(viewModel.previewEvent.value)
+    assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
+  }
+
+  @Test
+  fun `acceptPreview does nothing when previewEvent is null`() = runTest {
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+
+    // Assert initial state
+    assertNull(viewModel.previewEvent.value)
+
+    // Act
+    viewModel.acceptPreview()
+    advanceUntilIdle()
+
+    // Nothing should have happened
+    coVerify(exactly = 0) { eventRepository.persistAIEvents(any()) }
+    coVerify(exactly = 0) { tempRepo.deleteEvent() }
+    coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
+    assertTrue(viewModel.selectedEvent.value is MapViewModel.EventSelectionState.None)
+  }
+
+  @Test
+  fun `acceptPreview sets error and preserves preview when persist fails`() = runTest {
+    // Arrange
+    val tempRepo = mockk<EventTemporaryRepository>(relaxed = true)
+    val generated = EventTestData.dummyEvent1.copy(id = "fail-test")
+
+    viewModel =
+        MapViewModel(
+            applicationContext = appContext,
+            prefs = mockk(relaxed = true),
+            locationRepository = locationRepository,
+            eventRepository = eventRepository,
+            eventTemporaryRepository = tempRepo,
+            userRepository = userRepository,
+            userReactiveRepository = userReactiveRepository,
+            ai = ai)
+
+    // Required for loadAllEvents
+    viewModel.javaClass.getDeclaredField("currentUserId").apply {
+      isAccessible = true
+      set(viewModel, userId)
+    }
+
+    // Populate preview via real API
+    setUserLocation()
+    coEvery { userRepository.getUser(userId) } returns UserTestData.Bob.copy(uid = userId)
+    coEvery { ai.generateEvents(any()) } returns listOf(generated)
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    // Make persist fail
+    coEvery { eventRepository.persistAIEvents(any()) } throws RuntimeException("boom")
+
+    // --- Act ---
+    viewModel.acceptPreview()
+    advanceUntilIdle()
+
+    // --- Assert ---
+    assertEquals("boom", viewModel.uiState.value.error)
+
+    // Preview should NOT be cleared on failure
+    assertEquals(generated, viewModel.previewEvent.value)
+
+    // No temp delete, no reload
+    coVerify(exactly = 0) { tempRepo.deleteEvent() }
+    coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
   }
 
   @Test
