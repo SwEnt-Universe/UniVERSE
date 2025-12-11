@@ -21,7 +21,6 @@ import com.android.universe.ui.common.validateDateTime
 import com.android.universe.ui.common.validateDescription
 import com.android.universe.ui.common.validateEventDate
 import com.android.universe.ui.common.validateEventTitle
-import com.android.universe.ui.common.validateLocation
 import com.android.universe.ui.common.validateTime
 import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors.DESCRIPTION_TOO_LONG_FMT
 import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors.TITLE_TOO_LONG_FMT
@@ -56,7 +55,6 @@ enum class OnboardingState {
  * @param dateError the error message for the date.
  * @param timeError the error message for the time.
  * @param eventPicture the picture of the event.
- * @param location the location of the event.
  * @param onboardingState the map that give a boolean for each OnboardingState depending if the text
  *   field has already been changed.
  * @param isAiAssistVisible true if the AI assistant UI should be shown.
@@ -80,7 +78,6 @@ data class EventCreationUIState(
     val dateError: String? = null,
     val timeError: String? = null,
     val eventPicture: ByteArray? = null,
-    val location: Location? = null,
     val isPrivate: Boolean = false,
     val onboardingState: MutableMap<OnboardingState, Boolean> =
         mutableMapOf(
@@ -118,9 +115,6 @@ data class EventCreationUIState(
   /** Keep the ValidationState of the combination of the date and the time of the event */
   val eventDateTimeValid: ValidationState
     get() = validateDateTime(date, time)
-
-  val eventLocationValid: ValidationState
-    get() = validateLocation(location)
 
   /**
    * Computed validation state for the AI Prompt.
@@ -203,8 +197,6 @@ class EventCreationViewModel(
      * repositories into the ViewModel.
      *
      * @param context The context used to initialize the image manager.
-     * @param eventRepository The repository for persistent event storage.
-     * @param eventTemporaryRepository The repository for temporary event storage.
      */
     fun provideFactory(context: Context): ViewModelProvider.Factory = viewModelFactory {
       EventCreationViewModel(
@@ -212,16 +204,6 @@ class EventCreationViewModel(
           eventRepository = EventRepositoryProvider.repository,
           eventTemporaryRepository = EventTemporaryRepositoryProvider.repository)
     }
-  }
-
-  /**
-   * Update the location of the event.
-   *
-   * @param lat the latitude of the location.
-   * @param lon the longitude of the location.
-   */
-  fun setLocation(lat: Double, lon: Double) {
-    eventCreationUiState.value = eventCreationUiState.value.copy(location = Location(lat, lon))
   }
 
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
@@ -245,8 +227,7 @@ class EventCreationViewModel(
             uiStateValue.eventDescriptionValid is ValidationState.Neutral) &&
         uiStateValue.eventDateValid is ValidationState.Valid &&
         uiStateValue.eventTimeValid is ValidationState.Valid &&
-        uiStateValue.eventDateTimeValid is ValidationState.Valid &&
-        uiStateValue.eventLocationValid is ValidationState.Valid)
+        uiStateValue.eventDateTimeValid is ValidationState.Valid)
   }
 
   /**
@@ -323,8 +304,8 @@ class EventCreationViewModel(
     eventCreationUiState.value = eventCreationUiState.value.copy(time = finalTime)
   }
 
-  val formatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-  val timeFormatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("HH:mm")
+  private val formatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  private val timeFormatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("HH:mm")
 
   /**
    * Format the date to a string.
@@ -339,8 +320,9 @@ class EventCreationViewModel(
    * Save the event with all the parameters selected by the user in the event repository.
    *
    * @param uid the uid of the Current User.
+   * @param location the location of the event.
    */
-  fun saveEvent(uid: String) {
+  fun saveEvent(uid: String, location: Location) {
     if (validateAll()) {
       viewModelScope.launch {
         try {
@@ -350,10 +332,6 @@ class EventCreationViewModel(
           val internalTime = LocalTime.parse(uiStateEventCreation.value.time, timeFormatter)
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
-          val loc =
-              requireNotNull(eventCreationUiState.value.location) {
-                "Location must be set before saving the event"
-              }
 
           eventTemporaryRepository.updateEvent(
               id = id,
@@ -362,7 +340,7 @@ class EventCreationViewModel(
               dateTime = eventDateTime,
               creator = uid,
               participants = setOf(uid),
-              location = loc,
+              location = location,
               isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {
