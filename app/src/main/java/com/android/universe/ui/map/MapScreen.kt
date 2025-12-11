@@ -272,7 +272,7 @@ fun MapScreen(
                             FlowBottomMenu(
                                 flowTabs =
                                     listOf(
-                                        FlowTab.Back { viewModel.rejectPreview() },
+                                        FlowTab.Back(onClick = { viewModel.rejectPreview() }),
                                         FlowTab.Confirm(
                                             { viewModel.acceptPreview() }, enabled = true)))
                           }
