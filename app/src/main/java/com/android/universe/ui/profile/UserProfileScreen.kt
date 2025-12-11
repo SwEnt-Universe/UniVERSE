@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +22,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
@@ -55,6 +53,7 @@ import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.common.ProfileContentLayout
 import com.android.universe.ui.components.LiquidBox
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.event.EventCard
 import com.android.universe.ui.event.EventUIState
 import com.android.universe.ui.event.EventViewModel
@@ -193,37 +192,37 @@ fun UserProfileScreen(
     }
   }
 
-  Scaffold(
-      containerColor = Color.Transparent,
-      modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN),
-      contentWindowInsets = WindowInsets(0, 0, 0, 0),
-      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) }) { _ ->
-        LiquidBox(
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
-              Box(modifier = Modifier.fillMaxSize().padding(top = Dimensions.PaddingExtraLarge)) {
-                ProfileContentPager(
-                    pagerState = pagerState,
-                    historyListState = historyListState,
-                    incomingListState = incomingListState,
-                    historyEvents = userUIState.historyEvents,
-                    incomingEvents = userUIState.incomingEvents,
-                    eventViewModel = eventViewModel,
-                    spacerHeightDp = profileContentHeightDp + elementSpacingDp,
-                    clipPaddingDp = tabRowHeightDp,
-                    onChatNavigate = onChatNavigate,
-                    onCardClick = onCardClick)
+  ScreenLayout(
+      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) },
+      modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN)) { _ ->
+        Box(modifier = Modifier.fillMaxSize()) {
+          LiquidBox(
+              modifier = Modifier.fillMaxSize(),
+              shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
+                Box(modifier = Modifier.fillMaxSize().padding(top = Dimensions.PaddingExtraLarge)) {
+                  ProfileContentPager(
+                      pagerState = pagerState,
+                      historyListState = historyListState,
+                      incomingListState = incomingListState,
+                      historyEvents = userUIState.historyEvents,
+                      incomingEvents = userUIState.incomingEvents,
+                      eventViewModel = eventViewModel,
+                      spacerHeightDp = profileContentHeightDp + elementSpacingDp,
+                      clipPaddingDp = tabRowHeightDp,
+                      onChatNavigate = onChatNavigate,
+                      onCardClick = onCardClick)
 
-                ProfileHeaderOverlay(
-                    headerOffsetPx = headerOffsetPx,
-                    userProfile = userUIState.userProfile,
-                    pagerState = pagerState,
-                    gapHeightDp = elementSpacingDp,
-                    onProfileHeightMeasured = { profileContentHeightPx = it },
-                    onTabHeightMeasured = { tabRowHeightPx = it },
-                    onEditProfileClick = { onEditProfileClick(uid) })
+                  ProfileHeaderOverlay(
+                      headerOffsetPx = headerOffsetPx,
+                      userProfile = userUIState.userProfile,
+                      pagerState = pagerState,
+                      gapHeightDp = elementSpacingDp,
+                      onProfileHeightMeasured = { profileContentHeightPx = it },
+                      onTabHeightMeasured = { tabRowHeightPx = it },
+                      onEditProfileClick = { onEditProfileClick(uid) })
+                }
               }
-            }
+        }
       }
 }
 
