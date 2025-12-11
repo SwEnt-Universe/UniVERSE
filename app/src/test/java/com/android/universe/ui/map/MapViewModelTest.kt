@@ -576,16 +576,14 @@ class MapViewModelTest {
         coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
 
         // ---- STATE ASSERTIONS ----
-
         assertEquals(generatedEvent, viewModel.previewEvent.value)
 
         val sel = viewModel.selectedEvent.value as MapViewModel.EventSelectionState.Selected
         assertEquals(generatedEvent, sel.event)
 
-        // No error
         assertNull(viewModel.uiState.value.error)
 
-        // Camera center request should be present
+        // Camera center request
         assertEquals(
             generatedEvent.location.toGeoPoint(), viewModel.uiState.value.pendingCameraCenter)
       }
@@ -615,5 +613,32 @@ class MapViewModelTest {
     advanceUntilIdle()
 
     assertNull(viewModel.uiState.value.pendingCameraCenter)
+  }
+
+  @Test
+  fun `generateAiEventAroundUser sets error when AI returns empty list`() = runTest {
+    setUserLocation()
+
+    val fakeUser = UserTestData.Bob.copy(uid = userId)
+    coEvery { userRepository.getUser(userId) } returns fakeUser
+    coEvery { ai.generateEvents(any()) } returns emptyList()
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    assertEquals("AI returned no events", viewModel.uiState.value.error)
+  }
+
+  @Test
+  fun `generateAiEventAroundUser handles AI exception`() = runTest {
+    setUserLocation()
+
+    coEvery { userRepository.getUser(any()) } returns UserTestData.Bob
+    coEvery { ai.generateEvents(any()) } throws RuntimeException("AI failed")
+
+    viewModel.generateAiEventAroundUser()
+    advanceUntilIdle()
+
+    assertEquals("AI failed", viewModel.uiState.value.error)
   }
 }
