@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,7 +18,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -108,7 +106,6 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
-  val theme = isSystemInDarkTheme()
   val categoryList = remember { Tag.tagFromEachCategory.toList() }
   val categories by viewModel.categories.collectAsState()
   // --- 1. Permissions & Initialization ---
@@ -152,8 +149,6 @@ fun MapScreen(
     viewModel.syncEventMarkers(uiState.markers)
   }
 
-  SideEffect { viewModel.setTheme(theme) }
-
   // Sync Selection
   LaunchedEffect(uiState.selectedLocation) {
     viewModel.syncSelectedLocationMarker(uiState.selectedLocation)
@@ -170,6 +165,15 @@ fun MapScreen(
       if (matched != null) {
         viewModel.selectEvent(matched)
       }
+    }
+  }
+
+  // Listen for camera-center requests. Performs centering and clears request.
+  LaunchedEffect(uiState.pendingCameraCenter, uiState.isMapInteractive) {
+    val target = uiState.pendingCameraCenter
+    if (target != null && uiState.isMapInteractive) {
+      viewModel.onCameraMoveRequest(target)
+      viewModel.clearPendingCameraCenter()
     }
   }
 
