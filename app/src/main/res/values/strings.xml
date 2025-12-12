@@ -1,8 +1,4 @@
 <resources>
     <string name="app_name">UniVERSE</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_second">SecondActivity</string>
-    <!-- TomTom API Key TODO remove and use key from BuildConfig -->
-    <string name="tomtom_api_key">PVyuwMJsdCJ5Wna3LFKSt4oi3PR7bU47</string>
-    <string name="title_activity_map">TomTom Map</string>
 </resources>

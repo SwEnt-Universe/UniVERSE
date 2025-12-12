@@ -17,7 +17,7 @@ object InputLimits {
   /** Maximum length for a last name. */
   const val LAST_NAME = 25
   /** Maximum length for a user's description. */
-  const val DESCRIPTION = 100
+  const val DESCRIPTION = 256
   /** Maximum number of characters for the day part of a date. */
   const val DAY = 2
   /** Maximum number of characters for the month part of a date. */

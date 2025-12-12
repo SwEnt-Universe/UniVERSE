@@ -99,7 +99,7 @@ fun EventContentLayout(
                           Text(
                               text = date.format(dateFormatter),
                               style = MaterialTheme.typography.bodySmall,
-                              color = Color.White,
+                              color = MaterialTheme.colorScheme.onPrimary,
                               maxLines = 1,
                               overflow = TextOverflow.Ellipsis,
                               modifier =
@@ -108,7 +108,7 @@ fun EventContentLayout(
                           Text(
                               text = date.format(timeFormatter),
                               style = MaterialTheme.typography.bodySmall,
-                              color = Color.White,
+                              color = MaterialTheme.colorScheme.onPrimary,
                               maxLines = 1,
                               overflow = TextOverflow.Ellipsis,
                               modifier =
@@ -135,16 +135,6 @@ fun EventContentLayout(
                         }
                   }
                 }
-
-            Box(modifier = Modifier.align(Alignment.BottomStart).padding(Dimensions.PaddingLarge)) {
-              Text(
-                  text = title,
-                  style = MaterialTheme.typography.titleLarge,
-                  color = Color.White,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-                  modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
-            }
           }
 
       Column(modifier = Modifier.weight(1f).height(Dimensions.CardImageHeight)) {
@@ -158,16 +148,21 @@ fun EventContentLayout(
                     .padding(start = Dimensions.PaddingLarge))
       }
     }
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
 
-    Spacer(Modifier.height(Dimensions.SpacerLarge))
-
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
     Text(
         text = description ?: "No description available",
         style = MaterialTheme.typography.bodyLarge,
-        maxLines = 3,
+        color = MaterialTheme.colorScheme.onSurface,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
-
     Spacer(Modifier.height(Dimensions.SpacerLarge))
 
     if (showActions) {

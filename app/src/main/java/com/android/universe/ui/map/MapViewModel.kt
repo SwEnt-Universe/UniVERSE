@@ -782,7 +782,7 @@ class MapViewModel(
       GAMES -> R.drawable.orange_pin
       TECHNOLOGY -> R.drawable.grey_pin
       TOPIC -> R.drawable.pink_pin
-      null -> R.drawable.base_pin
+      null -> R.drawable.black_pin
     }
   }
 }

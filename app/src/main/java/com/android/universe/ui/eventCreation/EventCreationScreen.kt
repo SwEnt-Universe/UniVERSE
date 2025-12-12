@@ -6,21 +6,25 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +37,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -118,7 +121,7 @@ fun EventCreationScreen(
           isGenerating = uiState.value.isGenerating,
           error = uiState.value.generationError,
           onPromptChange = eventCreationViewModel::setAiPrompt,
-          onGenerate = eventCreationViewModel::generateProposal,
+          onGenerate = { eventCreationViewModel.generateProposal(location) },
           onBack = eventCreationViewModel::hideAiAssist)
     } else {
       AiReviewBox(
@@ -132,7 +135,7 @@ fun EventCreationScreen(
           onPromptChange = eventCreationViewModel::setAiPrompt,
           onTitleChange = eventCreationViewModel::updateProposalTitle,
           onDescriptionChange = eventCreationViewModel::updateProposalDescription,
-          onRegenerate = eventCreationViewModel::generateProposal,
+          onRegenerate = { eventCreationViewModel.generateProposal(location) },
           onConfirm = eventCreationViewModel::acceptProposal,
           onBack = eventCreationViewModel::hideAiAssist)
     }
@@ -198,10 +201,11 @@ fun StandardEventCreationForm(
   ScreenLayout(
       bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
       content = { paddingValues ->
-        Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
-          Box(
-              modifier =
-                  Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween) {
+              Box(modifier = Modifier.padding(vertical = Dimensions.PaddingLarge)) {
                 val launcher =
                     rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -217,161 +221,168 @@ fun StandardEventCreationForm(
                             .align(Alignment.BottomCenter)
                             .testTag(EventCreationTestTags.EVENT_PICTURE_PICKER))
               }
-          Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-          LiquidBox(
-              modifier = Modifier.weight(1f),
-              shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
-                Column(
-                    modifier =
-                        Modifier.padding(
-                            vertical = Dimensions.PaddingMedium,
-                            horizontal = Dimensions.PaddingLarge)) {
-                      Row(
-                          modifier =
-                              Modifier.fillMaxWidth()
-                                  .padding(vertical = Dimensions.PaddingMedium)) {
-                            Text(
-                                modifier =
-                                    Modifier.weight(1f)
-                                        .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
-                                text = "Create an Event",
-                                style =
-                                    MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold),
-                                fontSize = EventCreationDefaults.titleFontSize)
+              LiquidBox(
+                  modifier = Modifier.weight(1f),
+                  shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
+                    Column(
+                        modifier =
+                            Modifier.padding(
+                                    vertical = Dimensions.PaddingMedium,
+                                    horizontal = Dimensions.PaddingLarge)
+                                .verticalScroll(rememberScrollState())) {
+                          Row(
+                              modifier =
+                                  Modifier.fillMaxWidth()
+                                      .padding(vertical = Dimensions.PaddingMedium)) {
+                                Text(
+                                    modifier =
+                                        Modifier.weight(1f)
+                                            .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
+                                    text = "Create an Event",
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style =
+                                        MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.Bold),
+                                    fontSize = EventCreationDefaults.titleFontSize)
 
-                            LiquidButton(
-                                onClick = { eventCreationViewModel.showAiAssist() },
-                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
-                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
-                                contentPadding = Dimensions.PaddingSmall,
-                                modifier =
-                                    Modifier.padding(end = Dimensions.PaddingMedium)
-                                        .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
-                                  Icon(
-                                      imageVector = Icons.Default.AutoAwesome,
-                                      contentDescription = "AI Assist",
-                                      modifier = Modifier.size(EventCreationDefaults.locIconSize))
-                                }
-                          }
+                                LiquidButton(
+                                    onClick = { eventCreationViewModel.showAiAssist() },
+                                    height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
+                                    width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
+                                    contentPadding = Dimensions.PaddingSmall,
+                                    modifier =
+                                        Modifier.padding(end = Dimensions.PaddingMedium)
+                                            .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
+                                      Icon(
+                                          imageVector = Icons.Default.AutoAwesome,
+                                          contentDescription = "AI Assist",
+                                          tint = MaterialTheme.colorScheme.onSurface,
+                                          modifier =
+                                              Modifier.size(EventCreationDefaults.locIconSize))
+                                    }
+                              }
 
-                      Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-                      CustomTextField(
-                          modifier =
-                              Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-                                  .padding(vertical = Dimensions.PaddingMedium),
-                          label = "Title",
-                          placeholder = "Enter your event title",
-                          value = uiState.name,
-                          onValueChange = { name ->
-                            eventCreationViewModel.setEventName(name)
-                            eventCreationViewModel.setOnboardingState(
-                                state = OnboardingState.ENTER_EVENT_TITLE, true)
-                          },
-                          maxLines = 2,
-                          leadingIcon = Icons.Default.Title,
-                          validationState =
-                              if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
-                                  true) {
-                                uiState.eventTitleValid
-                              } else {
-                                ValidationState.Neutral
+                          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                          CustomTextField(
+                              modifier =
+                                  Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+                                      .padding(vertical = Dimensions.PaddingMedium),
+                              label = "Title",
+                              placeholder = "Enter your event title",
+                              value = uiState.name,
+                              onValueChange = { name ->
+                                eventCreationViewModel.setEventName(name)
+                                eventCreationViewModel.setOnboardingState(
+                                    state = OnboardingState.ENTER_EVENT_TITLE, true)
+                              },
+                              maxLines = 2,
+                              validationState =
+                                  if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
+                                      true) {
+                                    uiState.eventTitleValid
+                                  } else {
+                                    ValidationState.Neutral
+                                  })
+                          CustomTextField(
+                              modifier =
+                                  Modifier.testTag(
+                                          EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+                                      .padding(vertical = Dimensions.PaddingMedium),
+                              label = "Description",
+                              placeholder = "Enter your event description",
+                              value = uiState.description ?: "",
+                              onValueChange = { description ->
+                                eventCreationViewModel.setEventDescription(description)
+                                eventCreationViewModel.setOnboardingState(
+                                    state = OnboardingState.ENTER_DESCRIPTION, true)
+                              },
+                              maxLines = 3,
+                              validationState =
+                                  if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
+                                      true) {
+                                    uiState.eventDescriptionValid
+                                  } else {
+                                    ValidationState.Neutral
+                                  })
+                          Box(
+                              modifier =
+                                  Modifier.fillMaxWidth()
+                                      .padding(vertical = Dimensions.PaddingMedium)
+                                      .clickable { showDate.value = true }) {
+                                CustomTextField(
+                                    modifier =
+                                        Modifier.testTag(
+                                                EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
+                                            .align(Alignment.CenterStart),
+                                    label = "Date",
+                                    placeholder = "Enter a Date",
+                                    value = dateText,
+                                    onValueChange = {},
+                                    maxLines = 1,
+                                    leadingIcon = Icons.Default.Event,
+                                    enabled = false,
+                                    validationState =
+                                        if (uiState.eventDateValid == ValidationState.Valid) {
+                                          uiState.eventDateTimeValid
+                                        } else {
+                                          uiState.eventDateValid
+                                        })
+                              }
+                          UniversalDatePickerDialog(
+                              modifier = Modifier.testTag(EventCreationTestTags.EVENT_DATE_PICKER),
+                              visible = showDate.value,
+                              initialDate = uiState.date ?: LocalDate.now(),
+                              yearRange = IntRange(2025, 2050),
+                              onDismiss = { showDate.value = false },
+                              onConfirm = {
+                                eventCreationViewModel.setDate(it)
+                                showDate.value = false
                               })
-                      CustomTextField(
-                          modifier =
-                              Modifier.testTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-                                  .padding(vertical = Dimensions.PaddingMedium),
-                          label = "Description",
-                          placeholder = "Enter your event description",
-                          value = uiState.description ?: "",
-                          onValueChange = { description ->
-                            eventCreationViewModel.setEventDescription(description)
-                            eventCreationViewModel.setOnboardingState(
-                                state = OnboardingState.ENTER_DESCRIPTION, true)
-                          },
-                          maxLines = 3,
-                          validationState =
-                              if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
-                                  true) {
-                                uiState.eventDescriptionValid
-                              } else {
-                                ValidationState.Neutral
-                              })
-                      Box(
-                          modifier =
-                              Modifier.fillMaxWidth()
-                                  .padding(vertical = Dimensions.PaddingMedium)
-                                  .clickable { showDate.value = true }) {
-                            CustomTextField(
-                                modifier =
-                                    Modifier.testTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
-                                        .align(Alignment.CenterStart),
-                                label = "Date",
-                                placeholder = "Enter a Date",
-                                value = dateText,
-                                onValueChange = {},
-                                maxLines = 1,
-                                leadingIcon = Icons.Default.Event,
-                                enabled = false,
-                                validationState =
-                                    if (uiState.eventDateValid == ValidationState.Valid) {
+                          CustomTextField(
+                              modifier =
+                                  Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
+                              label = "Time",
+                              placeholder = "Select a Time in format HH:MM",
+                              value = uiState.time,
+                              onValueChange = { time ->
+                                eventCreationViewModel.setTime(time)
+                                eventCreationViewModel.setOnboardingState(
+                                    OnboardingState.ENTER_TIME, true)
+                              },
+                              maxLines = 1,
+                              leadingIcon = Icons.Default.AccessTimeFilled,
+                              validationState =
+                                  if (uiState.onboardingState[OnboardingState.ENTER_TIME] == true) {
+                                    if (uiState.eventTimeValid == ValidationState.Valid) {
                                       uiState.eventDateTimeValid
                                     } else {
-                                      uiState.eventDateValid
-                                    })
-                          }
-                      UniversalDatePickerDialog(
-                          modifier = Modifier.testTag(EventCreationTestTags.EVENT_DATE_PICKER),
-                          visible = showDate.value,
-                          initialDate = uiState.date ?: LocalDate.now(),
-                          yearRange = IntRange(2025, 2050),
-                          onDismiss = { showDate.value = false },
-                          onConfirm = {
-                            eventCreationViewModel.setDate(it)
-                            showDate.value = false
-                          })
-                      CustomTextField(
-                          modifier = Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
-                          label = "Time",
-                          placeholder = "Select a Time in format HH:MM",
-                          value = uiState.time,
-                          onValueChange = { time ->
-                            eventCreationViewModel.setTime(time)
-                            eventCreationViewModel.setOnboardingState(
-                                OnboardingState.ENTER_TIME, true)
-                          },
-                          maxLines = 1,
-                          leadingIcon = Icons.Default.AccessTimeFilled,
-                          validationState =
-                              if (uiState.onboardingState[OnboardingState.ENTER_TIME] == true) {
-                                if (uiState.eventTimeValid == ValidationState.Valid) {
-                                  uiState.eventDateTimeValid
-                                } else {
-                                  uiState.eventTimeValid
-                                }
-                              } else {
-                                ValidationState.Neutral
-                              })
-                      Row(
-                          modifier =
-                              Modifier.fillMaxWidth()
-                                  .padding(vertical = Dimensions.PaddingMedium)
-                                  .testTag(EventCreationTestTags.PRIVACY_TOGGLE),
-                          verticalAlignment = Alignment.CenterVertically,
-                          horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(
-                                text = "Private Event (followers only)",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onBackground)
+                                      uiState.eventTimeValid
+                                    }
+                                  } else {
+                                    ValidationState.Neutral
+                                  })
+                          Row(
+                              modifier =
+                                  Modifier.fillMaxWidth()
+                                      .padding(vertical = Dimensions.PaddingMedium)
+                                      .testTag(EventCreationTestTags.PRIVACY_TOGGLE),
+                              verticalAlignment = Alignment.CenterVertically,
+                              horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    text = "Private Event (followers only)",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onBackground)
 
-                            LiquidToggle(
-                                modifier = Modifier.testTag(EventCreationTestTags.PRIVACY_SWITCH),
-                                selected = { uiState.isPrivate },
-                                onSelect = { eventCreationViewModel.setPrivacy(it) })
-                          }
-                    }
-              }
-        }
+                                LiquidToggle(
+                                    modifier =
+                                        Modifier.testTag(EventCreationTestTags.PRIVACY_SWITCH),
+                                    selected = { uiState.isPrivate },
+                                    onSelect = { eventCreationViewModel.setPrivacy(it) })
+                              }
+                          Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
+                        }
+                  }
+            }
       })
 }
 
@@ -386,22 +397,31 @@ fun StandardEventCreationForm(
  */
 @Composable
 fun AiLayout(bottomBar: @Composable () -> Unit, content: @Composable () -> Unit) {
-  Scaffold(containerColor = Color.Transparent, bottomBar = { bottomBar() }) { paddingValues ->
+  ScreenLayout(bottomBar = { bottomBar() }) { paddingValues ->
     Column(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
-      Spacer(modifier = Modifier.height(EventCreationDefaults.eventPictureBoxHeight).fillMaxWidth())
+      Spacer(modifier = Modifier.height(Dimensions.PaddingExtraLarge))
+      BoxWithConstraints(Modifier.fillMaxSize()) {
+        val minHeight = maxHeight * 0.4f
 
-      Spacer(modifier = Modifier.height(Dimensions.PaddingLarge))
-
-      LiquidBox(
-          modifier = Modifier.weight(1f).fillMaxWidth(),
-          shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(Dimensions.PaddingExtraLarge),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                  content()
-                }
-          }
+        LiquidBox(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .defaultMinSize(minHeight = minHeight)
+                    .align(alignment = Alignment.BottomCenter),
+            shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
+              Column(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .wrapContentHeight()
+                          .padding(Dimensions.PaddingExtraLarge)
+                          .verticalScroll(rememberScrollState()),
+                  verticalArrangement = Arrangement.Top,
+                  horizontalAlignment = Alignment.CenterHorizontally) {
+                    content()
+                    Spacer(Modifier.height(height = paddingValues.calculateBottomPadding()))
+                  }
+            }
+      }
     }
   }
 }
@@ -444,9 +464,15 @@ fun AiPromptBox(
                         enabled = !isGenerating)))
       }) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-          Icon(Icons.Default.AutoAwesome, contentDescription = null)
+          Icon(
+              Icons.Default.AutoAwesome,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.onSurface)
           Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
-          Text(text = "AI Assist", style = MaterialTheme.typography.titleLarge)
+          Text(
+              text = "AI Assist",
+              style = MaterialTheme.typography.titleLarge,
+              color = MaterialTheme.colorScheme.onSurface)
         }
 
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
@@ -520,54 +546,58 @@ fun AiReviewBox(
                     FlowTab.Confirm(
                         onClick = onConfirm, enabled = !isGenerating && isProposalValid)))
       }) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-          Text(text = "Review & Refine", style = MaterialTheme.typography.titleLarge)
-        }
+        Column(modifier = Modifier.fillMaxWidth()) {
+          Row(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Review & Refine",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface)
+          }
 
-        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-
-        CustomTextField(
-            modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
-            label = "Edit Your Prompt",
-            placeholder = "",
-            value = prompt,
-            onValueChange = onPromptChange,
-            maxLines = 2,
-            validationState = promptValidationState)
-
-        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-
-        CustomTextField(
-            modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_TITLE_FIELD),
-            label = "Title",
-            placeholder = "",
-            value = proposal.title,
-            onValueChange = onTitleChange,
-            leadingIcon = Icons.Default.Title,
-            validationState = titleValidationState)
-
-        Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-
-        CustomTextField(
-            modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_DESCRIPTION_FIELD),
-            label = "Description",
-            placeholder = "",
-            value = proposal.description,
-            onValueChange = onDescriptionChange,
-            maxLines = 3,
-            validationState = descriptionValidationState)
-
-        if (!isProposalValid) {
           Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-          Text(
-              text = AiErrors.CONTENT_TOO_LONG_UI,
-              color = MaterialTheme.colorScheme.error,
-              style = MaterialTheme.typography.labelSmall)
-        }
 
-        if (isGenerating) {
+          CustomTextField(
+              modifier = Modifier.testTag(EventCreationTestTags.AI_PROMPT_TEXT_FIELD),
+              label = "Edit Your Prompt",
+              placeholder = "",
+              value = prompt,
+              onValueChange = onPromptChange,
+              maxLines = 2,
+              validationState = promptValidationState)
+
           Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+
+          CustomTextField(
+              modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_TITLE_FIELD),
+              label = "Title",
+              placeholder = "",
+              value = proposal.title,
+              onValueChange = onTitleChange,
+              validationState = titleValidationState)
+
+          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+
+          CustomTextField(
+              modifier = Modifier.testTag(EventCreationTestTags.AI_REVIEW_DESCRIPTION_FIELD),
+              label = "Description",
+              placeholder = "",
+              value = proposal.description,
+              onValueChange = onDescriptionChange,
+              maxLines = 3,
+              validationState = descriptionValidationState)
+
+          if (!isProposalValid) {
+            Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+            Text(
+                text = AiErrors.CONTENT_TOO_LONG_UI,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall)
+          }
+
+          if (isGenerating) {
+            Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+          }
         }
       }
 }

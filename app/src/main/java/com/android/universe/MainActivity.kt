@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
         mapViewModel.setTheme(isDarkTheme)
         val controller = WindowCompat.getInsetsController(window, view)
         controller.isAppearanceLightNavigationBars = !isDarkTheme
+        controller.isAppearanceLightStatusBars = !isDarkTheme
       }
 
       UniverseTheme {
@@ -183,12 +184,7 @@ fun UniverseApp(
           AddProfile(
               uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
-              onBack = {
-                // Navigate back to Sign In
-                navController.navigate(NavigationScreens.SignIn.route) {
-                  popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-                }
-              },
+              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) },
               viewModel = vm)
         }
       }

@@ -1,5 +1,6 @@
 package com.android.universe.model.ai.gemini
 
+import com.android.universe.model.location.Location
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
 import io.mockk.coEvery
@@ -31,6 +32,8 @@ private const val MARKDOWN_JSON_RESPONSE =
 
 private const val MALFORMED_JSON_RESPONSE = "{ invalid json content... "
 
+private val LAUSANNE = Location(46.5196535, 6.6322734)
+
 class GeminiEventAssistantTest {
 
   @Test
@@ -43,7 +46,7 @@ class GeminiEventAssistantTest {
 
     val assistant = GeminiEventAssistant(providedModel = mockModel)
 
-    val result = assistant.generateProposal("Yoga session")
+    val result = assistant.generateProposal("Yoga session", LAUSANNE)
 
     assertNotNull("Result should not be null for valid JSON", result)
     assertEquals("Sunset Yoga", result?.title)
@@ -60,7 +63,7 @@ class GeminiEventAssistantTest {
 
     val assistant = GeminiEventAssistant(providedModel = mockModel)
 
-    val result = assistant.generateProposal("Markdown test")
+    val result = assistant.generateProposal("Markdown test", LAUSANNE)
 
     assertNotNull(result)
     assertEquals("Cleaned Title", result?.title)
@@ -73,7 +76,7 @@ class GeminiEventAssistantTest {
     coEvery { mockModel.generateContent(any<String>()) } throws IOException("No Internet")
 
     val assistant = GeminiEventAssistant(providedModel = mockModel)
-    val result = assistant.generateProposal("Crash test")
+    val result = assistant.generateProposal("Crash test", LAUSANNE)
 
     assertNull("Should return null when API throws exception", result)
   }
@@ -88,7 +91,7 @@ class GeminiEventAssistantTest {
 
     val assistant = GeminiEventAssistant(providedModel = mockModel)
 
-    val result = assistant.generateProposal("Bad JSON test")
+    val result = assistant.generateProposal("Bad JSON test", LAUSANNE)
 
     assertNull("Should return null when JSON is invalid", result)
   }
@@ -103,7 +106,7 @@ class GeminiEventAssistantTest {
 
     val assistant = GeminiEventAssistant(providedModel = mockModel)
 
-    val result = assistant.generateProposal("Empty test")
+    val result = assistant.generateProposal("Empty test", LAUSANNE)
 
     assertNull(result)
   }

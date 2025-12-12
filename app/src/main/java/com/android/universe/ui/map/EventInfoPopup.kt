@@ -3,11 +3,11 @@ package com.android.universe.ui.map
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +64,6 @@ fun EventInfoPopup(
       modifier =
           modifier
               .fillMaxSize()
-              .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f))
               .clickable(onClick = onDismiss)
               .testTag(MapScreenTestTags.EVENT_INFO_POPUP),
       contentAlignment = Alignment.BottomCenter) {
@@ -79,7 +78,8 @@ fun EventInfoPopup(
                   onDismissRequest = onDismiss,
                   bottomBar = bottomBar) {
                     EventContentLayout(
-                        modifier = Modifier.padding(Dimensions.PaddingLarge),
+                        modifier =
+                            Modifier.padding(Dimensions.PaddingLarge).navigationBarsPadding(),
                         eventId = event.id,
                         title = event.title,
                         description = event.description,

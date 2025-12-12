@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 
@@ -69,16 +68,20 @@ fun ParticipantsAuthorColumn(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$eventId"),
           text = "$participants joined",
           style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurface,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
       HorizontalDivider(
-          modifier = Modifier.padding(vertical = Dimensions.SpacerSmall).width(80.dp),
+          modifier =
+              Modifier.padding(vertical = Dimensions.SpacerSmall)
+                  .width(Dimensions.BoxDescriptionSize),
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           thickness = Dimensions.CardDividerThickness)
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_CREATOR}_$eventId"),
           text = "by $creator",
           style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurface,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
     }
@@ -88,16 +91,20 @@ fun ParticipantsAuthorColumn(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_PARTICIPANTS}_$eventId"),
           text = "$participants joined",
           style = MaterialTheme.typography.bodyLarge,
+          color = MaterialTheme.colorScheme.onSurface,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
       VerticalDivider(
-          modifier = Modifier.height(20.dp).padding(horizontal = Dimensions.SpacerSmall),
+          modifier =
+              Modifier.height(Dimensions.IconSizeMedium)
+                  .padding(horizontal = Dimensions.SpacerSmall),
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           thickness = Dimensions.CardDividerThickness)
       Text(
           modifier = Modifier.testTag("${EventContentTestTags.EVENT_CREATOR}_$eventId"),
           text = "by $creator",
           style = MaterialTheme.typography.bodyLarge,
+          color = MaterialTheme.colorScheme.onSurface,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis)
     }
@@ -145,9 +152,13 @@ fun EventCardActionsRow(
                   Icon(
                       imageVector = Icons.AutoMirrored.Filled.Chat,
                       contentDescription = "Chat",
+                      tint = MaterialTheme.colorScheme.onSurface,
                       modifier = Modifier.size(Dimensions.IconSizeMedium))
                   Spacer(Modifier.width(Dimensions.SpacerSmall))
-                  Text("Chat", style = MaterialTheme.typography.labelLarge)
+                  Text(
+                      "Chat",
+                      style = MaterialTheme.typography.labelLarge,
+                      color = MaterialTheme.colorScheme.onSurface)
                 }
               }
           Spacer(Modifier.width(Dimensions.SpacerLarge))
@@ -171,9 +182,13 @@ fun EventCardActionsRow(
                   Icon(
                       imageVector = Icons.Filled.Edit,
                       contentDescription = "Edit Event",
+                      tint = MaterialTheme.colorScheme.onSurface,
                       modifier = Modifier.size(Dimensions.IconSizeMedium))
                   Spacer(Modifier.width(Dimensions.SpacerSmall))
-                  Text(text = "Edit", style = MaterialTheme.typography.labelLarge)
+                  Text(
+                      text = "Edit",
+                      style = MaterialTheme.typography.labelLarge,
+                      color = MaterialTheme.colorScheme.onSurface)
                 }
               }
         } else {
@@ -190,11 +205,13 @@ fun EventCardActionsRow(
                       imageVector =
                           if (isUserParticipant) Icons.Filled.Close else Icons.Filled.Check,
                       contentDescription = "Toggle Participation",
+                      tint = MaterialTheme.colorScheme.onSurface,
                       modifier = Modifier.size(Dimensions.IconSizeMedium))
                   Spacer(Modifier.width(Dimensions.SpacerSmall))
                   Text(
                       text = if (isUserParticipant) "Leave" else "Join",
-                      style = MaterialTheme.typography.labelLarge)
+                      style = MaterialTheme.typography.labelLarge,
+                      color = MaterialTheme.colorScheme.onSurface)
                 }
               }
         }
