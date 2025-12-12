@@ -15,7 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -345,7 +348,10 @@ private fun AddEventButton(onClick: () -> Unit, boxScope: BoxScope, padding: Pad
               height = 56f,
               width = 56f,
               modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                Text("+", color = MaterialTheme.colorScheme.onBackground)
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface)
               }
         }
   }
