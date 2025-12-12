@@ -21,7 +21,8 @@ data class ExtendedColors(
     val success: Color,
     val placeholder: Color,
     val toggleActive: Color,
-    val toggleTrack: Color
+    val toggleTrack: Color,
+    val overImage: Color,
 )
 
 /**
@@ -39,7 +40,8 @@ val LocalExtendedColors = staticCompositionLocalOf {
       success = Color.Unspecified,
       placeholder = Color.Unspecified,
       toggleActive = Color.Unspecified,
-      toggleTrack = Color.Unspecified)
+      toggleTrack = Color.Unspecified,
+      overImage = Color.Unspecified)
 }
 
 /**
@@ -116,13 +118,15 @@ fun UniverseTheme(
             success = SuccessDark,
             placeholder = PlaceholderDark,
             toggleActive = ToggleActiveDark,
-            toggleTrack = ToggleTrackDark)
+            toggleTrack = ToggleTrackDark,
+            overImage = overImageDark)
       } else {
         ExtendedColors(
             success = SuccessLight,
             placeholder = PlaceholderLight,
             toggleActive = ToggleActiveLight,
-            toggleTrack = ToggleTrackLight)
+            toggleTrack = ToggleTrackLight,
+            overImage = overImageLight)
       }
   CompositionLocalProvider(
       LocalIsDarkTheme provides darkTheme,

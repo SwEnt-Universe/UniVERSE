@@ -1,18 +1,17 @@
 package com.android.universe.ui.searchProfile
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -24,9 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
@@ -34,13 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
@@ -48,12 +41,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidSearchBar
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
 import kotlinx.coroutines.launch
 
+/**
+ * Object containing constant test tags used for UI testing within the Search Profile Screen. These
+ * tags allow testing frameworks (like Espresso or Compose Test Rule) to locate specific composables
+ * in the UI hierarchy.
+ */
 object SearchProfileScreenTestTags {
   const val HEADER = "searchProfileHeader"
   const val SEARCH_BAR = "searchBar"
@@ -66,19 +65,27 @@ object SearchProfileScreenTestTags {
   const val LOADING = "profileListLoading"
   const val EMPTY = "profileListEmpty"
 
+  /**
+   * Generates a specific test tag for a tab based on its index.
+   *
+   * @param index The index of the tab (e.g., 0 for Explore).
+   * @return A string tag in the format "searchProfileTab_{index}".
+   */
   fun tab(index: Int) = "searchProfileTab_$index"
 }
 
 /**
- * Composable function that displays the search profile screen with a header containing a search bar
- * and tab row, and a content area with a horizontal pager for different profile categories
- * (Explore, Followers, Following).
+ * The main entry point for the Search Profile Screen.
  *
- * @param uid The user ID of the current user.
- * @param onTabSelected Callback function invoked when a bottom navigation tab is selected.
- * @param onCardClick Callback function invoked when a profile card is clicked.
- * @param searchProfileViewModel The [SearchProfileViewModel] used to manage UI state and handle
- *   user interactions.
+ * This composable initializes the screen layout, orchestrates the state management via
+ * [SearchProfileViewModel], handles the navigation bottom bar, and sets up the top-level paging
+ * logic between Explore, Followers, and Following tabs.
+ *
+ * @param uid The unique identifier of the current user, used to initialize the ViewModel.
+ * @param onTabSelected Callback invoked when a tab on the bottom navigation menu is selected.
+ * @param onCardClick Callback invoked when a specific user profile card is clicked.
+ * @param searchProfileViewModel The ViewModel managing the UI state and business logic for this
+ *   screen. Defaults to a new instance factory based on the provided [uid].
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -92,29 +99,13 @@ fun SearchProfileScreen(
   val searchQuery by searchProfileViewModel.searchQuery.collectAsState()
   val profilesState by searchProfileViewModel.profilesState.collectAsState()
 
+  // State Initialization
   val pagerState = rememberPagerState(pageCount = { 3 })
   val exploreListState = rememberLazyListState()
   val followersListState = rememberLazyListState()
   val followingListState = rememberLazyListState()
 
-  val currentListState =
-      when (pagerState.currentPage) {
-        0 -> exploreListState
-        1 -> followersListState
-        2 -> followingListState
-        else -> exploreListState
-      }
-
-  val isSearchBarVisible = remember { mutableStateOf(true) }
-
-  LaunchedEffect(pagerState.currentPage, currentListState) {
-    snapshotFlow {
-          currentListState.firstVisibleItemIndex == 0 &&
-              currentListState.firstVisibleItemScrollOffset < 50
-        }
-        .collect { isVisible -> isSearchBarVisible.value = isVisible }
-  }
-
+  // Load data when tabs change
   LaunchedEffect(pagerState.currentPage) {
     when (pagerState.currentPage) {
       0 -> searchProfileViewModel.loadExplore()
@@ -123,135 +114,96 @@ fun SearchProfileScreen(
     }
   }
 
-  Scaffold(
-      containerColor = Color.Transparent,
-      modifier = Modifier.testTag(NavigationTestTags.SEARCH_PROFILE_SCREEN),
-      bottomBar = { NavigationBottomMenu(Tab.Community, onTabSelected) }) { paddingValues ->
-        LiquidBox(
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
-              Box(modifier = Modifier.fillMaxSize()) {
-                SearchProfileContentPager(
-                    pagerState = pagerState,
-                    exploreListState = exploreListState,
-                    followersListState = followersListState,
-                    followingListState = followingListState,
-                    exploreProfiles = profilesState.explore,
-                    followersProfiles = profilesState.followers,
-                    followingProfiles = profilesState.following,
-                    isLoading = profilesState.isLoading,
-                    searchProfileViewModel = searchProfileViewModel,
-                    isSearchBarVisible = isSearchBarVisible.value,
-                    onCardClick = onCardClick)
+  ScreenLayout(
+      bottomBar = { NavigationBottomMenu(Tab.Community, onTabSelected) },
+      modifier = Modifier.testTag(NavigationTestTags.SEARCH_PROFILE_SCREEN)) { paddingValues ->
+        val bottomPadding = paddingValues.calculateBottomPadding()
 
-                SearchHeaderOverlay(
-                    pagerState = pagerState,
-                    searchQuery = searchQuery,
-                    onQueryChange = { searchProfileViewModel.updateSearchQuery(it) },
-                    topPadding = paddingValues.calculateTopPadding(),
-                    isSearchBarVisible = isSearchBarVisible.value)
-
-                uiState.errorMsg?.let { error ->
-                  Snackbar(
-                      modifier =
-                          Modifier.align(Alignment.BottomCenter)
-                              .padding(Dimensions.PaddingMedium)) {
-                        Text(error)
-                      }
-                }
-              }
-            }
-      }
-}
-
-/**
- * Composable function that displays the search header overlay containing the search bar and tab row
- * for navigating between different profile categories (Explore, Followers, Following) in the search
- * profile screen.
- *
- * @param pagerState The [PagerState] used to control the horizontal pager.
- * @param searchQuery The current search query string.
- * @param onQueryChange Callback function invoked when the search query changes.
- * @param topPadding The top padding to be applied to the overlay, typically to account for system
- *   UI elements.
- * @param isSearchBarVisible A boolean indicating whether the search bar should be visible.
- */
-@Composable
-fun SearchHeaderOverlay(
-    pagerState: PagerState,
-    searchQuery: String,
-    onQueryChange: (String) -> Unit,
-    topPadding: Dp,
-    isSearchBarVisible: Boolean
-) {
-
-  val searchBarHeight by
-      animateDpAsState(
-          targetValue = if (isSearchBarVisible) 56.dp else 0.dp,
-          animationSpec = tween(durationMillis = 300),
-          label = "searchBarHeight")
-
-  val searchBarAlpha by
-      animateFloatAsState(
-          targetValue = if (isSearchBarVisible) 1f else 0f,
-          animationSpec = tween(durationMillis = 300),
-          label = "searchBarAlpha")
-
-  val surfaceColor by
-      animateColorAsState(
-          targetValue =
-              if (isSearchBarVisible) Color.Transparent
-              else MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-          animationSpec = tween(durationMillis = 300),
-          label = "surfaceColor")
-
-  Surface(
-      modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER),
-      color = surfaceColor) {
-        Column(modifier = Modifier.fillMaxWidth().padding(top = topPadding)) {
-          Box(
-              modifier =
-                  Modifier.height(
-                          searchBarHeight +
-                              if (isSearchBarVisible) Dimensions.PaddingMedium * 2 else 0.dp)
-                      .fillMaxWidth()
-                      .alpha(searchBarAlpha)) {
-                if (isSearchBarVisible) {
-                  LiquidSearchBar(
-                      query = searchQuery,
-                      onQueryChange = onQueryChange,
-                      modifier =
-                          Modifier.padding(horizontal = Dimensions.PaddingLarge)
-                              .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
-                }
-              }
-
-          if (isSearchBarVisible) {
-            Spacer(modifier = Modifier.height(Dimensions.SpacerSmall))
+        Column(modifier = Modifier.fillMaxSize()) {
+          LiquidBox(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(0.dp)) {
+            SearchHeader(
+                searchQuery = searchQuery,
+                pagerState = pagerState,
+                onQueryChange = { searchProfileViewModel.updateSearchQuery(it) })
           }
 
-          SearchProfileTabRow(
-              pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
+          Box(modifier = Modifier.fillMaxSize()) {
+            SearchProfileContentPager(
+                pagerState = pagerState,
+                exploreListState = exploreListState,
+                followersListState = followersListState,
+                followingListState = followingListState,
+                exploreProfiles = profilesState.explore,
+                followersProfiles = profilesState.followers,
+                followingProfiles = profilesState.following,
+                isLoading = profilesState.isLoading,
+                searchProfileViewModel = searchProfileViewModel,
+                listBottomPadding = bottomPadding,
+                onCardClick = onCardClick)
+
+            uiState.errorMsg?.let { error ->
+              Snackbar(
+                  modifier =
+                      Modifier.align(Alignment.BottomCenter).padding(Dimensions.PaddingMedium)) {
+                    Text(error)
+                  }
+            }
+          }
         }
       }
 }
 
 /**
- * Composable function that displays a horizontal pager containing lists of user profiles for
- * different categories (Explore, Followers, Following) in the search profile screen.
+ * Displays the fixed header content at the top of the screen.
  *
- * @param pagerState The [PagerState] used to control the horizontal pager.
- * @param exploreListState The [LazyListState] for the Explore profiles list.
- * @param followersListState The [LazyListState] for the Followers profiles list.
- * @param followingListState The [LazyListState] for the Following profiles list.
- * @param exploreProfiles A list of [ProfileUIState] objects representing the Explore profiles.
- * @param followersProfiles A list of [ProfileUIState] objects representing the Followers profiles.
- * @param followingProfiles A list of [ProfileUIState] objects representing the Following profiles.
- * @param isLoading A boolean indicating whether the profile data is currently being loaded.
- * @param searchProfileViewModel The [SearchProfileViewModel] used to handle user interactions such
- *   as following or unfollowing users.
- * @param isSearchBarVisible A boolean indicating whether the search bar is visible.
- * @param onCardClick Callback function invoked when a profile card is clicked.
+ * This includes the status bar spacing, the search bar for filtering profiles, and the tab row for
+ * navigation between profile categories.
+ *
+ * @param searchQuery The current text entered in the search bar.
+ * @param pagerState The state of the pager, used to synchronize the tab selection with the
+ *   displayed page.
+ * @param onQueryChange Callback invoked when the text in the search bar changes.
+ */
+@Composable
+fun SearchHeader(searchQuery: String, pagerState: PagerState, onQueryChange: (String) -> Unit) {
+  val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+  Column(modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER)) {
+    Spacer(modifier = Modifier.height(topPadding))
+
+    Box(modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.PaddingMedium)) {
+      LiquidSearchBar(
+          query = searchQuery,
+          onQueryChange = onQueryChange,
+          modifier =
+              Modifier.padding(horizontal = Dimensions.PaddingLarge)
+                  .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
+    }
+
+    SearchProfileTabRow(
+        pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
+  }
+}
+
+/**
+ * Manages the horizontal paging content of the screen.
+ *
+ * It switches between the 'Explore', 'Followers', and 'Following' lists based on the current page
+ * of the [pagerState]. It is responsible for passing the correct state and data to the
+ * [ProfileList] for the currently active page.
+ *
+ * @param pagerState The state object controlling the horizontal pager (current page, scrolling).
+ * @param exploreListState The scroll state for the 'Explore' list LazyColumn.
+ * @param followersListState The scroll state for the 'Followers' list LazyColumn.
+ * @param followingListState The scroll state for the 'Following' list LazyColumn.
+ * @param exploreProfiles The list of profiles to display in the 'Explore' tab.
+ * @param followersProfiles The list of profiles to display in the 'Followers' tab.
+ * @param followingProfiles The list of profiles to display in the 'Following' tab.
+ * @param isLoading Boolean flag indicating if data is currently being fetched.
+ * @param searchProfileViewModel The ViewModel passed down to handle interactions within the lists.
+ * @param listBottomPadding The padding required at the bottom of the list to accommodate the
+ *   navigation bar or other overlays.
+ * @param onCardClick Callback invoked when a profile card within any of the lists is clicked.
  */
 @Composable
 fun SearchProfileContentPager(
@@ -264,15 +216,9 @@ fun SearchProfileContentPager(
     followingProfiles: List<ProfileUIState>,
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
-    isSearchBarVisible: Boolean,
+    listBottomPadding: Dp,
     onCardClick: () -> Unit = {}
 ) {
-  val headerHeight by
-      animateDpAsState(
-          targetValue = if (isSearchBarVisible) 180.dp else 100.dp,
-          animationSpec = tween(durationMillis = 300),
-          label = "headerHeight")
-
   HorizontalPager(
       state = pagerState,
       modifier = Modifier.fillMaxSize().testTag(SearchProfileScreenTestTags.PAGER),
@@ -299,24 +245,29 @@ fun SearchProfileContentPager(
               profiles = profiles,
               isLoading = isLoading,
               searchProfileViewModel = searchProfileViewModel,
-              topPadding = headerHeight,
+              bottomContentPadding = listBottomPadding,
               onCardClick = onCardClick)
         }
       }
 }
 
 /**
- * Composable function that displays a list of user profiles in a lazy column.
+ * Renders a list of user profiles for a specific category (Explore, Followers, or Following).
  *
- * @param listState The [LazyListState] used to control the scroll state of the list.
- * @param profiles A list of [ProfileUIState] objects representing the user profiles to be
- *   displayed.
- * @param isLoading A boolean indicating whether the profile data is currently being loaded.
- * @param searchProfileViewModel The [SearchProfileViewModel] used to handle user interactions such
- *   as following or unfollowing users.
- * @param topPadding The top padding to be applied to the list, typically to account for overlaying
- *   UI elements.
- * @param onCardClick Callback function invoked when a profile card is clicked.
+ * This composable handles three distinct states:
+ * 1. **Loading:** Displays a circular progress indicator if [isLoading] is true and the list is
+ *    empty.
+ * 2. **Empty:** Displays a "No profiles found" message if [isLoading] is false and the list is
+ *    empty.
+ * 3. **Content:** Displays the list of [ProfileCard] items if profiles are available.
+ *
+ * @param listState The scroll state used for this specific LazyColumn.
+ * @param profiles The list of [ProfileUIState] data to populate the list.
+ * @param isLoading Whether the screen is currently fetching data.
+ * @param searchProfileViewModel The ViewModel used by individual [ProfileCard]s for logic (e.g.,
+ *   follow/unfollow).
+ * @param bottomContentPadding Padding to apply to the bottom of the content list.
+ * @param onCardClick Callback invoked when a profile card is clicked.
  */
 @Composable
 fun ProfileList(
@@ -324,12 +275,12 @@ fun ProfileList(
     profiles: List<ProfileUIState>,
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
-    topPadding: Dp,
+    bottomContentPadding: Dp,
     onCardClick: () -> Unit = {}
 ) {
   LazyColumn(
       state = listState,
-      contentPadding = PaddingValues(top = topPadding, bottom = 80.dp),
+      contentPadding = PaddingValues(bottom = bottomContentPadding, top = Dimensions.PaddingMedium),
       modifier = Modifier.fillMaxSize().testTag(SearchProfileScreenTestTags.PROFILE_LIST)) {
         if (isLoading && profiles.isEmpty()) {
           item(key = "loading") {
@@ -342,9 +293,7 @@ fun ProfileList(
                   CircularProgressIndicator()
                 }
           }
-        }
-
-        if (!isLoading && profiles.isEmpty()) {
+        } else if (!isLoading && profiles.isEmpty()) {
           item(key = "empty_state") {
             Box(
                 modifier =
@@ -358,28 +307,32 @@ fun ProfileList(
                       color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
           }
-        }
-
-        items(profiles, key = { it.user.uid }) { profile ->
-          Box(
-              modifier =
-                  Modifier.padding(
-                      horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
-                ProfileCard(
-                    profile = profile,
-                    viewModel = searchProfileViewModel,
-                    onCardClick = onCardClick)
-              }
+        } else {
+          items(profiles, key = { it.user.uid }) { profile ->
+            Box(
+                modifier =
+                    Modifier.padding(
+                        horizontal = Dimensions.PaddingMedium,
+                        vertical = Dimensions.PaddingSmall)) {
+                  ProfileCard(
+                      profile = profile,
+                      viewModel = searchProfileViewModel,
+                      onCardClick = onCardClick)
+                }
+          }
         }
       }
 }
 
 /**
- * Composable function that displays a tab row for navigating between different profile categories
- * (Explore, Followers, Following) in the search profile screen.
+ * Displays the row of tabs ("Explore", "Followers", "Following") corresponding to the pager pages.
  *
- * @param pagerState The [PagerState] used to control the horizontal pager.
- * @param titles A list of titles for the tabs.
+ * It manages the visual indicator animation and handles tab clicks to scroll the pager to the
+ * corresponding page.
+ *
+ * @param pagerState The state of the pager, used to determine the selected tab and handle scroll
+ *   animations.
+ * @param titles A list of strings representing the titles for each tab.
  */
 @Composable
 fun SearchProfileTabRow(pagerState: PagerState, titles: List<String>) {

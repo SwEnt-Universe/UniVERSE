@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -92,7 +93,7 @@ fun EventContentLayout(
                       enabled = false,
                       isInteractive = false,
                       height = Dimensions.CardImageTagOverlayHeight,
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                      tint = UniverseTheme.extendedColors.overImage,
                       onClick = {}) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                           Text(
