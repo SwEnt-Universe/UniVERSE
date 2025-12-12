@@ -48,6 +48,11 @@ import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
 import kotlinx.coroutines.launch
 
+/**
+ * Object containing constant test tags used for UI testing within the Search Profile Screen.
+ * These tags allow testing frameworks (like Espresso or Compose Test Rule) to locate
+ * specific composables in the UI hierarchy.
+ */
 object SearchProfileScreenTestTags {
   const val HEADER = "searchProfileHeader"
   const val SEARCH_BAR = "searchBar"
@@ -60,9 +65,28 @@ object SearchProfileScreenTestTags {
   const val LOADING = "profileListLoading"
   const val EMPTY = "profileListEmpty"
 
+    /**
+     * Generates a specific test tag for a tab based on its index.
+     *
+     * @param index The index of the tab (e.g., 0 for Explore).
+     * @return A string tag in the format "searchProfileTab_{index}".
+     */
   fun tab(index: Int) = "searchProfileTab_$index"
 }
 
+/**
+ * The main entry point for the Search Profile Screen.
+ *
+* This composable initializes the screen layout, orchestrates the state management via
+* [SearchProfileViewModel], handles the navigation bottom bar, and sets up the
+* top-level paging logic between Explore, Followers, and Following tabs.
+*
+* @param uid The unique identifier of the current user, used to initialize the ViewModel.
+* @param onTabSelected Callback invoked when a tab on the bottom navigation menu is selected.
+* @param onCardClick Callback invoked when a specific user profile card is clicked.
+* @param searchProfileViewModel The ViewModel managing the UI state and business logic for this screen.
+* Defaults to a new instance factory based on the provided [uid].
+*/
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchProfileScreen(
@@ -129,7 +153,16 @@ fun SearchProfileScreen(
       }
 }
 
-/** The fixed header content containing the Status Bar spacer, Search Bar, and Tabs. */
+/**
+ * Displays the fixed header content at the top of the screen.
+ *
+ * This includes the status bar spacing, the search bar for filtering profiles,
+ * and the tab row for navigation between profile categories.
+ *
+ * @param searchQuery The current text entered in the search bar.
+ * @param pagerState The state of the pager, used to synchronize the tab selection with the displayed page.
+ * @param onQueryChange Callback invoked when the text in the search bar changes.
+ */
 @Composable
 fun SearchHeader(searchQuery: String, pagerState: PagerState, onQueryChange: (String) -> Unit) {
   val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -151,6 +184,25 @@ fun SearchHeader(searchQuery: String, pagerState: PagerState, onQueryChange: (St
   }
 }
 
+/**
+ * Manages the horizontal paging content of the screen.
+ *
+ * It switches between the 'Explore', 'Followers', and 'Following' lists based on the
+ * current page of the [pagerState]. It is responsible for passing the correct
+ * state and data to the [ProfileList] for the currently active page.
+ *
+ * @param pagerState The state object controlling the horizontal pager (current page, scrolling).
+ * @param exploreListState The scroll state for the 'Explore' list LazyColumn.
+ * @param followersListState The scroll state for the 'Followers' list LazyColumn.
+ * @param followingListState The scroll state for the 'Following' list LazyColumn.
+ * @param exploreProfiles The list of profiles to display in the 'Explore' tab.
+ * @param followersProfiles The list of profiles to display in the 'Followers' tab.
+ * @param followingProfiles The list of profiles to display in the 'Following' tab.
+ * @param isLoading Boolean flag indicating if data is currently being fetched.
+ * @param searchProfileViewModel The ViewModel passed down to handle interactions within the lists.
+ * @param listBottomPadding The padding required at the bottom of the list to accommodate the navigation bar or other overlays.
+ * @param onCardClick Callback invoked when a profile card within any of the lists is clicked.
+ */
 @Composable
 fun SearchProfileContentPager(
     pagerState: PagerState,
@@ -197,6 +249,21 @@ fun SearchProfileContentPager(
       }
 }
 
+/**
+ * Renders a list of user profiles for a specific category (Explore, Followers, or Following).
+ *
+ * This composable handles three distinct states:
+ * 1. **Loading:** Displays a circular progress indicator if [isLoading] is true and the list is empty.
+ * 2. **Empty:** Displays a "No profiles found" message if [isLoading] is false and the list is empty.
+ * 3. **Content:** Displays the list of [ProfileCard] items if profiles are available.
+ *
+ * @param listState The scroll state used for this specific LazyColumn.
+ * @param profiles The list of [ProfileUIState] data to populate the list.
+ * @param isLoading Whether the screen is currently fetching data.
+ * @param searchProfileViewModel The ViewModel used by individual [ProfileCard]s for logic (e.g., follow/unfollow).
+ * @param bottomContentPadding Padding to apply to the bottom of the content list.
+ * @param onCardClick Callback invoked when a profile card is clicked.
+ */
 @Composable
 fun ProfileList(
     listState: LazyListState,
@@ -252,6 +319,15 @@ fun ProfileList(
       }
 }
 
+/**
+ * Displays the row of tabs ("Explore", "Followers", "Following") corresponding to the pager pages.
+ *
+ * It manages the visual indicator animation and handles tab clicks to scroll the pager
+ * to the corresponding page.
+ *
+ * @param pagerState The state of the pager, used to determine the selected tab and handle scroll animations.
+ * @param titles A list of strings representing the titles for each tab.
+ */
 @Composable
 fun SearchProfileTabRow(pagerState: PagerState, titles: List<String>) {
   val scope = rememberCoroutineScope()
