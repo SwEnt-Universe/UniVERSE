@@ -129,7 +129,9 @@ fun SearchProfileScreen(
             SearchHeader(
                 searchQuery = searchQuery,
                 pagerState = pagerState,
-                onQueryChange = { searchProfileViewModel.updateSearchQuery(it) })
+                onQueryChange = { searchProfileViewModel.updateSearchQuery(it) },
+                categories = categories,
+                catSelect = searchProfileViewModel::selectCategory)
           }
 
           Box(modifier = Modifier.fillMaxSize()) {
@@ -172,12 +174,14 @@ fun SearchProfileScreen(
  * @param catSelect Callback function invoked when a category is selected or deselected.
  */
 @Composable
-fun SearchHeader(searchQuery: String, pagerState: PagerState,
-                 onQueryChange: (String) -> Unit,
-                 categories: Set<Tag.Category> = emptySet(),
-                 catSelect: (Tag.Category, Boolean) -> Unit = { _, _ -> }
+fun SearchHeader(
+    searchQuery: String,
+    pagerState: PagerState,
+    onQueryChange: (String) -> Unit,
+    categories: Set<Tag.Category> = emptySet(),
+    catSelect: (Tag.Category, Boolean) -> Unit = { _, _ -> }
 ) {
-    val allCats = remember { Tag.tagFromEachCategory.toList() }
+  val allCats = remember { Tag.tagFromEachCategory.toList() }
   val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
   Column(modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER)) {
@@ -190,17 +194,17 @@ fun SearchHeader(searchQuery: String, pagerState: PagerState,
           modifier =
               Modifier.padding(horizontal = Dimensions.PaddingLarge)
                   .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
-        TagRow(
-            allCats,
-            heightTag = CategoryItemDefaults.HEIGHT_CAT,
-            widthTag = CategoryItemDefaults.WIDTH_CAT,
-            isSelected = { cat -> categories.contains(cat.category) },
-            onTagSelect = { cat -> catSelect(cat.category, true) },
-            onTagReSelect = { cat -> catSelect(cat.category, false) },
-            fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
-            isCategory = true)
     }
 
+    TagRow(
+        allCats,
+        heightTag = CategoryItemDefaults.HEIGHT_CAT,
+        widthTag = CategoryItemDefaults.WIDTH_CAT,
+        isSelected = { cat -> categories.contains(cat.category) },
+        onTagSelect = { cat -> catSelect(cat.category, true) },
+        onTagReSelect = { cat -> catSelect(cat.category, false) },
+        fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+        isCategory = true)
     SearchProfileTabRow(
         pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
   }
