@@ -81,7 +81,6 @@ object EventCreationTestTags {
 }
 
 object EventCreationDefaults {
-  val eventPictureBoxHeight = 270.dp
   val eventBoxCornerRadius = 24.dp
   val titleFontSize = 32.sp
   const val SET_LOCATION_BUTTON_HEIGHT = 40f
