@@ -1,4 +1,15 @@
 <resources>
+    <!-- Common -->
     <string name="app_name">UniVERSE</string>
     <string name="title_activity_main">MainActivity</string>
+
+    <!-- SignInScreen -->
+    <string name="login_header">UniVERSE</string>
+    <string name="login_body">Your campus social life on one map</string>
+    <string name="login_button">Join the UniVERSE</string>
+    <string name="login_input_email_title">Sign in with email</string>
+    <string name="login_input_password_title">Enter your password</string>
+    <string name="login_select_auth_title">Select authentication method</string>
+    <string name="login_google_title">Sign in with Google</string>
+
 </resources>
