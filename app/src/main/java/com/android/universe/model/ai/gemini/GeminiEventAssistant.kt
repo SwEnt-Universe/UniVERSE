@@ -1,5 +1,7 @@
 package com.android.universe.model.ai.gemini
 
+import com.android.universe.model.location.Location
+import com.android.universe.ui.common.InputLimits
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
@@ -33,11 +35,11 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
     providedModel
         ?: Firebase.ai(backend = GenerativeBackend.googleAI())
             .generativeModel(
-                modelName = "gemini-2.5-flash",
+                modelName = "gemini-flash-lite-latest",
                 generationConfig =
                     generationConfig {
                       responseMimeType = "application/json"
-                      temperature = 0.7f
+                      temperature = 1f
                     })
   }
 
@@ -61,21 +63,32 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
    * JSON response.
    *
    * @param userPrompt The raw input from the user describing the event they want to create.
+   * @param geoPoint The location of the event.
    * @return An [EventProposal] containing the generated title and description, or `null` if
    *   generation fails, the network request errors, or parsing fails.
    */
-  open suspend fun generateProposal(userPrompt: String): EventProposal? {
+  open suspend fun generateProposal(userPrompt: String, geoPoint: Location): EventProposal? {
     val prompt =
         """
             You are a creative event organizer.
             Task: Generate a catchy title and a short description for an event based on the user's input.
             
+            Those are geo location of the event: ${geoPoint.latitude}, ${geoPoint.longitude}.
+            You need to find the closest places, preferably inside the University campuses.
+            Especially if they are association of the campus.
+            
             User Input: "$userPrompt"
             
             Strict Constraints:
-            1. Title must be maximum 40 characters.
-            2. Description must be maximum 100 characters.
+            1. Title must be of ${InputLimits.TITLE_EVENT_MAX_LENGTH} characters **maximum**.
+            2. Description must be of ${InputLimits.DESCRIPTION - 66} characters **maximum**.
             3. Output must be valid JSON
+            
+            Advices:
+            1. If the user points out a destination you need to put it **at least** in the title. 
+            2. If the user speaks about relatives like friends, family, you need to sounds less professional and more personal it's the user request after all.
+            3. You are creating events for college students, so don't be too professional.
+            4. Avoid usual formulation, but stay grounded you don't want to scare them off.
             
             Output Schema:
             {

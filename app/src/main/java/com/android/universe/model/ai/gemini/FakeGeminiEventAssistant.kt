@@ -1,5 +1,7 @@
 package com.android.universe.model.ai.gemini
 
+import com.android.universe.model.location.Location
+
 /**
  * A fake implementation of [GeminiEventAssistant] designed for unit testing and UI previews.
  *
@@ -28,7 +30,7 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
    * @param userPrompt The user input (ignored in this fake implementation).
    * @return [predefinedProposal] if [shouldFail] is false, otherwise `null`.
    */
-  override suspend fun generateProposal(userPrompt: String): EventProposal? {
+  override suspend fun generateProposal(userPrompt: String, geoPoint: Location): EventProposal? {
     return if (shouldFail) {
       null
     } else {

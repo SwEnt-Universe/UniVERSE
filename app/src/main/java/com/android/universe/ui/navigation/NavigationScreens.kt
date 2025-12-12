@@ -29,14 +29,15 @@ sealed class NavigationScreens(
   object Profile :
       NavigationScreens(route = "profile", name = "Profile", isTopLevelDestination = true)
 
-  object SignIn :
-      NavigationScreens(route = "signIn", name = "Sign In", isTopLevelDestination = true)
+  object SignIn : NavigationScreens(route = "signIn", name = "Sign In")
 
   object EmailValidation : NavigationScreens(route = "emailValidation", name = "Email Validation")
 
   object AddProfile : NavigationScreens(route = "addProfile", name = "Add Profile")
 
-  object SearchProfile : NavigationScreens(route = "searchProfile", name = "Search Profile")
+  object SearchProfile :
+      NavigationScreens(
+          route = "searchProfile", name = "Search Profile", isTopLevelDestination = true)
 
   object Settings : NavigationScreens(route = "settings/{uid}", name = "Settings")
 
