@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Title
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -118,7 +117,7 @@ fun EventCreationScreen(
           isGenerating = uiState.value.isGenerating,
           error = uiState.value.generationError,
           onPromptChange = eventCreationViewModel::setAiPrompt,
-          onGenerate = eventCreationViewModel::generateProposal,
+          onGenerate = { eventCreationViewModel.generateProposal(location) },
           onBack = eventCreationViewModel::hideAiAssist)
     } else {
       AiReviewBox(
@@ -132,7 +131,7 @@ fun EventCreationScreen(
           onPromptChange = eventCreationViewModel::setAiPrompt,
           onTitleChange = eventCreationViewModel::updateProposalTitle,
           onDescriptionChange = eventCreationViewModel::updateProposalDescription,
-          onRegenerate = eventCreationViewModel::generateProposal,
+          onRegenerate = { eventCreationViewModel.generateProposal(location) },
           onConfirm = eventCreationViewModel::acceptProposal,
           onBack = eventCreationViewModel::hideAiAssist)
     }
@@ -269,7 +268,6 @@ fun StandardEventCreationForm(
                                 state = OnboardingState.ENTER_EVENT_TITLE, true)
                           },
                           maxLines = 2,
-                          leadingIcon = Icons.Default.Title,
                           validationState =
                               if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
                                   true) {
@@ -543,7 +541,6 @@ fun AiReviewBox(
             placeholder = "",
             value = proposal.title,
             onValueChange = onTitleChange,
-            leadingIcon = Icons.Default.Title,
             validationState = titleValidationState)
 
         Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))

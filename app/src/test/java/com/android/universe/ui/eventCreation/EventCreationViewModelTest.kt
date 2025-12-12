@@ -52,7 +52,7 @@ class EventCreationViewModelTest {
     const val SAMPLE_TITLE = "Sample Title"
     val BAD_SAMPLE_TITLE = "a".repeat(50)
     const val SAMPLE_DESCRIPTION = "Sample Description"
-    val BAD_SAMPLE_DESCRIPTION = "a".repeat(150)
+    val BAD_SAMPLE_DESCRIPTION = "a".repeat(InputLimits.DESCRIPTION + 1)
     const val SAMPLE_DATE_FORMAT = "12/12/2030"
     val SAMPLE_DATE: LocalDate = LocalDate.of(2030, 12, 12)
     val BAD_SAMPLE_DATE: LocalDate = LocalDate.of(1900, 12, 12)
@@ -384,7 +384,7 @@ class EventCreationViewModelTest {
 
     fakeGemini.predefinedProposal = EventProposal("Jazz Night", "A smooth evening.")
 
-    viewModel.generateProposal()
+    viewModel.generateProposal(SAMPLE_LOCATION)
 
     testDispatcher.scheduler.advanceUntilIdle()
 
@@ -402,7 +402,7 @@ class EventCreationViewModelTest {
 
     fakeGemini.shouldFail = true
 
-    viewModel.generateProposal()
+    viewModel.generateProposal(SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiStateEventCreation.value
@@ -416,7 +416,7 @@ class EventCreationViewModelTest {
     viewModel.showAiAssist()
     viewModel.setAiPrompt("")
 
-    viewModel.generateProposal()
+    viewModel.generateProposal(SAMPLE_LOCATION)
 
     val state = viewModel.uiStateEventCreation.value
     assertEquals(EventCreationViewModel.Companion.AiErrors.PROMPT_EMPTY, state.aiPromptError)
@@ -429,7 +429,7 @@ class EventCreationViewModelTest {
     val validProposal = EventProposal("Cool Title", "Cool Description")
 
     fakeGemini.predefinedProposal = validProposal
-    viewModel.generateProposal()
+    viewModel.generateProposal(SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
 
     viewModel.acceptProposal()
@@ -452,7 +452,7 @@ class EventCreationViewModelTest {
     val validDesc = "Desc"
 
     fakeGemini.predefinedProposal = EventProposal(longTitle, validDesc)
-    viewModel.generateProposal()
+    viewModel.generateProposal(SAMPLE_LOCATION)
     testDispatcher.scheduler.advanceUntilIdle()
 
     val stateBeforeAccept = viewModel.uiStateEventCreation.value

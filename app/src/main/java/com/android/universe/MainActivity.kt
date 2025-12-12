@@ -183,12 +183,7 @@ fun UniverseApp(
           AddProfile(
               uid = authInstance.currentUser!!.uid,
               navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
-              onBack = {
-                // Navigate back to Sign In
-                navController.navigate(NavigationScreens.SignIn.route) {
-                  popUpTo(NavigationScreens.AddProfile.route) { inclusive = true }
-                }
-              },
+              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) },
               viewModel = vm)
         }
       }

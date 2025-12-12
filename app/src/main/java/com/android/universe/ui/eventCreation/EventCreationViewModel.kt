@@ -418,7 +418,7 @@ class EventCreationViewModel(
    * If the prompt is valid, it sets the loading state and launches a coroutine to fetch the
    * proposal from [GeminiEventAssistant]. Updates the state with either the result or an error.
    */
-  fun generateProposal() {
+  fun generateProposal(geoPoint: Location) {
     val prompt = eventCreationUiState.value.aiPrompt
     if (prompt.isBlank()) {
       eventCreationUiState.value =
@@ -430,7 +430,7 @@ class EventCreationViewModel(
         eventCreationUiState.value.copy(isGenerating = true, generationError = null)
 
     viewModelScope.launch {
-      val result = gemini.generateProposal(prompt)
+      val result = gemini.generateProposal(prompt, geoPoint)
       if (result != null) {
         eventCreationUiState.value =
             eventCreationUiState.value.copy(isGenerating = false, proposal = result)
