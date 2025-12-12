@@ -226,7 +226,7 @@ fun MapScreen(
 
             TagRow(
                 categoryList,
-                modifierBox = Modifier.offset(y = topOffset),
+                modifierBox = Modifier.fillMaxWidth().offset(y = topOffset),
                 heightTag = CategoryItemDefaults.HEIGHT_CAT,
                 widthTag = CategoryItemDefaults.WIDTH_CAT,
                 isSelected = { cat -> categories.contains(cat.category) },

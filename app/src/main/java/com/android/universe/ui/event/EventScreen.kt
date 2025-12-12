@@ -112,6 +112,7 @@ fun EventScreen(
               Box(modifier = Modifier.fillMaxWidth()) {
                 TagRow(
                     allCats,
+                    modifierBox = Modifier.fillMaxWidth(),
                     heightTag = CategoryItemDefaults.HEIGHT_CAT,
                     widthTag = CategoryItemDefaults.WIDTH_CAT,
                     isSelected = { cat -> categories.contains(cat.category) },
