@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
         mapViewModel.setTheme(isDarkTheme)
         val controller = WindowCompat.getInsetsController(window, view)
         controller.isAppearanceLightNavigationBars = !isDarkTheme
+        controller.isAppearanceLightStatusBars = !isDarkTheme
       }
 
       UniverseTheme {

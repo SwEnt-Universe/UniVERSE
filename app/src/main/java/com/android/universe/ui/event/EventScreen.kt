@@ -14,14 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -33,6 +31,7 @@ import com.android.universe.ui.common.TagRow
 import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.components.LiquidSearchBarTestTags
+import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -90,8 +89,7 @@ fun EventScreen(
   val allCats = Tag.tagFromEachCategory.toList()
   val categories by viewModel.categories.collectAsState()
 
-  Scaffold(
-      containerColor = Color.Transparent,
+  ScreenLayout(
       modifier = Modifier.testTag(NavigationTestTags.EVENT_SCREEN),
       bottomBar = { NavigationBottomMenu(Tab.Event, onTabSelected) }) { paddingValues ->
         Column(
@@ -134,6 +132,9 @@ fun EventScreen(
                           onChatNavigate = onChatNavigate,
                           onCardClick = onCardClick,
                           onEditButtonClick = onEditButtonClick)
+                    }
+                    item {
+                      Spacer(Modifier.height(height = paddingValues.calculateBottomPadding()))
                     }
                   }
             }

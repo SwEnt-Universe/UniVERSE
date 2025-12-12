@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -77,7 +78,8 @@ fun EventInfoPopup(
                   onDismissRequest = onDismiss,
                   bottomBar = bottomBar) {
                     EventContentLayout(
-                        modifier = Modifier.padding(Dimensions.PaddingLarge),
+                        modifier =
+                            Modifier.padding(Dimensions.PaddingLarge).navigationBarsPadding(),
                         eventId = event.id,
                         title = event.title,
                         description = event.description,
