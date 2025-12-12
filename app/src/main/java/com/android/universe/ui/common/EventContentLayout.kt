@@ -136,15 +136,9 @@ fun EventContentLayout(
                   }
                 }
 
-            Box(modifier = Modifier.align(Alignment.BottomStart).padding(Dimensions.PaddingLarge)) {
-              Text(
-                  text = title,
-                  style = MaterialTheme.typography.titleLarge,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-                  modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
-            }
+            Box(
+                modifier =
+                    Modifier.align(Alignment.BottomStart).padding(Dimensions.PaddingLarge)) {}
           }
 
       Column(modifier = Modifier.weight(1f).height(Dimensions.CardImageHeight)) {
@@ -158,17 +152,21 @@ fun EventContentLayout(
                     .padding(start = Dimensions.PaddingLarge))
       }
     }
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
 
-    Spacer(Modifier.height(Dimensions.SpacerLarge))
-
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
     Text(
         text = description ?: "No description available",
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        maxLines = 3,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
-
     Spacer(Modifier.height(Dimensions.SpacerLarge))
 
     if (showActions) {
