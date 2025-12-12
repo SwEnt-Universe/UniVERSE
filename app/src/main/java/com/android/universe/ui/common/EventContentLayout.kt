@@ -99,7 +99,7 @@ fun EventContentLayout(
                           Text(
                               text = date.format(dateFormatter),
                               style = MaterialTheme.typography.bodySmall,
-                              color = Color.White,
+                              color = MaterialTheme.colorScheme.onPrimary,
                               maxLines = 1,
                               overflow = TextOverflow.Ellipsis,
                               modifier =
@@ -108,7 +108,7 @@ fun EventContentLayout(
                           Text(
                               text = date.format(timeFormatter),
                               style = MaterialTheme.typography.bodySmall,
-                              color = Color.White,
+                              color = MaterialTheme.colorScheme.onPrimary,
                               maxLines = 1,
                               overflow = TextOverflow.Ellipsis,
                               modifier =
@@ -164,6 +164,7 @@ fun EventContentLayout(
     Text(
         text = description ?: "No description available",
         style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
