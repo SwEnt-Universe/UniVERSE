@@ -135,10 +135,6 @@ fun EventContentLayout(
                         }
                   }
                 }
-
-            Box(
-                modifier =
-                    Modifier.align(Alignment.BottomStart).padding(Dimensions.PaddingLarge)) {}
           }
 
       Column(modifier = Modifier.weight(1f).height(Dimensions.CardImageHeight)) {
