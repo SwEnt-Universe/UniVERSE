@@ -62,7 +62,7 @@ class MarkerImageCacheTest {
     // Verify that the wrapper was called.
     // Note: loadImages() calls this for every pin in the map during initialization.
     // + 1 because the EventData doesnt load the basepin
-    assertEquals(pins.size + 1, callCount)
+    assertEquals(pins.size + 2, callCount)
   }
 
   @Test

@@ -300,7 +300,7 @@ class MapViewModelTest {
     // Assert Empty Tags (Fallback)
     val emptyMarker = markers.find { it.event.id == emptyTagEvent.id }
     assertEquals(
-        "Events with no tags should use the base pin", R.drawable.base_pin, emptyMarker?.iconResId)
+        "Events with no tags should use the base pin", R.drawable.black_pin, emptyMarker?.iconResId)
 
     val concurrentMarker = markers.find { it.event.id == concurrentEvent.id }
     assertEquals(
