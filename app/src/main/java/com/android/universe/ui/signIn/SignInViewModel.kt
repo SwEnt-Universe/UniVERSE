@@ -75,7 +75,7 @@ data class SignInUIState(
     val user: FirebaseUser? = null,
     val signedOut: Boolean = false,
     val email: String = "",
-    val emailErrorMsg: ValidationState = ValidationState.Valid,
+    val emailErrorMsg: ValidationState = ValidationState.Neutral,
     val password: String = "",
     val passwordErrorMsg: ValidationState = ValidationState.Neutral,
     val onboardingState: OnboardingState = OnboardingState.WELCOME,
