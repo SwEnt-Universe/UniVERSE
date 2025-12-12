@@ -50,5 +50,6 @@ object MarkerImageCache {
           R.drawable.orange_pin to fromResourceWrapper(R.drawable.orange_pin),
           R.drawable.grey_pin to fromResourceWrapper(R.drawable.grey_pin),
           R.drawable.pink_pin to fromResourceWrapper(R.drawable.pink_pin),
+          R.drawable.black_pin to fromResourceWrapper(R.drawable.black_pin),
           R.drawable.base_pin to fromResourceWrapper(R.drawable.base_pin))
 }
