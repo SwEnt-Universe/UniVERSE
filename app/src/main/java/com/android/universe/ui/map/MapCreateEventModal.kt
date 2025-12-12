@@ -94,7 +94,7 @@ fun MapCreateEventModal(
             Text("Create Event Yourself")
           }
 
-      Spacer(Modifier.height(height = Dimensions.SpacerLarge).navigationBarsPadding())
+      Spacer(Modifier.padding(top = Dimensions.SpacerLarge).navigationBarsPadding())
     }
   }
 }
