@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.model.tag.Tag
+import com.android.universe.ui.common.TagRow
+import com.android.universe.ui.components.CategoryItemDefaults
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.components.ScreenLayout
@@ -98,6 +102,7 @@ fun SearchProfileScreen(
   val uiState by searchProfileViewModel.uiState.collectAsState()
   val searchQuery by searchProfileViewModel.searchQuery.collectAsState()
   val profilesState by searchProfileViewModel.profilesState.collectAsState()
+  val categories by searchProfileViewModel.categories.collectAsState()
 
   // State Initialization
   val pagerState = rememberPagerState(pageCount = { 3 })
@@ -124,7 +129,9 @@ fun SearchProfileScreen(
             SearchHeader(
                 searchQuery = searchQuery,
                 pagerState = pagerState,
-                onQueryChange = { searchProfileViewModel.updateSearchQuery(it) })
+                onQueryChange = { searchProfileViewModel.updateSearchQuery(it) },
+                categories = categories,
+                catSelect = searchProfileViewModel::selectCategory)
           }
 
           Box(modifier = Modifier.fillMaxSize()) {
@@ -163,9 +170,18 @@ fun SearchProfileScreen(
  * @param pagerState The state of the pager, used to synchronize the tab selection with the
  *   displayed page.
  * @param onQueryChange Callback invoked when the text in the search bar changes.
+ * @param categories The set of selected categories.
+ * @param catSelect Callback function invoked when a category is selected or deselected.
  */
 @Composable
-fun SearchHeader(searchQuery: String, pagerState: PagerState, onQueryChange: (String) -> Unit) {
+fun SearchHeader(
+    searchQuery: String,
+    pagerState: PagerState,
+    onQueryChange: (String) -> Unit,
+    categories: Set<Tag.Category> = emptySet(),
+    catSelect: (Tag.Category, Boolean) -> Unit = { _, _ -> }
+) {
+  val allCats = remember { Tag.tagFromEachCategory.toList() }
   val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
   Column(modifier = Modifier.fillMaxWidth().testTag(SearchProfileScreenTestTags.HEADER)) {
@@ -180,6 +196,15 @@ fun SearchHeader(searchQuery: String, pagerState: PagerState, onQueryChange: (St
                   .testTag(SearchProfileScreenTestTags.SEARCH_BAR))
     }
 
+    TagRow(
+        allCats,
+        heightTag = CategoryItemDefaults.HEIGHT_CAT,
+        widthTag = CategoryItemDefaults.WIDTH_CAT,
+        isSelected = { cat -> categories.contains(cat.category) },
+        onTagSelect = { cat -> catSelect(cat.category, true) },
+        onTagReSelect = { cat -> catSelect(cat.category, false) },
+        fadeWidth = (CategoryItemDefaults.HEIGHT_CAT * 0.5f).dp,
+        isCategory = true)
     SearchProfileTabRow(
         pagerState = pagerState, titles = listOf("Explore", "Followers", "Following"))
   }
