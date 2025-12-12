@@ -27,13 +27,15 @@ object EventCardTestTags {
  *   and title as parameters.
  * @param onCardClick Callback function invoked when the card is clicked, with event ID and location
  *   as parameters.
+ * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
  */
 @Composable
 fun EventCard(
     event: EventUIState,
     viewModel: EventViewModel,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
-    onCardClick: (eventId: String, eventLocation: Location) -> Unit
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit,
+    onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
 ) {
   LiquidBox(
       shape = CardShape,
@@ -59,6 +61,8 @@ fun EventCard(
             isPrivate = event.isPrivate,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
             onChatClick = { onChatNavigate(event.id, event.title) },
-            modifier = Modifier.padding(Dimensions.PaddingLarge))
+            modifier = Modifier.padding(Dimensions.PaddingLarge),
+            onEditClick = { onEditButtonClick(event.id, event.location) },
+            isUserOwner = event.creatorId == viewModel.storedUid)
       }
 }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 enum class SelectTagMode {
   USER_PROFILE,
   EVENT_CREATION,
+  EVENT_EDITION,
   SETTINGS
 }
 
@@ -31,7 +32,7 @@ enum class SelectTagMode {
  *
  * UI should collect [uiStateTags] to observe changes in real time.
  *
- * @param uid The unique identifier of the user.
+ * @param uid The unique identifier for the entity being edited (User ID or Event ID).
  * @param mode The mode of the screen.
  * @param userRepository The data source handling user-related operations. Defaults to
  *   UserRepositoryProvider.repository
@@ -114,10 +115,16 @@ class SelectTagViewModel(
    */
   private fun loadTags() {
     viewModelScope.launch {
-      if (mode == SelectTagMode.USER_PROFILE)
-          _selectedTags.value = userRepository.getUser(uid).tags.toList()
-      else if (mode == SelectTagMode.SETTINGS)
-          _selectedTags.value = tagRepository.getTags().toList()
+      when (mode) {
+        SelectTagMode.USER_PROFILE ->
+            _selectedTags.value = userRepository.getUser(uid).tags.toList()
+
+        SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
+        SelectTagMode.EVENT_EDITION ->
+            _selectedTags.value = eventRepository.getEvent(uid).tags.toList()
+
+        else -> {}
+      }
     }
   }
 
@@ -133,6 +140,11 @@ class SelectTagViewModel(
         SelectTagMode.EVENT_CREATION -> {
           eventRepository.addEvent(
               eventTemporaryRepository.getEvent().copy(tags = _selectedTags.value.toSet()))
+          eventTemporaryRepository.deleteEvent()
+        }
+        SelectTagMode.EVENT_EDITION -> {
+          eventRepository.updateEvent(
+              uid, eventTemporaryRepository.getEvent().copy(tags = _selectedTags.value.toSet()))
           eventTemporaryRepository.deleteEvent()
         }
         SelectTagMode.SETTINGS -> tagRepository.updateTags(_selectedTags.value.toSet())

@@ -44,6 +44,9 @@ val ToggleActiveDark = Color(0xFF0A84FF)
 val ToggleTrackLight = Color(0xFF787878).copy(alpha = 0.2f)
 val ToggleTrackDark = Color(0xFF787880).copy(alpha = 0.36f)
 
+val overImageLight = Color(0xFF7FBFFF).copy(alpha = 0.6f)
+val overImageDark = Color(0xFF1F3A60).copy(alpha = 0.6f)
+
 // Tag category colors (Light and Dark variants for all categories)
 // Music
 val TagMusic = Color(0xFF8E44AD)

@@ -166,35 +166,33 @@ fun UserProfileScreen(
         val bottomPadding = paddingValues.calculateBottomPadding()
         val topPadding = paddingValues.calculateTopPadding()
         Box(modifier = Modifier.fillMaxSize()) {
-          LiquidBox(
-              modifier = Modifier.fillMaxSize(),
-              shape = RoundedCornerShape(Dimensions.RoundedCornerLarge)) {
-                Box(modifier = Modifier.fillMaxSize().padding(top = topPadding).clipToBounds()) {
-                  Box(modifier = Modifier.fillMaxSize()) {
-                    ProfileContentPager(
-                        pagerState = pagerState,
-                        historyListState = historyListState,
-                        incomingListState = incomingListState,
-                        historyEvents = userUIState.historyEvents,
-                        incomingEvents = userUIState.incomingEvents,
-                        eventViewModel = eventViewModel,
-                        spacerHeightDp = profileContentHeightDp + elementSpacingDp,
-                        clipPaddingDp = tabRowHeightDp,
-                        listBottomPadding = bottomPadding,
-                        onChatNavigate = onChatNavigate,
-                        onCardClick = onCardClick)
+          LiquidBox(modifier = Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp)) {
+            Box(modifier = Modifier.fillMaxSize().padding(top = topPadding).clipToBounds()) {
+              Box(modifier = Modifier.fillMaxSize()) {
+                ProfileContentPager(
+                    pagerState = pagerState,
+                    historyListState = historyListState,
+                    incomingListState = incomingListState,
+                    historyEvents = userUIState.historyEvents,
+                    incomingEvents = userUIState.incomingEvents,
+                    eventViewModel = eventViewModel,
+                    spacerHeightDp = profileContentHeightDp + elementSpacingDp,
+                    clipPaddingDp = tabRowHeightDp,
+                    listBottomPadding = bottomPadding,
+                    onChatNavigate = onChatNavigate,
+                    onCardClick = onCardClick)
 
-                    ProfileHeaderOverlay(
-                        headerOffsetPx = headerOffsetPx,
-                        userProfile = userUIState.userProfile,
-                        pagerState = pagerState,
-                        gapHeightDp = elementSpacingDp,
-                        onProfileHeightMeasured = { profileContentHeightPx = it },
-                        onTabHeightMeasured = { tabRowHeightPx = it },
-                        onEditProfileClick = { onEditProfileClick(uid) })
-                  }
-                }
+                ProfileHeaderOverlay(
+                    headerOffsetPx = headerOffsetPx,
+                    userProfile = userUIState.userProfile,
+                    pagerState = pagerState,
+                    gapHeightDp = elementSpacingDp,
+                    onProfileHeightMeasured = { profileContentHeightPx = it },
+                    onTabHeightMeasured = { tabRowHeightPx = it },
+                    onEditProfileClick = { onEditProfileClick(uid) })
               }
+            }
+          }
         }
       }
 }

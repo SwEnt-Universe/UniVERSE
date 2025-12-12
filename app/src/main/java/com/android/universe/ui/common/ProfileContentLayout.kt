@@ -23,6 +23,7 @@ import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
+import com.android.universe.ui.theme.UniverseTheme
 
 object ProfileContentTestTags {
   const val PROFILE_IMAGE_CONTAINER = "user_profile_image_container"
@@ -77,6 +78,7 @@ fun ProfileContentLayout(
                     height = Dimensions.CardImageTagOverlayHeight,
                     width = Dimensions.CardImageTagOverlayWidth,
                     isInteractive = false,
+                    tint = UniverseTheme.extendedColors.overImage,
                     enabled = false,
                     onClick = {},
                     modifier =

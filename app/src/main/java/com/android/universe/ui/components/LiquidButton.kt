@@ -162,7 +162,7 @@ fun LiquidButton(
             shape = { CapsuleLarge },
             effects = {
               vibrancy()
-              blur(8f.dp.toPx())
+              blur(16f.dp.toPx())
               lens(24f.dp.toPx(), 24f.dp.toPx())
             },
             layerBlock = if (enabled && isInteractive) liquidDeformation else null,

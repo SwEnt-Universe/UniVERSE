@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
  * @property date The formatted date of the event.
  * @property tags A list of tags associated with the event.
  * @property creator The name of the event creator.
+ * @property creatorId The unique identifier of the event creator.
  * @property participants The number of participants in the event.
  * @property location The location of the event.
  * @param isPrivate Whether the event is private.
@@ -50,6 +51,7 @@ data class EventUIState(
     val date: LocalDateTime = LocalDateTime.now(),
     val tags: List<Tag> = emptyList(),
     val creator: String = "",
+    val creatorId: String = "",
     val participants: Int = 0,
     val location: Location = Location(0.0, 0.0),
     val isPrivate: Boolean = false,
@@ -201,6 +203,7 @@ class EventViewModel(
                     val user = usersMap[event.creator]
                     event.toUIState(
                         user,
+                        creatorId = event.creator,
                         index = index,
                         joined = event.participants.contains(storedUid),
                         isPrivate = event.isPrivate)
@@ -212,6 +215,7 @@ class EventViewModel(
             events.mapIndexed { index, event ->
               event.toUIState(
                   userRepository.getUser(event.creator),
+                  creatorId = event.creator,
                   index = index,
                   joined = event.participants.contains(storedUid),
                   isPrivate = event.isPrivate)
@@ -243,12 +247,14 @@ class EventViewModel(
    * Converts an [Event] into an [EventUIState].
    *
    * @param user The creator of the event.
+   * @param creatorId The unique identifier of the event creator.
    * @param index The index of the event in the list.
    * @param joined Whether the current user has joined the event.
    * @param isPrivate Whether the event is private..
    */
   private fun Event.toUIState(
       user: UserProfile?,
+      creatorId: String,
       index: Int = 0,
       joined: Boolean = false,
       isPrivate: Boolean = false
@@ -260,6 +266,7 @@ class EventViewModel(
         date = date,
         tags = tags.toList(),
         creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
+        creatorId = creatorId,
         participants = participants.size,
         location = location,
         isPrivate = isPrivate,

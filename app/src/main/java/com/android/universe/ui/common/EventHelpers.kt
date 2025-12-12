@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +43,7 @@ object EventContentTestTags {
   const val EVENT_TAGS = "event_tags"
   const val PARTICIPATION_BUTTON = "event_participation_button"
   const val CHAT_BUTTON = "event_chat_button"
+  const val EDIT_BUTTON = "event_edit_button"
 }
 
 /**
@@ -109,8 +111,10 @@ fun ParticipantsAuthorColumn(
  * @param participants The number of participants in the event.
  * @param creator The creator of the event.
  * @param isUserParticipant Boolean indicating if the current user is a participant of the event.
+ * @param isUserOwner Boolean indicating if the current user is the owner of the event.
  * @param onToggleEventParticipation Lambda function to be called when the participation button is
  *   clicked.
+ * @param onEditClick Lambda function to be called when the edit button is clicked.
  * @param onChatClick Lambda function to be called when the chat button is clicked.
  */
 @Composable
@@ -119,7 +123,9 @@ fun EventCardActionsRow(
     participants: Int,
     creator: String,
     isUserParticipant: Boolean,
+    isUserOwner: Boolean,
     onToggleEventParticipation: () -> Unit,
+    onEditClick: () -> Unit = {},
     onChatClick: () -> Unit
 ) {
   Row(
@@ -152,24 +158,45 @@ fun EventCardActionsRow(
 
         Spacer(Modifier.width(Dimensions.SpacerMedium))
 
-        LiquidButton(
-            onClick = onToggleEventParticipation,
-            height = Dimensions.CardButtonHeight,
-            contentPadding = Dimensions.PaddingSmall,
-            modifier =
-                Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")
-                    .widthIn(max = Dimensions.CardButtonWidthDp)
-                    .wrapContentWidth()) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = if (isUserParticipant) Icons.Filled.Close else Icons.Filled.Check,
-                    contentDescription = "Toggle Participation",
-                    modifier = Modifier.size(Dimensions.IconSizeMedium))
-                Spacer(Modifier.width(Dimensions.SpacerSmall))
-                Text(
-                    text = if (isUserParticipant) "Leave" else "Join",
-                    style = MaterialTheme.typography.labelLarge)
+        if (isUserOwner) {
+          LiquidButton(
+              onClick = { onEditClick() },
+              height = Dimensions.CardButtonHeight,
+              contentPadding = Dimensions.PaddingSmall,
+              modifier =
+                  Modifier.testTag("${EventContentTestTags.EDIT_BUTTON}_$eventId")
+                      .widthIn(max = Dimensions.CardButtonWidthDp)
+                      .wrapContentWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      imageVector = Icons.Filled.Edit,
+                      contentDescription = "Edit Event",
+                      modifier = Modifier.size(Dimensions.IconSizeMedium))
+                  Spacer(Modifier.width(Dimensions.SpacerSmall))
+                  Text(text = "Edit", style = MaterialTheme.typography.labelLarge)
+                }
               }
-            }
+        } else {
+          LiquidButton(
+              onClick = { onToggleEventParticipation() },
+              height = Dimensions.CardButtonHeight,
+              contentPadding = Dimensions.PaddingSmall,
+              modifier =
+                  Modifier.testTag("${EventContentTestTags.PARTICIPATION_BUTTON}_$eventId")
+                      .widthIn(max = Dimensions.CardButtonWidthDp)
+                      .wrapContentWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      imageVector =
+                          if (isUserParticipant) Icons.Filled.Close else Icons.Filled.Check,
+                      contentDescription = "Toggle Participation",
+                      modifier = Modifier.size(Dimensions.IconSizeMedium))
+                  Spacer(Modifier.width(Dimensions.SpacerSmall))
+                  Text(
+                      text = if (isUserParticipant) "Leave" else "Join",
+                      style = MaterialTheme.typography.labelLarge)
+                }
+              }
+        }
       }
 }
