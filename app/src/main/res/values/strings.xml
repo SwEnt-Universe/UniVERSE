@@ -12,10 +12,10 @@
     <string name="login_select_auth_title">Select authentication method</string>
     <string name="login_google_title">Sign in with Google</string>
 
-    <!-- MapCreateEventModal -->
+    <!-- Event Creation -->
     <string name="map_create_event_title">Choose how to create your event</string>
     <string name="map_create_event_ai_button">Create Event With AI</string>
     <string name="map_create_event_manual_button">Create Event Yourself</string>
-
+    <string name="map_create_event_select_location">Click the map to set location</string>
 
 </resources>

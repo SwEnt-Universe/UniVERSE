@@ -1,7 +1,9 @@
 package com.android.universe.ui.components
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,7 +47,7 @@ private val shape =
 fun LiquidTopBar(navigationIcon: @Composable (() -> Unit) = {}, title: @Composable (() -> Unit)) {
   LiquidBox(modifier = Modifier.fillMaxWidth(), shape = shape) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = Dimensions.PaddingExtraLarge),
+        modifier = Modifier.fillMaxWidth().padding(top = 52.dp),
         verticalAlignment = Alignment.CenterVertically) {
           navigationIcon()
           title()
@@ -84,5 +86,6 @@ fun TopBarTitle(text: String, modifier: Modifier = Modifier) {
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       color = MaterialTheme.colorScheme.onSurface,
+      style = MaterialTheme.typography.titleMedium,
       modifier = modifier.testTag(TopBarTestTags.TOP_BAR_TITLE))
 }
