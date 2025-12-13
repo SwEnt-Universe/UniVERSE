@@ -19,6 +19,7 @@ import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import com.tomtom.sdk.location.GeoPoint
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -649,6 +650,8 @@ class MapViewModelTest {
     viewModel.generateAiEventAroundUser()
     advanceUntilIdle()
 
+    clearMocks(tempRepo, answers = false)
+
     viewModel.acceptPreview()
     advanceUntilIdle()
 
@@ -685,6 +688,8 @@ class MapViewModelTest {
 
     viewModel.generateAiEventAroundUser()
     advanceUntilIdle()
+
+    clearMocks(tempRepo, answers = false)
 
     viewModel.rejectPreview()
     advanceUntilIdle()
@@ -744,6 +749,8 @@ class MapViewModelTest {
 
     viewModel.generateAiEventAroundUser()
     advanceUntilIdle()
+
+    clearMocks(tempRepo, answers = false)
 
     coEvery { eventRepository.persistAIEvents(any()) } throws RuntimeException("DB Error")
 
