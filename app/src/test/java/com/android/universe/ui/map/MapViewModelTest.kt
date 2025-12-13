@@ -553,10 +553,13 @@ class MapViewModelTest {
         coVerify(exactly = 0) { eventRepository.getAllEvents(any(), any()) }
 
         // ---- STATE ASSERTIONS ----
-        assertEquals(generatedEvent, viewModel.previewEvent.value)
+        val expected = generatedEvent.copy(creator = userId)
+
+        assertEquals(expected, viewModel.previewEvent.value)
 
         val sel = viewModel.selectedEvent.value as MapViewModel.EventSelectionState.Selected
-        assertEquals(generatedEvent, sel.event)
+        assertEquals(expected, sel.event)
+        assertEquals(fakeUser.username, sel.creator)
 
         assertNull(viewModel.uiState.value.error)
 
@@ -661,14 +664,16 @@ class MapViewModelTest {
       set(viewModel, userId)
     }
 
-    // Mock AI generation so preview is created legitimately
     val fakeUser = UserTestData.Bob.copy(uid = userId)
     coEvery { userRepository.getUser(userId) } returns fakeUser
     coEvery { ai.generateEvents(any()) } returns listOf(generated)
 
-    // Mock reload call
-    coEvery { eventRepository.persistAIEvents(any()) } returns listOf(generated)
-    coEvery { eventRepository.getAllEvents(any(), any()) } returns listOf(generated)
+    // This is the event that the VM will actually persist
+    val expectedPersisted = generated.copy(creator = userId)
+
+    coEvery { eventRepository.persistAIEvents(listOf(expectedPersisted)) } returns
+        listOf(expectedPersisted)
+    coEvery { eventRepository.getAllEvents(any(), any()) } returns listOf(expectedPersisted)
 
     // Create preview using actual public API
     setUserLocation()
@@ -680,7 +685,7 @@ class MapViewModelTest {
     advanceUntilIdle()
 
     // --- Assert ---
-    coVerify(exactly = 1) { eventRepository.persistAIEvents(listOf(generated)) }
+    coVerify(exactly = 1) { eventRepository.persistAIEvents(listOf(expectedPersisted)) }
     coVerify(exactly = 1) { tempRepo.deleteEvent() }
     coVerify(atLeast = 1) { eventRepository.getAllEvents(any(), any()) }
 
@@ -775,13 +780,12 @@ class MapViewModelTest {
             userReactiveRepository = userReactiveRepository,
             ai = ai)
 
-    // Required for loadAllEvents
+    // Required for loadAllEvents (even though we won't call it here)
     viewModel.javaClass.getDeclaredField("currentUserId").apply {
       isAccessible = true
       set(viewModel, userId)
     }
 
-    // Populate preview via real API
     setUserLocation()
     coEvery { userRepository.getUser(userId) } returns UserTestData.Bob.copy(uid = userId)
     coEvery { ai.generateEvents(any()) } returns listOf(generated)
@@ -789,7 +793,7 @@ class MapViewModelTest {
     viewModel.generateAiEventAroundUser()
     advanceUntilIdle()
 
-    // Make persist fail
+    // Make persist fail (any list; we don't care about exact content for this test)
     coEvery { eventRepository.persistAIEvents(any()) } throws RuntimeException("boom")
 
     // --- Act ---
@@ -800,7 +804,8 @@ class MapViewModelTest {
     assertEquals("boom", viewModel.uiState.value.error)
 
     // Preview should NOT be cleared on failure
-    assertEquals(generated, viewModel.previewEvent.value)
+    val expectedPreview = generated.copy(creator = userId)
+    assertEquals(expectedPreview, viewModel.previewEvent.value)
 
     // No temp delete, no reload
     coVerify(exactly = 0) { tempRepo.deleteEvent() }
