@@ -1,6 +1,8 @@
 package com.android.universe.model.ai.gemini
 
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
+import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.common.InputLimits
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
@@ -53,6 +55,64 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
     ignoreUnknownKeys = true
     isLenient = true
     encodeDefaults = true
+  }
+
+  /**
+   * Generates a full creative event based on the user's profile and location.
+   *
+   * @param userProfile The full user profile containing interests and bio.
+   * @param location A pair of (Latitude, Longitude) representing the user's current center.
+   * @return A [GeneratedEventData] object containing full event details, or null if generation
+   *   fails.
+   */
+  open suspend fun generateCreativeEvent(
+      userProfile: UserProfile,
+      location: Pair<Double, Double>
+  ): GeneratedEventData? {
+    val (lat, lon) = location
+    val userInterests = userProfile.tags.joinToString(", ") { it.displayName }
+    val availableTags = Tag.getAllTagsAsString()
+
+    val prompt =
+        """
+                You are a creative event organizer.
+                Task: Generate a completely new, unique event based on the user's profile and location.
+                
+                User Context:
+                - Profile: $userInterests
+                - Bio: ${userProfile.description ?: "None"}
+                - Current Location: $lat, $lon
+                
+                Strict Constraints:
+                1. Title: Max ${InputLimits.TITLE_EVENT_MAX_LENGTH} chars.
+                2. Description: Max ${InputLimits.DESCRIPTION - 66} chars.
+                3. Location: Latitude/Longitude must be within 5km of the user's current location ($lat, $lon).
+                4. Date: Must be a future date in ISO-8601 format (e.g., "2025-12-25T18:00:00").
+                5. Tags: Select **at least 2** tags from the list below. The output strings must match the list exactly.
+                 
+                Available Tags List:
+                [$availableTags]
+               
+                Output Schema (Strict JSON):
+                {
+                  "title": "String",
+                  "description": "String",
+                  "latitude": Double,
+                  "longitude": Double,
+                  "dateIso": "String",
+                  "tags": ["String"]
+                }
+            """
+            .trimIndent()
+
+    return try {
+      val response = model.generateContent(prompt)
+      val text = response.text ?: return null
+      cleanAndParse(text)
+    } catch (e: Exception) {
+      e.printStackTrace()
+      null
+    }
   }
 
   /**
@@ -117,10 +177,10 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
    * @param rawJson The raw string response from the AI model.
    * @return The parsed [EventProposal] object, or `null` if parsing fails.
    */
-  private fun cleanAndParse(rawJson: String): EventProposal? {
+  private inline fun <reified T> cleanAndParse(rawJson: String): T? {
     return try {
       val cleanJson = rawJson.replace("```json", "").replace("```", "").trim()
-      json.decodeFromString<EventProposal>(cleanJson)
+      json.decodeFromString<T>(cleanJson)
     } catch (e: Exception) {
       e.printStackTrace()
       null
@@ -135,3 +195,23 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
  * @property description The generated event description (max 100 chars).
  */
 @Serializable data class EventProposal(val title: String, val description: String)
+
+/**
+ * A serializable data class representing the structured output of an AI-generated event.
+ *
+ * @property title The generated event title (max 40 chars).
+ * @property description The generated event description (max 100 chars).
+ * @property latitude The latitude of the generated event location.
+ * @property longitude The longitude of the generated event location.
+ * @property dateIso The ISO-8601 formatted date of the generated event.
+ * @property tags The list of tags associated with the generated event.
+ */
+@Serializable
+data class GeneratedEventData(
+    val title: String,
+    val description: String,
+    val latitude: Double,
+    val longitude: Double,
+    val dateIso: String,
+    val tags: List<String>
+)
