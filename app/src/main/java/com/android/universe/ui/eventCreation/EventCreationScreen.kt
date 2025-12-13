@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -79,7 +81,6 @@ object EventCreationTestTags {
 }
 
 object EventCreationDefaults {
-  val eventPictureBoxHeight = 270.dp
   val eventBoxCornerRadius = 24.dp
   val titleFontSize = 32.sp
   const val SET_LOCATION_BUTTON_HEIGHT = 40f
@@ -166,6 +167,7 @@ fun EventCreationScreen(
  * @param onSaveEdition Callback triggered when the event is successfully edited.
  * @param onBack Callback to return to the previous screen.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StandardEventCreationForm(
     uidEvent: String? = null,
@@ -221,167 +223,160 @@ fun StandardEventCreationForm(
                             .align(Alignment.BottomCenter)
                             .testTag(EventCreationTestTags.EVENT_PICTURE_PICKER))
               }
-              LiquidBox(
-                  modifier = Modifier.weight(1f),
-                  shape = RoundedCornerShape(EventCreationDefaults.eventBoxCornerRadius)) {
-                    Column(
-                        modifier =
-                            Modifier.padding(
-                                    vertical = Dimensions.PaddingMedium,
-                                    horizontal = Dimensions.PaddingLarge)
-                                .verticalScroll(rememberScrollState())) {
-                          Row(
-                              modifier =
-                                  Modifier.fillMaxWidth()
-                                      .padding(vertical = Dimensions.PaddingMedium)) {
-                                Text(
-                                    modifier =
-                                        Modifier.weight(1f)
-                                            .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
-                                    text = "Create an Event",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    style =
-                                        MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = FontWeight.Bold),
-                                    fontSize = EventCreationDefaults.titleFontSize)
+              LiquidBox(modifier = Modifier.weight(1f), shape = BottomSheetDefaults.ExpandedShape) {
+                Column(
+                    modifier =
+                        Modifier.padding(
+                                vertical = Dimensions.PaddingMedium,
+                                horizontal = Dimensions.PaddingLarge)
+                            .verticalScroll(rememberScrollState())) {
+                      Row(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(vertical = Dimensions.PaddingMedium)) {
+                            Text(
+                                modifier =
+                                    Modifier.weight(1f)
+                                        .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
+                                text = "Create an Event",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style =
+                                    MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold),
+                                fontSize = EventCreationDefaults.titleFontSize)
 
-                                LiquidButton(
-                                    onClick = { eventCreationViewModel.showAiAssist() },
-                                    height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
-                                    width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
-                                    contentPadding = Dimensions.PaddingSmall,
-                                    modifier =
-                                        Modifier.padding(end = Dimensions.PaddingMedium)
-                                            .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
-                                      Icon(
-                                          imageVector = Icons.Default.AutoAwesome,
-                                          contentDescription = "AI Assist",
-                                          tint = MaterialTheme.colorScheme.onSurface,
-                                          modifier =
-                                              Modifier.size(EventCreationDefaults.locIconSize))
-                                    }
-                              }
+                            LiquidButton(
+                                onClick = { eventCreationViewModel.showAiAssist() },
+                                height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
+                                width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
+                                contentPadding = Dimensions.PaddingSmall,
+                                modifier =
+                                    Modifier.padding(end = Dimensions.PaddingMedium)
+                                        .testTag(EventCreationTestTags.AI_ASSIST_BUTTON)) {
+                                  Icon(
+                                      imageVector = Icons.Default.AutoAwesome,
+                                      contentDescription = "AI Assist",
+                                      tint = MaterialTheme.colorScheme.onSurface,
+                                      modifier = Modifier.size(EventCreationDefaults.locIconSize))
+                                }
+                          }
 
-                          Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
-                          CustomTextField(
-                              modifier =
-                                  Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
-                                      .padding(vertical = Dimensions.PaddingMedium),
-                              label = "Title",
-                              placeholder = "Enter your event title",
-                              value = uiState.name,
-                              onValueChange = { name ->
-                                eventCreationViewModel.setEventName(name)
-                                eventCreationViewModel.setOnboardingState(
-                                    state = OnboardingState.ENTER_EVENT_TITLE, true)
-                              },
-                              maxLines = 2,
-                              validationState =
-                                  if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
-                                      true) {
-                                    uiState.eventTitleValid
-                                  } else {
-                                    ValidationState.Neutral
-                                  })
-                          CustomTextField(
-                              modifier =
-                                  Modifier.testTag(
-                                          EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
-                                      .padding(vertical = Dimensions.PaddingMedium),
-                              label = "Description",
-                              placeholder = "Enter your event description",
-                              value = uiState.description ?: "",
-                              onValueChange = { description ->
-                                eventCreationViewModel.setEventDescription(description)
-                                eventCreationViewModel.setOnboardingState(
-                                    state = OnboardingState.ENTER_DESCRIPTION, true)
-                              },
-                              maxLines = 3,
-                              validationState =
-                                  if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
-                                      true) {
-                                    uiState.eventDescriptionValid
-                                  } else {
-                                    ValidationState.Neutral
-                                  })
-                          Box(
-                              modifier =
-                                  Modifier.fillMaxWidth()
-                                      .padding(vertical = Dimensions.PaddingMedium)
-                                      .clickable { showDate.value = true }) {
-                                CustomTextField(
-                                    modifier =
-                                        Modifier.testTag(
-                                                EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
-                                            .align(Alignment.CenterStart),
-                                    label = "Date",
-                                    placeholder = "Enter a Date",
-                                    value = dateText,
-                                    onValueChange = {},
-                                    maxLines = 1,
-                                    leadingIcon = Icons.Default.Event,
-                                    enabled = false,
-                                    validationState =
-                                        if (uiState.eventDateValid == ValidationState.Valid) {
-                                          uiState.eventDateTimeValid
-                                        } else {
-                                          uiState.eventDateValid
-                                        })
-                              }
-                          UniversalDatePickerDialog(
-                              modifier = Modifier.testTag(EventCreationTestTags.EVENT_DATE_PICKER),
-                              visible = showDate.value,
-                              initialDate = uiState.date ?: LocalDate.now(),
-                              yearRange = IntRange(2025, 2050),
-                              onDismiss = { showDate.value = false },
-                              onConfirm = {
-                                eventCreationViewModel.setDate(it)
-                                showDate.value = false
+                      Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
+                      CustomTextField(
+                          modifier =
+                              Modifier.testTag(EventCreationTestTags.EVENT_TITLE_TEXT_FIELD)
+                                  .padding(vertical = Dimensions.PaddingMedium),
+                          label = "Title",
+                          placeholder = "Enter your event title",
+                          value = uiState.name,
+                          onValueChange = { name ->
+                            eventCreationViewModel.setEventName(name)
+                            eventCreationViewModel.setOnboardingState(
+                                state = OnboardingState.ENTER_EVENT_TITLE, true)
+                          },
+                          maxLines = 2,
+                          validationState =
+                              if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
+                                  true) {
+                                uiState.eventTitleValid
+                              } else {
+                                ValidationState.Neutral
                               })
-                          CustomTextField(
-                              modifier =
-                                  Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
-                              label = "Time",
-                              placeholder = "Select a Time in format HH:MM",
-                              value = uiState.time,
-                              onValueChange = { time ->
-                                eventCreationViewModel.setTime(time)
-                                eventCreationViewModel.setOnboardingState(
-                                    OnboardingState.ENTER_TIME, true)
-                              },
-                              maxLines = 1,
-                              leadingIcon = Icons.Default.AccessTimeFilled,
-                              validationState =
-                                  if (uiState.onboardingState[OnboardingState.ENTER_TIME] == true) {
-                                    if (uiState.eventTimeValid == ValidationState.Valid) {
+                      CustomTextField(
+                          modifier =
+                              Modifier.testTag(EventCreationTestTags.EVENT_DESCRIPTION_TEXT_FIELD)
+                                  .padding(vertical = Dimensions.PaddingMedium),
+                          label = "Description",
+                          placeholder = "Enter your event description",
+                          value = uiState.description ?: "",
+                          onValueChange = { description ->
+                            eventCreationViewModel.setEventDescription(description)
+                            eventCreationViewModel.setOnboardingState(
+                                state = OnboardingState.ENTER_DESCRIPTION, true)
+                          },
+                          maxLines = 3,
+                          validationState =
+                              if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
+                                  true) {
+                                uiState.eventDescriptionValid
+                              } else {
+                                ValidationState.Neutral
+                              })
+                      Box(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(vertical = Dimensions.PaddingMedium)
+                                  .clickable { showDate.value = true }) {
+                            CustomTextField(
+                                modifier =
+                                    Modifier.testTag(EventCreationTestTags.EVENT_DATE_TEXT_FIELD)
+                                        .align(Alignment.CenterStart),
+                                label = "Date",
+                                placeholder = "Enter a Date",
+                                value = dateText,
+                                onValueChange = {},
+                                maxLines = 1,
+                                leadingIcon = Icons.Default.Event,
+                                enabled = false,
+                                validationState =
+                                    if (uiState.eventDateValid == ValidationState.Valid) {
                                       uiState.eventDateTimeValid
                                     } else {
-                                      uiState.eventTimeValid
-                                    }
-                                  } else {
-                                    ValidationState.Neutral
-                                  })
-                          Row(
-                              modifier =
-                                  Modifier.fillMaxWidth()
-                                      .padding(vertical = Dimensions.PaddingMedium)
-                                      .testTag(EventCreationTestTags.PRIVACY_TOGGLE),
-                              verticalAlignment = Alignment.CenterVertically,
-                              horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(
-                                    text = "Private Event (followers only)",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onBackground)
+                                      uiState.eventDateValid
+                                    })
+                          }
+                      UniversalDatePickerDialog(
+                          modifier = Modifier.testTag(EventCreationTestTags.EVENT_DATE_PICKER),
+                          visible = showDate.value,
+                          initialDate = uiState.date ?: LocalDate.now(),
+                          yearRange = IntRange(2025, 2050),
+                          onDismiss = { showDate.value = false },
+                          onConfirm = {
+                            eventCreationViewModel.setDate(it)
+                            showDate.value = false
+                          })
+                      CustomTextField(
+                          modifier = Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
+                          label = "Time",
+                          placeholder = "Select a Time in format HH:MM",
+                          value = uiState.time,
+                          onValueChange = { time ->
+                            eventCreationViewModel.setTime(time)
+                            eventCreationViewModel.setOnboardingState(
+                                OnboardingState.ENTER_TIME, true)
+                          },
+                          maxLines = 1,
+                          leadingIcon = Icons.Default.AccessTimeFilled,
+                          validationState =
+                              if (uiState.onboardingState[OnboardingState.ENTER_TIME] == true) {
+                                if (uiState.eventTimeValid == ValidationState.Valid) {
+                                  uiState.eventDateTimeValid
+                                } else {
+                                  uiState.eventTimeValid
+                                }
+                              } else {
+                                ValidationState.Neutral
+                              })
+                      Row(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .padding(vertical = Dimensions.PaddingMedium)
+                                  .testTag(EventCreationTestTags.PRIVACY_TOGGLE),
+                          verticalAlignment = Alignment.CenterVertically,
+                          horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = "Private Event (followers only)",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground)
 
-                                LiquidToggle(
-                                    modifier =
-                                        Modifier.testTag(EventCreationTestTags.PRIVACY_SWITCH),
-                                    selected = { uiState.isPrivate },
-                                    onSelect = { eventCreationViewModel.setPrivacy(it) })
-                              }
-                          Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
-                        }
-                  }
+                            LiquidToggle(
+                                modifier = Modifier.testTag(EventCreationTestTags.PRIVACY_SWITCH),
+                                selected = { uiState.isPrivate },
+                                onSelect = { eventCreationViewModel.setPrivacy(it) })
+                          }
+                      Spacer(modifier = Modifier.height(paddingValues.calculateBottomPadding()))
+                    }
+              }
             }
       })
 }
