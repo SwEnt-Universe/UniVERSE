@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagRow
@@ -33,6 +34,7 @@ import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.components.LiquidSearchBarTestTags
 import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
+import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
@@ -58,6 +60,7 @@ object EventScreenTestTags {
  * @param onCardClick A callback function invoked when an event card is clicked, with the event ID
  *   and location as parameters.
  * @param onEditButtonClick A callback invoked when the user presses the "Edit" button on an event.
+ * @param navController The NavHostController for navigation actions.
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -67,7 +70,8 @@ fun EventScreen(
     viewModel: EventViewModel = viewModel(),
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
+    navController: NavHostController
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
@@ -82,6 +86,14 @@ fun EventScreen(
     if (error.errormsg != null) {
       viewModel.setErrorMsg(null)
       Toast.makeText(context, error.errormsg, Toast.LENGTH_SHORT).show()
+    }
+  }
+
+  LaunchedEffect(navController) {
+    navController.currentBackStackEntryFlow.collect { entry ->
+      if (entry.destination.route == NavigationScreens.Event.route) {
+        viewModel.loadEvents()
+      }
     }
   }
   val events by viewModel.filteredEvents.collectAsState()
