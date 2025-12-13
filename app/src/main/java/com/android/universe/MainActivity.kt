@@ -316,7 +316,8 @@ fun UniverseApp(
                           .replace("{$UID}", uid)
                           .replace("{$LATITUDE}", location.latitude.toFloat().toString())
                           .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
-                })
+                },
+                navController = navController)
           }
         }
 
