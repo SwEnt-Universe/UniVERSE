@@ -1,5 +1,6 @@
 package com.android.universe.ui.map
 
+import android.R.attr.text
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,8 +11,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import com.android.universe.R
 import com.android.universe.ui.components.LiquidBottomSheet
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.map.MapCreateEventModalTestTags.AI_CREATE_EVENT_BUTTON
@@ -42,27 +47,18 @@ fun MapCreateEventModal(
       isPresented = isPresented,
       onDismissRequest = onDismissRequest,
   ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
 
       // Title
       Text(
-          text = "Create Event",
-          style = MaterialTheme.typography.headlineSmall,
+          text = stringResource(R.string.map_create_event_title),
+          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.titleLarge,
           color = MaterialTheme.colorScheme.onBackground,
           modifier =
               Modifier.fillMaxWidth()
                   .padding(
                       horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingLarge))
-
-      // General description
-      Text(
-          text = "Choose how you want to create your event.",
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
-          modifier =
-              Modifier.fillMaxWidth()
-                  .padding(
-                      horizontal = Dimensions.PaddingLarge, vertical = Dimensions.PaddingSmall))
 
       Spacer(Modifier.height(Dimensions.SpacerLarge))
 
@@ -73,10 +69,10 @@ fun MapCreateEventModal(
             onDismissRequest()
           },
           modifier =
-              Modifier.fillMaxWidth()
+              Modifier.fillMaxWidth(0.8f)
                   .padding(horizontal = Dimensions.PaddingLarge)
                   .testTag(AI_CREATE_EVENT_BUTTON)) {
-            Text("Create Event with AI")
+            Text(stringResource(R.string.map_create_event_ai_button))
           }
 
       Spacer(Modifier.height(Dimensions.SpacerLarge))
@@ -88,10 +84,10 @@ fun MapCreateEventModal(
             onDismissRequest()
           },
           modifier =
-              Modifier.fillMaxWidth()
+              Modifier.fillMaxWidth(0.8f)
                   .padding(horizontal = Dimensions.PaddingLarge)
                   .testTag(MANUAL_CREATE_EVENT_BUTTON)) {
-            Text("Create Event Yourself")
+            Text(stringResource(R.string.map_create_event_manual_button))
           }
 
       Spacer(Modifier.padding(top = Dimensions.SpacerLarge).navigationBarsPadding())
