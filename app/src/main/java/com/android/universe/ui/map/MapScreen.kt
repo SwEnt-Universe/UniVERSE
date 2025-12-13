@@ -266,7 +266,10 @@ fun MapScreen(
                       onChatNavigate(eventId, eventTitle)
                     },
                     isUserParticipant = viewModel.isUserParticipant(it.event),
-                    onEditButtonClick = { onEditButtonClick(it.event.id, it.event.location) },
+                    onEditButtonClick = {
+                      onEditButtonClick(it.event.id, it.event.location)
+                      viewModel.selectEvent(null)
+                    },
                     onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) },
                     isPreview = isPreview,
                     bottomBar =
