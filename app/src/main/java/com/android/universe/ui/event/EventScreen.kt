@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagRow
@@ -71,7 +72,7 @@ fun EventScreen(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
-    navController: NavHostController
+    navController: NavHostController = rememberNavController()
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
