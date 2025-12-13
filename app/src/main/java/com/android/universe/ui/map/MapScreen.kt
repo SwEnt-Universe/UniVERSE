@@ -276,7 +276,8 @@ fun MapScreen(
                   },
                   isPreview = isPreview,
                   onAccept = { viewModel.acceptPreview() },
-                  onReject = { viewModel.rejectPreview() })
+                  onReject = { viewModel.rejectPreview() },
+                  onRegenerate = { viewModel.generateAiEventAroundUser() })
             }
           }
 

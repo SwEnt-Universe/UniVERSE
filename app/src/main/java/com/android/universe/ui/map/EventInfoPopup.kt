@@ -40,6 +40,8 @@ import java.time.LocalDateTime
  * @param isPreview modifies options if used to preview AI event suggestion
  * @param onAccept Callback function invoked when the user accepts the preview
  * @param onReject Callback function invoked when the user rejects the preview
+ * @param onRegenerate Callback function invoked when the user wants to regenerate the preview
+ * @param onEdit Callback function invoked when the user wants to edit the event
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +57,8 @@ fun EventInfoPopup(
     onToggleEventParticipation: () -> Unit,
     isPreview: Boolean = false,
     onAccept: () -> Unit = {},
-    onReject: () -> Unit = {}
+    onReject: () -> Unit = {},
+    onRegenerate: () -> Unit = {}
 ) {
   LiquidBottomSheet(
       isPresented = true,
@@ -88,7 +91,8 @@ fun EventInfoPopup(
           FlowBottomMenu(
               flowTabs =
                   listOf(
-                      FlowTab.Back(onClick = onReject),
+                      FlowTab.Reject(onClick = onReject),
+                      FlowTab.Regenerate(onClick = onRegenerate, enabled = true),
                       FlowTab.Confirm(onClick = onAccept, enabled = true)))
         }
       }

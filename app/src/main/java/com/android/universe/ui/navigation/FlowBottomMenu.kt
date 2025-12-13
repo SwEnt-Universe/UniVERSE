@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.Refresh
@@ -32,6 +33,8 @@ object FlowBottomMenuTestTags {
   const val MENU = "FlowBottomMenu"
   const val BACK_BUTTON = "BtnBack"
   const val CONFIRM_BUTTON = "BtnConfirm"
+  const val REJECT_BUTTON = "BtnReject"
+  const val EDIT_BUTTON = "BtnEdit"
   const val GOOGLE_BUTTON = "BtnGoogle"
   const val PASSWORD_BUTTON = "BtnPassword"
   const val EMAIL_BUTTON = "BtnEmail"
@@ -109,6 +112,18 @@ sealed class FlowTab(
               else {
                 {}
               })
+
+  class Reject(onClick: () -> Unit) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = "Reject",
+                modifier = Modifier.size(Dimensions.IconSizeLarge))
+          },
+          label = "Reject",
+          testTag = FlowBottomMenuTestTags.REJECT_BUTTON,
+          onClick = onClick)
 
   /**
    * Represents the "Google" authentication tab. This tab displays the Google logo and is used to

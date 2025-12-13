@@ -722,6 +722,11 @@ class MapViewModel(
       return
     }
 
+    _selectedEvent.value = EventSelectionState.None
+    updateMapPadding(false)
+    _previewEvent.value = null
+    viewModelScope.launch { eventTemporaryRepository.deleteEvent() }
+
     resetFilter()
 
     _uiState.update { it.copy(isLoading = true, error = null) }
