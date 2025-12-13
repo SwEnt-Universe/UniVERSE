@@ -13,17 +13,14 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.ai.AIConfig.MAX_RADIUS_KM
-import com.android.universe.model.ai.AIEventGen
-import com.android.universe.model.ai.openai.OpenAIProvider
-import com.android.universe.model.ai.prompt.ContextConfig
-import com.android.universe.model.ai.prompt.EventQuery
-import com.android.universe.model.ai.prompt.TaskConfig
+import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
+import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
+import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
 import com.android.universe.model.tag.Tag.Category.ART
 import com.android.universe.model.tag.Tag.Category.FOOD
@@ -56,6 +53,8 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.Margin
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -117,10 +116,14 @@ data class MapMarkerUiModel(
 /**
  * Manages map screen state, location tracking, and event data.
  *
- * @property currentUserId ID of the currently logged-in user.
+ * @property applicationContext Application context.
+ * @property prefs SharedPreferences for persistence.
  * @property locationRepository Repository for accessing location data.
  * @property eventRepository Repository for accessing event data.
+ * @property eventTemporaryRepository Repository for temporary event data.
  * @property userRepository Repository for user profile data.
+ * @property userReactiveRepository Reactive repository for user profile data.
+ * @property geminiAssistant Assistant for generating events using the Gemini API.
  */
 class MapViewModel(
     private val applicationContext: Context,
@@ -132,7 +135,7 @@ class MapViewModel(
     private val userRepository: UserRepository,
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
-    private val ai: AIEventGen = OpenAIProvider.eventGen,
+    private val geminiAssistant: GeminiEventAssistant = GeminiEventAssistant(),
 ) : ViewModel() {
 
   private val _uiState =
@@ -662,70 +665,83 @@ class MapViewModel(
    * @param radiusKm Max radius for generation.
    * @param timeFrame Time frame for context (e.g., "today").
    */
-  fun generateAiEventAroundUser(
-      radiusKm: Int = MAX_RADIUS_KM,
-      timeFrame: String = "today",
-  ) {
-    val userLoc =
-        uiState.value.userLocation
-            ?: run {
-              _uiState.update { it.copy(error = "User location unavailable") }
-              return
-            }
+  /** Generates an AI event near the user's current location using Gemini. */
+  fun generateAiEventAroundUser() {
+    val userLoc = uiState.value.userLocation
+    if (userLoc == null) {
+      _uiState.update { it.copy(error = "User location unavailable") }
+      return
+    }
 
-    // Trigger loading icon
     _uiState.update { it.copy(isLoading = true, error = null) }
 
     viewModelScope.launch {
       try {
-        val profile = userRepository.getUser(currentUserId)
-        val context =
-            ContextConfig(
-                location = null,
-                locationCoordinates = Pair(userLoc.latitude, userLoc.longitude),
-                radiusKm = radiusKm,
-                timeFrame = timeFrame)
-        val task = TaskConfig(eventCount = 1, requireRelevantTags = true)
-        val query = EventQuery(user = profile, task = task, context = context)
-        val events = ai.generateEvents(query)
+        val userProfile = userRepository.getUser(currentUserId)
 
-        val event = events.firstOrNull() ?: throw IllegalStateException("AI returned no events")
+        // Call Gemini
+        val generatedData =
+            geminiAssistant.generateCreativeEvent(
+                userProfile = userProfile, location = Pair(userLoc.latitude, userLoc.longitude))
+                ?: throw IllegalStateException("AI failed to generate an event")
 
-        // Store temporarily
+        // Map GeneratedEventData to Domain Event
+        val event =
+            Event(
+                id = UUID.randomUUID().toString(),
+                title = generatedData.title,
+                description = generatedData.description,
+                date =
+                    try {
+                      LocalDateTime.parse(generatedData.dateIso)
+                    } catch (e: Exception) {
+                      LocalDateTime.now().plusDays(1)
+                    },
+                tags =
+                    generatedData.tags
+                        .mapNotNull { tagString -> Tag.entries.find { it.name == tagString } }
+                        .toSet(),
+                creator = currentUserId,
+                participants = setOf(currentUserId),
+                location =
+                    com.android.universe.model.location.Location(
+                        generatedData.latitude, generatedData.longitude),
+                eventPicture = null,
+                isPrivate = false)
+
+        // Store temporarily for UI Preview
         eventTemporaryRepository.updateEventAsObject(event)
 
-        // Update preview + selection state
+        // Update state
         _previewEvent.value = event
-        // creator username lookup
-        val creatorName = userRepository.getUser(event.creator).username
+        _selectedEvent.value =
+            EventSelectionState.Selected(event = event, creator = userProfile.username)
 
-        _selectedEvent.value = EventSelectionState.Selected(event = event, creator = creatorName)
-
-        // Center camera on preview event
+        // Center camera
         requestCameraCenter(event.location.toGeoPoint())
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "AI generation failed") }
       } finally {
-        // Hide loading icon
         _uiState.update { it.copy(isLoading = false) }
       }
     }
   }
 
+  /** Confirms the currently previewed AI-generated event. */
   fun acceptPreview() {
     val event = _previewEvent.value ?: return
 
     viewModelScope.launch {
       try {
-        // 1. Save to real repository
+        // Save to real repository
         eventRepository.persistAIEvents(listOf(event))
 
-        // 2. Clear preview
+        // Clear preview
         eventTemporaryRepository.deleteEvent()
         _previewEvent.value = null
         _selectedEvent.value = EventSelectionState.None
 
-        // 3. Refresh event list
+        // Refresh event list to show the newly saved event
         loadAllEvents()
       } catch (e: Exception) {
         _uiState.update { it.copy(error = e.message ?: "Failed to accept preview") }
@@ -733,6 +749,7 @@ class MapViewModel(
     }
   }
 
+  /** Discards the currently previewed AI-generated event. */
   fun rejectPreview() {
     viewModelScope.launch {
       eventTemporaryRepository.deleteEvent()
