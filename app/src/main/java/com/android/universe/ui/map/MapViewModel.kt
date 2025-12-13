@@ -1,10 +1,12 @@
 package com.android.universe.ui.map
 
+import android.animation.TimeInterpolator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -41,6 +43,7 @@ import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.annotation.ExperimentalMapSetAntialiasingMethodApi
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.common.screen.AntialiasingMethod
+import com.tomtom.sdk.map.display.common.screen.Padding
 import com.tomtom.sdk.map.display.gesture.MapClickListener
 import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
@@ -56,6 +59,8 @@ import com.tomtom.sdk.map.display.ui.logo.LogoView
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -67,6 +72,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -190,6 +196,10 @@ class MapViewModel(
   private var locationTrackingJob: Job? = null
   private var pollingJob: Job? = null
 
+  // Track current padding to support smooth interruptions
+  private var currentBottomPadding = 0
+  private var paddingAnimationJob: Job? = null
+
   /**
    * Initializes data loading and starts event polling.
    *
@@ -306,6 +316,41 @@ class MapViewModel(
 
   /** Marks the map as ready for user interaction. */
   fun nowInteractable() = _uiState.update { it.copy(isMapInteractive = true) }
+
+  private fun updateMapPadding(isModalOpen: Boolean) {
+    val map = tomTomMap ?: return
+
+    val metrics = applicationContext.resources.displayMetrics
+    val screenHeight = metrics.heightPixels
+    val targetBottomPadding = if (isModalOpen) (screenHeight * 0.45).toInt() else 0
+
+    if (currentBottomPadding == targetBottomPadding) return
+
+    paddingAnimationJob?.cancel()
+
+    paddingAnimationJob =
+        viewModelScope.launch {
+          val startPadding = currentBottomPadding
+          val changeInPadding = targetBottomPadding - startPadding
+          val duration = 300L
+          val startTime = System.currentTimeMillis()
+          val interpolator: TimeInterpolator = DecelerateInterpolator()
+
+          while (isActive) {
+            val elapsed = System.currentTimeMillis() - startTime
+            val fraction = (elapsed / duration.toFloat()).coerceIn(0f, 1f)
+            val interpolatedFraction = interpolator.getInterpolation(fraction)
+
+            val newPadding = (startPadding + changeInPadding * interpolatedFraction).roundToInt()
+
+            currentBottomPadding = newPadding
+            withContext(Dispatchers.Main) { map.setPadding(Padding(0, 0, 0, newPadding)) }
+
+            if (fraction >= 1f) break
+            delay(16) // ~60fps
+          }
+        }
+  }
 
   /**
    * Triggers a camera move action via a one-off event.
@@ -463,9 +508,11 @@ class MapViewModel(
         val events = eventRepository.getAllEvents(currentUserId, following)
         _eventMarkers.value = events
 
+        val eventsToDisplay = events + listOfNotNull(_previewEvent.value)
+
         if (userReactiveRepository != null) {
-          val distinctCreators = events.map { it.creator }.distinct()
-          if (distinctCreators.isEmpty() || events.isEmpty()) {
+          val distinctCreators = eventsToDisplay.map { it.creator }.distinct()
+          if (distinctCreators.isEmpty() || eventsToDisplay.isEmpty()) {
             _uiState.update { it.copy(markers = emptyList()) }
             return@launch
           }
@@ -476,11 +523,11 @@ class MapViewModel(
                       uid to "${user?.firstName} ${user?.lastName}"
                     }
                   }) {
-                    events.map { event -> mapEventToMarker(event) }
+                    eventsToDisplay.map { event -> mapEventToMarker(event) }
                   }
               .collect { markers -> _uiState.update { it.copy(markers = markers) } }
         } else {
-          val markers = events.map { event -> mapEventToMarker(event) }
+          val markers = eventsToDisplay.map { event -> mapEventToMarker(event) }
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
@@ -618,6 +665,8 @@ class MapViewModel(
   /** Sets the currently active event in the state. */
   fun selectEvent(event: Event?) {
     viewModelScope.launch {
+      updateMapPadding(isModalOpen = (event != null))
+
       if (event == null) _selectedEvent.emit(EventSelectionState.None)
       else
           _selectedEvent.emit(
@@ -673,6 +722,8 @@ class MapViewModel(
       return
     }
 
+    resetFilter()
+
     _uiState.update { it.copy(isLoading = true, error = null) }
 
     viewModelScope.launch {
@@ -717,6 +768,11 @@ class MapViewModel(
         _selectedEvent.value =
             EventSelectionState.Selected(event = event, creator = userProfile.username)
 
+        val previewMarker = mapEventToMarker(event)
+        _uiState.update { it.copy(markers = it.markers + previewMarker) }
+
+        updateMapPadding(isModalOpen = true)
+
         // Center camera
         requestCameraCenter(event.location.toGeoPoint())
       } catch (e: Exception) {
@@ -741,6 +797,8 @@ class MapViewModel(
         _previewEvent.value = null
         _selectedEvent.value = EventSelectionState.None
 
+        updateMapPadding(false)
+
         // Refresh event list to show the newly saved event
         loadAllEvents()
       } catch (e: Exception) {
@@ -751,11 +809,20 @@ class MapViewModel(
 
   /** Discards the currently previewed AI-generated event. */
   fun rejectPreview() {
+    val previewId = _previewEvent.value?.id
     viewModelScope.launch {
       eventTemporaryRepository.deleteEvent()
 
       _previewEvent.value = null
       _selectedEvent.value = EventSelectionState.None
+
+      updateMapPadding(false)
+
+      if (previewId != null) {
+        _uiState.update { state ->
+          state.copy(markers = state.markers.filter { it.event.id != previewId })
+        }
+      }
     }
   }
 
