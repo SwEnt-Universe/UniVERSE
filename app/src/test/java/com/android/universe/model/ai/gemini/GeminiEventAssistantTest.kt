@@ -1,12 +1,15 @@
 package com.android.universe.model.ai.gemini
 
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
+import com.android.universe.model.user.UserProfile
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.type.GenerateContentResponse
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.io.IOException
+import java.time.LocalDate
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
@@ -21,6 +24,18 @@ private const val VALID_JSON_RESPONSE =
 }
 """
 
+private const val VALID_CREATIVE_EVENT_JSON =
+    """
+{
+  "title": "Hackathon 2025",
+  "description": "A 24h coding marathon.",
+  "latitude": 46.52,
+  "longitude": 6.63,
+  "dateIso": "2025-10-10T09:00:00",
+  "tags": ["TECHNOLOGY", "GAMES"]
+}
+"""
+
 private const val MARKDOWN_JSON_RESPONSE =
     """
 ```json
@@ -30,11 +45,35 @@ private const val MARKDOWN_JSON_RESPONSE =
 }
 """
 
+private const val MARKDOWN_CREATIVE_EVENT_JSON =
+    """
+```json
+{
+  "title": "Cleaned Creative Event",
+  "description": "Markdown cleanup test.",
+  "latitude": 46.52,
+  "longitude": 6.63,
+  "dateIso": "2025-12-25T18:00:00",
+  "tags": ["ART"]
+}
+"""
+
 private const val MALFORMED_JSON_RESPONSE = "{ invalid json content... "
 
 private val LAUSANNE = Location(46.5196535, 6.6322734)
 
 class GeminiEventAssistantTest {
+
+  private val mockUserProfile =
+      UserProfile(
+          uid = "123",
+          username = "testuser",
+          firstName = "Test",
+          lastName = "User",
+          country = "CH",
+          description = "I love coding and hiking.",
+          dateOfBirth = LocalDate.of(2000, 1, 1),
+          tags = setOf(Tag.PROGRAMMING, Tag.HIKING))
 
   @Test
   fun generateProposal_parsesValidJsonIntoProposalObject() = runTest {
@@ -107,6 +146,77 @@ class GeminiEventAssistantTest {
     val assistant = GeminiEventAssistant(providedModel = mockModel)
 
     val result = assistant.generateProposal("Empty test", LAUSANNE)
+
+    assertNull(result)
+  }
+
+  @Test
+  fun generateCreativeEvent_parsesValidJsonIntoEventObject() = runTest {
+    val mockModel = mockk<GenerativeModel>()
+    val mockResponse = mockk<GenerateContentResponse>()
+
+    every { mockResponse.text } returns VALID_CREATIVE_EVENT_JSON
+    coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
+
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
+
+    val result =
+        assistant.generateCreativeEvent(
+            mockUserProfile, Pair(LAUSANNE.latitude, LAUSANNE.longitude))
+
+    assertNotNull("Result should not be null for valid JSON", result)
+    assertEquals("Hackathon 2025", result?.title)
+    assertEquals("A 24h coding marathon.", result?.description)
+    assertEquals(46.52, result?.latitude)
+    assertEquals(2, result?.tags?.size)
+    assertEquals("TECHNOLOGY", result?.tags?.first())
+  }
+
+  @Test
+  fun generateCreativeEvent_cleansMarkdownCodeBlocks() = runTest {
+    val mockModel = mockk<GenerativeModel>()
+    val mockResponse = mockk<GenerateContentResponse>()
+
+    every { mockResponse.text } returns MARKDOWN_CREATIVE_EVENT_JSON
+    coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
+
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
+
+    val result =
+        assistant.generateCreativeEvent(
+            mockUserProfile, Pair(LAUSANNE.latitude, LAUSANNE.longitude))
+
+    assertNotNull(result)
+    assertEquals("Cleaned Creative Event", result?.title)
+    assertEquals("ART", result?.tags?.first())
+  }
+
+  @Test
+  fun generateCreativeEvent_returnsNull_onNetworkException() = runTest {
+    val mockModel = mockk<GenerativeModel>()
+    coEvery { mockModel.generateContent(any<String>()) } throws IOException("No Internet")
+
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
+    val result =
+        assistant.generateCreativeEvent(
+            mockUserProfile, Pair(LAUSANNE.latitude, LAUSANNE.longitude))
+
+    assertNull(result)
+  }
+
+  @Test
+  fun generateCreativeEvent_returnsNull_onParsingFailure() = runTest {
+    val mockModel = mockk<GenerativeModel>()
+    val mockResponse = mockk<GenerateContentResponse>()
+
+    every { mockResponse.text } returns MALFORMED_JSON_RESPONSE
+    coEvery { mockModel.generateContent(any<String>()) } returns mockResponse
+
+    val assistant = GeminiEventAssistant(providedModel = mockModel)
+
+    val result =
+        assistant.generateCreativeEvent(
+            mockUserProfile, Pair(LAUSANNE.latitude, LAUSANNE.longitude))
 
     assertNull(result)
   }
