@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
@@ -104,7 +105,7 @@ fun UserProfileScreen(
     userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
     eventViewModel: EventViewModel = viewModel(),
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
-    navController: NavHostController
+    navController: NavHostController = rememberNavController()
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
 
