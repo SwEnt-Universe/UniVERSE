@@ -35,6 +35,7 @@ import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -374,6 +375,14 @@ class SettingsViewModel(
   fun saveProfile(uid: String, onConfirm: () -> Unit = {}) {
     viewModelScope.launch {
       val state = _uiState.value
+      val latestProfile: UserProfile? =
+          try {
+            userRepository.getUser(uid)
+          } catch (e: Exception) {
+            // the coroutine didn't finish i'll let it throw for now
+            if (e is CancellationException) throw e
+            null
+          }
 
       // ─── 1. Validation is already done! ────────────────────────────
       // We no longer need the `validateAll` check here.
@@ -394,7 +403,9 @@ class SettingsViewModel(
                 description = cleanedDescription,
                 dateOfBirth = state.date!!,
                 tags = _userTags.value,
-                profilePicture = state.profilePicture)
+                profilePicture = state.profilePicture,
+                followers = latestProfile?.followers ?: emptySet(),
+                following = latestProfile?.following ?: emptySet())
 
         userRepository.updateUser(uid, updatedProfile)
 
