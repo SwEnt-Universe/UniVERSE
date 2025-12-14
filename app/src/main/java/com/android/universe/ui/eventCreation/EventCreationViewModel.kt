@@ -384,6 +384,21 @@ class EventCreationViewModel(
   }
 
   /**
+   * Deletes an event from the repository based on its unique identifier.
+   *
+   * @param uidEvent The unique identifier of the event to be deleted.
+   */
+  fun deleteEvent(uidEvent: String) {
+    viewModelScope.launch(DefaultDP.io) {
+      try {
+        eventRepository.deleteEvent(uidEvent)
+      } catch (e: Exception) {
+        Log.e("EventCreationViewModel", "Error deleting event: ${e.message}")
+      }
+    }
+  }
+
+  /**
    * Updates the AI prompt text in the state.
    *
    * Performs real-time validation: if the prompt is blank (and not in initial state), an error is
