@@ -59,6 +59,7 @@ class EventCreationViewModelTest {
     const val SAMPLE_TIME = "12:12"
     const val BAD_SAMPLE_TIME = "23:78"
     val SAMPLE_LOCATION = Location(0.0, 0.0)
+    val SAMPLE_EVENT = EventTestData.dummyEvent1
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -507,6 +508,21 @@ class EventCreationViewModelTest {
     val formatted = viewModel.formatTime(null)
 
     assertEquals("Select time", formatted)
+  }
+
+  @Test
+  fun deleteEventChangeRepository() = runTest {
+    eventRepository.addEvent(SAMPLE_EVENT)
+    viewModel.deleteEvent(SAMPLE_EVENT.id)
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals(0, eventRepository.getAllEvents(SAMPLE_EVENT.creator, emptySet()).size)
+  }
+
+  @Test
+  fun deleteNonExistingEvent() = runTest {
+    viewModel.deleteEvent(SAMPLE_EVENT.id)
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals(0, eventRepository.getAllEvents(SAMPLE_EVENT.creator, emptySet()).size)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
