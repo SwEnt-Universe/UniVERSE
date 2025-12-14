@@ -204,10 +204,23 @@ fun StandardEventCreationForm(
             }
           },
           enabled = eventCreationViewModel.validateAll())
+  val flowTabDelete =
+      uidEvent?.let { id ->
+        FlowTab.Delete(
+            onClick = {
+              eventCreationViewModel.deleteEvent(id)
+              onBack()
+            })
+      }
 
   LaunchedEffect(uidEvent) { eventCreationViewModel.loadUid(uidEvent) }
   ScreenLayout(
-      bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOfNotNull(
+                    flowTabBack, flowTabContinue, flowTabDelete.takeIf { uidEvent != null }))
+      },
       content = { paddingValues ->
         Column(
             modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
