@@ -348,7 +348,11 @@ private fun AddEventButton(onClick: () -> Unit, boxScope: BoxScope, padding: Pad
               height = 56f,
               width = 56f,
               modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                Text("+", color = MaterialTheme.colorScheme.onBackground)
+                Text(
+                    text = "+",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.displayMedium,
+                    textAlign = TextAlign.Center)
               }
         }
   }

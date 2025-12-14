@@ -2,6 +2,7 @@ package com.android.universe.e2e
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyDescendant
@@ -17,7 +18,6 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import com.android.universe.MainActivity
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.user.UserRepositoryProvider
@@ -60,7 +60,7 @@ class SearchUserAndFollow : FirebaseAuthUserTest(isRobolectric = false) {
     var aliceUser = UserTestData.Alice
   }
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
   @get:Rule
   val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)
