@@ -5,7 +5,7 @@ import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.isDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
@@ -15,6 +15,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
+import com.android.universe.MainActivity
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
 import com.android.universe.ui.common.EventContentTestTags
@@ -62,7 +63,7 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     const val TIME_INPUT = "13:25"
   }
 
-  @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   @get:Rule
   val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(ACCESS_FINE_LOCATION)

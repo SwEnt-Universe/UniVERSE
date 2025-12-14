@@ -41,7 +41,6 @@ import java.time.LocalDateTime
  * @param onAccept Callback function invoked when the user accepts the preview
  * @param onReject Callback function invoked when the user rejects the preview
  * @param onRegenerate Callback function invoked when the user wants to regenerate the preview
- * @param onEdit Callback function invoked when the user wants to edit the event
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +62,7 @@ fun EventInfoPopup(
   LiquidBottomSheet(
       isPresented = true,
       onDismissRequest = { if (isPreview) onReject() else onDismiss() },
-      modifier = modifier) {
+      modifier = modifier.testTag(MapScreenTestTags.EVENT_INFO_POPUP)) {
         EventContentLayout(
             modifier = Modifier.padding(Dimensions.PaddingLarge).navigationBarsPadding(),
             eventId = event.id,
