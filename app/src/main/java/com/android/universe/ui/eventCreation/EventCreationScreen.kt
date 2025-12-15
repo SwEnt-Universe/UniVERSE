@@ -238,7 +238,7 @@ fun StandardEventCreationForm(
                                 modifier =
                                     Modifier.weight(1f)
                                         .testTag(EventCreationTestTags.CREATION_EVENT_TITLE),
-                                text = "Create an Event",
+                                text = "Create Event",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style =
                                     MaterialTheme.typography.labelLarge.copy(
@@ -338,7 +338,7 @@ fun StandardEventCreationForm(
                       CustomTextField(
                           modifier = Modifier.testTag(EventCreationTestTags.EVENT_TIME_TEXT_FIELD),
                           label = "Time",
-                          placeholder = "Select a Time in format HH:MM",
+                          placeholder = "Select time in format HH:MM",
                           value = uiState.time,
                           onValueChange = { time ->
                             eventCreationViewModel.setTime(time)
