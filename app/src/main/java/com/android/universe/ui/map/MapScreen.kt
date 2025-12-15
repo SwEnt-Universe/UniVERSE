@@ -77,7 +77,8 @@ object MapScreenTestTags {
  */
 enum class MapMode {
   NORMAL,
-  SELECT_LOCATION
+  SELECT_LOCATION,
+  CHANGE_LOCATION
 }
 
 /**
@@ -98,6 +99,8 @@ enum class MapMode {
  * @param onEditButtonClick A callback invoked when the user presses the "Edit" button on an event.
  * @param viewModel The [MapViewModel] that provides the state for the screen. Defaults to a
  *   ViewModel instance initialized with necessary repositories.
+ *     @param onBackChangeLocation A callback invoked when the user wants to go back from changing
+ *       location.
  */
 @Composable
 fun MapScreen(
@@ -109,6 +112,7 @@ fun MapScreen(
     preselectedLocation: Location? = null,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
+    onBackChangeLocation: () -> Unit = {},
     viewModel: MapViewModel = viewModel {
       MapViewModel(
           context,
@@ -221,6 +225,23 @@ fun MapScreen(
                             viewModel.switchMapMode(MapMode.NORMAL)
                           },
                           enabled = uiState.selectedLocation != null)))
+        } else {
+          FlowBottomMenu(
+              flowTabs =
+                  listOf(
+                      FlowTab.Back(
+                          onClick = {
+                            onBackChangeLocation()
+                            viewModel.switchMapMode(MapMode.NORMAL)
+                          }),
+                      FlowTab.Confirm(
+                          onClick = {
+                            viewModel.resetFilter()
+                            viewModel.updateLocation()
+                            onBackChangeLocation()
+                            viewModel.switchMapMode(MapMode.NORMAL)
+                          },
+                          enabled = uiState.selectedLocation != null)))
         }
       }) { padding ->
         MapBox(uiState = uiState) {
@@ -298,8 +319,7 @@ fun MapScreen(
                 showMapModal = false
               })
         }
-
-        if (uiState.mapMode == MapMode.SELECT_LOCATION) {
+        if (uiState.mapMode != MapMode.NORMAL) {
           LiquidBox(
               shape = (RoundedCornerShape(0.dp)),
               modifier = Modifier.fillMaxWidth().testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {

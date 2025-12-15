@@ -18,6 +18,7 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
+import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
@@ -305,6 +306,8 @@ class MapViewModel(
   fun switchMapMode(mapMode: MapMode) {
     if (mapMode == MapMode.NORMAL) {
       _uiState.update { it.copy(selectedLocation = null) }
+    } else if (mapMode == MapMode.CHANGE_LOCATION) {
+      selectEvent(null)
     }
     _uiState.update { it.copy(mapMode = mapMode) }
   }
@@ -367,7 +370,7 @@ class MapViewModel(
   ) {
     clickListener =
         MapClickListener { geoPoint: GeoPoint ->
-              if (mode == MapMode.SELECT_LOCATION) {
+              if (mode != MapMode.NORMAL) {
                 selectLocation(geoPoint)
               }
               true
@@ -378,7 +381,7 @@ class MapViewModel(
             }
     longClickListener =
         MapLongClickListener { geoPoint: GeoPoint ->
-              if (mode == MapMode.SELECT_LOCATION) {
+              if (mode != MapMode.NORMAL) {
                 selectLocation(geoPoint)
               }
               true
@@ -831,6 +834,21 @@ class MapViewModel(
       TECHNOLOGY -> R.drawable.grey_pin
       TOPIC -> R.drawable.pink_pin
       null -> R.drawable.black_pin
+    }
+  }
+
+  /**
+   * Updates the location in the temporary event repository based on the user's selected location.
+   */
+  fun updateLocation() {
+    viewModelScope.launch(DefaultDP.io) {
+      if (uiState.value.selectedLocation != null) {
+        val location =
+            Location(
+                uiState.value.selectedLocation!!.latitude,
+                uiState.value.selectedLocation!!.longitude)
+        eventTemporaryRepository.updateLocation(location)
+      }
     }
   }
 }
