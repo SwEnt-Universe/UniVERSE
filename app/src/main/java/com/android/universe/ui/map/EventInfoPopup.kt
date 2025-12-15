@@ -1,19 +1,11 @@
 package com.android.universe.ui.map
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -24,9 +16,10 @@ import com.android.universe.ui.common.EventContentLayout
 import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.components.ImageDisplay
 import com.android.universe.ui.components.LiquidBottomSheet
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.utils.LocalLayerBackdrop
-import com.google.firebase.auth.FirebaseAuth
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import java.time.LocalDateTime
 
@@ -37,14 +30,17 @@ import java.time.LocalDateTime
  * @param modifier The modifier to be applied to the popup.
  * @param event The [Event] object containing event details to be displayed.
  * @param creator The name of the event creator.
- * @param isUserParticipant Boolean indicating if the user is a participant of the event.
+ * @param currentUserId The ID of the currently logged-in user.
  * @param onDismiss Callback function invoked when the popup is dismissed.
  * @param onChatNavigate Callback function invoked when the user clicks on the chat button.
+ * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
+ * @param isUserParticipant Boolean indicating if the user is a participant of the event.
  * @param onToggleEventParticipation Callback function invoked when the user toggles their
  *   participation status.
- * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
  * @param isPreview modifies options if used to preview AI event suggestion
- * @param bottomBar optional bottom bar displaying options
+ * @param onAccept Callback function invoked when the user accepts the preview
+ * @param onReject Callback function invoked when the user rejects the preview
+ * @param onRegenerate Callback function invoked when the user wants to regenerate the preview
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,58 +48,52 @@ fun EventInfoPopup(
     modifier: Modifier = Modifier,
     event: Event,
     creator: String,
-    isUserParticipant: Boolean,
+    currentUserId: String,
     onDismiss: () -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
+    onEditButtonClick: () -> Unit = {},
+    isUserParticipant: Boolean,
     onToggleEventParticipation: () -> Unit,
     isPreview: Boolean = false,
-    bottomBar: @Composable (() -> Unit)? = null,
-    onEditButtonClick: () -> Unit = {}
+    onAccept: () -> Unit = {},
+    onReject: () -> Unit = {},
+    onRegenerate: () -> Unit = {}
 ) {
-  Box(
-      modifier =
-          modifier
-              .fillMaxSize()
-              .clickable(onClick = onDismiss)
-              .testTag(MapScreenTestTags.EVENT_INFO_POPUP),
-      contentAlignment = Alignment.BottomCenter) {
-        AnimatedVisibility(
-            visible = true,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it })) {
-              LiquidBottomSheet(
-                  modifier = Modifier.fillMaxWidth(),
-                  isPresented = true,
-                  shape = MaterialTheme.shapes.large,
-                  onDismissRequest = onDismiss,
-                  bottomBar = bottomBar) {
-                    EventContentLayout(
-                        modifier =
-                            Modifier.padding(Dimensions.PaddingLarge).navigationBarsPadding(),
-                        eventId = event.id,
-                        title = event.title,
-                        description = event.description,
-                        date = event.date,
-                        tags = event.tags.toList(),
-                        participants = event.participants.size,
-                        creator = creator,
-                        imageContent = {
-                          ImageDisplay(
-                              image = event.eventPicture,
-                              contentDescription = null,
-                              modifier =
-                                  Modifier.fillMaxSize().testTag(EventContentTestTags.EVENT_IMAGE))
-                        },
-                        isUserParticipant = isUserParticipant,
-                        isPrivate = event.isPrivate,
-                        onToggleEventParticipation = onToggleEventParticipation,
-                        onEditClick = { onEditButtonClick() },
-                        onChatClick = { onChatNavigate(event.id, event.title) },
-                        isUserOwner =
-                            FirebaseAuth.getInstance().currentUser?.uid!! == event.creator,
-                        showActions = !isPreview)
-                  }
-            }
+  LiquidBottomSheet(
+      isPresented = true,
+      onDismissRequest = { if (isPreview) onReject() else onDismiss() },
+      modifier = modifier.testTag(MapScreenTestTags.EVENT_INFO_POPUP)) {
+        EventContentLayout(
+            modifier = Modifier.padding(Dimensions.PaddingLarge).navigationBarsPadding(),
+            eventId = event.id,
+            title = event.title,
+            description = event.description,
+            date = event.date,
+            tags = event.tags.toList(),
+            participants = event.participants.size,
+            creator = creator,
+            isUserOwner = event.creator == currentUserId,
+            imageContent = {
+              ImageDisplay(
+                  image = event.eventPicture,
+                  contentDescription = null,
+                  modifier = Modifier.fillMaxSize().testTag(EventContentTestTags.EVENT_IMAGE))
+            },
+            isUserParticipant = isUserParticipant,
+            isPrivate = event.isPrivate,
+            onToggleEventParticipation = onToggleEventParticipation,
+            showActions = !isPreview,
+            onChatClick = { onChatNavigate(event.id, event.title) },
+            onEditClick = { onEditButtonClick() })
+
+        if (isPreview) {
+          FlowBottomMenu(
+              flowTabs =
+                  listOf(
+                      FlowTab.Reject(onClick = onReject),
+                      FlowTab.Regenerate(onClick = onRegenerate, enabled = true),
+                      FlowTab.Confirm(onClick = onAccept, enabled = true)))
+        }
       }
 }
 
@@ -125,6 +115,7 @@ private fun EventInfoPopUpPreview() {
     EventInfoPopup(
         event = previewEvent,
         creator = "",
+        currentUserId = "",
         isUserParticipant = true,
         onDismiss = {},
         onChatNavigate = { _, _ -> },

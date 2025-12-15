@@ -119,7 +119,7 @@ fun MapScreen(
   val uiState by viewModel.uiState.collectAsState()
   val selectedEvent by viewModel.selectedEvent.collectAsState()
   var showMapModal by remember { mutableStateOf(false) }
-  val preview = viewModel.previewEvent.collectAsState()
+  val previewEvent by viewModel.previewEvent.collectAsState()
   val categoryList = Tag.tagFromEachCategory.toList()
   val categories by viewModel.categories.collectAsState()
 
@@ -196,14 +196,14 @@ fun MapScreen(
   ScreenLayoutWithBox(
       modifier = Modifier.testTag(NavigationTestTags.MAP_SCREEN),
       bottomBar = {
-        if (uiState.mapMode == MapMode.NORMAL) {
+        if (uiState.mapMode == MapMode.NORMAL && previewEvent == null) {
           NavigationBottomMenu(
               selectedTab = Tab.Map,
               onTabSelected = { tab ->
                 viewModel.resetFilter()
                 onTabSelected(tab)
               })
-        } else {
+        } else if (uiState.mapMode == MapMode.SELECT_LOCATION) {
           FlowBottomMenu(
               flowTabs =
                   listOf(
@@ -253,44 +253,47 @@ fun MapScreen(
             }
           }
 
-          selectedEvent.let {
-            val isPreview = preview.value != null
-            if (it is MapViewModel.EventSelectionState.Selected)
-                EventInfoPopup(
-                    modifier = Modifier.padding(padding),
-                    event = it.event,
-                    creator = it.creator,
-                    onDismiss = { viewModel.selectEvent(null) },
-                    onChatNavigate = { eventId, eventTitle ->
-                      viewModel.resetFilter()
-                      onChatNavigate(eventId, eventTitle)
-                    },
-                    isUserParticipant = viewModel.isUserParticipant(it.event),
-                    onEditButtonClick = { onEditButtonClick(it.event.id, it.event.location) },
-                    onToggleEventParticipation = { viewModel.toggleEventParticipation(it.event) },
-                    isPreview = isPreview,
-                    bottomBar =
-                        if (isPreview) {
-                          {
-                            FlowBottomMenu(
-                                flowTabs =
-                                    listOf(
-                                        FlowTab.Back(onClick = { viewModel.rejectPreview() }),
-                                        FlowTab.Confirm(
-                                            { viewModel.acceptPreview() }, enabled = true)))
-                          }
-                        } else null)
+          selectedEvent.let { selection ->
+            if (selection is MapViewModel.EventSelectionState.Selected) {
+              val isPreview = (previewEvent != null && previewEvent?.id == selection.event.id)
+
+              EventInfoPopup(
+                  modifier = Modifier,
+                  event = selection.event,
+                  creator = selection.creator,
+                  currentUserId = uid,
+                  onDismiss = { viewModel.selectEvent(null) },
+                  onChatNavigate = { eventId, eventTitle ->
+                    viewModel.resetFilter()
+                    onChatNavigate(eventId, eventTitle)
+                  },
+                  isUserParticipant = viewModel.isUserParticipant(selection.event),
+                  onEditButtonClick = {
+                    onEditButtonClick(selection.event.id, selection.event.location)
+                  },
+                  onToggleEventParticipation = {
+                    viewModel.toggleEventParticipation(selection.event)
+                  },
+                  isPreview = isPreview,
+                  onAccept = { viewModel.acceptPreview() },
+                  onReject = { viewModel.rejectPreview() },
+                  onRegenerate = { viewModel.generateAiEventAroundUser() })
+            }
           }
 
           MapCreateEventModal(
               isPresented = showMapModal,
               onDismissRequest = { showMapModal = false },
-              onAiCreate = { viewModel.generateAiEventAroundUser() },
+              onAiCreate = {
+                viewModel.generateAiEventAroundUser()
+                showMapModal = false
+              },
               onManualCreate = {
                 viewModel.switchMapMode(MapMode.SELECT_LOCATION)
                 showMapModal = false
               })
         }
+
         if (uiState.mapMode == MapMode.SELECT_LOCATION) {
           LiquidBox(
               shape =
@@ -345,7 +348,11 @@ private fun AddEventButton(onClick: () -> Unit, boxScope: BoxScope, padding: Pad
               height = 56f,
               width = 56f,
               modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                Text("+", color = MaterialTheme.colorScheme.onBackground)
+                Text(
+                    text = "+",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.displayMedium,
+                    textAlign = TextAlign.Center)
               }
         }
   }

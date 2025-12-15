@@ -61,8 +61,8 @@ sealed class Tab(
 val tabs =
     listOf(
         Tab.Chat,
-        Tab.Map,
         Tab.Event,
+        Tab.Map,
         Tab.Profile,
         Tab.Community,
     )

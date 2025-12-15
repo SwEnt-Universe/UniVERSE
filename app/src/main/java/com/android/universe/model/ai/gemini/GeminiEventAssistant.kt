@@ -1,12 +1,16 @@
 package com.android.universe.model.ai.gemini
 
 import com.android.universe.model.location.Location
+import com.android.universe.model.tag.Tag
+import com.android.universe.model.user.UserProfile
 import com.android.universe.ui.common.InputLimits
 import com.google.firebase.Firebase
 import com.google.firebase.ai.GenerativeModel
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.generationConfig
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -53,6 +57,108 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
     ignoreUnknownKeys = true
     isLenient = true
     encodeDefaults = true
+  }
+
+  /**
+   * Generates a full creative event based on the user's profile and location.
+   *
+   * @param userProfile The full user profile containing interests and bio.
+   * @param location A pair of (Latitude, Longitude) representing the user's current center.
+   * @return A [GeneratedEventData] object containing full event details, or null if generation
+   *   fails.
+   */
+  open suspend fun generateCreativeEvent(
+      userProfile: UserProfile,
+      location: Pair<Double, Double>
+  ): GeneratedEventData? {
+    val (lat, lon) = location
+
+    // Instead of taking all tags, we shuffle them and take a random number (1 to 3)
+    // This ensures the AI doesn't always create the same events.
+    val randomTagCount = (3..8).random()
+    val shuffledTags = userProfile.tags.shuffled().take(randomTagCount)
+    val userInterests = shuffledTags.joinToString(", ") { it.displayName }
+
+    // Randomly decide whether to include the bio or not (50% chance)
+    // to prevent the bio from always dominating the context.
+    val useBio = (0..1).random() == 1
+    val bioContext = if (useBio) userProfile.description ?: "None" else "None"
+
+    val availableTags = Tag.getAllTagsAsString()
+
+    val now = LocalDateTime.now()
+    val twoWeeksLater = now.plusWeeks(2)
+    val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+    val nowIso = now.format(formatter)
+    val maxIso = twoWeeksLater.format(formatter)
+
+    val prompt =
+        """
+                You are a creative event organizer.
+                Task: Generate a completely new, unique event based on the user's profile and location.
+                
+                **Hierarchy of Rules (NON-NEGOTIABLE):**
+                1. **LOCATION IS #1 PRIORITY**: The event MUST be within 5km of ($lat, $lon). 
+                   - If a tag (e.g., "City Trip") requires traveling further, **IGNORE THE TAG**.
+                   - Never hallucinate a location outside the 5km radius to satisfy a theme.
+                2. **Coherence**: The activity must make sense for that specific location.
+                
+                **Directives for Coherence:**
+                - You are provided with a list of "User Interests".
+                - **Select ONE dominant theme** or a logical pair from the list.
+                - **IGNORE** interests that do not fit the chosen theme OR the location.
+                
+                **Directives for Creativity:**
+                - Do NOT always generate a "Meetup" or "Talk".
+                - Think about activities: Workshops, Outdoor Games, Tasting sessions, Mini-tournaments, etc.
+                - Be surprising.
+                
+                **Contextual & Logic Requirements:**
+                1. **Seasonality**: Date is between "$nowIso" and "$maxIso".
+                   - Winter: Avoid stationary outdoor activities. Favor cozy indoor spots/snow.
+                   - Summer: Favor outdoor, sunny activities.
+                2. **Geography**: Analyze terrain at ($lat, $lon).
+                   - **Feasibility**: Do NOT propose natural features (Mountains, Lake) unless they exist there.
+                   - **Context**: In a city? Urban activity. In mountains? Adventure.
+           
+                User Context:
+                - Interest Pool: $userInterests
+                - Bio: $bioContext                                                                                              
+                - Current Location: $lat, $lon
+                
+                Strict Constraints:
+                1. Title: Max ${InputLimits.TITLE_EVENT_MAX_LENGTH} chars.
+                2. Description: Max ${InputLimits.DESCRIPTION - 66} chars.                                                                                                                          
+                3. Location: 
+                   - Latitude/Longitude **MUST** be within 5km of (${'$'}lat, ${'$'}lon).
+                    - **IMPORTANT**: Choose a real, existing place. Use the specific name.
+                4. Date: 
+                   - Future ISO-8601 date between "$nowIso" and "$maxIso".
+                5. Tags: Select **2 to 4** tags from the list below. The output strings must match the list exactly.
+                 
+                Available Tags List:
+                [$availableTags]    
+               
+                Output Schema (Strict JSON):
+                {
+                  "title": "String",
+                  "description": "String",
+                  "latitude": Double,
+                  "longitude": Double,
+                  "dateIso": "String",
+                  "tags": ["String"]
+                }
+            """
+            .trimIndent()
+
+    return try {
+      val response = model.generateContent(prompt)
+      val text = response.text ?: return null
+      cleanAndParse(text)
+    } catch (e: Exception) {
+      e.printStackTrace()
+      null
+    }
   }
 
   /**
@@ -117,10 +223,10 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
    * @param rawJson The raw string response from the AI model.
    * @return The parsed [EventProposal] object, or `null` if parsing fails.
    */
-  private fun cleanAndParse(rawJson: String): EventProposal? {
+  private inline fun <reified T> cleanAndParse(rawJson: String): T? {
     return try {
       val cleanJson = rawJson.replace("```json", "").replace("```", "").trim()
-      json.decodeFromString<EventProposal>(cleanJson)
+      json.decodeFromString<T>(cleanJson)
     } catch (e: Exception) {
       e.printStackTrace()
       null
@@ -135,3 +241,23 @@ open class GeminiEventAssistant(private val providedModel: GenerativeModel? = nu
  * @property description The generated event description (max 100 chars).
  */
 @Serializable data class EventProposal(val title: String, val description: String)
+
+/**
+ * A serializable data class representing the structured output of an AI-generated event.
+ *
+ * @property title The generated event title (max 40 chars).
+ * @property description The generated event description (max 100 chars).
+ * @property latitude The latitude of the generated event location.
+ * @property longitude The longitude of the generated event location.
+ * @property dateIso The ISO-8601 formatted date of the generated event.
+ * @property tags The list of tags associated with the generated event.
+ */
+@Serializable
+data class GeneratedEventData(
+    val title: String,
+    val description: String,
+    val latitude: Double,
+    val longitude: Double,
+    val dateIso: String,
+    val tags: List<String>
+)
