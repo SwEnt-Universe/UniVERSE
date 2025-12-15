@@ -2,6 +2,7 @@ package com.android.universe.model.event
 
 import android.util.Log
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.chat.ChatManager
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.user.UserProfile
@@ -227,8 +228,9 @@ class EventRepositoryFirestore(
    */
   override suspend fun addEvent(event: Event) {
     withContext(ioDispatcher) {
-      db.collection(EVENTS_COLLECTION_PATH).document(event.id).set(eventToMap(event)).await()
+      db.collection(EVENTS_COLLECTION_PATH).document(event.id).set(eventToMap(event))
     }
+    ChatManager.createChat(chatID = event.id, admin = event.creator)
   }
 
   /**
