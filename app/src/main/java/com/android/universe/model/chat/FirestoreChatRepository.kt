@@ -131,7 +131,7 @@ class FirestoreChatRepository(private val db: FirebaseFirestore = FirebaseFirest
    */
   override suspend fun createChat(chatID: String, admin: String): Chat {
     val chat = ChatDTO(chatID = chatID, admin = admin, lastMessage = null)
-    withContext(DefaultDP.io) { db.collection(COLLECTION_NAME).document(chatID).set(chat).await() }
+    withContext(DefaultDP.io) { db.collection(COLLECTION_NAME).document(chatID).set(chat) }
     return Chat(chatID, admin)
   }
 
