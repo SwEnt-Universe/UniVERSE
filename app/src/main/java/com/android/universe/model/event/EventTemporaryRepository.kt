@@ -31,6 +31,10 @@ interface EventTemporaryRepository {
 
   suspend fun updateEventAsObject(event: Event)
 
+  suspend fun updateLocation(location: Location)
+
+  suspend fun isLocationNull(): Boolean
+
   /** Return the current stocked event. */
   suspend fun getEvent(): Event
 
