@@ -22,23 +22,23 @@
     <string name="chat_empty">Join some events to start chatting with others</string>
 
     <!-- Tag / USER -->
-    <string name="tag_user_music">Select the music genres and the events you enjoy...</string>
-    <string name="tag_user_sport">Choose the sports you\'re into...</string>
-    <string name="tag_user_food">Select the food and drink experiences you love...</string>
-    <string name="tag_user_art">Pick the types of art you connect with...</string>
-    <string name="tag_user_travel">Choose the travel styles you’re interested in...</string>
-    <string name="tag_user_games">Select the games you like to play...</string>
-    <string name="tag_user_technology">Choose the tech topics you’re interested in...</string>
-    <string name="tag_user_topic">Pick the topics that interest you...</string>
+    <string name="tag_user_music">Select the music you love</string>
+    <string name="tag_user_sport">Choose the sports you\'re into</string>
+    <string name="tag_user_food">Select food and drink you enjoy</string>
+    <string name="tag_user_art">Pick the types of art you connect with</string>
+    <string name="tag_user_travel">Choose the travel styles you’re interested in</string>
+    <string name="tag_user_games">Select the games you like to play</string>
+    <string name="tag_user_technology">Choose tech topics you’re interested in</string>
+    <string name="tag_user_topic">Pick the subjects that interest you</string>
 
     <!-- Tag / EVENT -->
-    <string name="tag_event_music">Select the music genres that best fit this event...</string>
-    <string name="tag_event_sport">Choose the sports related to this event...</string>
-    <string name="tag_event_food">Select the food and drink featured at this event...</string>
-    <string name="tag_event_art">Pick the art forms showcased or explored at this event...</string>
-    <string name="tag_event_travel">Choose the travel or exploration theme of this event...</string>
-    <string name="tag_event_games">Select the games that will be played at this event...</string>
-    <string name="tag_event_technology">Choose the tech topics this event focuses on...</string>
-    <string name="tag_event_topic">Pick the main topics this event is about...</string>
+    <string name="tag_event_music">Select music genres for this event</string>
+    <string name="tag_event_sport">Choose the sports related to this event</string>
+    <string name="tag_event_food">Select the food and drink featured at this event</string>
+    <string name="tag_event_art">Pick the art forms explored at this event</string>
+    <string name="tag_event_travel">Choose the travelling style of this event</string>
+    <string name="tag_event_games">Select the games played at this event</string>
+    <string name="tag_event_technology">Choose the tech topics this event is about</string>
+    <string name="tag_event_topic">Pick the subjects this event is about</string>
 
 </resources>
