@@ -207,8 +207,7 @@ private fun EmailStatusScreen(
       if (sendEmailFailed) stringResource(R.string.email_prefix_error)
       else stringResource(R.string.email_prefix_success)
   val instructions =
-      if (sendEmailFailed) stringResource(R.string.email_instructions_error)
-      else null
+      if (sendEmailFailed) stringResource(R.string.email_instructions_error) else null
 
   Text(
       text = stringResource(R.string.email_title),
