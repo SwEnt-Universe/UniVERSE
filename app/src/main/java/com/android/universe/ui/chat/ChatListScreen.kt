@@ -1,14 +1,18 @@
 package com.android.universe.ui.chat
 
+import android.R.attr.maxHeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_ITEM_PREFIX
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_LIST_COLUMN
@@ -89,15 +94,46 @@ fun ChatListScreen(
             item { BottomBarScrollItem(height = paddingValues.calculateBottomPadding()) }
           }
         } else {
-          Column(
-              horizontalAlignment = CenterHorizontally,
-              verticalArrangement = Arrangement.Center,
-              modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                Text(
-                    text = "Join some events to start chatting with others",
-                    modifier = Modifier.testTag(NO_CHAT_PREVIEW),
-                    color = MaterialTheme.colorScheme.onSurface)
-              }
+          BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val defaultSize = maxHeight * 0.27f
+
+            LiquidBox(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .wrapContentHeight()
+                        .align(Alignment.BottomCenter)
+                        .testTag(NO_CHAT_PREVIEW),
+                shape =
+                    RoundedCornerShape(
+                        topStart = Dimensions.RoundedCornerLarge,
+                        topEnd = Dimensions.RoundedCornerLarge,
+                        bottomStart = 0.dp,
+                        bottomEnd = 0.dp)) {
+                  Column(
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .wrapContentHeight()
+                              .defaultMinSize(minHeight = defaultSize)
+                              .padding(horizontal = Dimensions.PaddingExtraLarge)
+                              .padding(top = Dimensions.PaddingExtraLarge),
+                      verticalArrangement = Arrangement.Top,
+                      horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Empty Inbox",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface)
+
+                        Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
+
+                        Text(
+                            text = "Join an event to start chatting!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface)
+
+                        Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
+                      }
+                }
+          }
         }
       }
 }
