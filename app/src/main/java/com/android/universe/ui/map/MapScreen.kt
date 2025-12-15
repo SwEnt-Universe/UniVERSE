@@ -230,7 +230,7 @@ fun MapScreen(
         MapBox(uiState = uiState) {
           BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val screenHeight = maxHeight
-            val topOffset = screenHeight * 0.05f
+            val topOffset = screenHeight * 0.06f
 
             TagRow(
                 categoryList,
