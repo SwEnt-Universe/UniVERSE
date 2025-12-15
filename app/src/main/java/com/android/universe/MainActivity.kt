@@ -248,7 +248,8 @@ fun UniverseApp(
                         .replace("{$LATITUDE}", location.latitude.toFloat().toString())
                         .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
               },
-              viewModel = mapViewModel)
+              viewModel = mapViewModel,
+              onBackChangeLocation = {})
         }
 
         composable(
@@ -284,7 +285,8 @@ fun UniverseApp(
                             .replace("{$LATITUDE}", location.latitude.toFloat().toString())
                             .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
                   },
-                  viewModel = mapViewModel)
+                  viewModel = mapViewModel,
+                  onBackChangeLocation = {})
             }
 
         navigation(
@@ -464,7 +466,8 @@ fun UniverseApp(
                         onBack = {
                           mapViewModel.switchMapMode(MapMode.SELECT_LOCATION)
                           navigationActions.goBack()
-                        })
+                        },
+                        onSelectLocation = {})
                   }
 
               composable(NavigationScreens.SelectTagEvent.route) {
@@ -500,7 +503,11 @@ fun UniverseApp(
                         location = Location(latitude.toDouble(), longitude.toDouble()),
                         onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
                         onSaveEdition = { navController.navigate("selectTagEventEdition/$uid") },
-                        onBack = { navigationActions.goBack() })
+                        onBack = { navigationActions.goBack() },
+                        onSelectLocation = {
+                          mapViewModel.switchMapMode(MapMode.CHANGE_LOCATION)
+                          navigationActions.navigateTo(NavigationScreens.MapChangeLocation)
+                        })
                   }
 
               composable(
@@ -516,6 +523,32 @@ fun UniverseApp(
                         },
                         onBack = { navigationActions.goBack() })
                   }
+
+              composable(NavigationScreens.MapChangeLocation.route) {
+                MapScreen(
+                    uid = authInstance.currentUser!!.uid,
+                    onTabSelected = onTabSelected,
+                    onNavigateToEventCreation = { lat, lng ->
+                      navController.navigate("eventCreation/$lat/$lng")
+                    },
+                    onChatNavigate = { chatID, chatName ->
+                      navController.navigate(
+                          route =
+                              NavigationScreens.ChatInstance.route
+                                  .replace("{chatID}", chatID)
+                                  .replace("{chatName}", chatName)
+                                  .replace("{userID}", authInstance.currentUser!!.uid))
+                    },
+                    onEditButtonClick = { uid, location ->
+                      navController.navigate(
+                          NavigationScreens.EventEdition.route
+                              .replace("{$UID}", uid)
+                              .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                              .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
+                    },
+                    viewModel = mapViewModel,
+                    onBackChangeLocation = { navigationActions.goBack() })
+              }
             }
         // --- Add Tags Screen FOR USER---
         composable(
