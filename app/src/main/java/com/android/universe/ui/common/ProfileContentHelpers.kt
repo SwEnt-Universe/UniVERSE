@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PersonRemove
 import androidx.compose.material.icons.outlined.Settings
@@ -50,25 +49,6 @@ fun UserInfoColumn(userProfile: UserProfile) {
           overflow = TextOverflow.Clip,
           modifier = Modifier.testTag("${ProfileContentTestTags.FULL_NAME}_${userProfile.uid}"))
     }
-
-    Spacer(Modifier.height(Dimensions.SpacerMedium))
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.testTag("${ProfileContentTestTags.LOCATION}_${userProfile.uid}")) {
-          Icon(
-              imageVector = Icons.Filled.LocationOn,
-              contentDescription = "Location",
-              modifier = Modifier.size(Dimensions.IconSizeMedium),
-              tint = MaterialTheme.colorScheme.onSurface)
-          Spacer(Modifier.width(Dimensions.SpacerSmall))
-          Text(
-              text = userProfile.country,
-              style = MaterialTheme.typography.bodyLarge,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              color = MaterialTheme.colorScheme.onSurface)
-        }
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
@@ -182,11 +162,10 @@ fun StatCircleColumn(label: String, count: Int, testTag: String) {
  * A composable function that displays the number of followers and following in a row layout.
  *
  * @param userProfile The user's profile data.
- * @param modifier Modifier for styling/layout.
  */
 @Composable
-fun FollowersFollowingColumn(userProfile: UserProfile, modifier: Modifier) {
-  Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+fun FollowersFollowingColumn(userProfile: UserProfile) {
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
     StatCircleColumn(
         label = "followers",
         count = userProfile.followers.size,

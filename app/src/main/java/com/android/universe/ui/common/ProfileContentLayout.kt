@@ -31,7 +31,6 @@ object ProfileContentTestTags {
   const val TAGS_COLUMN = "profile_tags_column"
   const val FULL_NAME = "profile_full_name"
   const val DATE_OF_BIRTH = "profile_date_birth"
-  const val LOCATION = "profile_location"
   const val DESCRIPTION = "profile_description"
   const val FOLLOWERS_COUNT = "profile_followers_count"
   const val FOLLOWING_COUNT = "profile_following_count"
@@ -61,7 +60,7 @@ fun ProfileContentLayout(
   val scrollState = rememberScrollState()
   Column(modifier = modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-      Column(modifier = Modifier.weight(2f)) {
+      Column(modifier = Modifier.weight(1.4f)) {
         Box(modifier = Modifier.fillMaxWidth()) {
           Box(
               modifier =
@@ -97,21 +96,22 @@ fun ProfileContentLayout(
         }
       }
 
-      TagColumn(
-          tags = userProfile.tags.toList(),
-          isSelectable = false,
-          isSelected = { false },
-          heightList = Dimensions.CardImageHeight,
-          modifierBox =
-              Modifier.weight(1f)
-                  .testTag("${ProfileContentTestTags.TAGS_COLUMN}_${userProfile.uid}")
-                  .padding(start = Dimensions.PaddingLarge))
+      Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+        TagColumn(
+            tags = userProfile.tags.toList(),
+            isSelectable = false,
+            isSelected = { false },
+            heightList = Dimensions.CardImageHeight,
+            modifierBox =
+                Modifier.testTag("${ProfileContentTestTags.TAGS_COLUMN}_${userProfile.uid}")
+                    .padding(start = Dimensions.PaddingLarge))
+      }
     }
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
 
     Row(modifier = Modifier.fillMaxWidth()) {
-      Column(modifier = Modifier.weight(2f)) { UserInfoColumn(userProfile) }
+      Column(modifier = Modifier.weight(1.4f)) { UserInfoColumn(userProfile) }
 
       Column(modifier = Modifier.weight(1f).padding(start = Dimensions.PaddingLarge)) {
         FollowingOrSettingsButton(
@@ -122,7 +122,7 @@ fun ProfileContentLayout(
 
         Spacer(Modifier.height(Dimensions.SpacerMedium))
 
-        FollowersFollowingColumn(userProfile = userProfile, modifier = Modifier.fillMaxWidth())
+        FollowersFollowingColumn(userProfile = userProfile)
       }
     }
 
