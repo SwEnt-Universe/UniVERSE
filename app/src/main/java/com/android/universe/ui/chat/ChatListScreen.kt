@@ -95,7 +95,7 @@ fun ChatListScreen(
           }
         } else {
           BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val defaultSize = maxHeight * 0.27f
+            val defaultSize = maxHeight * 0.25f
 
             LiquidBox(
                 modifier =
