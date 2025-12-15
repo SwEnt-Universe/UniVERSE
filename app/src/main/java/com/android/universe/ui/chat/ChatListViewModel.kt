@@ -91,20 +91,6 @@ class ChatListViewModel(
                               chatID = chat.chatID,
                               lastMessage = chat.lastMessage))
             }
-          } catch (_: NoSuchElementException) {
-            // Since we have created events before chats existed we create them here,
-            // if an event doesn't have an associated chat.
-            // TODO: This should be moved to event creation.
-            val chat = ChatManager.createChat(chatID = event.id, admin = event.creator)
-            _uiState.update {
-              it.copy(
-                  chatPreviews =
-                      uiState.value.chatPreviews +
-                          ChatPreview(
-                              chatName = event.title,
-                              chatID = chat.chatID,
-                              lastMessage = chat.lastMessage))
-            }
           } catch (_: FirebaseFirestoreException) {
             _uiState.update { it.copy(displayMessage = "Please check your internet connection") }
           }
