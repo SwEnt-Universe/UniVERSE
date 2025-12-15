@@ -26,6 +26,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -48,9 +49,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
@@ -61,7 +63,6 @@ import com.android.universe.ui.event.EventCard
 import com.android.universe.ui.event.EventUIState
 import com.android.universe.ui.event.EventViewModel
 import com.android.universe.ui.navigation.NavigationBottomMenu
-import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions
@@ -92,7 +93,6 @@ object UserProfileScreenTestTags {
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
- * @param navController The NavHostController for navigation actions.
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -104,8 +104,7 @@ fun UserProfileScreen(
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
     eventViewModel: EventViewModel = viewModel(),
-    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
-    navController: NavHostController = rememberNavController()
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
 
@@ -116,13 +115,17 @@ fun UserProfileScreen(
   val incomingListState = rememberLazyListState()
   eventViewModel.storedUid = uid
 
-  // Reload user profile when navigating back to this screen
-  LaunchedEffect(navController) {
-    navController.currentBackStackEntryFlow.collect { entry ->
-      if (entry.destination.route == NavigationScreens.Profile.route) {
+  val lifecycleOwner = LocalLifecycleOwner.current
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
         userProfileViewModel.loadUser()
       }
     }
+
+    lifecycleOwner.lifecycle.addObserver(observer)
+
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
   }
 
   // Layout Measurements
