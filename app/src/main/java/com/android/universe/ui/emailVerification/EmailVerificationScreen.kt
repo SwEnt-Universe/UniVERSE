@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.FlowBottomMenu
@@ -202,14 +204,14 @@ private fun EmailStatusScreen(
 ) {
 
   val messagePrefix =
-      if (sendEmailFailed) "Couldn't send a verification link to "
-      else "Please verify the email using the link sent to "
+      if (sendEmailFailed) stringResource(R.string.email_prefix_error)
+      else stringResource(R.string.email_prefix_success)
   val instructions =
-      if (sendEmailFailed) "Verify the email address, your internet connection and try again"
+      if (sendEmailFailed) stringResource(R.string.email_instructions_error)
       else null
 
   Text(
-      text = "Account Verification",
+      text = stringResource(R.string.email_title),
       textAlign = TextAlign.Left,
       fontSize = MaterialTheme.typography.headlineLarge.fontSize,
       fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
@@ -247,9 +249,9 @@ private fun EmailStatusScreen(
     Text(
         text =
             buildAnnotatedString {
-              append("Didn't receive the email? Check your spam folder or resend a link in ")
+              append(stringResource(R.string.email_verification_countdown_prefix))
               withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$countdown") }
-              append(" second(s)")
+              append(stringResource(R.string.email_verification_countdown_suffix))
             },
         color = MaterialTheme.colorScheme.onSurface,
         style = MaterialTheme.typography.bodyLarge,

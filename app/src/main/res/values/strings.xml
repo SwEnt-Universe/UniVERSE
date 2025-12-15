@@ -21,6 +21,14 @@
     <!-- Chat -->
     <string name="chat_empty">Join some events to start chatting with others</string>
 
+    <!-- Email Verification -->
+    <string name="email_title">Account Verification</string>
+    <string name="email_prefix_success">Please verify the email using the link sent to&#160;</string>
+    <string name="email_prefix_error">Could not send a verification link to&#160;</string>
+    <string name="email_instructions_error">Verify the email address, your internet connection and try again</string>
+    <string name="email_verification_countdown_prefix">Didn\'t receive the email? Check your spam folder or resend a link in&#160;</string>
+    <string name="email_verification_countdown_suffix">&#160;second(s)</string>
+
     <!-- Tag / USER -->
     <string name="tag_user_music">Select the music you love</string>
     <string name="tag_user_sport">Choose the sports you\'re into</string>
