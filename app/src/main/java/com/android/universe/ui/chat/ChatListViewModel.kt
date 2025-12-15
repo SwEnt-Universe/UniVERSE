@@ -1,6 +1,5 @@
 package com.android.universe.ui.chat
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,34 +74,42 @@ class ChatListViewModel(
       // TODO: Update this once users have a list of events.
       val events = eventRepository.getUserInvolvedEvents(userID)
       _uiState.update { it.copy(isLoading = false) }
-      Log.w("ChatListViewModel", "Events: $events")
       if (events.isEmpty()) {
         _uiState.update {
           it.copy(displayMessage = "Join some events to start chatting with others")
         }
-      } else
-          events.forEach { event ->
-            try {
-              val chat = ChatManager.loadChat(chatID = event.id)
-              Log.w("ChatListViewModel", "Chat: $chat")
-              _uiState.update {
-                it.copy(
-                    chatPreviews =
-                        uiState.value.chatPreviews +
-                            ChatPreview(
-                                chatName = event.title,
-                                chatID = chat.chatID,
-                                lastMessage = chat.lastMessage))
-              }
-            } catch (_: NoSuchElementException) {
-              // Since we have created events before chats existed we create them here,
-              // if an event doesn't have an associated chat.
-              // TODO: This should be moved to event creation.
-              ChatManager.createChat(chatID = event.id, admin = event.creator)
-            } catch (_: FirebaseFirestoreException) {
-              _uiState.update { it.copy(displayMessage = "Please check your internet connection") }
+      } else {
+        events.forEach { event ->
+          try {
+            val chat = ChatManager.loadChat(chatID = event.id)
+            _uiState.update {
+              it.copy(
+                  chatPreviews =
+                      uiState.value.chatPreviews +
+                          ChatPreview(
+                              chatName = event.title,
+                              chatID = chat.chatID,
+                              lastMessage = chat.lastMessage))
             }
+          } catch (_: NoSuchElementException) {
+            // Since we have created events before chats existed we create them here,
+            // if an event doesn't have an associated chat.
+            // TODO: This should be moved to event creation.
+            val chat = ChatManager.createChat(chatID = event.id, admin = event.creator)
+            _uiState.update {
+              it.copy(
+                  chatPreviews =
+                      uiState.value.chatPreviews +
+                          ChatPreview(
+                              chatName = event.title,
+                              chatID = chat.chatID,
+                              lastMessage = chat.lastMessage))
+            }
+          } catch (_: FirebaseFirestoreException) {
+            _uiState.update { it.copy(displayMessage = "Please check your internet connection") }
           }
+        }
+      }
     }
   }
 }
