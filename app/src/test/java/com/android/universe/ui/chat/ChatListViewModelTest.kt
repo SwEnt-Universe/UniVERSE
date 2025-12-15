@@ -81,7 +81,7 @@ class ChatListViewModelTest {
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
 
-        val previews = viewModel.chatPreviews.value
+        val previews = viewModel.uiState.value.chatPreviews
 
         assertEquals(2, previews.size)
 
@@ -115,7 +115,7 @@ class ChatListViewModelTest {
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
 
-        val preview = viewModel.chatPreviews.first().first()
+        val preview = viewModel.uiState.value.chatPreviews.first()
 
         assertEquals(event.title, preview.chatName)
         assertEquals(event.id, preview.chatID)
@@ -131,6 +131,6 @@ class ChatListViewModelTest {
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
 
-        assertTrue(viewModel.chatPreviews.first().isEmpty())
+        assertTrue(viewModel.uiState.value.chatPreviews.isEmpty())
       }
 }
