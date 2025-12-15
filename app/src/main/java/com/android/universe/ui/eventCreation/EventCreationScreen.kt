@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
@@ -43,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -181,6 +184,7 @@ fun StandardEventCreationForm(
   val eventImage = uiState.eventPicture
   val dateText = if (uiState.date == null) "" else eventCreationViewModel.formatDate(uiState.date)
   val showDate = remember { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
 
   val flowTabBack = FlowTab.Back(onClick = { onBack() })
   val flowTabContinue =
@@ -275,6 +279,8 @@ fun StandardEventCreationForm(
                                 state = OnboardingState.ENTER_EVENT_TITLE, true)
                           },
                           maxLines = 2,
+                          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                           validationState =
                               if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
                                   true) {
@@ -295,6 +301,8 @@ fun StandardEventCreationForm(
                                 state = OnboardingState.ENTER_DESCRIPTION, true)
                           },
                           maxLines = 3,
+                          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                           validationState =
                               if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
                                   true) {
@@ -443,6 +451,7 @@ fun AiPromptBox(
     onBack: () -> Unit
 ) {
   val finalValidationState = if (error != null) ValidationState.Invalid(error) else validationState
+  val focusManager = LocalFocusManager.current
 
   AiLayout(
       bottomBar = {
@@ -479,6 +488,8 @@ fun AiPromptBox(
             value = prompt,
             onValueChange = onPromptChange,
             maxLines = 10,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             validationState = finalValidationState)
 
         if (isGenerating) {
@@ -558,6 +569,8 @@ fun AiReviewBox(
               value = prompt,
               onValueChange = onPromptChange,
               maxLines = 2,
+              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+              keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
               validationState = promptValidationState)
 
           Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
@@ -579,6 +592,8 @@ fun AiReviewBox(
               value = proposal.description,
               onValueChange = onDescriptionChange,
               maxLines = 3,
+              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+              keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
               validationState = descriptionValidationState)
 
           if (!isProposalValid) {
