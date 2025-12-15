@@ -68,20 +68,21 @@ class MapViewModelTest {
 
   @get:Rule val mainCoroutineRule = MainCoroutineRule()
 
+  private val dateFuture = LocalDateTime.now().plusDays(10)
   private val fakeEvents =
       listOf(
           Event(
               id = "event-001",
               title = "Morning Run at the Lake",
               description = "Join us for a casual 5km run around the lake followed by coffee.",
-              date = LocalDateTime.of(2025, 10, 15, 7, 30),
+              date = dateFuture,
               tags = setOf(Tag.JAZZ, Tag.COUNTRY),
               creator = UserTestData.Alice.uid,
               location = Location(latitude = 46.5196535, longitude = 6.6322734)),
           Event(
               id = "event-002",
               title = "Tech Hackathon 2025",
-              date = LocalDateTime.of(2025, 11, 3, 9, 0),
+              date = dateFuture,
               tags = setOf(Tag.PROGRAMMING, Tag.AI, Tag.KARATE),
               creator = UserTestData.Alice.uid,
               location = Location(latitude = 37.423021, longitude = -122.086808)),
@@ -89,7 +90,7 @@ class MapViewModelTest {
               id = "event-003",
               title = "Art & Wine Evening",
               description = "Relaxed evening mixing painting, wine, and music.",
-              date = LocalDateTime.of(2025, 10, 22, 19, 0),
+              date = dateFuture,
               tags = setOf(Tag.SCULPTURE, Tag.MUSIC),
               creator = UserTestData.Alice.uid,
               location = Location(latitude = 47.3769, longitude = 8.5417)))
@@ -200,9 +201,9 @@ class MapViewModelTest {
 
   @Test
   fun `loadAllEvents includes correct creator full names for each event`() = runTest {
-    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "1")
-    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "2")
-    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "1")
+    val event1 = EventTestData.dummyEvent1.copy(id = "event1", creator = "1", date = dateFuture)
+    val event2 = EventTestData.dummyEvent2.copy(id = "event2", creator = "2", date = dateFuture)
+    val event3 = EventTestData.dummyEvent3.copy(id = "event3", creator = "1", date = dateFuture)
 
     val eventsList = listOf(event1, event2, event3)
 
@@ -237,7 +238,9 @@ class MapViewModelTest {
 
     val testData =
         categoryEvents.mapIndexed { index, (category, expectedIcon) ->
-          val event = EventTestData.dummyEvent3.copy(id = "$index", tags = setOf(mockTag(category)))
+          val event =
+              EventTestData.dummyEvent3.copy(
+                  id = "$index", tags = setOf(mockTag(category)), date = dateFuture)
           event to expectedIcon
         }
 
@@ -274,13 +277,16 @@ class MapViewModelTest {
     val sportTagTwo = mockTag(Tag.Category.SPORT)
 
     // 2. Create Events with complex tag situations
-    val mixedEvent = EventTestData.dummyEvent1.copy(id = "1", tags = setOf(musicTag, foodTag))
+    val mixedEvent =
+        EventTestData.dummyEvent1.copy(id = "1", tags = setOf(musicTag, foodTag), date = dateFuture)
 
-    val emptyTagEvent = EventTestData.NoTagsEvent
+    val emptyTagEvent = EventTestData.NoTagsEvent.copy(date = dateFuture)
 
     val concurrentEvent =
         EventTestData.dummyEvent1.copy(
-            id = "2", tags = setOf(sportTag, musicTag, sportTagTwo, musicTagTwo, foodTag))
+            id = "2",
+            tags = setOf(sportTag, musicTag, sportTagTwo, musicTagTwo, foodTag),
+            date = dateFuture)
     coEvery { eventRepository.getAllEvents(any(), any()) } returns
         listOf(mixedEvent, emptyTagEvent, concurrentEvent)
 
