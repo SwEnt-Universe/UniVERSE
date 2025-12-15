@@ -228,7 +228,7 @@ fun StandardEventCreationForm(
         FlowBottomMenu(
             flowTabs =
                 listOfNotNull(
-                    flowTabBack, flowTabContinue, flowTabDelete.takeIf { uidEvent != null }))
+                    flowTabBack, flowTabDelete.takeIf { uidEvent != null }, flowTabContinue))
       },
       content = { paddingValues ->
         Column(
