@@ -120,7 +120,7 @@ fun EventCreationScreen(
     onSave: () -> Unit = {},
     onSaveEdition: (uid: String) -> Unit = { _ -> },
     onBack: () -> Unit = {},
-    onSelectLocation: () -> Unit
+    onSelectLocation: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
 
