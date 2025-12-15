@@ -20,7 +20,7 @@ interface UserRepository {
    *
    * @param uid the unique uid of the user.
    * @return the UserProfile associated with the given username
-   * @throws java.lang.IllegalArgumentException() if no user with this uid is found.
+   * @throws NoSuchElementException if no user with this uid is found.
    */
   suspend fun getUser(uid: String): UserProfile
 

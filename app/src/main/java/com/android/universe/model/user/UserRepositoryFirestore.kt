@@ -160,7 +160,7 @@ class UserRepositoryFirestore(
     if (user.exists()) {
       val mappedProfile = userProfileToMap(newUserProfile.copy(uid = uid))
       withContext(iODispatcher) {
-        db.collection(USERS_COLLECTION_PATH).document(uid).set(mappedProfile).await()
+        db.collection(USERS_COLLECTION_PATH).document(uid).set(mappedProfile)
       }
     } else {
       throw NoSuchElementException("No user with username $uid found")
