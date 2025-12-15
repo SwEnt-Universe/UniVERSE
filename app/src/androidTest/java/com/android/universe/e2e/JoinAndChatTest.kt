@@ -152,7 +152,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     }
     composeTestRule.onNodeWithTag(NavigationTestTags.EVENT_TAB).performClick()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_001L) {
       composeTestRule
           .onAllNodesWithTag("${EventCardTestTags.EVENT_CARD}_0", useUnmergedTree = true)
           .fetchSemanticsNodes()
@@ -174,7 +174,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     }
 
     // 4. Click "Join" inside the Popup
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_002L) {
       composeTestRule
           .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
           .isDisplayed()
@@ -187,7 +187,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
           advanceEventTime(1_000L)
         }
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_003L) {
       composeTestRule
           .onNode(hasTestTagPrefix(EventContentTestTags.PARTICIPATION_BUTTON))
           .hasText("Leave")
@@ -198,14 +198,14 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     }
 
     // 6. Wait for Dismissal
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_004L) {
       composeTestRule
           .onAllNodesWithTag(MapScreenTestTags.EVENT_INFO_POPUP)
           .fetchSemanticsNodes()
           .isEmpty()
     }
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_005L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
     }
 
@@ -216,23 +216,23 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     // 1. Navigate to Chat Tab
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_006L) {
       composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
     }
 
     // 2. Enter the Event Chat
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_007L) {
       composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
     }
     composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).onFirst().performClick()
 
     // 3. Verify Bob's Message exists
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_008L) {
       composeTestRule.onAllNodes(hasText(BOB_MESSAGE)).fetchSemanticsNodes().isNotEmpty()
     }
 
     // 4. Send Alice's Reply
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_009L) {
       composeTestRule.onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD).isDisplayed()
     }
 
@@ -253,7 +253,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     // 1. Navigate to Profile
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_010L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_SCREEN).isDisplayed()
     }
 
@@ -265,7 +265,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.LOGOUT_BUTTON).performClick()
 
     // 4. Wait for the Dialog to appear
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_011L) {
       composeTestRule
           .onAllNodes(hasText("Are you sure you want to log out?"))
           .fetchSemanticsNodes()
@@ -283,23 +283,23 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
   }
 
   private fun openChatAndSendMessage(msg: String) = runTest {
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_012L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).isDisplayed()
     }
-    composeTestRule.mainClock.advanceTimeBy(5_000L)
+    composeTestRule.mainClock.advanceTimeBy(5_013L)
 
     composeTestRule.onNodeWithTag(NavigationTestTags.CHAT_TAB).performClick()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_014L) {
       composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
     }
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_015L) {
       composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
     }
     composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).onFirst().performClick()
 
-    composeTestRule.waitUntil(5_000L) {
+    composeTestRule.waitUntil(5_016L) {
       composeTestRule.onNodeWithTag(SendMessageInputTestTags.TEXT_FIELD).isDisplayed()
     }
 
