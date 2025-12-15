@@ -24,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_ITEM_PREFIX
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_LIST_COLUMN
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_NAME
@@ -94,7 +96,7 @@ fun ChatListScreen(
               verticalArrangement = Arrangement.Center,
               modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 Text(
-                    text = "Join some events to start chatting with others",
+                    text = stringResource(R.string.chat_empty),
                     modifier = Modifier.testTag(NO_CHAT_PREVIEW),
                     color = MaterialTheme.colorScheme.onSurface)
               }

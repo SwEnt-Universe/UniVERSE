@@ -18,4 +18,7 @@
     <string name="map_create_event_manual_button">Create Event Yourself</string>
     <string name="map_create_event_select_location">Click the map to set location</string>
 
+    <!-- Chat -->
+    <string name="chat_empty">Join some events to start chatting with others</string>
+
 </resources>
