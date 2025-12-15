@@ -799,7 +799,6 @@ class MapViewModelTest {
 
   @Test
   fun testUpdateLocationWhenNull() = runTest {
-    val geoPoint = SAMPLE_GEO_POINT
     viewModel.updateLocation()
     try {
       temporaryRepository.getEvent()
