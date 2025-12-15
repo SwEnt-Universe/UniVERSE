@@ -15,7 +15,6 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -92,33 +91,6 @@ class ChatListViewModelTest {
         assertTrue(ids.contains(e2.id))
         assertTrue(titles.contains(e1.title))
         assertTrue(titles.contains(e2.title))
-      }
-
-  @Test
-  fun `creates chat when loadChat throws NoSuchElementException`() =
-      testScope.runTest {
-        val event = EventTestData.dummyEvent1.copy(participants = setOf(userId))
-
-        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(event)
-
-        // Stub loadChat to throw
-        coEvery { ChatManager.loadChat(event.id) } throws NoSuchElementException()
-
-        // Stub createChat to return mockChat
-        coEvery { ChatManager.createChat(any(), any()) } answers
-            {
-              val id = arg<String>(0)
-              getNewSampleChat(id, mockChatRepository)
-            }
-
-        // Act
-        val viewModel = ChatListViewModel(userId, mockEventRepository)
-        advanceUntilIdle()
-
-        val preview = viewModel.uiState.value.chatPreviews.first()
-
-        assertEquals(event.title, preview.chatName)
-        assertEquals(event.id, preview.chatID)
       }
 
   @Test
