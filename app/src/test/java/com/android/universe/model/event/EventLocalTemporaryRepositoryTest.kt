@@ -40,6 +40,7 @@ class EventLocalTemporaryRepositoryTest {
             location = Location(0.1, 0.1),
             isPrivate = true,
             eventPicture = null)
+    val sampleLocation = Location(10.0, 10.0)
   }
 
   @Before
@@ -122,5 +123,34 @@ class EventLocalTemporaryRepositoryTest {
     } catch (e: Exception) {
       assertTrue(true)
     }
+  }
+
+  @Test
+  fun isLocationNullWhenLocationIsNull() = runTest {
+    repository.deleteEvent()
+    val isNull = repository.isLocationNull()
+    assertTrue(isNull)
+  }
+
+  @Test
+  fun isLocationNullWhenLocationIsNotNull() = runTest {
+    val fakeEvent = EventLocalTemporaryTestValues.temporaryEvent1
+    repository.updateEventAsObject(fakeEvent)
+    val isNull = repository.isLocationNull()
+    assertTrue(!isNull)
+  }
+
+  @Test
+  fun updateLocationChangesOnlyLocation() = runTest {
+    repository.updateLocation(EventLocalTemporaryTestValues.sampleLocation)
+    val updatedEvent = repository.getEvent()
+    assertEquals(EventLocalTemporaryTestValues.sampleLocation, updatedEvent.location)
+    assertEquals("", updatedEvent.id)
+    assertEquals("", updatedEvent.title)
+    assertEquals(null, updatedEvent.description)
+    assertEquals(setOf<String>(), updatedEvent.participants)
+    assertEquals("", updatedEvent.creator)
+    assertEquals(false, updatedEvent.isPrivate)
+    assertEquals(null, updatedEvent.eventPicture)
   }
 }
