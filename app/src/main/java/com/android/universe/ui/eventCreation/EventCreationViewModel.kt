@@ -366,6 +366,13 @@ class EventCreationViewModel(
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
 
+          val locationEvent =
+              if (eventTemporaryRepository.isLocationNull()) {
+                location
+              } else {
+                eventTemporaryRepository.getEvent().location
+              }
+
           eventTemporaryRepository.updateEvent(
               id = id,
               title = eventCreationUiState.value.name,
@@ -373,7 +380,7 @@ class EventCreationViewModel(
               dateTime = eventDateTime,
               creator = uidUser,
               participants = setOf(uidUser),
-              location = location,
+              location = locationEvent,
               isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {
