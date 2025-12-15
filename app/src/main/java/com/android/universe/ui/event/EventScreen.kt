@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,9 +25,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagRow
@@ -35,7 +37,6 @@ import com.android.universe.ui.components.LiquidSearchBar
 import com.android.universe.ui.components.LiquidSearchBarTestTags
 import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.navigation.NavigationBottomMenu
-import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.ui.theme.Dimensions.PaddingMedium
@@ -61,7 +62,6 @@ object EventScreenTestTags {
  * @param onCardClick A callback function invoked when an event card is clicked, with the event ID
  *   and location as parameters.
  * @param onEditButtonClick A callback invoked when the user presses the "Edit" button on an event.
- * @param navController The NavHostController for navigation actions.
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -72,7 +72,6 @@ fun EventScreen(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
-    navController: NavHostController = rememberNavController()
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
@@ -90,13 +89,19 @@ fun EventScreen(
     }
   }
 
-  LaunchedEffect(navController) {
-    navController.currentBackStackEntryFlow.collect { entry ->
-      if (entry.destination.route == NavigationScreens.Event.route) {
+  val lifecycleOwner = LocalLifecycleOwner.current
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
         viewModel.loadEvents()
       }
     }
+
+    lifecycleOwner.lifecycle.addObserver(observer)
+
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
   }
+
   val events by viewModel.filteredEvents.collectAsState()
   val focusManager = LocalFocusManager.current
   val allCats = Tag.tagFromEachCategory.toList()
