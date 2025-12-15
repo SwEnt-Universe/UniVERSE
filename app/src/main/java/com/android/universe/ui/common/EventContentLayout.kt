@@ -125,7 +125,7 @@ fun EventContentLayout(
                         height = Dimensions.CardImageTagOverlayHeight,
                         width = Dimensions.CardImageTagOverlayHeight,
                         contentPadding = 0.dp,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        tint = UniverseTheme.extendedColors.overImage,
                         onClick = {}) {
                           Icon(
                               imageVector = Icons.Outlined.Lock,
