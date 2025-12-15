@@ -8,6 +8,7 @@ import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.ai.gemini.GeneratedEventData
 import com.android.universe.model.event.Event
+import com.android.universe.model.event.EventLocalTemporaryRepository
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.location.Location
@@ -112,6 +113,7 @@ class MapViewModelTest {
     userRepository = mockk(relaxed = true)
     userReactiveRepository = mockk(relaxed = true)
     geminiAssistant = mockk(relaxed = true)
+    temporaryRepository = EventLocalTemporaryRepository()
 
     val defaultUser = UserTestData.Bob.copy(uid = "default", username = "DefaultUser")
     every { userReactiveRepository.getUserFlow(any()) } returns flowOf(defaultUser)
@@ -132,6 +134,7 @@ class MapViewModelTest {
             userRepository = userRepository,
             userReactiveRepository = userReactiveRepository,
             geminiAssistant = geminiAssistant)
+            eventTemporaryRepository = temporaryRepository)
     viewModel.javaClass.getDeclaredField("currentUserId").apply {
       isAccessible = true
       set(viewModel, userId)
@@ -784,5 +787,25 @@ class MapViewModelTest {
     viewModel.selectCategory(cat, true)
     viewModel.resetFilter()
     assertEquals(emptySet<Tag.Category>(), viewModel.categories.value)
+  }
+
+  @Test
+  fun testUpdateLocation() = runTest {
+    val geoPoint = SAMPLE_GEO_POINT
+    viewModel.selectLocation(geoPoint)
+    viewModel.updateLocation()
+    assertEquals(Location(46.5196535, 6.6322734), temporaryRepository.getEvent().location)
+  }
+
+  @Test
+  fun testUpdateLocationWhenNull() = runTest {
+    val geoPoint = SAMPLE_GEO_POINT
+    viewModel.updateLocation()
+    try {
+      temporaryRepository.getEvent()
+      assert(false)
+    } catch (e: Exception) {
+      assert(true)
+    }
   }
 }
