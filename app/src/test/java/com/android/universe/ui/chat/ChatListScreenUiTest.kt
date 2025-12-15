@@ -11,6 +11,8 @@ import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -26,12 +28,14 @@ class ChatListScreenUiTest {
 
   // Mock the ViewModel and its state flow
   private lateinit var mockViewModel: ChatListViewModel
-  private val mockChatPreviews = MutableStateFlow<List<ChatPreview>>(emptyList())
+  private val _uiState = MutableStateFlow(ChatListUiState(emptyList(), false, null))
+  private val uiState = _uiState.asStateFlow()
   private val mockOnChatSelected: (String, String) -> Unit = mockk(relaxed = true)
 
   @Before
   fun setUp() {
-    mockViewModel = mockk(relaxed = true) { every { chatPreviews } returns mockChatPreviews }
+    mockViewModel = mockk(relaxed = true)
+    every { mockViewModel.uiState } returns uiState
     // Set up the dependency injection for the ViewModel
     @Suppress("UNCHECKED_CAST")
     composeTestRule.setContentWithStubBackdrop {
@@ -53,14 +57,14 @@ class ChatListScreenUiTest {
   @Test
   fun chatListScreen_displaysChatPreviews_whenChatPreviews() {
     val chat = getNewSampleChatPreview()
-    mockChatPreviews.value = listOf(chat)
+    _uiState.update { it.copy(chatPreviews = listOf(chat)) }
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).assertIsDisplayed()
   }
 
   @Test
   fun chatListScreen_displaysNoChatPreview_whenNoChatPreviews() = runTest {
-    mockChatPreviews.value = emptyList()
+    _uiState.update { it.copy(isLoading = false, displayMessage = "No chats") }
     composeTestRule.onNodeWithTag(NO_CHAT_PREVIEW).assertIsDisplayed()
   }
 
@@ -69,7 +73,7 @@ class ChatListScreenUiTest {
     val chat1 = getNewSampleChatPreview()
     val chat2 = getNewSampleChatPreview(generateLastMessage = false)
 
-    mockChatPreviews.value = listOf(chat1, chat2)
+    _uiState.update { it.copy(chatPreviews = listOf(chat1, chat2)) }
 
     val chat1Tag = ChatListScreenTestTags.CHAT_ITEM_PREFIX + chat1.chatID
     composeTestRule.onNodeWithTag(chat1Tag).assertIsDisplayed()
@@ -97,7 +101,7 @@ class ChatListScreenUiTest {
   @Test
   fun chatListScreen_clickOnChat_callsOnChatSelectedCallback() = runTest {
     val chatPreview = getNewSampleChatPreview()
-    mockChatPreviews.value = listOf(chatPreview)
+    _uiState.update { it.copy(chatPreviews = listOf(chatPreview)) }
 
     val chatItemTag = ChatListScreenTestTags.CHAT_ITEM_PREFIX + chatPreview.chatID
 
