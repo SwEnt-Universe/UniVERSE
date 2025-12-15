@@ -129,7 +129,7 @@ sealed class FlowTab(
                 imageVector = Icons.Filled.Delete,
                 contentDescription = "Delete",
                 modifier = Modifier.size(Dimensions.IconSizeLarge),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ICON_ALPHA))
+                tint = MaterialTheme.colorScheme.primary)
           },
           label = "Delete",
           testTag = testTag,
