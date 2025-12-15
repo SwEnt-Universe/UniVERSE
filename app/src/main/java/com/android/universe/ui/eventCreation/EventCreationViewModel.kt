@@ -341,9 +341,9 @@ class EventCreationViewModel(
   }
 
   /**
-   * Format the date to a string.
+   * Format the time to a string.
    *
-   * @param date the date to format.
+   * @param time the time to format.
    */
   fun formatTime(time: LocalTime?): String {
     return if (time == null) "Select time" else time.format(timeFormatter)
