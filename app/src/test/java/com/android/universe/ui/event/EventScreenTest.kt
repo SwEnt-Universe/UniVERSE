@@ -15,6 +15,7 @@ import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
+import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -36,9 +37,10 @@ class EventScreenTest {
   private lateinit var viewModel: EventViewModel
 
   companion object {
-    private val firstEvent = EventTestData.FullDescriptionEvent
-    private val secondEvent = EventTestData.NullDescriptionEvent
-    private val thirdEvent = EventTestData.NoTagsEvent
+    private var futureDate = LocalDateTime.now().plusDays(10)
+    private val firstEvent = EventTestData.FullDescriptionEvent.copy(date = futureDate)
+    private val secondEvent = EventTestData.NullDescriptionEvent.copy(date = futureDate)
+    private val thirdEvent = EventTestData.NoTagsEvent.copy(date = futureDate)
     private val sampleEvents = listOf(firstEvent, secondEvent, thirdEvent)
     private val sampleUsers =
         listOf(UserTestData.NullDescription, UserTestData.ManyTagsUser, UserTestData.Alice)
