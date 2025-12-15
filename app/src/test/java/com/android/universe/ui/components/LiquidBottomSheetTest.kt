@@ -153,37 +153,10 @@ class LiquidBottomSheetTest {
   }
 
   @Test
-  fun liquidBottomSheet_rendersBottomBar_whenProvided() {
-    val BOTTOM_BAR_TEXT = "Bottom Bar Content"
-
-    composeTestRule.setContentWithStubBackdrop {
-      UniverseTheme {
-        LiquidBottomSheet(
-            isPresented = true,
-            onDismissRequest = {},
-            bottomBar = { Text(BOTTOM_BAR_TEXT, modifier = Modifier.testTag("bottom_bar")) }) {
-              Text(TEST_SHEET_CONTENT)
-            }
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Content is shown
-    composeTestRule.onNodeWithText(TEST_SHEET_CONTENT).assertIsDisplayed()
-
-    // Bottom bar should also be shown
-    composeTestRule.onNodeWithTag("bottom_bar").assertIsDisplayed()
-    composeTestRule.onNodeWithText(BOTTOM_BAR_TEXT).assertIsDisplayed()
-  }
-
-  @Test
   fun liquidBottomSheet_doesNotRenderBottomBar_whenNull() {
     composeTestRule.setContentWithStubBackdrop {
       UniverseTheme {
-        LiquidBottomSheet(isPresented = true, onDismissRequest = {}, bottomBar = null) {
-          Text(TEST_SHEET_CONTENT)
-        }
+        LiquidBottomSheet(isPresented = true, onDismissRequest = {}) { Text(TEST_SHEET_CONTENT) }
       }
     }
 

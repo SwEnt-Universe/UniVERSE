@@ -257,5 +257,13 @@ enum class Tag(val displayName: String, val category: Category) {
     fun toDisplayNamesByCategory(tags: List<Tag>, category: Category): List<String> {
       return filterByCategory(tags, category).map { it.displayName }
     }
+
+    /**
+     * Returns a string containing all available Tag names, separated by commas. Used for AI Prompt
+     * context.
+     */
+    fun getAllTagsAsString(): String {
+      return entries.joinToString(", ") { it.name }
+    }
   }
 }
