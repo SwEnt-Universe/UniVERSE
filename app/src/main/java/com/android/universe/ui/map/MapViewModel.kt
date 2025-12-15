@@ -466,7 +466,11 @@ class MapViewModel(
               emptySet()
             }
 
-        val events = eventRepository.getAllEvents(currentUserId, following)
+        val now = LocalDateTime.now()
+        val events =
+            eventRepository.getAllEvents(currentUserId, following).filter { event ->
+              event.date.isAfter(now) || event.date.isEqual(now)
+            }
         _eventMarkers.value = events
 
         val eventsToDisplay = events + listOfNotNull(_previewEvent.value)
