@@ -23,7 +23,7 @@
 
     <!-- Tag / USER -->
     <string name="tag_user_music">Select the music genres and the events you enjoy...</string>
-    <string name="tag_user_sport">Choose the sports you're into...</string>
+    <string name="tag_user_sport">Choose the sports you\'re into...</string>
     <string name="tag_user_food">Select the food and drink experiences you love...</string>
     <string name="tag_user_art">Pick the types of art you connect with...</string>
     <string name="tag_user_travel">Choose the travel styles you’re interested in...</string>

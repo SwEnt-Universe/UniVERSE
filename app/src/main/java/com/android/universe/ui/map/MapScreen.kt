@@ -31,16 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.R
@@ -302,13 +298,13 @@ fun MapScreen(
         if (uiState.mapMode == MapMode.SELECT_LOCATION) {
           LiquidBox(
               shape = (RoundedCornerShape(0.dp)),
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {
+              modifier = Modifier.fillMaxWidth().testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {
                 Text(
-                  text = stringResource(R.string.map_create_event_select_location),
-                    modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter)
-                      .padding(top=60.dp, bottom=Dimensions.PaddingLarge),
+                    text = stringResource(R.string.map_create_event_select_location),
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .padding(top = 60.dp, bottom = Dimensions.PaddingLarge),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface)

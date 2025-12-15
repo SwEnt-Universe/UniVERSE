@@ -12,9 +12,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.TagGroup
 import com.android.universe.ui.components.ScreenLayout
@@ -87,6 +89,10 @@ fun SelectTagScreen(
 ) {
   val selectedTags by selectedTagOverview.selectedTags.collectAsState()
 
+  // Determine if "user" mode or "event" mode
+  val isUserMode =
+      selectTagMode == SelectTagMode.USER_PROFILE || selectTagMode == SelectTagMode.SETTINGS
+
   ScreenLayout(
       modifier = Modifier.fillMaxSize(),
       bottomBar = {
@@ -111,20 +117,38 @@ fun SelectTagScreen(
                     bottom =
                         innerPadding.calculateBottomPadding() - Dimensions.PaddingExtraLarge)) {
               items(Tag.Category.entries) { category ->
+                val title =
+                    when (category) {
+                      Tag.Category.MUSIC ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_music else R.string.tag_event_music)
+                      Tag.Category.SPORT ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_sport else R.string.tag_event_sport)
+                      Tag.Category.FOOD ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_food else R.string.tag_event_food)
+                      Tag.Category.ART ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_art else R.string.tag_event_art)
+                      Tag.Category.TRAVEL ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_travel
+                              else R.string.tag_event_travel)
+                      Tag.Category.GAMES ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_games else R.string.tag_event_games)
+                      Tag.Category.TECHNOLOGY ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_technology
+                              else R.string.tag_event_technology)
+                      Tag.Category.TOPIC ->
+                          stringResource(
+                              if (isUserMode) R.string.tag_user_topic else R.string.tag_event_topic)
+                    }
+
                 TagGroup(
-                    title =
-                        when (category) {
-                          Tag.Category.MUSIC ->
-                              "Select the music genres and the events you enjoy..."
-                          Tag.Category.SPORT -> "Choose the sports you're into..."
-                          Tag.Category.FOOD -> "Select the food and drink experiences you love..."
-                          Tag.Category.ART -> "Pick the types of art you connect with..."
-                          Tag.Category.TRAVEL -> "Choose the travel styles you’re interested in..."
-                          Tag.Category.GAMES -> "Select the games you like to play..."
-                          Tag.Category.TECHNOLOGY ->
-                              "Choose the tech topics you’re interested in..."
-                          Tag.Category.TOPIC -> "Pick the topics that interest you..."
-                        },
+                    title = title,
                     tagList = Tag.getTagsForCategory(category),
                     selectedTags = selectedTags,
                     onTagSelect = { tag -> selectedTagOverview.addTag(tag) },
