@@ -167,6 +167,23 @@ class EventCreationViewModel(
     private val gemini: GeminiEventAssistant = GeminiEventAssistant()
 ) : ViewModel() {
 
+  private var isInitialized = false
+
+  /**
+   * Initializes the parameters of the event with the given event UID depending on whether we are in
+   * creation or edition mode.
+   *
+   * @param uidEvent The unique identifier of the event to edit, or null if creating a new event.
+   */
+  fun init(uidEvent: String?) {
+    if (isInitialized) return
+    isInitialized = true
+
+    if (uidEvent != null) {
+      loadUid(uidEvent)
+    }
+  }
+
   companion object {
     const val MISSING_DATE_TEXT = "Please select a date"
 
@@ -208,7 +225,7 @@ class EventCreationViewModel(
    *
    * @param uid The unique identifier of the event to load. If null, nothing is loaded.
    */
-  fun loadUid(uid: String?) {
+  private fun loadUid(uid: String?) {
     viewModelScope.launch(DefaultDP.io) {
       if (uid != null) {
         val event = eventRepository.getEvent(uid)
@@ -348,24 +365,6 @@ class EventCreationViewModel(
   fun formatTime(time: LocalTime?): String {
     return if (time == null) "Select time" else time.format(timeFormatter)
   }
-
-    fun loadTemporaryRepository(uid: String?){
-        viewModelScope.launch(DefaultDP.io) {
-            if (uid != null && eventTemporaryRepository.isEventStocked()) {
-                val event = eventTemporaryRepository.getEvent()
-                val eventDate = event.date.toLocalDate()
-                val eventTime = event.date.toLocalTime()
-                eventCreationUiState.value =
-                    eventCreationUiState.value.copy(
-                        name = event.title,
-                        description = event.description,
-                        date = eventDate,
-                        time = formatTime(eventTime),
-                        isPrivate = event.isPrivate
-                    )
-            }
-        }
-    }
 
   /**
    * Save the event with all the parameters selected by the user in the event repository.

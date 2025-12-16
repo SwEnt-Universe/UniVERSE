@@ -68,11 +68,6 @@ import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.theme.Dimensions
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
-import androidx.compose.runtime.DisposableEffect
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-
 
 /** All the tags that are used to test the EventCreation screen. */
 object EventCreationTestTags {
@@ -202,21 +197,8 @@ fun StandardEventCreationForm(
   val showDate = remember { mutableStateOf(false) }
   val focusManager = LocalFocusManager.current
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                eventCreationViewModel.loadTemporaryRepository(uidEvent)
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-
   val flowTabBack = FlowTab.Back(onClick = { onBack() })
-    val currentUser = FirebaseAuth.getInstance().currentUser?.uid
+  val currentUser = FirebaseAuth.getInstance().currentUser?.uid
   val flowTabContinue =
       FlowTab.Confirm(
           onClick = {
@@ -240,7 +222,7 @@ fun StandardEventCreationForm(
             })
       }
 
-  LaunchedEffect(uidEvent) { eventCreationViewModel.loadUid(uidEvent) }
+  LaunchedEffect(Unit) { eventCreationViewModel.init(uidEvent) }
   ScreenLayout(
       bottomBar = {
         FlowBottomMenu(
@@ -308,15 +290,14 @@ fun StandardEventCreationForm(
                             if (uidEvent != null) {
                               LiquidButton(
                                   onClick = {
-                                      onSelectLocation()
-                                      if (currentUser != null) {
-                                          eventCreationViewModel.saveEvent(
-                                              uidUser = currentUser,
-                                              uidEvent = uidEvent,
-                                              location = location
-                                          )
-                                      }
-                                            },
+                                    onSelectLocation()
+                                    if (currentUser != null) {
+                                      eventCreationViewModel.saveEvent(
+                                          uidUser = currentUser,
+                                          uidEvent = uidEvent,
+                                          location = location)
+                                    }
+                                  },
                                   height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
                                   width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
                                   contentPadding = Dimensions.PaddingSmall,
