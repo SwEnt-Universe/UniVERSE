@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,6 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.location.Location
 import com.android.universe.model.tag.Tag
@@ -67,7 +71,7 @@ fun EventScreen(
     viewModel: EventViewModel = viewModel(),
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
 ) {
   val context = LocalContext.current
   LaunchedEffect(uid) {
@@ -84,6 +88,20 @@ fun EventScreen(
       Toast.makeText(context, error.errormsg, Toast.LENGTH_SHORT).show()
     }
   }
+
+  val lifecycleOwner = LocalLifecycleOwner.current
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
+        viewModel.loadEvents()
+      }
+    }
+
+    lifecycleOwner.lifecycle.addObserver(observer)
+
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  }
+
   val events by viewModel.filteredEvents.collectAsState()
   val focusManager = LocalFocusManager.current
   val allCats = Tag.tagFromEachCategory.toList()

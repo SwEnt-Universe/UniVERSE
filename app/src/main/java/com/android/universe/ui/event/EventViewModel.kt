@@ -186,7 +186,11 @@ class EventViewModel(
             emptySet()
           }
 
-      val events = eventRepository.getAllEvents(storedUid, following)
+      val now = LocalDateTime.now()
+      val events =
+          eventRepository.getAllEvents(storedUid, following).filter { event ->
+            event.date.isAfter(now) || event.date.isEqual(now)
+          }
       localList = events
 
       if (userReactiveRepository != null) {
