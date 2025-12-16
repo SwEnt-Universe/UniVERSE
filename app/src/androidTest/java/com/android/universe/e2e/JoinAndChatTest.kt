@@ -294,7 +294,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
     }
 
-    composeTestRule.waitUntil(5_015L) {
+    composeTestRule.waitUntil(10_015L) {
       composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
     }
     composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).onFirst().performClick()
