@@ -74,11 +74,7 @@ fun LaunchOverlay(state: LaunchState) {
       }
 }
 
-/**
- * Displays the app launcher icon centered inside a circular loading indicator.
- *
- * Used exclusively within the launch overlay to reinforce branding during startup.
- */
+/** Displays the app launcher icon centered inside a circular loading indicator. */
 @Composable
 private fun LogoWithCircularProgress() {
   val context = LocalContext.current
