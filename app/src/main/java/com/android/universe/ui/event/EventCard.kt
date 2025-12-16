@@ -42,7 +42,7 @@ fun EventCard(
       modifier =
           Modifier.padding(Dimensions.PaddingMedium)
               .testTag("${EventCardTestTags.EVENT_CARD}_${event.index}")
-              .clickable { onCardClick(event.id, event.location) }) {
+              .clickable(enabled = !event.hasPassed) { onCardClick(event.id, event.location) }) {
         EventContentLayout(
             eventId = event.index.toString(),
             title = event.title,
