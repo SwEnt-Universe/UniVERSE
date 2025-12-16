@@ -47,6 +47,7 @@ fun rememberLaunchState(isReady: Boolean = true): State<LaunchState> {
 
   LaunchedEffect(isReady) {
     if (isReady) {
+      delay(1000)
       state = LaunchState.Exiting
     }
   }
@@ -64,7 +65,7 @@ fun rememberLaunchState(isReady: Boolean = true): State<LaunchState> {
 @Composable
 fun LaunchOverlay(state: LaunchState) {
   AnimatedVisibility(
-      visible = state != LaunchState.Exiting, exit = fadeOut(animationSpec = tween(600))) {
+      visible = state != LaunchState.Exiting, exit = fadeOut(animationSpec = tween(700))) {
         Box(
             modifier = Modifier.fillMaxSize().background(Color.White),
             contentAlignment = Alignment.Center) {
