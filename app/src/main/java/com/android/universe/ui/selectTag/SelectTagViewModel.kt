@@ -122,8 +122,7 @@ class SelectTagViewModel(
         SelectTagMode.SETTINGS -> _selectedTags.value = tagRepository.getTags().toList()
         SelectTagMode.EVENT_EDITION ->
             _selectedTags.value = eventRepository.getEvent(uid).tags.toList()
-
-        else -> {}
+        SelectTagMode.EVENT_CREATION -> _selectedTags.value = emptyList()
       }
     }
   }
