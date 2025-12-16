@@ -10,18 +10,17 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -44,6 +43,8 @@ import com.android.universe.resources.C
 import com.android.universe.ui.chat.ChatListScreen
 import com.android.universe.ui.chat.ChatScreen
 import com.android.universe.ui.common.UniverseBackgroundContainer
+import com.android.universe.ui.components.LaunchOverlay
+import com.android.universe.ui.components.rememberLaunchState
 import com.android.universe.ui.emailVerification.EmailVerificationScreen
 import com.android.universe.ui.event.EventScreen
 import com.android.universe.ui.eventCreation.EventCreationScreen
@@ -147,154 +148,101 @@ fun UniverseApp(
     startDestination = resolveUserDestinationScreen(userRepository = userRepository)
   }
   val onTabSelected = { tab: Tab -> navigationActions.navigateTo(tab.destination) }
-  if (startDestination == null) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      LinearProgressIndicator()
-    }
-  } else {
 
-    NavHost(navController = navController, startDestination = startDestination!!.name) {
-      navigation(
-          route = NavigationScreens.SignIn.name,
-          startDestination = NavigationScreens.SignIn.route,
-      ) {
-        composable(NavigationScreens.SignIn.route) {
-          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
+  val mapUiState by mapViewModel.uiState.collectAsState()
+  val isAppReady = (startDestination != null) && mapUiState.isMapInteractive
+  val launchState by rememberLaunchState(isReady = isAppReady)
 
-          LaunchedEffect(navigateToDestination) {
-            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
-          }
-          SignInScreen(
-              onSignedIn = {
-                mainActivityScope.launch {
-                  navigateToDestination = resolveUserDestinationScreen(userRepository)
-                }
-              },
-              credentialManager = credentialManager)
-        }
-      }
-      navigation(
-          startDestination = NavigationScreens.AddProfile.route,
-          route = NavigationScreens.AddProfile.name,
-      ) {
-        composable(NavigationScreens.AddProfile.route) {
-          val vm: AddProfileViewModel =
-              viewModel(factory = AddProfileViewModel.provideFactory(context))
+  Box(modifier = Modifier.fillMaxSize()) {
+    if (startDestination == null) {
+      // Still resolving auth -> show nothing (overlay covers it)
+      Box(modifier = Modifier.fillMaxSize())
+    } else {
 
-          AddProfile(
-              uid = authInstance.currentUser!!.uid,
-              navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
-              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) },
-              viewModel = vm)
-        }
-      }
+      NavHost(navController = navController, startDestination = startDestination!!.name) {
+        navigation(
+            route = NavigationScreens.SignIn.name,
+            startDestination = NavigationScreens.SignIn.route,
+        ) {
+          composable(NavigationScreens.SignIn.route) {
+            var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
 
-      navigation(
-          startDestination = NavigationScreens.EmailValidation.route,
-          route = NavigationScreens.EmailValidation.name,
-      ) {
-        composable(NavigationScreens.EmailValidation.route) {
-          var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
-
-          LaunchedEffect(navigateToDestination) {
-            navigateToDestination?.let { destination -> navigationActions.navigateTo(destination) }
-          }
-
-          EmailVerificationScreen(
-              user = authInstance.currentUser!!,
-              onSuccess = {
-                mainActivityScope.launch {
-                  navigateToDestination = resolveUserDestinationScreen(userRepository)
-                }
-              },
-              onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
-        }
-      }
-
-      navigation(
-          route = NavigationScreens.SelectTagUser.name,
-          startDestination = NavigationScreens.SelectTagUser.route) {
-            composable(NavigationScreens.SelectTagUser.route) {
-              SelectTagScreen(
-                  uid = authInstance.currentUser!!.uid,
-                  navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) },
-                  onBack = { navigationActions.goBack() })
+            LaunchedEffect(navigateToDestination) {
+              navigateToDestination?.let { destination ->
+                navigationActions.navigateTo(destination)
+              }
             }
+            SignInScreen(
+                onSignedIn = {
+                  mainActivityScope.launch {
+                    navigateToDestination = resolveUserDestinationScreen(userRepository)
+                  }
+                },
+                credentialManager = credentialManager)
           }
+        }
+        navigation(
+            startDestination = NavigationScreens.AddProfile.route,
+            route = NavigationScreens.AddProfile.name,
+        ) {
+          composable(NavigationScreens.AddProfile.route) {
+            val vm: AddProfileViewModel =
+                viewModel(factory = AddProfileViewModel.provideFactory(context))
 
-      navigation(
-          startDestination = NavigationScreens.Map.route,
-          route = NavigationScreens.Map.name,
-      ) {
-        composable(NavigationScreens.Map.route) {
-          MapScreen(
-              uid = authInstance.currentUser!!.uid,
-              onTabSelected = onTabSelected,
-              onNavigateToEventCreation = { lat, lng ->
-                navController.navigate("eventCreation/$lat/$lng")
-              },
-              onChatNavigate = { chatID, chatName ->
-                navController.navigate(
-                    route =
-                        NavigationScreens.ChatInstance.route
-                            .replace("{chatID}", chatID)
-                            .replace("{chatName}", chatName)
-                            .replace("{userID}", authInstance.currentUser!!.uid))
-              },
-              onEditButtonClick = { uid, location ->
-                navController.navigate(
-                    NavigationScreens.EventEdition.route
-                        .replace("{$UID}", uid)
-                        .replace("{$LATITUDE}", location.latitude.toFloat().toString())
-                        .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
-              },
-              viewModel = mapViewModel)
+            AddProfile(
+                uid = authInstance.currentUser!!.uid,
+                navigateOnSave = { navigationActions.navigateTo(NavigationScreens.SelectTagUser) },
+                onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+                viewModel = vm)
+          }
         }
 
-        composable(
-            route = NavigationScreens.MapInstance.route,
-            arguments =
-                listOf(
-                    navArgument("eventId") { type = NavType.StringType },
-                    navArgument(LATITUDE) { type = NavType.FloatType },
-                    navArgument(LONGITUDE) { type = NavType.FloatType })) { backStackEntry ->
-              val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
-              val lat = backStackEntry.arguments?.getFloat(LATITUDE)?.toDouble() ?: 0.0
-              val lng = backStackEntry.arguments?.getFloat(LONGITUDE)?.toDouble() ?: 0.0
+        navigation(
+            startDestination = NavigationScreens.EmailValidation.route,
+            route = NavigationScreens.EmailValidation.name,
+        ) {
+          composable(NavigationScreens.EmailValidation.route) {
+            var navigateToDestination by remember { mutableStateOf<NavigationScreens?>(null) }
 
-              MapScreen(
-                  uid = authInstance.currentUser!!.uid,
-                  onTabSelected = onTabSelected,
-                  onNavigateToEventCreation = { lat, lng ->
-                    navController.navigate("eventCreation/$lat/$lng")
-                  },
-                  preselectedEventId = eventId,
-                  preselectedLocation = Location(lat, lng),
-                  onChatNavigate = { chatID, chatName ->
-                    navController.navigate(
-                        NavigationScreens.ChatInstance.route
-                            .replace("{chatID}", chatID)
-                            .replace("{chatName}", chatName)
-                            .replace("{userID}", authInstance.currentUser!!.uid))
-                  },
-                  onEditButtonClick = { uid, location ->
-                    navController.navigate(
-                        NavigationScreens.EventEdition.route
-                            .replace("{$UID}", uid)
-                            .replace("{$LATITUDE}", location.latitude.toFloat().toString())
-                            .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
-                  },
-                  viewModel = mapViewModel)
+            LaunchedEffect(navigateToDestination) {
+              navigateToDestination?.let { destination ->
+                navigationActions.navigateTo(destination)
+              }
+            }
+
+            EmailVerificationScreen(
+                user = authInstance.currentUser!!,
+                onSuccess = {
+                  mainActivityScope.launch {
+                    navigateToDestination = resolveUserDestinationScreen(userRepository)
+                  }
+                },
+                onBack = { navigationActions.navigateTo(NavigationScreens.SignIn) })
+          }
+        }
+
+        navigation(
+            route = NavigationScreens.SelectTagUser.name,
+            startDestination = NavigationScreens.SelectTagUser.route) {
+              composable(NavigationScreens.SelectTagUser.route) {
+                SelectTagScreen(
+                    uid = authInstance.currentUser!!.uid,
+                    navigateOnSave = { navigationActions.navigateTo(NavigationScreens.Map) },
+                    onBack = { navigationActions.goBack() })
+              }
             }
 
         navigation(
-            startDestination = NavigationScreens.Event.route,
-            route = NavigationScreens.Event.name,
+            startDestination = NavigationScreens.Map.route,
+            route = NavigationScreens.Map.name,
         ) {
-          composable(NavigationScreens.Event.route) {
-            EventScreen(
-                onTabSelected,
+          composable(NavigationScreens.Map.route) {
+            MapScreen(
                 uid = authInstance.currentUser!!.uid,
+                onTabSelected = onTabSelected,
+                onNavigateToEventCreation = { lat, lng ->
+                  navController.navigate("eventCreation/$lat/$lng")
+                },
                 onChatNavigate = { chatID, chatName ->
                   navController.navigate(
                       route =
@@ -302,13 +250,6 @@ fun UniverseApp(
                               .replace("{chatID}", chatID)
                               .replace("{chatName}", chatName)
                               .replace("{userID}", authInstance.currentUser!!.uid))
-                },
-                onCardClick = { eventId: String, eventLocation: Location ->
-                  navController.navigate(
-                      NavigationScreens.MapInstance.route
-                          .replace("{eventId}", eventId)
-                          .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
-                          .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
                 },
                 onEditButtonClick = { uid, location ->
                   navController.navigate(
@@ -316,187 +257,264 @@ fun UniverseApp(
                           .replace("{$UID}", uid)
                           .replace("{$LATITUDE}", location.latitude.toFloat().toString())
                           .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
-                })
-          }
-        }
-
-        navigation(
-            startDestination = NavigationScreens.Chat.route,
-            route = NavigationScreens.Chat.name,
-        ) {
-          composable(NavigationScreens.Chat.route) {
-            ChatListScreen(
-                userID = authInstance.currentUser!!.uid,
-                onTabSelected = onTabSelected,
-                onChatSelected = { chatID, chatName ->
-                  navController.navigate(
-                      route =
-                          NavigationScreens.ChatInstance.route
-                              .replace("{chatID}", chatID)
-                              .replace("{chatName}", chatName))
-                })
+                },
+                viewModel = mapViewModel)
           }
 
           composable(
-              route = NavigationScreens.ChatInstance.route,
+              route = NavigationScreens.MapInstance.route,
               arguments =
                   listOf(
-                      navArgument("chatID") { type = NavType.StringType },
-                      navArgument("chatName") { type = NavType.StringType })) {
-                ChatScreen(
-                    chatID = it.arguments?.getString("chatID")!!,
-                    chatName = it.arguments?.getString("chatName")!!,
-                    userID = authInstance.currentUser!!.uid,
-                    onTabSelected = onTabSelected,
-                    onBack = { navigationActions.goBack() })
-              }
-        }
+                      navArgument("eventId") { type = NavType.StringType },
+                      navArgument(LATITUDE) { type = NavType.FloatType },
+                      navArgument(LONGITUDE) { type = NavType.FloatType })) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+                val lat = backStackEntry.arguments?.getFloat(LATITUDE)?.toDouble() ?: 0.0
+                val lng = backStackEntry.arguments?.getFloat(LONGITUDE)?.toDouble() ?: 0.0
 
-        navigation(
-            startDestination = NavigationScreens.Profile.route,
-            route = NavigationScreens.Profile.name,
-        ) {
-          composable(NavigationScreens.Profile.route) {
-            UserProfileScreen(
-                uid = authInstance.currentUser!!.uid,
-                onTabSelected = onTabSelected,
-                onEditProfileClick = { uid ->
-                  navController.navigate(NavigationScreens.Settings.route.replace("{$UID}", uid))
-                },
-                onChatNavigate = { chatID, chatName ->
-                  navController.navigate(
-                      route =
+                MapScreen(
+                    uid = authInstance.currentUser!!.uid,
+                    onTabSelected = onTabSelected,
+                    onNavigateToEventCreation = { lat, lng ->
+                      navController.navigate("eventCreation/$lat/$lng")
+                    },
+                    preselectedEventId = eventId,
+                    preselectedLocation = Location(lat, lng),
+                    onChatNavigate = { chatID, chatName ->
+                      navController.navigate(
                           NavigationScreens.ChatInstance.route
                               .replace("{chatID}", chatID)
                               .replace("{chatName}", chatName)
                               .replace("{userID}", authInstance.currentUser!!.uid))
-                },
-                onCardClick = { eventId: String, eventLocation: Location ->
-                  navController.navigate(
-                      NavigationScreens.MapInstance.route
-                          .replace("{eventId}", eventId)
-                          .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
-                          .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
-                })
+                    },
+                    onEditButtonClick = { uid, location ->
+                      navController.navigate(
+                          NavigationScreens.EventEdition.route
+                              .replace("{$UID}", uid)
+                              .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                              .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
+                    },
+                    viewModel = mapViewModel)
+              }
+
+          navigation(
+              startDestination = NavigationScreens.Event.route,
+              route = NavigationScreens.Event.name,
+          ) {
+            composable(NavigationScreens.Event.route) {
+              EventScreen(
+                  onTabSelected,
+                  uid = authInstance.currentUser!!.uid,
+                  onChatNavigate = { chatID, chatName ->
+                    navController.navigate(
+                        route =
+                            NavigationScreens.ChatInstance.route
+                                .replace("{chatID}", chatID)
+                                .replace("{chatName}", chatName)
+                                .replace("{userID}", authInstance.currentUser!!.uid))
+                  },
+                  onCardClick = { eventId: String, eventLocation: Location ->
+                    navController.navigate(
+                        NavigationScreens.MapInstance.route
+                            .replace("{eventId}", eventId)
+                            .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
+                            .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
+                  },
+                  onEditButtonClick = { uid, location ->
+                    navController.navigate(
+                        NavigationScreens.EventEdition.route
+                            .replace("{$UID}", uid)
+                            .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                            .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
+                  })
+            }
           }
-        }
-        composable(
-            route = NavigationScreens.Settings.route,
-            arguments = listOf(navArgument(UID) { type = NavType.StringType })) { backStackEntry ->
-              val uid = backStackEntry.arguments?.getString(UID) ?: "0"
-              val vm: SettingsViewModel =
-                  viewModel(factory = SettingsViewModel.provideFactory(context, uid))
-              SettingsScreen(
-                  uid = uid,
-                  viewModel = vm,
-                  onBack = {
-                    navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
-                  },
-                  onConfirm = { navigationActions.navigateTo(NavigationScreens.Profile) },
-                  onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
-                  onAddTag = {
-                    navController.navigate(NavigationScreens.SelectTagUserSettings.route)
-                  },
-                  clear = {
-                    credentialManager.clearCredentialState(request = ClearCredentialStateRequest())
+
+          navigation(
+              startDestination = NavigationScreens.Chat.route,
+              route = NavigationScreens.Chat.name,
+          ) {
+            composable(NavigationScreens.Chat.route) {
+              ChatListScreen(
+                  userID = authInstance.currentUser!!.uid,
+                  onTabSelected = onTabSelected,
+                  onChatSelected = { chatID, chatName ->
+                    navController.navigate(
+                        route =
+                            NavigationScreens.ChatInstance.route
+                                .replace("{chatID}", chatID)
+                                .replace("{chatName}", chatName))
                   })
             }
 
-        navigation(
-            route = NavigationScreens.SearchProfile.name,
-            startDestination = NavigationScreens.SearchProfile.route) {
-              composable(route = NavigationScreens.SearchProfile.route) {
-                SearchProfileScreen(
-                    uid = authInstance.currentUser!!.uid,
-                    onTabSelected = onTabSelected,
-                    onCardClick = {})
-              }
+            composable(
+                route = NavigationScreens.ChatInstance.route,
+                arguments =
+                    listOf(
+                        navArgument("chatID") { type = NavType.StringType },
+                        navArgument("chatName") { type = NavType.StringType })) {
+                  ChatScreen(
+                      chatID = it.arguments?.getString("chatID")!!,
+                      chatName = it.arguments?.getString("chatName")!!,
+                      userID = authInstance.currentUser!!.uid,
+                      onTabSelected = onTabSelected,
+                      onBack = { navigationActions.goBack() })
+                }
+          }
+
+          navigation(
+              startDestination = NavigationScreens.Profile.route,
+              route = NavigationScreens.Profile.name,
+          ) {
+            composable(NavigationScreens.Profile.route) {
+              UserProfileScreen(
+                  uid = authInstance.currentUser!!.uid,
+                  onTabSelected = onTabSelected,
+                  onEditProfileClick = { uid ->
+                    navController.navigate(NavigationScreens.Settings.route.replace("{$UID}", uid))
+                  },
+                  onChatNavigate = { chatID, chatName ->
+                    navController.navigate(
+                        route =
+                            NavigationScreens.ChatInstance.route
+                                .replace("{chatID}", chatID)
+                                .replace("{chatName}", chatName)
+                                .replace("{userID}", authInstance.currentUser!!.uid))
+                  },
+                  onCardClick = { eventId: String, eventLocation: Location ->
+                    navController.navigate(
+                        NavigationScreens.MapInstance.route
+                            .replace("{eventId}", eventId)
+                            .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
+                            .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
+                  })
             }
-
-        navigation(
-            route = NavigationScreens.EventCreation.name,
-            startDestination = NavigationScreens.EventCreation.route) {
-
-              // --- Main Event Creation Screen ---
-              composable(
-                  route = NavigationScreens.EventCreation.route,
-                  arguments =
-                      listOf(
-                          navArgument(LATITUDE) { type = NavType.FloatType },
-                          navArgument(LONGITUDE) { type = NavType.FloatType })) { entry ->
-                    val latitude = entry.arguments?.getFloat(LATITUDE) ?: 0f
-                    val longitude = entry.arguments?.getFloat(LONGITUDE) ?: 0f
-
-                    EventCreationScreen(
-                        location = Location(latitude.toDouble(), longitude.toDouble()),
-                        onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
-                        onBack = {
-                          mapViewModel.switchMapMode(MapMode.SELECT_LOCATION)
-                          navigationActions.goBack()
-                        })
-                  }
-
-              composable(NavigationScreens.SelectTagEvent.route) {
-                SelectTagScreen(
-                    selectTagMode = SelectTagMode.EVENT_CREATION,
-                    uid = authInstance.currentUser!!.uid,
-                    navigateOnSave = {
-                      navController.popBackStack(
-                          route = NavigationScreens.Map.route, inclusive = false)
+          }
+          composable(
+              route = NavigationScreens.Settings.route,
+              arguments = listOf(navArgument(UID) { type = NavType.StringType })) { backStackEntry
+                ->
+                val uid = backStackEntry.arguments?.getString(UID) ?: "0"
+                val vm: SettingsViewModel =
+                    viewModel(factory = SettingsViewModel.provideFactory(context, uid))
+                SettingsScreen(
+                    uid = uid,
+                    viewModel = vm,
+                    onBack = {
+                      navController.popBackStack(NavigationScreens.Profile.route, inclusive = false)
                     },
-                    onBack = { navigationActions.goBack() })
+                    onConfirm = { navigationActions.navigateTo(NavigationScreens.Profile) },
+                    onLogout = { navigationActions.navigateTo(NavigationScreens.SignIn) },
+                    onAddTag = {
+                      navController.navigate(NavigationScreens.SelectTagUserSettings.route)
+                    },
+                    clear = {
+                      credentialManager.clearCredentialState(
+                          request = ClearCredentialStateRequest())
+                    })
               }
-            }
 
-        navigation(
-            route = NavigationScreens.EventEdition.name,
-            startDestination = NavigationScreens.EventEdition.route) {
+          navigation(
+              route = NavigationScreens.SearchProfile.name,
+              startDestination = NavigationScreens.SearchProfile.route) {
+                composable(route = NavigationScreens.SearchProfile.route) {
+                  SearchProfileScreen(
+                      uid = authInstance.currentUser!!.uid,
+                      onTabSelected = onTabSelected,
+                      onCardClick = {})
+                }
+              }
 
-              // --- Main Event Creation Screen ---
-              composable(
-                  route = NavigationScreens.EventEdition.route,
-                  arguments =
-                      listOf(
-                          navArgument(LATITUDE) { type = NavType.FloatType },
-                          navArgument(LONGITUDE) { type = NavType.FloatType },
-                          navArgument(UID) { type = NavType.StringType })) { entry ->
-                    val latitude = entry.arguments?.getFloat(LATITUDE) ?: 0f
-                    val longitude = entry.arguments?.getFloat(LONGITUDE) ?: 0f
-                    val uid = entry.arguments?.getString(UID) ?: ""
+          navigation(
+              route = NavigationScreens.EventCreation.name,
+              startDestination = NavigationScreens.EventCreation.route) {
 
-                    EventCreationScreen(
-                        uidEvent = uid,
-                        location = Location(latitude.toDouble(), longitude.toDouble()),
-                        onSave = { navController.navigate(NavigationScreens.SelectTagEvent.route) },
-                        onSaveEdition = { navController.navigate("selectTagEventEdition/$uid") },
-                        onBack = { navigationActions.goBack() })
-                  }
+                // --- Main Event Creation Screen ---
+                composable(
+                    route = NavigationScreens.EventCreation.route,
+                    arguments =
+                        listOf(
+                            navArgument(LATITUDE) { type = NavType.FloatType },
+                            navArgument(LONGITUDE) { type = NavType.FloatType })) { entry ->
+                      val latitude = entry.arguments?.getFloat(LATITUDE) ?: 0f
+                      val longitude = entry.arguments?.getFloat(LONGITUDE) ?: 0f
 
-              composable(
-                  route = NavigationScreens.SelectTagEventEdition.route,
-                  arguments = listOf(navArgument(UID) { type = NavType.StringType })) { entry ->
-                    val uid = entry.arguments?.getString(UID) ?: ""
-                    SelectTagScreen(
-                        selectTagMode = SelectTagMode.EVENT_EDITION,
-                        uid = uid,
-                        navigateOnSave = {
-                          navController.popBackStack(
-                              route = NavigationScreens.Map.route, inclusive = false)
-                        },
-                        onBack = { navigationActions.goBack() })
-                  }
-            }
-        // --- Add Tags Screen FOR USER---
-        composable(
-            route = NavigationScreens.SelectTagUserSettings.route,
-        ) {
-          SelectTagScreen(
-              selectTagMode = SelectTagMode.SETTINGS,
-              uid = authInstance.currentUser!!.uid,
-              navigateOnSave = { navigationActions.goBack() },
-              onBack = { navigationActions.goBack() })
+                      EventCreationScreen(
+                          location = Location(latitude.toDouble(), longitude.toDouble()),
+                          onSave = {
+                            navController.navigate(NavigationScreens.SelectTagEvent.route)
+                          },
+                          onBack = {
+                            mapViewModel.switchMapMode(MapMode.SELECT_LOCATION)
+                            navigationActions.goBack()
+                          })
+                    }
+
+                composable(NavigationScreens.SelectTagEvent.route) {
+                  SelectTagScreen(
+                      selectTagMode = SelectTagMode.EVENT_CREATION,
+                      uid = authInstance.currentUser!!.uid,
+                      navigateOnSave = {
+                        navController.popBackStack(
+                            route = NavigationScreens.Map.route, inclusive = false)
+                      },
+                      onBack = { navigationActions.goBack() })
+                }
+              }
+
+          navigation(
+              route = NavigationScreens.EventEdition.name,
+              startDestination = NavigationScreens.EventEdition.route) {
+
+                // --- Main Event Creation Screen ---
+                composable(
+                    route = NavigationScreens.EventEdition.route,
+                    arguments =
+                        listOf(
+                            navArgument(LATITUDE) { type = NavType.FloatType },
+                            navArgument(LONGITUDE) { type = NavType.FloatType },
+                            navArgument(UID) { type = NavType.StringType })) { entry ->
+                      val latitude = entry.arguments?.getFloat(LATITUDE) ?: 0f
+                      val longitude = entry.arguments?.getFloat(LONGITUDE) ?: 0f
+                      val uid = entry.arguments?.getString(UID) ?: ""
+
+                      EventCreationScreen(
+                          uidEvent = uid,
+                          location = Location(latitude.toDouble(), longitude.toDouble()),
+                          onSave = {
+                            navController.navigate(NavigationScreens.SelectTagEvent.route)
+                          },
+                          onSaveEdition = { navController.navigate("selectTagEventEdition/$uid") },
+                          onBack = { navigationActions.goBack() })
+                    }
+
+                composable(
+                    route = NavigationScreens.SelectTagEventEdition.route,
+                    arguments = listOf(navArgument(UID) { type = NavType.StringType })) { entry ->
+                      val uid = entry.arguments?.getString(UID) ?: ""
+                      SelectTagScreen(
+                          selectTagMode = SelectTagMode.EVENT_EDITION,
+                          uid = uid,
+                          navigateOnSave = {
+                            navController.popBackStack(
+                                route = NavigationScreens.Map.route, inclusive = false)
+                          },
+                          onBack = { navigationActions.goBack() })
+                    }
+              }
+          // --- Add Tags Screen FOR USER---
+          composable(
+              route = NavigationScreens.SelectTagUserSettings.route,
+          ) {
+            SelectTagScreen(
+                selectTagMode = SelectTagMode.SETTINGS,
+                uid = authInstance.currentUser!!.uid,
+                navigateOnSave = { navigationActions.goBack() },
+                onBack = { navigationActions.goBack() })
+          }
         }
       }
     }
+    LaunchOverlay(state = launchState)
   }
 }
