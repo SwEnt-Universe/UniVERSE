@@ -29,6 +29,8 @@ sealed class NavigationScreens(
   object Profile :
       NavigationScreens(route = "profile", name = "Profile", isTopLevelDestination = true)
 
+  object OtherProfile : NavigationScreens(route = "otherProfile/{uid}", name = "OtherProfile")
+
   object SignIn : NavigationScreens(route = "signIn", name = "Sign In")
 
   object EmailValidation : NavigationScreens(route = "emailValidation", name = "Email Validation")

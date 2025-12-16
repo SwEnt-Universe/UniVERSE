@@ -416,8 +416,25 @@ fun UniverseApp(
                 SearchProfileScreen(
                     uid = authInstance.currentUser!!.uid,
                     onTabSelected = onTabSelected,
-                    onCardClick = {})
+                    onCardClick = { cat -> navController.navigate("otherProfile/$cat") })
               }
+
+              composable(
+                  route = NavigationScreens.OtherProfile.route,
+                  arguments = listOf(navArgument(UID) { type = NavType.StringType })) {
+                      backStackEntry ->
+                    val uid = backStackEntry.arguments?.getString(UID) ?: "0"
+                    UserProfileScreen(
+                        uid = uid,
+                        isCurrentUser =
+                            Pair(
+                                false,
+                                {
+                                  navController.popBackStack(
+                                      route = NavigationScreens.SearchProfile.route,
+                                      inclusive = false)
+                                }))
+                  }
             }
 
         navigation(

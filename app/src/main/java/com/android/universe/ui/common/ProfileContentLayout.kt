@@ -48,6 +48,7 @@ object ProfileContentTestTags {
  * @param onToggleFollowing Callback for add/follow button.
  * @param onSettingsClick Optional callback for settings button. If null, settings button is not
  *   shown.
+ *     @param isCurrentUser Flag indicating if the current firebase user is viewing the profile.
  */
 @Composable
 fun ProfileContentLayout(
@@ -55,7 +56,8 @@ fun ProfileContentLayout(
     userProfile: UserProfile,
     isFollowing: Boolean? = null,
     onToggleFollowing: () -> Unit,
-    onSettingsClick: (() -> Unit)? = null
+    onSettingsClick: (() -> Unit)? = null,
+    isCurrentUser: Boolean = true
 ) {
   val scrollState = rememberScrollState()
   Column(modifier = modifier.fillMaxWidth().padding(Dimensions.PaddingLarge)) {
@@ -114,11 +116,13 @@ fun ProfileContentLayout(
       Column(modifier = Modifier.weight(1.4f)) { UserInfoColumn(userProfile) }
 
       Column(modifier = Modifier.weight(1f).padding(start = Dimensions.PaddingLarge)) {
-        FollowingOrSettingsButton(
-            userProfile = userProfile,
-            isFollowing = isFollowing ?: false,
-            onToggleFollowing = onToggleFollowing,
-            onSettingsClick = onSettingsClick)
+        if (isCurrentUser) {
+          FollowingOrSettingsButton(
+              userProfile = userProfile,
+              isFollowing = isFollowing ?: false,
+              onToggleFollowing = onToggleFollowing,
+              onSettingsClick = onSettingsClick)
+        }
 
         Spacer(Modifier.height(Dimensions.SpacerMedium))
 

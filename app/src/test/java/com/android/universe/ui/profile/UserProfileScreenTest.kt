@@ -17,6 +17,7 @@ import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.ProfileContentTestTags
 import com.android.universe.ui.event.EventViewModel
+import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
@@ -154,6 +155,26 @@ class UserProfileScreenTest {
         .performClick()
 
     assertEquals(testUser.uid, capturedUid)
+  }
+
+  @Test
+  fun userProfileScreen_otherProfile() = runTest {
+    var callback = false
+    composeTestRule.setContentWithStubBackdrop {
+      UserProfileScreen(
+          uid = testUser.uid,
+          userProfileViewModel = userProfileViewModel,
+          eventViewModel = eventViewModel,
+          isCurrentUser = Pair(false, { callback = true }))
+    }
+
+    advanceUntilIdle()
+
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
+    assertEquals(true, callback)
   }
 
   private fun TestScope.setupScreen() {
