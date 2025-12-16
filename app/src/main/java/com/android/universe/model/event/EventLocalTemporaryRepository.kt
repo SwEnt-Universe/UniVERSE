@@ -87,10 +87,6 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
     return stockedEvent?.location == null
   }
 
-    override suspend fun isEventStocked(): Boolean {
-        return stockedEvent != null
-    }
-
   /** Return the current stocked event. */
   override suspend fun getEvent(): Event {
     if (stockedEvent == null) {
