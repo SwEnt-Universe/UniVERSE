@@ -60,6 +60,7 @@ fun EventCard(
             isUserParticipant = event.joined,
             isPrivate = event.isPrivate,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
+            showActions = event.hasPassed.not(),
             onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge),
             onEditClick = { onEditButtonClick(event.id, event.location) },
