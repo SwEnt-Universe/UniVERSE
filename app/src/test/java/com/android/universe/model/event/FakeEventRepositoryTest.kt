@@ -500,6 +500,20 @@ class FakeEventRepositoryTest {
   }
 
   @Test
+  fun toggleEventParticipation_addsAndRemovesUserFromParticipants() = runTest {
+    val event = EventTestData.dummyEvent1
+    repository.addEvent(event)
+
+    repository.toggleEventParticipation(event.id, userB.uid)
+    var updatedEvent = repository.getEvent(event.id)
+    assertFalse(updatedEvent.participants.contains(userB.uid))
+
+    repository.toggleEventParticipation(event.id, userB.uid)
+    updatedEvent = repository.getEvent(event.id)
+    assertTrue(updatedEvent.participants.contains(userB.uid))
+  }
+
+  @Test
   fun getNewID_returnsAString() = runTest {
     val id = repository.getNewID()
     assertNotNull(id)

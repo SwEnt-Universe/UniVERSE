@@ -16,7 +16,6 @@ import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.EventContentTestTags
 import com.android.universe.ui.common.ProfileContentTestTags
-import com.android.universe.ui.event.EventViewModel
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.MainCoroutineRule
 import com.android.universe.utils.UserTestData
@@ -43,7 +42,6 @@ class UserProfileScreenTest {
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var fakeUserRepository: FakeUserRepository
   private lateinit var userProfileViewModel: UserProfileViewModel
-  private lateinit var eventViewModel: EventViewModel
 
   private val testUser = UserTestData.Alice
 
@@ -65,7 +63,6 @@ class UserProfileScreenTest {
   fun setUp() {
     fakeEventRepository = FakeEventRepository()
     fakeUserRepository = FakeUserRepository()
-    eventViewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
 
     runTest {
       fakeUserRepository.addUser(testUser)
@@ -145,8 +142,7 @@ class UserProfileScreenTest {
       UserProfileScreen(
           uid = testUser.uid,
           onEditProfileClick = { uid -> capturedUid = uid },
-          userProfileViewModel = userProfileViewModel,
-          eventViewModel = eventViewModel)
+          userProfileViewModel = userProfileViewModel)
     }
     advanceUntilIdle()
     composeTestRule
@@ -158,10 +154,7 @@ class UserProfileScreenTest {
 
   private fun TestScope.setupScreen() {
     composeTestRule.setContentWithStubBackdrop {
-      UserProfileScreen(
-          uid = testUser.uid,
-          userProfileViewModel = userProfileViewModel,
-          eventViewModel = eventViewModel)
+      UserProfileScreen(uid = testUser.uid, userProfileViewModel = userProfileViewModel)
     }
 
     advanceUntilIdle()

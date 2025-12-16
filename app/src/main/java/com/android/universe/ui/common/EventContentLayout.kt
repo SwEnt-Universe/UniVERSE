@@ -51,6 +51,7 @@ private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
  * @param isUserParticipant Whether the user is part of the event.
  * @param isPrivate Whether the event is private.
  * @param onToggleEventParticipation Callback triggered when user taps Join/Leave.
+ * @param showActions Whether to show the action buttons row.
  * @param onChatClick Callback for chat button.
  * @param onEditClick Callback invoked when the user presses the "Edit" button on an event.
  */

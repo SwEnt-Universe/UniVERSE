@@ -147,10 +147,11 @@ fun EventScreen(
                     items(events) { event ->
                       EventCard(
                           event = event,
-                          viewModel = viewModel,
+                          onToggleEventParticipation = viewModel::joinOrLeaveEvent,
                           onChatNavigate = onChatNavigate,
                           onCardClick = onCardClick,
-                          onEditButtonClick = onEditButtonClick)
+                          onEditButtonClick = onEditButtonClick,
+                          isUserOwner = event.creatorId == viewModel.storedUid)
                     }
                     item {
                       Spacer(Modifier.height(height = paddingValues.calculateBottomPadding()))

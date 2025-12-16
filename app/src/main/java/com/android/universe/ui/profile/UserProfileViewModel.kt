@@ -137,6 +137,22 @@ class UserProfileViewModel(
     return Period.between(dateOfBirth, today).years.coerceAtLeast(0)
   }
 
+  /**
+   * Joins or leaves an event based on current participation status.
+   *
+   * @param eventId The unique identifier of the event to join or leave.
+   */
+  fun joinOrLeaveEvent(eventId: String) {
+    viewModelScope.launch {
+      try {
+        eventRepository.toggleEventParticipation(eventId, uid)
+        loadUserEvents()
+      } catch (_: Exception) {
+        setErrorMsg("Error updating event participation")
+      }
+    }
+  }
+
   /** Clears the current error message from the UI state. */
   fun clearErrorMsg() {
     _userState.value = _userState.value.copy(errorMsg = null)

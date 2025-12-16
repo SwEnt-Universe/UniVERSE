@@ -109,6 +109,26 @@ class FakeEventRepository : EventRepository {
   }
 
   /**
+   * Toggles a user's participation in an event.
+   *
+   * If the user is already a participant, they will be removed; if not, they will be added.
+   *
+   * @param eventId the ID of the event.
+   * @param userId the ID of the user.
+   */
+  override suspend fun toggleEventParticipation(eventId: String, userId: String) {
+    val event = getEvent(eventId)
+    val updatedParticipants =
+        if (userId in event.participants) {
+          event.participants - userId
+        } else {
+          event.participants + userId
+        }
+    val updatedEvent = event.copy(participants = updatedParticipants)
+    updateEvent(eventId, updatedEvent)
+  }
+
+  /**
    * Persists a list of newly generated AI events by:
    * 1. Assigning each event a new Firestore ID
    * 2. Persisting it in the events collection

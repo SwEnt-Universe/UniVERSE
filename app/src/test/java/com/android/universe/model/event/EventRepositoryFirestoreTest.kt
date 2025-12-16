@@ -240,6 +240,22 @@ class EventRepositoryFirestoreTest : FirestoreEventTest() {
   }
 
   @Test
+  fun toggleEventParticipation_addsUserIfNotParticipant() = runTest {
+    eventRepository.addEvent(event1.copy(participants = emptySet()))
+    eventRepository.toggleEventParticipation(event1.id, "user-123")
+    val updatedEvent = eventRepository.getEvent(event1.id)
+    assertTrue(updatedEvent.participants.contains("user-123"))
+  }
+
+  @Test
+  fun toggleEventParticipation_removesUserIfParticipant() = runTest {
+    eventRepository.addEvent(event1.copy(participants = setOf("user-123")))
+    eventRepository.toggleEventParticipation(event1.id, "user-123")
+    val updatedEvent = eventRepository.getEvent(event1.id)
+    assertFalse(updatedEvent.participants.contains("user-123"))
+  }
+
+  @Test
   fun getNewID_returnsAString() = runTest {
     val id = eventRepository.getNewID()
     assertNotNull(id)
