@@ -58,21 +58,7 @@ class SelectTagViewModel(
   val selectedTags = _selectedTags.asStateFlow()
 
   init {
-    eventTagRepositoryObserving()
     loadTags()
-  }
-
-  /**
-   * We launch a coroutine that will update the set of tag each time the tag repository change. This
-   * allow the user to see the tag he already selected if he returns to the screen. This function
-   * should be launched only in a launched Effect of the invoking screen
-   */
-  private fun eventTagRepositoryObserving() {
-    if (mode == SelectTagMode.EVENT_CREATION) {
-      viewModelScope.launch {
-        tagRepository.tagsFlow.collect { newTags -> _selectedTags.value = newTags.toList() }
-      }
-    }
   }
 
   /**
