@@ -61,6 +61,8 @@ import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.event.EventCard
 import com.android.universe.ui.event.EventUIState
+import com.android.universe.ui.navigation.FlowBottomMenu
+import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationBottomMenu
 import com.android.universe.ui.navigation.NavigationTestTags
 import com.android.universe.ui.navigation.Tab
@@ -91,6 +93,8 @@ object UserProfileScreenTestTags {
  * @param onCardClick Callback invoked when a card is clicked.
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
+ * @param isCurrentUser if the user is the current user
+ * @param onBackClick Callback invoked when the back button is clicked
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -101,7 +105,9 @@ fun UserProfileScreen(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
-    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
+    isCurrentUser: Boolean = true,
+    onBackClick: () -> Unit = {}
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
 
@@ -177,7 +183,13 @@ fun UserProfileScreen(
   }
 
   ScreenLayout(
-      bottomBar = { NavigationBottomMenu(Tab.Profile, onTabSelected) },
+      bottomBar = {
+        if (isCurrentUser) {
+          NavigationBottomMenu(Tab.Profile, onTabSelected)
+        } else {
+          FlowBottomMenu(listOf(FlowTab.Back(onClick = onBackClick)))
+        }
+      },
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN)) { paddingValues ->
         val bottomPadding = paddingValues.calculateBottomPadding()
         val topPadding = paddingValues.calculateTopPadding()
@@ -198,7 +210,8 @@ fun UserProfileScreen(
                     listBottomPadding = bottomPadding,
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
-                    onEditButtonClick = onEditButtonClick)
+                    onEditButtonClick = onEditButtonClick,
+                    isCurrentUser = isCurrentUser)
 
                 ProfileHeaderOverlay(
                     headerOffsetPx = headerOffsetPx,
@@ -207,7 +220,8 @@ fun UserProfileScreen(
                     gapHeightDp = elementSpacingDp,
                     onProfileHeightMeasured = { profileContentHeightPx = it },
                     onTabHeightMeasured = { tabRowHeightPx = it },
-                    onEditProfileClick = { onEditProfileClick(uid) })
+                    onEditProfileClick = { onEditProfileClick(uid) },
+                    isCurrentUser = isCurrentUser)
               }
             }
           }
@@ -282,7 +296,11 @@ private fun ScrollSyncEffect(
  *   Height + Gap).
  * @param clipPaddingDp The top padding applied to the list container to clip content behind the
  *   sticky tabs.
+ *     @param listBottomPadding The bottom padding applied to the list content.
+ *     @param onChatNavigate Callback invoked when a chat button is clicked.
+ *     @param onCardClick Callback invoked when a card is clicked.
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
+ * @param isCurrentUser Flag indicating if the current firebase user is viewing the profile.
  */
 @Composable
 fun ProfileContentPager(
@@ -298,14 +316,17 @@ fun ProfileContentPager(
     listBottomPadding: Dp,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
+    isCurrentUser: Boolean = true
 ) {
   HorizontalPager(
       state = pagerState, modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) {
           page ->
         val isHistoryPage = page == 0
         val listState = if (isHistoryPage) historyListState else incomingListState
-        val events = if (isHistoryPage) historyEvents else incomingEvents
+        // TODO better handling of the incoming events instead of just empty
+        val events =
+            if (isHistoryPage) historyEvents else (if (isCurrentUser) incomingEvents else listOf())
 
         ProfileEventList(
             uid = uid,
@@ -436,6 +457,7 @@ fun ProfileEventList(
  *   parent.
  * @param onTabHeightMeasured Callback to report the height of the tab row to the parent.
  * @param onEditProfileClick Action to perform when settings/edit is clicked.
+ * @param isCurrentUser Flag indicating if the current firebase user is viewing the profile.
  */
 @Composable
 fun ProfileHeaderOverlay(
@@ -445,7 +467,8 @@ fun ProfileHeaderOverlay(
     gapHeightDp: Dp,
     onProfileHeightMeasured: (Float) -> Unit,
     onTabHeightMeasured: (Float) -> Unit,
-    onEditProfileClick: () -> Unit
+    onEditProfileClick: () -> Unit,
+    isCurrentUser: Boolean = true
 ) {
   Column(
       modifier =
@@ -461,7 +484,8 @@ fun ProfileHeaderOverlay(
                   modifier = Modifier,
                   userProfile = userProfile,
                   onToggleFollowing = {},
-                  onSettingsClick = onEditProfileClick)
+                  onSettingsClick = onEditProfileClick,
+                  isCurrentUser = isCurrentUser)
             }
 
         Spacer(modifier = Modifier.height(gapHeightDp))
