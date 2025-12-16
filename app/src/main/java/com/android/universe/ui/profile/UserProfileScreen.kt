@@ -26,6 +26,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -48,6 +49,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.model.event.Event
 import com.android.universe.model.location.Location
@@ -88,6 +92,7 @@ object UserProfileScreenTestTags {
  * @param onCardClick Callback invoked when a card is clicked.
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
+ * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -98,7 +103,8 @@ fun UserProfileScreen(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
-    eventViewModel: EventViewModel = viewModel()
+    eventViewModel: EventViewModel = viewModel(),
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
 
@@ -107,6 +113,20 @@ fun UserProfileScreen(
   val pagerState = rememberPagerState(pageCount = { 2 })
   val historyListState = rememberLazyListState()
   val incomingListState = rememberLazyListState()
+  eventViewModel.storedUid = uid
+
+  val lifecycleOwner = LocalLifecycleOwner.current
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
+        userProfileViewModel.loadUser()
+      }
+    }
+
+    lifecycleOwner.lifecycle.addObserver(observer)
+
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  }
 
   // Layout Measurements
   var profileContentHeightPx by remember { mutableFloatStateOf(0f) }
@@ -180,7 +200,8 @@ fun UserProfileScreen(
                     clipPaddingDp = tabRowHeightDp,
                     listBottomPadding = bottomPadding,
                     onChatNavigate = onChatNavigate,
-                    onCardClick = onCardClick)
+                    onCardClick = onCardClick,
+                    onEditButtonClick = onEditButtonClick)
 
                 ProfileHeaderOverlay(
                     headerOffsetPx = headerOffsetPx,
@@ -263,6 +284,7 @@ private fun ScrollSyncEffect(
  *   Height + Gap).
  * @param clipPaddingDp The top padding applied to the list container to clip content behind the
  *   sticky tabs.
+ * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  */
 @Composable
 fun ProfileContentPager(
@@ -276,7 +298,8 @@ fun ProfileContentPager(
     clipPaddingDp: Dp,
     listBottomPadding: Dp,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
 ) {
   HorizontalPager(
       state = pagerState, modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) {
@@ -293,7 +316,8 @@ fun ProfileContentPager(
             topClipPadding = clipPaddingDp,
             bottomContentPadding = listBottomPadding,
             onChatNavigate = onChatNavigate,
-            onCardClick = onCardClick)
+            onCardClick = onCardClick,
+            onEditButtonClick = onEditButtonClick)
       }
 }
 
@@ -304,7 +328,11 @@ fun ProfileContentPager(
  * @param events The list of [Event] objects to display.
  * @param eventViewModel The view model for event interactions.
  * @param headerSpacerHeight The height of the invisible spacer (Index 0).
- * @param topClipPadding The top padding used to clip the scrolling content.
+ * @param topClipPadding The top padding used to clip the scrolling content.$
+ * @param bottomContentPadding The bottom padding to apply to the list content.
+ * @param onChatNavigate Callback invoked when a chat button is clicked.
+ * @param onCardClick Callback invoked when a card is clicked.
+ * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  */
 @Composable
 fun ProfileEventList(
@@ -315,7 +343,8 @@ fun ProfileEventList(
     topClipPadding: Dp,
     bottomContentPadding: Dp,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
-    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
+    onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
 ) {
   val density = LocalDensity.current
   val configuration = LocalConfiguration.current
@@ -370,7 +399,6 @@ fun ProfileEventList(
               modifier =
                   Modifier.fillMaxWidth().height(headerSpacerHeight).background(Color.Transparent))
         }
-
         items(events, key = { it.id }) { eventUIState ->
           Box(
               modifier =
@@ -380,7 +408,8 @@ fun ProfileEventList(
                     event = eventUIState,
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
-                    viewModel = eventViewModel)
+                    viewModel = eventViewModel,
+                    onEditButtonClick = onEditButtonClick)
               }
         }
         // Ensures the list is tall enough to scroll the header away.

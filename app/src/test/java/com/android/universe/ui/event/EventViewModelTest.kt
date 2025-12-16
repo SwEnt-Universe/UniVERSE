@@ -34,6 +34,7 @@ class EventViewModelTest {
   private lateinit var userRepo: FakeUserRepository
   private lateinit var viewModel: EventViewModel
 
+  private val futureDate = LocalDateTime.now().plusDays(10)
   // Sample users for events
   private val sampleUsers =
       listOf(
@@ -69,7 +70,7 @@ class EventViewModelTest {
               id = "event-001",
               title = EVENT1TITLE,
               description = EVENT1DESC,
-              date = LocalDateTime.of(2025, 10, 15, 7, 30),
+              date = futureDate,
               tags = setOf(Tag.SCULPTURE, Tag.COUNTRY),
               participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
               creator = sampleUsers[0].uid,
@@ -78,7 +79,7 @@ class EventViewModelTest {
           Event(
               id = "event-002",
               title = "Tech Hackathon 2025",
-              date = LocalDateTime.of(2025, 11, 3, 9, 0),
+              date = futureDate,
               tags = setOf(Tag.TENNIS, Tag.AI, Tag.PROGRAMMING),
               participants = emptySet(),
               creator = sampleUsers[1].uid,
@@ -90,7 +91,7 @@ class EventViewModelTest {
           id = "event-100",
           title = "Mega Tag Event",
           description = "Event with too many tags",
-          date = LocalDateTime.of(2025, 12, 1, 10, 0),
+          date = futureDate,
           tags = setOf(Tag.TENNIS, Tag.AI, Tag.PROGRAMMING, Tag.RUNNING, Tag.MUSIC),
           participants = setOf(sampleUsers[0].uid, sampleUsers[1].uid),
           creator = sampleUsers[0].uid,
@@ -127,7 +128,7 @@ class EventViewModelTest {
     assertEquals("Morning Run at the Lake", firstEvent.title)
     assertEquals(
         "Join us for a casual 5km run around the lake followed by coffee.", firstEvent.description)
-    assertEquals(LocalDateTime.of(2025, 10, 15, 7, 30), firstEvent.date)
+    assertEquals(futureDate, firstEvent.date)
     assertEquals(listOf(Tag.SCULPTURE, Tag.COUNTRY), firstEvent.tags)
     assertEquals("Alice Smith", firstEvent.creator)
     assertEquals(2, firstEvent.participants)
