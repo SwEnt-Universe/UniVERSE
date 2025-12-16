@@ -294,6 +294,7 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
     }
     advanceUntilIdle()
+    composeTestRule.waitForIdle()
     composeTestRule.waitUntil(30_015L) {
       composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
     }
@@ -328,8 +329,9 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
         .onNodeWithTagWithUnmergedTree(FormTestTags.PASSWORD_FIELD)
         .performTextInput(pass)
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
-
-    composeTestRule.waitUntil(30_000L) {
+    advanceUntilIdle()
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(60_000L) {
       composeTestRule.onNodeWithTag(NavigationTestTags.MAP_SCREEN).isDisplayed()
     }
     advanceUntilIdle()
