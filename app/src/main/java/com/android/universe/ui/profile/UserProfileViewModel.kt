@@ -64,7 +64,7 @@ class UserProfileViewModel(
   }
 
   /** Loads a user's profile from the repository. */
-  private fun loadUser() {
+  fun loadUser() {
     viewModelScope.launch {
       try {
         val userProfile = userRepository.getUser(uid)
@@ -108,6 +108,7 @@ class UserProfileViewModel(
             date = event.date,
             tags = event.tags.toList(),
             creator = creatorName,
+            creatorId = event.creator,
             participants = event.participants.size,
             location = event.location,
             isPrivate = event.isPrivate,
