@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_ITEM_PREFIX
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_LIST_COLUMN
@@ -81,61 +82,59 @@ fun ChatListScreen(
       modifier = Modifier.testTag(NavigationTestTags.CHAT_SCREEN)) { paddingValues ->
         if (uiState.isLoading) {
           Column(
-            horizontalAlignment = CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            CircularProgressIndicator()
-          }
-       } else if (uiState.displayMessage != null) {
+              horizontalAlignment = CenterHorizontally,
+              verticalArrangement = Arrangement.Center,
+              modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                CircularProgressIndicator()
+              }
+        } else if (uiState.displayMessage != null) {
           BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val defaultSize = maxHeight * 0.25f
 
             LiquidBox(
-              modifier =
-                Modifier.fillMaxWidth()
-                  .wrapContentHeight()
-                  .align(Alignment.BottomCenter)
-                  .testTag(NO_CHAT_PREVIEW),
-              shape =
-                RoundedCornerShape(
-                  topStart = Dimensions.RoundedCornerLarge,
-                  topEnd = Dimensions.RoundedCornerLarge,
-                  bottomStart = 0.dp,
-                  bottomEnd = 0.dp)) {
-              Column(
                 modifier =
-                  Modifier.fillMaxWidth()
-                    .wrapContentHeight()
-                    .defaultMinSize(minHeight = defaultSize)
-                    .padding(horizontal = Dimensions.PaddingExtraLarge)
-                    .padding(top = Dimensions.PaddingExtraLarge),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                  text = "Empty Inbox",
-                  style = MaterialTheme.typography.titleLarge,
-                  color = MaterialTheme.colorScheme.onSurface)
+                    Modifier.fillMaxWidth()
+                        .wrapContentHeight()
+                        .align(Alignment.BottomCenter)
+                        .testTag(NO_CHAT_PREVIEW),
+                shape =
+                    RoundedCornerShape(
+                        topStart = Dimensions.RoundedCornerLarge,
+                        topEnd = Dimensions.RoundedCornerLarge,
+                        bottomStart = 0.dp,
+                        bottomEnd = 0.dp)) {
+                  Column(
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .wrapContentHeight()
+                              .defaultMinSize(minHeight = defaultSize)
+                              .padding(horizontal = Dimensions.PaddingExtraLarge)
+                              .padding(top = Dimensions.PaddingExtraLarge),
+                      verticalArrangement = Arrangement.Top,
+                      horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Empty Inbox",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface)
 
-                Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
+                        Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
-                Text(
-                  text = uiState.displayMessage!!,
-                  style = MaterialTheme.typography.bodyLarge,
-                  color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = uiState.displayMessage!!,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface)
 
-                Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
-              }
-            }
+                        Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
+                      }
+                }
           }
-
-
         } else {
           LazyColumn(
-            horizontalAlignment = CenterHorizontally,
-            modifier =
-              Modifier.fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
-                .testTag(CHAT_LIST_COLUMN),
+              horizontalAlignment = CenterHorizontally,
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(top = paddingValues.calculateTopPadding())
+                      .testTag(CHAT_LIST_COLUMN),
           ) {
             items(items = uiState.chatPreviews, key = { it.chatID }) { chatPreview ->
               ChatPreviewItem(chatPreview, onChatSelected)
