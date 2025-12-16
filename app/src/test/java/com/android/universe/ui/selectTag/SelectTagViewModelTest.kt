@@ -465,7 +465,7 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun loadTagsEventCreation() = runTest {
+  fun loadTagsSettings() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
     setUpViewmodel(defaultUser.uid, SelectTagMode.SETTINGS)
@@ -475,7 +475,7 @@ class SelectTagViewModelTest {
   }
 
   @Test
-  fun loadTagsWhenRepositoryChange() = runTest {
+  fun loadTagsSettingsWhenRepositoryChange() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
     setUpViewmodel(defaultUser.uid, SelectTagMode.SETTINGS)
