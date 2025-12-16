@@ -46,6 +46,8 @@ interface EventTemporaryRepository {
   /** Check if the location of the stocked event is null. */
   suspend fun isLocationNull(): Boolean
 
+  suspend fun isEventStocked(): Boolean
+
   /** Return the current stocked event. */
   suspend fun getEvent(): Event
 

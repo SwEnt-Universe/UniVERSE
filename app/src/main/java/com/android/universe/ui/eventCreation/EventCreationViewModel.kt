@@ -349,6 +349,24 @@ class EventCreationViewModel(
     return if (time == null) "Select time" else time.format(timeFormatter)
   }
 
+    fun loadTemporaryRepository(uid: String?){
+        viewModelScope.launch(DefaultDP.io) {
+            if (uid != null && eventTemporaryRepository.isEventStocked()) {
+                val event = eventTemporaryRepository.getEvent()
+                val eventDate = event.date.toLocalDate()
+                val eventTime = event.date.toLocalTime()
+                eventCreationUiState.value =
+                    eventCreationUiState.value.copy(
+                        name = event.title,
+                        description = event.description,
+                        date = eventDate,
+                        time = formatTime(eventTime),
+                        isPrivate = event.isPrivate
+                    )
+            }
+        }
+    }
+
   /**
    * Save the event with all the parameters selected by the user in the event repository.
    *
