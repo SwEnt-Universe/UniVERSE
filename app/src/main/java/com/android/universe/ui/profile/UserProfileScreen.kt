@@ -95,7 +95,8 @@ object UserProfileScreenTestTags {
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
- * @param isCurrentUser a pair containing if the user is the current user and a function to go back
+ * @param isCurrentUser if the user is the current user
+ * @param onBackClick Callback invoked when the back button is clicked
  */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -108,7 +109,8 @@ fun UserProfileScreen(
     userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
     eventViewModel: EventViewModel = viewModel(),
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
-    isCurrentUser: Pair<Boolean, () -> Unit> = Pair(true, {})
+    isCurrentUser: Boolean = true,
+    onBackClick: () -> Unit = {}
 ) {
   val userUIState by userProfileViewModel.userState.collectAsState()
 
@@ -186,10 +188,10 @@ fun UserProfileScreen(
 
   ScreenLayout(
       bottomBar = {
-        if (isCurrentUser.first) {
+        if (isCurrentUser) {
           NavigationBottomMenu(Tab.Profile, onTabSelected)
         } else {
-          FlowBottomMenu(listOf(FlowTab.Back(onClick = isCurrentUser.second)))
+          FlowBottomMenu(listOf(FlowTab.Back(onClick = onBackClick)))
         }
       },
       modifier = Modifier.testTag(NavigationTestTags.PROFILE_SCREEN)) { paddingValues ->
@@ -212,7 +214,7 @@ fun UserProfileScreen(
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
                     onEditButtonClick = onEditButtonClick,
-                    isCurrentUser = isCurrentUser.first)
+                    isCurrentUser = isCurrentUser)
 
                 ProfileHeaderOverlay(
                     headerOffsetPx = headerOffsetPx,
@@ -222,7 +224,7 @@ fun UserProfileScreen(
                     onProfileHeightMeasured = { profileContentHeightPx = it },
                     onTabHeightMeasured = { tabRowHeightPx = it },
                     onEditProfileClick = { onEditProfileClick(uid) },
-                    isCurrentUser = isCurrentUser.first)
+                    isCurrentUser = isCurrentUser)
               }
             }
           }

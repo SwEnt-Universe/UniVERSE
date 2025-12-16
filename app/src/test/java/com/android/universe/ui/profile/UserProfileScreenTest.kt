@@ -165,7 +165,8 @@ class UserProfileScreenTest {
           uid = testUser.uid,
           userProfileViewModel = userProfileViewModel,
           eventViewModel = eventViewModel,
-          isCurrentUser = Pair(false, { callback = true }))
+          isCurrentUser = false,
+          onBackClick = { callback = true })
     }
 
     advanceUntilIdle()

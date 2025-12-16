@@ -426,14 +426,11 @@ fun UniverseApp(
                     val uid = backStackEntry.arguments?.getString(UID) ?: "0"
                     UserProfileScreen(
                         uid = uid,
-                        isCurrentUser =
-                            Pair(
-                                false,
-                                {
-                                  navController.popBackStack(
-                                      route = NavigationScreens.SearchProfile.route,
-                                      inclusive = false)
-                                }))
+                        isCurrentUser = false,
+                        onBackClick = {
+                          navController.popBackStack(
+                              route = NavigationScreens.SearchProfile.route, inclusive = false)
+                        })
                   }
             }
 
