@@ -468,7 +468,7 @@ class SelectTagViewModelTest {
   fun loadTagsEventCreation() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
-    setUpViewmodel(defaultUser.uid, SelectTagMode.EVENT_CREATION)
+    setUpViewmodel(defaultUser.uid, SelectTagMode.SETTINGS)
     advanceUntilIdle()
     val resultTags = viewModel.selectedTags.value.toSet()
     assertEquals(tags, resultTags)
@@ -478,7 +478,7 @@ class SelectTagViewModelTest {
   fun loadTagsWhenRepositoryChange() = runTest {
     tagRepository.updateTags(tags)
     advanceUntilIdle()
-    setUpViewmodel(defaultUser.uid, SelectTagMode.EVENT_CREATION)
+    setUpViewmodel(defaultUser.uid, SelectTagMode.SETTINGS)
     advanceUntilIdle()
     val resultTags = viewModel.selectedTags.value.toSet()
     assertEquals(tags, resultTags)
