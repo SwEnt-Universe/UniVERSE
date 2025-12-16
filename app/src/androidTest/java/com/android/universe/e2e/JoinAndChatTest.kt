@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.android.universe.UniverseApp
 import com.android.universe.di.DefaultDP
+import com.android.universe.model.event.EVENTS_COLLECTION_PATH
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.chat.ChatListScreenTestTags
 import com.android.universe.ui.chat.composable.SendMessageInputTestTags
@@ -48,10 +49,14 @@ import com.android.universe.utils.selectDayWithMonth
 import com.android.universe.utils.setContentWithStubBackdrop
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.firestore
 import io.mockk.every
 import io.mockk.mockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -294,7 +299,6 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
       composeTestRule.onNodeWithTag(ChatListScreenTestTags.CHAT_LIST_COLUMN).isDisplayed()
     }
     advanceUntilIdle()
-    composeTestRule.waitForIdle()
     composeTestRule.waitUntil(30_015L) {
       composeTestRule.onAllNodes(hasText(FAKE_EVENT.title)).fetchSemanticsNodes().isNotEmpty()
     }
@@ -392,6 +396,13 @@ class JoinAndChatTest : FirebaseAuthUserTest(isRobolectric = false) {
 
     composeTestRule.waitUntil(10_000L) {
       composeTestRule.onNodeWithTag(MapScreenTestTags.CREATE_EVENT_BUTTON).isDisplayed()
+    }
+    composeTestRule.waitUntil(timeoutMillis = 30_003L) {
+      runBlocking {
+        val snapshot =
+            Firebase.firestore.collection(EVENTS_COLLECTION_PATH).get(Source.SERVER).await()
+        snapshot.documents.any { it.getString("title") == FAKE_EVENT.title }
+      }
     }
     advanceUntilIdle()
   }
