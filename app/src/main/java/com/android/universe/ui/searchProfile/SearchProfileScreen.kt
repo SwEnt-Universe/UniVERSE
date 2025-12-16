@@ -96,7 +96,7 @@ object SearchProfileScreenTestTags {
 fun SearchProfileScreen(
     uid: String,
     onTabSelected: (Tab) -> Unit = {},
-    onCardClick: () -> Unit = {},
+    onCardClick: (String) -> Unit = {},
     searchProfileViewModel: SearchProfileViewModel = viewModel { SearchProfileViewModel(uid) },
 ) {
   val uiState by searchProfileViewModel.uiState.collectAsState()
@@ -243,7 +243,7 @@ fun SearchProfileContentPager(
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
     listBottomPadding: Dp,
-    onCardClick: () -> Unit = {}
+    onCardClick: (String) -> Unit = {}
 ) {
   HorizontalPager(
       state = pagerState,
@@ -302,7 +302,7 @@ fun ProfileList(
     isLoading: Boolean,
     searchProfileViewModel: SearchProfileViewModel,
     bottomContentPadding: Dp,
-    onCardClick: () -> Unit = {}
+    onCardClick: (String) -> Unit = {}
 ) {
   LazyColumn(
       state = listState,

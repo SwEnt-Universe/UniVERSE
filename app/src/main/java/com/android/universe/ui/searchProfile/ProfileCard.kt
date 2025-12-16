@@ -27,14 +27,14 @@ object ProfileCardTestTags {
 fun ProfileCard(
     profile: ProfileUIState,
     viewModel: SearchProfileViewModel,
-    onCardClick: () -> Unit
+    onCardClick: (String) -> Unit
 ) {
   LiquidBox(
       shape = CardShape,
       modifier =
           Modifier.padding(Dimensions.PaddingMedium)
               .testTag("${ProfileCardTestTags.PROFILE_CARD}_${profile.user.uid}")
-              .clickable { onCardClick() }) {
+              .clickable { onCardClick(profile.user.uid) }) {
         ProfileContentLayout(
             modifier = Modifier,
             userProfile = profile.user,
