@@ -220,7 +220,12 @@ class EventCreationViewModel(
                 description = event.description ?: "",
                 date = eventDate,
                 time = formatTime(eventTime),
-                isPrivate = event.isPrivate)
+                isPrivate = event.isPrivate,
+                onboardingState =
+                    mutableMapOf(
+                        OnboardingState.ENTER_EVENT_TITLE to true,
+                        OnboardingState.ENTER_DESCRIPTION to (event.description != null),
+                        OnboardingState.ENTER_TIME to true))
       }
     }
   }
