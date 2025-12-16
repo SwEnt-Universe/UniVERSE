@@ -160,7 +160,6 @@ class UserProfileScreenTest {
       UserProfileScreen(
           uid = testUser.uid,
           userProfileViewModel = userProfileViewModel,
-          eventViewModel = eventViewModel,
           isCurrentUser = false,
           onBackClick = { callback = true })
     }
