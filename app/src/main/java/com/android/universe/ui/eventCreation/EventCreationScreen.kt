@@ -301,8 +301,6 @@ fun StandardEventCreationForm(
                                 state = OnboardingState.ENTER_DESCRIPTION, true)
                           },
                           maxLines = 3,
-                          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                           validationState =
                               if (uiState.onboardingState[OnboardingState.ENTER_DESCRIPTION] ==
                                   true) {
@@ -451,7 +449,6 @@ fun AiPromptBox(
     onBack: () -> Unit
 ) {
   val finalValidationState = if (error != null) ValidationState.Invalid(error) else validationState
-  val focusManager = LocalFocusManager.current
 
   AiLayout(
       bottomBar = {
@@ -488,8 +485,6 @@ fun AiPromptBox(
             value = prompt,
             onValueChange = onPromptChange,
             maxLines = 10,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             validationState = finalValidationState)
 
         if (isGenerating) {
@@ -569,8 +564,6 @@ fun AiReviewBox(
               value = prompt,
               onValueChange = onPromptChange,
               maxLines = 2,
-              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-              keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
               validationState = promptValidationState)
 
           Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))
@@ -592,8 +585,6 @@ fun AiReviewBox(
               value = proposal.description,
               onValueChange = onDescriptionChange,
               maxLines = 3,
-              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-              keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
               validationState = descriptionValidationState)
 
           if (!isProposalValid) {
