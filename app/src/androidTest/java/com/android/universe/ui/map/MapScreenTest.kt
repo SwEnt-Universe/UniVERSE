@@ -191,6 +191,24 @@ class MapScreenTest {
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
   }
+
+  @Test
+  fun bottomBarChangeLocationConfirmIsClickable() {
+    composeTestRule.setContentWithStubBackdrop {
+      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
+    }
+    viewModel.switchMapMode(MapMode.CHANGE_LOCATION)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).performClick()
+  }
+
+  @Test
+  fun bottomBarChangeLocationBackIsClickable() {
+    composeTestRule.setContentWithStubBackdrop {
+      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
+    }
+    viewModel.switchMapMode(MapMode.CHANGE_LOCATION)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
+  }
 }
 
 /** Wrapper to add test tags to MapScreen for Compose testing */
