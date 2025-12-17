@@ -17,18 +17,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.universe.ui.navigation.NavigationTestTags
-import com.android.universe.ui.theme.Dimensions
 
 object TopBarTestTags {
   const val TOP_BAR_TITLE = "topBarTitle"
 }
 
 private val shape =
-    RoundedCornerShape(
-        topStart = 0.dp,
-        topEnd = 0.dp,
-        bottomStart = Dimensions.RoundedCorner,
-        bottomEnd = Dimensions.RoundedCorner)
+    RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 0.dp, bottomEnd = 0.dp)
 
 /**
  * A custom top bar with a "liquid" shape, curving at the bottom corners. This Composable is
@@ -45,7 +40,7 @@ private val shape =
 fun LiquidTopBar(navigationIcon: @Composable (() -> Unit) = {}, title: @Composable (() -> Unit)) {
   LiquidBox(modifier = Modifier.fillMaxWidth(), shape = shape) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = Dimensions.PaddingExtraLarge),
+        modifier = Modifier.fillMaxWidth().padding(top = 52.dp),
         verticalAlignment = Alignment.CenterVertically) {
           navigationIcon()
           title()
@@ -84,5 +79,6 @@ fun TopBarTitle(text: String, modifier: Modifier = Modifier) {
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       color = MaterialTheme.colorScheme.onSurface,
+      style = MaterialTheme.typography.titleMedium,
       modifier = modifier.testTag(TopBarTestTags.TOP_BAR_TITLE))
 }

@@ -26,9 +26,9 @@ val Typography =
         displaySmall =
             TextStyle(
                 fontFamily = FontFamily.Default,
-                fontWeight = FontWeight.Bold,
-                fontSize = 36.sp,
-                lineHeight = 44.sp,
+                fontWeight = FontWeight.Normal,
+                fontSize = 20.sp,
+                lineHeight = 32.sp,
                 letterSpacing = 0.sp),
 
         // --- Headline (section titles) ---

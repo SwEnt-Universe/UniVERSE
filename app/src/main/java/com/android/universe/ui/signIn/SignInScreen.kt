@@ -43,6 +43,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -174,7 +175,7 @@ fun Layout(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { bottomBar() }
       }) { paddingValues ->
         BoxWithConstraints(Modifier.fillMaxSize()) {
-          val defaultSize = maxHeight * 0.4f
+          val defaultSize = maxHeight * 0.3f
 
           LiquidBox(
               modifier = Modifier.fillMaxWidth().wrapContentHeight().align(Alignment.BottomCenter),
@@ -294,22 +295,23 @@ fun WelcomeBox(onClick: () -> Unit = {}) {
                     .padding(all = Dimensions.PaddingExtraLarge)
                     .testTag(SignInScreenTestTags.JOIN_BUTTON)) {
               Text(
-                  text = "Join the UniVERSE",
-                  style = MaterialTheme.typography.titleLarge,
+                  text = stringResource(R.string.login_button),
+                  style = MaterialTheme.typography.displaySmall,
                   color = MaterialTheme.colorScheme.onSurface)
             }
       }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
-              text = "UniVERSE",
-              style = MaterialTheme.typography.headlineLarge,
+              text = stringResource(R.string.login_header),
+              style = MaterialTheme.typography.displayMedium,
               color = MaterialTheme.colorScheme.onSurface)
           Spacer(modifier = Modifier.width(Dimensions.SpacerLarge))
           UniverseIcon()
         }
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
         Text(
-            text = "Your entire campus social life on one map",
+            text = stringResource(R.string.login_body),
+            style = MaterialTheme.typography.displaySmall,
             color = MaterialTheme.colorScheme.onSurface)
       }
 }
@@ -345,7 +347,7 @@ fun EmailBox(
                     FlowTab.Confirm(onClick = onConfirm, enabled = confirmEnabled)))
       }) {
         Text(
-            text = "Enter your email address",
+            text = stringResource(R.string.login_input_email_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
@@ -372,7 +374,7 @@ fun GoogleBox(email: String, onBack: () -> Unit, onSignIn: () -> Unit) {
             flowTabs = listOf(FlowTab.Back(onClick = onBack), FlowTab.Google(onClick = onSignIn)))
       }) {
         Text(
-            text = "Sign in with google",
+            text = stringResource(R.string.login_google_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
@@ -414,7 +416,7 @@ fun PasswordBox(
                     FlowTab.Confirm(onClick = onConfirm, enabled = confirmEnabled)))
       }) {
         Text(
-            text = "Enter your password",
+            text = stringResource(R.string.login_input_password_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
@@ -452,7 +454,7 @@ fun SignUpBox(email: String, onPassword: () -> Unit, onGoogle: () -> Unit, onBac
                     FlowTab.Password(onClick = onPassword)))
       }) {
         Text(
-            text = "Select your authentication method",
+            text = stringResource(R.string.login_select_auth_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
