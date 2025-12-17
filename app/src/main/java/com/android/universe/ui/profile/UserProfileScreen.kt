@@ -333,7 +333,6 @@ fun ProfileContentPager(
           page ->
         val isHistoryPage = page == 0
         val listState = if (isHistoryPage) historyListState else incomingListState
-        // TODO better handling of the incoming events instead of just empty
         val events =
             if (isHistoryPage) historyEvents
             else (if (isCurrentUser || observerIsFollower == true) incomingEvents else listOf())
