@@ -18,7 +18,6 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
-import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
 import com.android.universe.model.tag.Tag.Category
@@ -466,7 +465,11 @@ class MapViewModel(
               emptySet()
             }
 
-        val events = eventRepository.getAllEvents(currentUserId, following)
+        val now = LocalDateTime.now()
+        val events =
+            eventRepository.getAllEvents(currentUserId, following).filter { event ->
+              event.date.isAfter(now) || event.date.isEqual(now)
+            }
         _eventMarkers.value = events
 
         val eventsToDisplay = events + listOfNotNull(_previewEvent.value)

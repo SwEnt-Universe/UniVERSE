@@ -22,6 +22,7 @@ import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
 import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.mockk
+import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -49,6 +50,8 @@ class MapScreenTest {
   private lateinit var fakeEventRepository: FakeEventRepository
   private lateinit var fakeUserRepository: FakeUserRepository
   private lateinit var viewModel: MapViewModel
+
+  private val dateFuture = LocalDateTime.now().plusDays(10)
 
   @Before
   fun setUp() {
@@ -138,8 +141,8 @@ class MapScreenTest {
   fun multipleEventsCanBeLoadedAndSelected() {
     val user1 = UserTestData.Bob
     val user2 = UserTestData.Rocky
-    val event1 = EventTestData.dummyEvent1
-    val event2 = EventTestData.dummyEvent2
+    val event1 = EventTestData.dummyEvent1.copy(date = dateFuture)
+    val event2 = EventTestData.dummyEvent2.copy(date = dateFuture)
 
     runTest {
       fakeEventRepository.addEvent(event1)
