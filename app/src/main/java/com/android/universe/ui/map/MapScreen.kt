@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -178,11 +178,12 @@ fun MapScreen(
   }
 
   // Handle direct event link: auto-focus and open popup
+  var alreadySelected by rememberSaveable { mutableStateOf(false) }
   LaunchedEffect(preselectedEventId, preselectedLocation) {
-    if (preselectedEventId != null && preselectedLocation != null) {
+    if (preselectedEventId != null && preselectedLocation != null && !alreadySelected) {
       val target = GeoPoint(preselectedLocation.latitude, preselectedLocation.longitude)
       viewModel.onCameraMoveRequest(target)
-
+      alreadySelected = true
       // --- Select event to show popup ---
       val matched = uiState.markers.firstOrNull { it.event.id == preselectedEventId }?.event
       if (matched != null) {
