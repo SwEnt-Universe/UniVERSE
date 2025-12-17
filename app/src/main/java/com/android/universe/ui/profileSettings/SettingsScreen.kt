@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.BottomSheetDefaults
@@ -76,7 +75,7 @@ object FieldTitles {
   const val DESCRIPTION = "Bio"
   const val DATE = "Date of Birth"
   const val LOCATION = "Location"
-  const val TAG = "Tag"
+  const val TAG = "Tags"
   const val AUTHENTICATION = "Authentication"
   const val PROFILE = "Profile"
 }
@@ -173,8 +172,8 @@ fun SettingsScreen(
                           leadingIcon = Icons.Default.Mail,
                           title = FieldTitles.MAIL,
                           endText = uiState.email,
-                          trailingIcon = Icons.Default.Edit,
-                          onClick = { viewModel.setModalType(ModalType.EMAIL) })
+                          trailingIcon = null,
+                          onClick = { /* Email is now read only */ })
                       if (uiState.passwordEnabled == true) {
                         FieldModifier(
                             modifier = Modifier.testTag(SettingsTestTags.PASSWORD_TEXT),
@@ -241,11 +240,7 @@ fun SettingsScreen(
                                   color = MaterialTheme.colorScheme.error)
                             }
                           }
-                      FieldModifier(
-                          leadingIcon = Icons.Default.LocationOn,
-                          title = FieldTitles.LOCATION,
-                          endText = "TBD",
-                          trailingIcon = Icons.Default.Edit) // TODO location
+
                       FieldModifier(
                           modifier = Modifier.testTag(SettingsTestTags.TAG_TEXT),
                           editModifier = Modifier.testTag(SettingsTestTags.TAG_BUTTON),
@@ -353,7 +348,7 @@ fun FieldModifier(
     leadingIcon: ImageVector?,
     title: String,
     endText: String,
-    trailingIcon: ImageVector,
+    trailingIcon: ImageVector?,
     onClick: () -> Unit = {}
 ) {
   Row(
@@ -386,10 +381,12 @@ fun FieldModifier(
                     textAlign = TextAlign.Start)
               }
             }
-        Icon(
-            imageVector = trailingIcon,
-            contentDescription = "Edit $title",
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(Dimensions.IconSizeMedium))
+        trailingIcon?.let {
+          Icon(
+              imageVector = it,
+              contentDescription = "Edit $title",
+              tint = MaterialTheme.colorScheme.onSurface,
+              modifier = Modifier.size(Dimensions.IconSizeMedium))
+        }
       }
 }
