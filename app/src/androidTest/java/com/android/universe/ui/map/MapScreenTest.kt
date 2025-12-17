@@ -17,6 +17,7 @@ import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.location.FakeLocationRepository
 import com.android.universe.model.user.FakeUserRepository
 import com.android.universe.ui.common.UniverseBackgroundContainer
+import com.android.universe.ui.navigation.FlowBottomMenuTestTags
 import com.android.universe.ui.navigation.Tab
 import com.android.universe.utils.EventTestData
 import com.android.universe.utils.UserTestData
@@ -179,6 +180,16 @@ class MapScreenTest {
       it as MapViewModel.EventSelectionState.Selected
       assertEquals(it.event.title, EventTestData.dummyEvent2.title)
     }
+  }
+
+  @Test
+  fun testChangeLocationBottomBar() {
+    composeTestRule.setContentWithStubBackdrop {
+      MapScreenTestWrapper(uid = uid, viewModel = viewModel, onTabSelected = {})
+    }
+    viewModel.switchMapMode(MapMode.CHANGE_LOCATION)
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.CONFIRM_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
   }
 }
 
