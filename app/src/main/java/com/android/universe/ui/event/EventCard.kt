@@ -29,6 +29,7 @@ object EventCardTestTags {
  *   as parameters.
  * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
  * @param isUserOwner Boolean indicating if the current user is the event owner.
+ * @param showActions to determine if the action bar should be shown on some future events
  */
 @Composable
 fun EventCard(
@@ -37,7 +38,8 @@ fun EventCard(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
     onCardClick: (eventId: String, eventLocation: Location) -> Unit,
     onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    isUserOwner: Boolean
+    isUserOwner: Boolean,
+    showActions: Boolean? = null
 ) {
   LiquidBox(
       shape = CardShape,
@@ -62,7 +64,7 @@ fun EventCard(
             isUserParticipant = event.joined,
             isPrivate = event.isPrivate,
             onToggleEventParticipation = { onToggleEventParticipation(event.id) },
-            showActions = event.hasPassed.not(),
+            showActions = event.hasPassed.not() && showActions != false,
             onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge),
             onEditClick = { onEditButtonClick(event.id, event.location) },
