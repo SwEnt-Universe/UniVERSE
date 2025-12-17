@@ -30,6 +30,7 @@ import com.android.universe.ui.common.validateFirstName
 import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
+import com.android.universe.ui.signIn.SignInMethod
 import com.android.universe.ui.utils.viewModelFactory
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
@@ -151,7 +152,7 @@ class SettingsViewModel(
           val mail = FirebaseAuth.getInstance().currentUser?.email
           if (mail != null) {
             val methods = authModel.fetchSignInMethodsForEmail(mail).signInMethods
-            val enabled = methods?.contains("password") ?: false
+            val enabled = methods?.contains(SignInMethod.EMAIL) ?: false
             _uiState.value = _uiState.value.copy(passwordEnabled = enabled)
           } else _uiState.value = _uiState.value.copy(passwordEnabled = false)
         }

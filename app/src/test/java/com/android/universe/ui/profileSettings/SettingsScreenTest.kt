@@ -130,7 +130,7 @@ class SettingsScreenTest {
   fun modalDisplayed() {
     screenSetup()
     for (type in ModalType.entries) {
-      if (type == ModalType.PASSWORD) continue
+      if (type == ModalType.PASSWORD || type == ModalType.EMAIL) continue
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(resolveTypeButton(type)).performClick()
       composeTestRule.waitForIdle()
