@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,12 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.android.universe.R
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_ITEM_PREFIX
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_LIST_COLUMN
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_NAME
@@ -77,24 +76,18 @@ fun ChatListScreen(
     onChatSelected: (chatID: String, chatName: String) -> Unit,
     vm: ChatListViewModel = viewModel { ChatListViewModel(userID = userID) }
 ) {
-  val chatPreviews by vm.chatPreviews.collectAsState()
+  val uiState by vm.uiState.collectAsState()
   ScreenLayout(
       bottomBar = { NavigationBottomMenu(Tab.Chat, onTabSelected) },
       modifier = Modifier.testTag(NavigationTestTags.CHAT_SCREEN)) { paddingValues ->
-        if (chatPreviews.isNotEmpty()) {
-          LazyColumn(
+        if (uiState.isLoading) {
+          Column(
               horizontalAlignment = CenterHorizontally,
-              modifier =
-                  Modifier.fillMaxSize()
-                      .padding(top = paddingValues.calculateTopPadding())
-                      .testTag(CHAT_LIST_COLUMN),
-          ) {
-            items(items = chatPreviews, key = { it.chatID }) { chatPreview ->
-              ChatPreviewItem(chatPreview, onChatSelected)
-            }
-            item { BottomBarScrollItem(height = paddingValues.calculateBottomPadding()) }
-          }
-        } else {
+              verticalArrangement = Arrangement.Center,
+              modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                CircularProgressIndicator()
+              }
+        } else if (uiState.displayMessage != null) {
           BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val defaultSize = maxHeight * 0.25f
 
@@ -127,13 +120,26 @@ fun ChatListScreen(
                         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
                         Text(
-                            text = stringResource(R.string.chat_empty),
+                            text = uiState.displayMessage!!,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface)
 
                         Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
                       }
                 }
+          }
+        } else {
+          LazyColumn(
+              horizontalAlignment = CenterHorizontally,
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(top = paddingValues.calculateTopPadding())
+                      .testTag(CHAT_LIST_COLUMN),
+          ) {
+            items(items = uiState.chatPreviews, key = { it.chatID }) { chatPreview ->
+              ChatPreviewItem(chatPreview, onChatSelected)
+            }
+            item { BottomBarScrollItem(height = paddingValues.calculateBottomPadding()) }
           }
         }
       }

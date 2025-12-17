@@ -31,6 +31,7 @@ import com.android.universe.ui.common.validateLastName
 import com.android.universe.ui.common.validatePassword
 import com.android.universe.ui.common.validateUsername
 import com.android.universe.ui.utils.viewModelFactory
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import java.time.LocalDate
 import java.time.Period
@@ -145,20 +146,26 @@ class SettingsViewModel(
       _uiState.value = _uiState.value.copy(email = email)
     }
     viewModelScope.launch {
-      if (uiState.value.passwordEnabled == null) {
-        val mail = FirebaseAuth.getInstance().currentUser?.email
-        if (mail != null) {
-          val methods = authModel.fetchSignInMethodsForEmail(mail).signInMethods
-          val enabled = methods?.contains("password") ?: false
-          _uiState.value = _uiState.value.copy(passwordEnabled = enabled)
-        } else _uiState.value = _uiState.value.copy(passwordEnabled = false)
+      try {
+        if (uiState.value.passwordEnabled == null) {
+          val mail = FirebaseAuth.getInstance().currentUser?.email
+          if (mail != null) {
+            val methods = authModel.fetchSignInMethodsForEmail(mail).signInMethods
+            val enabled = methods?.contains("password") ?: false
+            _uiState.value = _uiState.value.copy(passwordEnabled = enabled)
+          } else _uiState.value = _uiState.value.copy(passwordEnabled = false)
+        }
+      } catch (_: FirebaseNetworkException) {
+        _uiState.update { it.copy(errorMsg = "No network connection") }
+      } catch (_: NoSuchElementException) {
+        _uiState.update { it.copy(errorMsg = "No profile found") }
       }
     }
   }
 
   /**
-   * Loads the full [UserProfile] for the given [username] from the repository and populates the
-   * state fields accordingly.
+   * Loads the full [UserProfile] for the given [uid] from the repository and populates the state
+   * fields accordingly.
    *
    * If loading fails, [SettingsUiState.errorMsg] is updated with an error message.
    */
@@ -374,21 +381,14 @@ class SettingsViewModel(
    */
   fun saveProfile(uid: String, onConfirm: () -> Unit = {}) {
     viewModelScope.launch {
+      _uiState.update { it.copy(isLoading = true) }
       val state = _uiState.value
-      val latestProfile: UserProfile? =
-          try {
-            userRepository.getUser(uid)
-          } catch (e: Exception) {
-            // the coroutine didn't finish i'll let it throw for now
-            if (e is CancellationException) throw e
-            null
-          }
-
       // ─── 1. Validation is already done! ────────────────────────────
       // We no longer need the `validateAll` check here.
 
       // ─── 2. Attempt to update the user profile ─────────────────────
       try {
+        val latestProfile: UserProfile = userRepository.getUser(uid)
         val cleanedFirstName = sanitize(state.firstName).toTitleCase()
         val cleanedLastName = sanitize(state.lastName).toTitleCase()
         val cleanedDescription = sanitize(state.description).takeIf { it.isNotBlank() }
@@ -404,8 +404,8 @@ class SettingsViewModel(
                 dateOfBirth = state.date!!,
                 tags = _userTags.value,
                 profilePicture = state.profilePicture,
-                followers = latestProfile?.followers ?: emptySet(),
-                following = latestProfile?.following ?: emptySet())
+                followers = latestProfile.followers,
+                following = latestProfile.following)
 
         userRepository.updateUser(uid, updatedProfile)
 
@@ -424,9 +424,14 @@ class SettingsViewModel(
             _uiState.update { it.copy(errorMsg = "Failed to update password: ${e.message}") }
           }
         }
+
+        _uiState.update { it.copy(isLoading = false) }
         onConfirm()
       } catch (e: Exception) {
-        _uiState.update { it.copy(errorMsg = "Failed to save profile: ${e.message}") }
+        _uiState.update {
+          it.copy(errorMsg = "Failed to save profile: ${e.message}", isLoading = false)
+        }
+        if (e is CancellationException) throw e
       }
     }
   }

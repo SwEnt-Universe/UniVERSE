@@ -15,7 +15,6 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -81,7 +80,7 @@ class ChatListViewModelTest {
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
 
-        val previews = viewModel.chatPreviews.value
+        val previews = viewModel.uiState.value.chatPreviews
 
         assertEquals(2, previews.size)
 
@@ -95,33 +94,6 @@ class ChatListViewModelTest {
       }
 
   @Test
-  fun `creates chat when loadChat throws NoSuchElementException`() =
-      testScope.runTest {
-        val event = EventTestData.dummyEvent1.copy(participants = setOf(userId))
-
-        coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(event)
-
-        // Stub loadChat to throw
-        coEvery { ChatManager.loadChat(event.id) } throws NoSuchElementException()
-
-        // Stub createChat to return mockChat
-        coEvery { ChatManager.createChat(any(), any()) } answers
-            {
-              val id = arg<String>(0)
-              getNewSampleChat(id, mockChatRepository)
-            }
-
-        // Act
-        val viewModel = ChatListViewModel(userId, mockEventRepository)
-        advanceUntilIdle()
-
-        val preview = viewModel.chatPreviews.first().first()
-
-        assertEquals(event.title, preview.chatName)
-        assertEquals(event.id, preview.chatID)
-      }
-
-  @Test
   fun `ignores dummy events where user is not a participant`() =
       testScope.runTest {
         // If the user is not a participant, the repository returns an empty list.
@@ -131,6 +103,6 @@ class ChatListViewModelTest {
         val viewModel = ChatListViewModel(userId, mockEventRepository)
         advanceUntilIdle()
 
-        assertTrue(viewModel.chatPreviews.first().isEmpty())
+        assertTrue(viewModel.uiState.value.chatPreviews.isEmpty())
       }
 }

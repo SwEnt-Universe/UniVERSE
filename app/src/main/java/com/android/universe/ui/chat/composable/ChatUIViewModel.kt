@@ -8,6 +8,7 @@ import com.android.universe.model.chat.ChatManager
 import com.android.universe.model.chat.Message
 import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
+import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -162,8 +163,10 @@ class ChatUIViewModel(
         val name =
             try {
               userRepository.getUser(userID).username
-            } catch (_: IllegalArgumentException) {
+            } catch (_: NoSuchElementException) {
               "deleted"
+            } catch (_: FirebaseFirestoreException) {
+              "..."
             }
 
         _userNameCache[userID] = name

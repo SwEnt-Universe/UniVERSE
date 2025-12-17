@@ -237,8 +237,7 @@ class ChatUIViewModelTest {
       testScope.runTest {
         // Arrange: Stub getUser to throw for this specific ID
         val deletedId = "deleted_user_id"
-        coEvery { mockUserRepository.getUser(deletedId) } throws
-            IllegalArgumentException("Not found")
+        coEvery { mockUserRepository.getUser(deletedId) } throws NoSuchElementException("Not found")
         viewModel = ChatUIViewModel(testChatId, testUserId, mockUserRepository)
 
         // Act 1: Get flow

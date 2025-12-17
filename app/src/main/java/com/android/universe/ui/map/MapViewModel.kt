@@ -34,6 +34,7 @@ import com.android.universe.model.user.UserReactiveRepository
 import com.android.universe.model.user.UserReactiveRepositoryProvider
 import com.android.universe.model.user.UserRepository
 import com.android.universe.ui.search.SearchEngine
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.map.display.MapOptions
@@ -637,9 +638,17 @@ class MapViewModel(
   fun selectEvent(event: Event?) {
     viewModelScope.launch {
       if (event == null) _selectedEvent.emit(EventSelectionState.None)
-      else
-          _selectedEvent.emit(
-              EventSelectionState.Selected(event, userRepository.getUser(event.creator).username))
+      else {
+        val username =
+            try {
+              userRepository.getUser(event.creator).username
+            } catch (_: NoSuchElementException) {
+              "deleted"
+            } catch (_: FirebaseFirestoreException) {
+              "..."
+            }
+        _selectedEvent.emit(EventSelectionState.Selected(event, username))
+      }
     }
   }
 
