@@ -66,6 +66,16 @@ interface EventRepository {
   suspend fun deleteEvent(eventId: String)
 
   /**
+   * Toggles a user's participation in an event.
+   *
+   * If the user is already a participant, they will be removed; if not, they will be added.
+   *
+   * @param eventId the ID of the event.
+   * @param userId the ID of the user.
+   */
+  suspend fun toggleEventParticipation(eventId: String, userId: String)
+
+  /**
    * Persists a list of newly generated AI events and returns the stored results.
    *
    * The method performs the following steps:

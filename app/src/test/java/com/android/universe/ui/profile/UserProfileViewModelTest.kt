@@ -145,4 +145,28 @@ class UserProfileViewModelTest {
     assertEquals("Recent history should be first", recentHistory.id, state.historyEvents[0].id)
     assertEquals("Oldest history should be last", oldHistory.id, state.historyEvents[1].id)
   }
+
+  @Test
+  fun joinOrLeaveEvent_updatesUserEventsCorrectly() = runTest {
+    val user = UserTestData.Alice
+    userRepository.addUser(user)
+    val event =
+        EventTestData.dummyEvent1.copy(
+            id = "event1", date = LocalDateTime.now().plusDays(1), participants = emptySet())
+    eventRepository.addEvent(event)
+    advanceUntilIdle()
+    viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
+    advanceUntilIdle()
+
+    viewModel.joinOrLeaveEvent(event.id)
+    advanceUntilIdle()
+    var state = viewModel.userState.value
+    assertEquals(1, state.incomingEvents.size)
+    assertEquals(event.id, state.incomingEvents[0].id)
+
+    viewModel.joinOrLeaveEvent(event.id)
+    advanceUntilIdle()
+    state = viewModel.userState.value
+    assertEquals(0, state.incomingEvents.size)
+  }
 }

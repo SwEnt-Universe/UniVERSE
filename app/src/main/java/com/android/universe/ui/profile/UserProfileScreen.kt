@@ -61,7 +61,6 @@ import com.android.universe.ui.components.LiquidBox
 import com.android.universe.ui.components.ScreenLayout
 import com.android.universe.ui.event.EventCard
 import com.android.universe.ui.event.EventUIState
-import com.android.universe.ui.event.EventViewModel
 import com.android.universe.ui.navigation.FlowBottomMenu
 import com.android.universe.ui.navigation.FlowTab
 import com.android.universe.ui.navigation.NavigationBottomMenu
@@ -93,7 +92,6 @@ object UserProfileScreenTestTags {
  * @param onChatNavigate Callback invoked when a chat button is clicked.
  * @param onCardClick Callback invoked when a card is clicked.
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
- * @param eventViewModel The ViewModel managing event data (History/Incoming).
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  * @param isCurrentUser if the user is the current user
  * @param onBackClick Callback invoked when the back button is clicked
@@ -107,7 +105,6 @@ fun UserProfileScreen(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
-    eventViewModel: EventViewModel = viewModel(),
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
     isCurrentUser: Boolean = true,
     onBackClick: () -> Unit = {}
@@ -119,7 +116,6 @@ fun UserProfileScreen(
   val pagerState = rememberPagerState(pageCount = { 2 })
   val historyListState = rememberLazyListState()
   val incomingListState = rememberLazyListState()
-  eventViewModel.storedUid = uid
 
   val lifecycleOwner = LocalLifecycleOwner.current
   DisposableEffect(lifecycleOwner) {
@@ -202,15 +198,16 @@ fun UserProfileScreen(
             Box(modifier = Modifier.fillMaxSize().padding(top = topPadding).clipToBounds()) {
               Box(modifier = Modifier.fillMaxSize()) {
                 ProfileContentPager(
+                    uid = uid,
                     pagerState = pagerState,
                     historyListState = historyListState,
                     incomingListState = incomingListState,
                     historyEvents = userUIState.historyEvents,
                     incomingEvents = userUIState.incomingEvents,
-                    eventViewModel = eventViewModel,
                     spacerHeightDp = profileContentHeightDp + elementSpacingDp,
                     clipPaddingDp = tabRowHeightDp,
                     listBottomPadding = bottomPadding,
+                    onToggleEventParticipation = userProfileViewModel::joinOrLeaveEvent,
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
                     onEditButtonClick = onEditButtonClick,
@@ -288,12 +285,12 @@ private fun ScrollSyncEffect(
  * This composable determines which list state and data source to use based on the current page
  * index and delegates the rendering to [ProfileEventList].
  *
+ * @param uid The unique identifier of the user.
  * @param pagerState The state object for the [HorizontalPager].
  * @param historyListState The scroll state for the History list.
  * @param incomingListState The scroll state for the Incoming list.
  * @param historyEvents The list of past events.
  * @param incomingEvents The list of upcoming events.
- * @param eventViewModel The view model used by event cards.
  * @param spacerHeightDp The height of the transparent spacer at the top of the list (Profile
  *   Height + Gap).
  * @param clipPaddingDp The top padding applied to the list container to clip content behind the
@@ -301,20 +298,22 @@ private fun ScrollSyncEffect(
  *     @param listBottomPadding The bottom padding applied to the list content.
  *     @param onChatNavigate Callback invoked when a chat button is clicked.
  *     @param onCardClick Callback invoked when a card is clicked.
+ * @param onToggleEventParticipation Callback invoked when the user taps Leave on an event.
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  * @param isCurrentUser Flag indicating if the current firebase user is viewing the profile.
  */
 @Composable
 fun ProfileContentPager(
+    uid: String,
     pagerState: PagerState,
     historyListState: LazyListState,
     incomingListState: LazyListState,
     historyEvents: List<EventUIState>,
     incomingEvents: List<EventUIState>,
-    eventViewModel: EventViewModel,
     spacerHeightDp: Dp,
     clipPaddingDp: Dp,
     listBottomPadding: Dp,
+    onToggleEventParticipation: (eventId: String) -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
@@ -330,12 +329,13 @@ fun ProfileContentPager(
             if (isHistoryPage) historyEvents else (if (isCurrentUser) incomingEvents else listOf())
 
         ProfileEventList(
+            uid = uid,
             listState = listState,
             events = events,
-            eventViewModel = eventViewModel,
             headerSpacerHeight = spacerHeightDp,
             topClipPadding = clipPaddingDp,
             bottomContentPadding = listBottomPadding,
+            onToggleEventParticipation = onToggleEventParticipation,
             onChatNavigate = onChatNavigate,
             onCardClick = onCardClick,
             onEditButtonClick = onEditButtonClick)
@@ -345,24 +345,26 @@ fun ProfileContentPager(
 /**
  * Renders a specific list of events (e.g., History or Incoming) within a [LazyColumn].
  *
+ * @param uid The unique identifier of the user.
  * @param listState The scroll state for this specific list.
  * @param events The list of [Event] objects to display.
- * @param eventViewModel The view model for event interactions.
  * @param headerSpacerHeight The height of the invisible spacer (Index 0).
  * @param topClipPadding The top padding used to clip the scrolling content.$
  * @param bottomContentPadding The bottom padding to apply to the list content.
+ * @param onToggleEventParticipation Callback invoked when the user taps Leave on an event.
  * @param onChatNavigate Callback invoked when a chat button is clicked.
  * @param onCardClick Callback invoked when a card is clicked.
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  */
 @Composable
 fun ProfileEventList(
+    uid: String,
     listState: LazyListState,
     events: List<EventUIState>,
-    eventViewModel: EventViewModel,
     headerSpacerHeight: Dp,
     topClipPadding: Dp,
     bottomContentPadding: Dp,
+    onToggleEventParticipation: (eventId: String) -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
@@ -427,10 +429,11 @@ fun ProfileEventList(
                       horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
                 EventCard(
                     event = eventUIState,
+                    onToggleEventParticipation = onToggleEventParticipation,
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
-                    viewModel = eventViewModel,
-                    onEditButtonClick = onEditButtonClick)
+                    onEditButtonClick = onEditButtonClick,
+                    isUserOwner = eventUIState.creatorId == uid)
               }
         }
         // Ensures the list is tall enough to scroll the header away.

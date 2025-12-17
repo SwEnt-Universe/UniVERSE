@@ -167,7 +167,7 @@ class EventViewModelTest {
     val initialParticipants = first.participants
     assertEquals(true, first.joined)
 
-    viewModel.joinOrLeaveEvent(first.index)
+    viewModel.joinOrLeaveEvent(first.id)
     advanceUntilIdle()
 
     val updated = viewModel.eventsState.value[first.index]
