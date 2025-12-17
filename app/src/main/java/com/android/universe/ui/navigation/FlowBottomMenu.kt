@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.Refresh
@@ -33,6 +34,7 @@ object FlowBottomMenuTestTags {
   const val MENU = "FlowBottomMenu"
   const val BACK_BUTTON = "BtnBack"
   const val CONFIRM_BUTTON = "BtnConfirm"
+  const val DELETE_BUTTON = "BtnDelete"
   const val REJECT_BUTTON = "BtnReject"
   const val EDIT_BUTTON = "BtnEdit"
   const val GOOGLE_BUTTON = "BtnGoogle"
@@ -112,6 +114,26 @@ sealed class FlowTab(
               else {
                 {}
               })
+
+  /**
+   * Represents the "Delete" action tab. This tab displays a delete icon. It's typically used to
+   * delete an element like an event.
+   *
+   * @param onClick The lambda function to be executed when the delete tab is clicked.
+   * @param testTag A unique string used to identify the tab in UI tests.
+   */
+  class Delete(onClick: () -> Unit, testTag: String = FlowBottomMenuTestTags.DELETE_BUTTON) :
+      FlowTab(
+          icon = {
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = "Delete",
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint = MaterialTheme.colorScheme.primary)
+          },
+          label = "Delete",
+          testTag = testTag,
+          onClick = onClick)
 
   class Reject(onClick: () -> Unit) :
       FlowTab(

@@ -29,7 +29,22 @@ interface EventTemporaryRepository {
       eventPicture: ByteArray?
   )
 
+  /**
+   * Update the current stocked event.
+   *
+   * @param event The event to update.
+   */
   suspend fun updateEventAsObject(event: Event)
+
+  /**
+   * Update only the location of the stocked event.
+   *
+   * @param location The new location.
+   */
+  suspend fun updateLocation(location: Location)
+
+  /** Check if the location of the stocked event is null. */
+  suspend fun isLocationNull(): Boolean
 
   /** Return the current stocked event. */
   suspend fun getEvent(): Event

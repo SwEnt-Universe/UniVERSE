@@ -60,4 +60,7 @@ sealed class NavigationScreens(
 
   object SelectTagUserSettings :
       NavigationScreens(route = "selectTagUserSettings", name = "Select Tag user settings")
+
+  object MapChangeLocation :
+      NavigationScreens(route = "mapChangeLocation", name = "Map Change Location")
 }

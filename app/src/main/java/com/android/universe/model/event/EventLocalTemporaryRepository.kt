@@ -44,7 +44,11 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
             eventPicture = eventPicture)
   }
 
-  /** Accepts an event object. */
+  /**
+   * Update the current stocked event.
+   *
+   * @param event The event to update.
+   */
   override suspend fun updateEventAsObject(event: Event) {
     updateEvent(
         id = event.id,
@@ -56,6 +60,31 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
         location = event.location,
         isPrivate = event.isPrivate,
         eventPicture = event.eventPicture)
+  }
+
+  /**
+   * Update only the location of the stocked event.
+   *
+   * @param location The new location.
+   */
+  override suspend fun updateLocation(location: Location) {
+    stockedEvent =
+        Event(
+            id = "",
+            title = "",
+            description = null,
+            date = LocalDateTime.now(),
+            tags = emptySet(),
+            creator = "",
+            participants = emptySet(),
+            location = location,
+            isPrivate = false,
+            eventPicture = null)
+  }
+
+  /** Check if the location of the stocked event is null. */
+  override suspend fun isLocationNull(): Boolean {
+    return stockedEvent?.location == null
   }
 
   /** Return the current stocked event. */

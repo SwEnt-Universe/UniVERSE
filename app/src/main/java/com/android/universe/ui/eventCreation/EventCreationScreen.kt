@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
+import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.BottomSheetDefaults
@@ -83,6 +84,7 @@ object EventCreationTestTags {
   const val AI_REVIEW_DESCRIPTION_FIELD = "AiReviewDescriptionField"
   const val PRIVACY_TOGGLE = "PrivacyToggle"
   const val PRIVACY_SWITCH = "PrivacySwitch"
+  const val SET_LOCATION_BUTTON = "SetLocationButton"
 }
 
 object EventCreationDefaults {
@@ -106,6 +108,8 @@ object EventCreationDefaults {
  * @param onSave callback triggered when the user successfully saves the event.
  * @param onSaveEdition callback triggered when the user successfully edits the event.
  * @param onBack callback triggered when the user clicks the back button.
+ * @param onSelectLocation callback triggered when the user clicks the location button to set the
+ *   event's location.
  */
 @Composable
 fun EventCreationScreen(
@@ -115,7 +119,8 @@ fun EventCreationScreen(
     location: Location,
     onSave: () -> Unit = {},
     onSaveEdition: (uid: String) -> Unit = { _ -> },
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onSelectLocation: () -> Unit = {}
 ) {
   val uiState = eventCreationViewModel.uiStateEventCreation.collectAsState()
 
@@ -153,7 +158,8 @@ fun EventCreationScreen(
         location = location,
         onSave = onSave,
         onSaveEdition = onSaveEdition,
-        onBack = onBack)
+        onBack = onBack,
+        onSelectLocation = onSelectLocation)
   }
 }
 
@@ -171,6 +177,8 @@ fun EventCreationScreen(
  * @param onSave Callback triggered when the event is successfully saved.
  * @param onSaveEdition Callback triggered when the event is successfully edited.
  * @param onBack Callback to return to the previous screen.
+ * @param onSelectLocation callback triggered when the user clicks the location button to set the
+ *   event's location.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,7 +189,8 @@ fun StandardEventCreationForm(
     location: Location,
     onSave: () -> Unit,
     onSaveEdition: (uid: String) -> Unit = { _ -> },
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSelectLocation: () -> Unit
 ) {
   val eventImage = uiState.eventPicture
   val dateText = if (uiState.date == null) "" else eventCreationViewModel.formatDate(uiState.date)
@@ -189,10 +198,10 @@ fun StandardEventCreationForm(
   val focusManager = LocalFocusManager.current
 
   val flowTabBack = FlowTab.Back(onClick = { onBack() })
+  val currentUser = FirebaseAuth.getInstance().currentUser?.uid
   val flowTabContinue =
       FlowTab.Confirm(
           onClick = {
-            val currentUser = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUser != null) {
               eventCreationViewModel.saveEvent(
                   uidUser = currentUser, uidEvent = uidEvent, location = location)
@@ -204,10 +213,23 @@ fun StandardEventCreationForm(
             }
           },
           enabled = eventCreationViewModel.validateAll())
+  val flowTabDelete =
+      uidEvent?.let { id ->
+        FlowTab.Delete(
+            onClick = {
+              eventCreationViewModel.deleteEvent(id)
+              onBack()
+            })
+      }
 
-  LaunchedEffect(uidEvent) { eventCreationViewModel.loadUid(uidEvent) }
+  LaunchedEffect(Unit) { eventCreationViewModel.init(uidEvent) }
   ScreenLayout(
-      bottomBar = { FlowBottomMenu(flowTabs = listOf(flowTabBack, flowTabContinue)) },
+      bottomBar = {
+        FlowBottomMenu(
+            flowTabs =
+                listOfNotNull(
+                    flowTabBack, flowTabDelete.takeIf { uidEvent != null }, flowTabContinue))
+      },
       content = { paddingValues ->
         Column(
             modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
@@ -265,6 +287,29 @@ fun StandardEventCreationForm(
                                       tint = MaterialTheme.colorScheme.onSurface,
                                       modifier = Modifier.size(EventCreationDefaults.locIconSize))
                                 }
+                            if (uidEvent != null) {
+                              LiquidButton(
+                                  onClick = {
+                                    onSelectLocation()
+                                    if (currentUser != null) {
+                                      eventCreationViewModel.saveEvent(
+                                          uidUser = currentUser,
+                                          uidEvent = uidEvent,
+                                          location = location)
+                                    }
+                                  },
+                                  height = EventCreationDefaults.SET_LOCATION_BUTTON_HEIGHT,
+                                  width = EventCreationDefaults.SET_LOCATION_BUTTON_WIDTH,
+                                  contentPadding = Dimensions.PaddingSmall,
+                                  modifier =
+                                      Modifier.testTag(EventCreationTestTags.SET_LOCATION_BUTTON)) {
+                                    Icon(
+                                        imageVector = Icons.Default.AddLocationAlt,
+                                        contentDescription = "Set location",
+                                        tint = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier.size(EventCreationDefaults.locIconSize))
+                                  }
+                            }
                           }
 
                       Spacer(modifier = Modifier.height(Dimensions.PaddingMedium))

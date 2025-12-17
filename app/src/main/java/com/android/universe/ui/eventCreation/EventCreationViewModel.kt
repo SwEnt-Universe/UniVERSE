@@ -167,6 +167,23 @@ class EventCreationViewModel(
     private val gemini: GeminiEventAssistant = GeminiEventAssistant()
 ) : ViewModel() {
 
+  private var isInitialized = false
+
+  /**
+   * Initializes the parameters of the event with the given event UID depending on whether we are in
+   * creation or edition mode.
+   *
+   * @param uidEvent The unique identifier of the event to edit, or null if creating a new event.
+   */
+  fun init(uidEvent: String?) {
+    if (isInitialized) return
+    isInitialized = true
+
+    if (uidEvent != null) {
+      loadUid(uidEvent)
+    }
+  }
+
   companion object {
     const val MISSING_DATE_TEXT = "Please select a date"
 
@@ -341,9 +358,9 @@ class EventCreationViewModel(
   }
 
   /**
-   * Format the date to a string.
+   * Format the time to a string.
    *
-   * @param date the date to format.
+   * @param time the time to format.
    */
   fun formatTime(time: LocalTime?): String {
     return if (time == null) "Select time" else time.format(timeFormatter)
@@ -366,6 +383,13 @@ class EventCreationViewModel(
 
           val eventDateTime = LocalDateTime.of(internalDate, internalTime)
 
+          val locationEvent =
+              if (eventTemporaryRepository.isLocationNull()) {
+                location
+              } else {
+                eventTemporaryRepository.getEvent().location
+              }
+
           eventTemporaryRepository.updateEvent(
               id = id,
               title = eventCreationUiState.value.name,
@@ -373,12 +397,27 @@ class EventCreationViewModel(
               dateTime = eventDateTime,
               creator = uidUser,
               participants = setOf(uidUser),
-              location = location,
+              location = locationEvent,
               isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {
           Log.e("EventCreationViewModel", "Error saving event: ${e.message}")
         }
+      }
+    }
+  }
+
+  /**
+   * Deletes an event from the repository based on its unique identifier.
+   *
+   * @param uidEvent The unique identifier of the event to be deleted.
+   */
+  fun deleteEvent(uidEvent: String) {
+    viewModelScope.launch(DefaultDP.io) {
+      try {
+        eventRepository.deleteEvent(uidEvent)
+      } catch (e: Exception) {
+        Log.e("EventCreationViewModel", "Error deleting event: ${e.message}")
       }
     }
   }
