@@ -241,11 +241,6 @@ fun SettingsScreen(
                                   color = MaterialTheme.colorScheme.error)
                             }
                           }
-                      FieldModifier(
-                          leadingIcon = Icons.Default.LocationOn,
-                          title = FieldTitles.LOCATION,
-                          endText = "TBD",
-                          trailingIcon = Icons.Default.Edit) // TODO location
 
                       FieldModifier(
                           modifier = Modifier.testTag(SettingsTestTags.TAG_TEXT),
