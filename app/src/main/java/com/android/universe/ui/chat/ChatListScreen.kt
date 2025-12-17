@@ -1,6 +1,5 @@
 package com.android.universe.ui.chat
 
-import android.R.attr.maxHeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
