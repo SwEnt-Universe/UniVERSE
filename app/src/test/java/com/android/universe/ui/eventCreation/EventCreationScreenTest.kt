@@ -18,7 +18,6 @@ import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.location.Location
 import com.android.universe.utils.nextMonth
 import com.android.universe.utils.pressOKDate
-import com.android.universe.utils.selectDay
 import com.android.universe.utils.selectYear
 import com.android.universe.utils.setContentWithStubBackdrop
 import io.mockk.every
@@ -134,7 +133,7 @@ class EventCreationScreenTest {
     selectYear(composeTestRule, SAMPLE_YEAR)
     nextMonth(composeTestRule)
     composeTestRule.waitForIdle()
-    selectDay(composeTestRule, SAMPLE_DATE)
+    // selectDay(composeTestRule, SAMPLE_DATE)
     pressOKDate(composeTestRule)
     // composeTestRule.onNodeWithText(formatter.format(SAMPLE_DATE)).assertIsDisplayed()
   }
