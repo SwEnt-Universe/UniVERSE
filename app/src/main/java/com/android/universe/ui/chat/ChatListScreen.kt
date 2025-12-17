@@ -127,7 +127,7 @@ fun ChatListScreen(
                         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
                         Text(
-														text = stringResource(R.string.chat_empty),
+                            text = stringResource(R.string.chat_empty),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface)
 

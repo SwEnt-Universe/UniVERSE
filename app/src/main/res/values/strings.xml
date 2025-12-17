@@ -17,6 +17,9 @@
     <string name="map_create_event_ai_button">Create Event With AI</string>
     <string name="map_create_event_manual_button">Create Event Yourself</string>
     <string name="map_create_event_select_location">Click the map to set event location</string>
+    <string name="event_private">Private Event (followers only)</string>
+    <string name="event_ai_assist">AI Assist</string>
+    <string name="event_review_refine">Review &amp; Refine</string>
 
     <!-- Chat -->
     <string name="chat_empty">Join some events to start chatting with others</string>

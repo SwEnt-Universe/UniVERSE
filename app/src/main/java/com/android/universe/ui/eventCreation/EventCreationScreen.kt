@@ -44,11 +44,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.model.ai.gemini.EventProposal
 import com.android.universe.model.location.Location
 import com.android.universe.ui.common.UniversalDatePickerDialog
@@ -371,7 +373,7 @@ fun StandardEventCreationForm(
                           verticalAlignment = Alignment.CenterVertically,
                           horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(
-                                text = "Private Event (followers only)",
+                                text = stringResource(R.string.event_private),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onBackground)
 
@@ -471,7 +473,7 @@ fun AiPromptBox(
               tint = MaterialTheme.colorScheme.onSurface)
           Spacer(modifier = Modifier.width(Dimensions.PaddingMedium))
           Text(
-              text = "AI Assist",
+              text = stringResource(R.string.event_ai_assist),
               style = MaterialTheme.typography.titleLarge,
               color = MaterialTheme.colorScheme.onSurface)
         }
@@ -550,7 +552,7 @@ fun AiReviewBox(
         Column(modifier = Modifier.fillMaxWidth()) {
           Row(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Review & Refine",
+                text = stringResource(R.string.event_review_refine),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface)
           }
