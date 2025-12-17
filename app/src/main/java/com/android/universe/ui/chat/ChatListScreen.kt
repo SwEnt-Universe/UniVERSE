@@ -1,6 +1,5 @@
 package com.android.universe.ui.chat
 
-import android.R.attr.maxHeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,10 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_ITEM_PREFIX
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_LIST_COLUMN
 import com.android.universe.ui.chat.ChatListScreenTestTags.CHAT_NAME
@@ -126,7 +127,7 @@ fun ChatListScreen(
                         Spacer(modifier = Modifier.height(Dimensions.SpacerLarge))
 
                         Text(
-                            text = "Join an event to start chatting!",
+                            text = stringResource(R.string.chat_empty),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface)
 

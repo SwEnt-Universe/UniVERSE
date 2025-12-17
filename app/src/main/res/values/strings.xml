@@ -1,4 +1,55 @@
 <resources>
+    <!-- Common -->
     <string name="app_name">UniVERSE</string>
     <string name="title_activity_main">MainActivity</string>
+
+    <!-- SignInScreen -->
+    <string name="login_header">UniVERSE</string>
+    <string name="login_body">Your campus social life on one map</string>
+    <string name="login_button">Join UniVERSE</string>
+    <string name="login_input_email_title">Sign in with email</string>
+    <string name="login_input_password_title">Enter your password</string>
+    <string name="login_select_auth_title">Select authentication method</string>
+    <string name="login_google_title">Sign in with Google</string>
+
+    <!-- Event Creation -->
+    <string name="map_create_event_title">Choose how to create your event</string>
+    <string name="map_create_event_ai_button">Create Event With AI</string>
+    <string name="map_create_event_manual_button">Create Event Yourself</string>
+    <string name="map_create_event_select_location">Click the map to set event location</string>
+    <string name="event_private">Private Event (followers only)</string>
+    <string name="event_ai_assist">AI Assist</string>
+    <string name="event_review_refine">Review &amp; Refine</string>
+
+    <!-- Chat -->
+    <string name="chat_empty">Join some events to start chatting with others</string>
+
+    <!-- Email Verification -->
+    <string name="email_title">Account Verification</string>
+    <string name="email_prefix_success">Please verify the email using the link sent to&#160;</string>
+    <string name="email_prefix_error">Could not send a verification link to&#160;</string>
+    <string name="email_instructions_error">Verify the email address, your internet connection and try again</string>
+    <string name="email_verification_countdown_prefix">Didn\'t receive the email? Check your spam folder or resend a link in&#160;</string>
+    <string name="email_verification_countdown_suffix">&#160;second(s)</string>
+
+    <!-- Tag / USER -->
+    <string name="tag_user_music">Select the music you love</string>
+    <string name="tag_user_sport">Choose the sports you\'re into</string>
+    <string name="tag_user_food">Select food and drink you enjoy</string>
+    <string name="tag_user_art">Pick the types of art you connect with</string>
+    <string name="tag_user_travel">Choose the travel styles you’re interested in</string>
+    <string name="tag_user_games">Select the games you like to play</string>
+    <string name="tag_user_technology">Choose tech topics you’re interested in</string>
+    <string name="tag_user_topic">Pick the subjects that interest you</string>
+
+    <!-- Tag / EVENT -->
+    <string name="tag_event_music">Select music genres for this event</string>
+    <string name="tag_event_sport">Choose the sports related to this event</string>
+    <string name="tag_event_food">Select the food and drink featured at this event</string>
+    <string name="tag_event_art">Pick the art forms explored at this event</string>
+    <string name="tag_event_travel">Choose the travelling style of this event</string>
+    <string name="tag_event_games">Select the games played at this event</string>
+    <string name="tag_event_technology">Choose the tech topics this event is about</string>
+    <string name="tag_event_topic">Pick the subjects this event is about</string>
+
 </resources>

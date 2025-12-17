@@ -15,7 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
@@ -30,12 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.universe.R
 import com.android.universe.model.event.EventRepositoryProvider
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
 import com.android.universe.model.location.Location
@@ -222,7 +226,7 @@ fun MapScreen(
         MapBox(uiState = uiState) {
           BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val screenHeight = maxHeight
-            val topOffset = screenHeight * 0.05f
+            val topOffset = screenHeight * 0.06f
 
             TagRow(
                 categoryList,
@@ -297,17 +301,15 @@ fun MapScreen(
 
         if (uiState.mapMode == MapMode.SELECT_LOCATION) {
           LiquidBox(
-              shape =
-                  (RoundedCornerShape(
-                      topStart = 0.dp, topEnd = 0.dp, bottomStart = 16.dp, bottomEnd = 16.dp)),
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .height(132.dp)
-                      .testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {
+              shape = (RoundedCornerShape(0.dp)),
+              modifier = Modifier.fillMaxWidth().testTag(MapScreenTestTags.SELECT_LOCATION_TEXT)) {
                 Text(
-                    "Select your location",
-                    modifier = Modifier.fillMaxWidth().align(Alignment.Center),
-                    fontSize = 32.sp,
+                    text = stringResource(R.string.map_create_event_select_location),
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .padding(top = 60.dp, bottom = Dimensions.PaddingLarge),
+                    style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface)
               }
@@ -349,11 +351,10 @@ private fun AddEventButton(onClick: () -> Unit, boxScope: BoxScope, padding: Pad
               height = 56f,
               width = 56f,
               modifier = Modifier.testTag(MapScreenTestTags.CREATE_EVENT_BUTTON)) {
-                Text(
-                    text = "+",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.displayMedium,
-                    textAlign = TextAlign.Center)
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface)
               }
         }
   }
