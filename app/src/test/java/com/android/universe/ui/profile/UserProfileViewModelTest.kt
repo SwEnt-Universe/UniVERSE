@@ -168,7 +168,7 @@ class UserProfileViewModelTest {
             id = "event1", date = LocalDateTime.now().plusDays(1), participants = emptySet())
     eventRepository.addEvent(event)
     advanceUntilIdle()
-    viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
+    viewModel = UserProfileViewModel(user.uid, "", userRepository, eventRepository)
     advanceUntilIdle()
 
     viewModel.joinOrLeaveEvent(event.id)

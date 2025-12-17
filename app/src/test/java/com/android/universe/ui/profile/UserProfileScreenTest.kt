@@ -184,7 +184,6 @@ class UserProfileScreenTest {
                 UserProfileViewModel(
                     testUser.uid, UserTestData.Bob.uid, fakeUserRepository, fakeEventRepository)
               },
-          eventViewModel = eventViewModel,
           isCurrentUser = false,
           onBackClick = {},
           observerUid = UserTestData.Bob.uid)
