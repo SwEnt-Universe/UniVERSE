@@ -204,10 +204,10 @@ fun UserProfileScreen(
                     incomingListState = incomingListState,
                     historyEvents = userUIState.historyEvents,
                     incomingEvents = userUIState.incomingEvents,
-                    userProfileViewModel = userProfileViewModel,
                     spacerHeightDp = profileContentHeightDp + elementSpacingDp,
                     clipPaddingDp = tabRowHeightDp,
                     listBottomPadding = bottomPadding,
+                    onToggleEventParticipation = userProfileViewModel::joinOrLeaveEvent,
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
                     onEditButtonClick = onEditButtonClick,
@@ -291,7 +291,6 @@ private fun ScrollSyncEffect(
  * @param incomingListState The scroll state for the Incoming list.
  * @param historyEvents The list of past events.
  * @param incomingEvents The list of upcoming events.
- * @param userProfileViewModel The ViewModel managing event data for this screen.
  * @param spacerHeightDp The height of the transparent spacer at the top of the list (Profile
  *   Height + Gap).
  * @param clipPaddingDp The top padding applied to the list container to clip content behind the
@@ -299,6 +298,7 @@ private fun ScrollSyncEffect(
  *     @param listBottomPadding The bottom padding applied to the list content.
  *     @param onChatNavigate Callback invoked when a chat button is clicked.
  *     @param onCardClick Callback invoked when a card is clicked.
+ * @param onToggleEventParticipation Callback invoked when the user taps Leave on an event.
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
  * @param isCurrentUser Flag indicating if the current firebase user is viewing the profile.
  */
@@ -310,10 +310,10 @@ fun ProfileContentPager(
     incomingListState: LazyListState,
     historyEvents: List<EventUIState>,
     incomingEvents: List<EventUIState>,
-    userProfileViewModel: UserProfileViewModel,
     spacerHeightDp: Dp,
     clipPaddingDp: Dp,
     listBottomPadding: Dp,
+    onToggleEventParticipation: (eventId: String) -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
@@ -332,10 +332,10 @@ fun ProfileContentPager(
             uid = uid,
             listState = listState,
             events = events,
-            userProfileViewModel = userProfileViewModel,
             headerSpacerHeight = spacerHeightDp,
             topClipPadding = clipPaddingDp,
             bottomContentPadding = listBottomPadding,
+            onToggleEventParticipation = onToggleEventParticipation,
             onChatNavigate = onChatNavigate,
             onCardClick = onCardClick,
             onEditButtonClick = onEditButtonClick)
@@ -348,10 +348,10 @@ fun ProfileContentPager(
  * @param uid The unique identifier of the user.
  * @param listState The scroll state for this specific list.
  * @param events The list of [Event] objects to display.
- * @param userProfileViewModel The view model used to manage interactions.
  * @param headerSpacerHeight The height of the invisible spacer (Index 0).
  * @param topClipPadding The top padding used to clip the scrolling content.$
  * @param bottomContentPadding The bottom padding to apply to the list content.
+ * @param onToggleEventParticipation Callback invoked when the user taps Leave on an event.
  * @param onChatNavigate Callback invoked when a chat button is clicked.
  * @param onCardClick Callback invoked when a card is clicked.
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
@@ -361,10 +361,10 @@ fun ProfileEventList(
     uid: String,
     listState: LazyListState,
     events: List<EventUIState>,
-    userProfileViewModel: UserProfileViewModel,
     headerSpacerHeight: Dp,
     topClipPadding: Dp,
     bottomContentPadding: Dp,
+    onToggleEventParticipation: (eventId: String) -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
@@ -429,7 +429,7 @@ fun ProfileEventList(
                       horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
                 EventCard(
                     event = eventUIState,
-                    onToggleEventParticipation = userProfileViewModel::joinOrLeaveEvent,
+                    onToggleEventParticipation = onToggleEventParticipation,
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
                     onEditButtonClick = onEditButtonClick,
