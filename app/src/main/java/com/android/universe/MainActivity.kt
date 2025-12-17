@@ -377,6 +377,13 @@ fun UniverseApp(
                           .replace("{eventId}", eventId)
                           .replace("{$LATITUDE}", eventLocation.latitude.toFloat().toString())
                           .replace("{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
+                },
+                onEditButtonClick = { uid, location ->
+                  navController.navigate(
+                      NavigationScreens.EventEdition.route
+                          .replace("{$UID}", uid)
+                          .replace("{$LATITUDE}", location.latitude.toFloat().toString())
+                          .replace("{$LONGITUDE}", location.longitude.toFloat().toString()))
                 })
           }
         }
@@ -409,8 +416,22 @@ fun UniverseApp(
                 SearchProfileScreen(
                     uid = authInstance.currentUser!!.uid,
                     onTabSelected = onTabSelected,
-                    onCardClick = {})
+                    onCardClick = { cat -> navController.navigate("otherProfile/$cat") })
               }
+
+              composable(
+                  route = NavigationScreens.OtherProfile.route,
+                  arguments = listOf(navArgument(UID) { type = NavType.StringType })) {
+                      backStackEntry ->
+                    val uid = backStackEntry.arguments?.getString(UID) ?: "0"
+                    UserProfileScreen(
+                        uid = uid,
+                        isCurrentUser = false,
+                        onBackClick = {
+                          navController.popBackStack(
+                              route = NavigationScreens.SearchProfile.route, inclusive = false)
+                        })
+                  }
             }
 
         navigation(
@@ -481,7 +502,7 @@ fun UniverseApp(
                         uid = uid,
                         navigateOnSave = {
                           navController.popBackStack(
-                              route = NavigationScreens.Map.route, inclusive = false)
+                              route = NavigationScreens.EventEdition.route, inclusive = true)
                         },
                         onBack = { navigationActions.goBack() })
                   }

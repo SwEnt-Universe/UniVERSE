@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
  * @property index The index of the event in the list.
  * @property joined Whether the current user has joined the event.
  * @param eventPicture The picture of the event.
+ * @property hasPassed Whether the event date has already passed.
  */
 data class EventUIState(
     val id: String = "",
@@ -57,7 +58,8 @@ data class EventUIState(
     val isPrivate: Boolean = false,
     val index: Int = 0,
     val joined: Boolean = false,
-    val eventPicture: ByteArray? = null
+    val eventPicture: ByteArray? = null,
+    val hasPassed: Boolean = date.isBefore(LocalDateTime.now())
 )
 
 data class UiState(val errormsg: String? = null)
@@ -186,7 +188,11 @@ class EventViewModel(
             emptySet()
           }
 
-      val events = eventRepository.getAllEvents(storedUid, following)
+      val now = LocalDateTime.now()
+      val events =
+          eventRepository.getAllEvents(storedUid, following).filter { event ->
+            event.date.isAfter(now) || event.date.isEqual(now)
+          }
       localList = events
 
       if (userReactiveRepository != null) {

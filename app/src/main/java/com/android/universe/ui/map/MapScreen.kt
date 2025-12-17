@@ -274,6 +274,7 @@ fun MapScreen(
                   isUserParticipant = viewModel.isUserParticipant(selection.event),
                   onEditButtonClick = {
                     onEditButtonClick(selection.event.id, selection.event.location)
+                    viewModel.selectEvent(null)
                   },
                   onToggleEventParticipation = {
                     viewModel.toggleEventParticipation(selection.event)

@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTimeFilled
@@ -43,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -181,6 +184,7 @@ fun StandardEventCreationForm(
   val eventImage = uiState.eventPicture
   val dateText = if (uiState.date == null) "" else eventCreationViewModel.formatDate(uiState.date)
   val showDate = remember { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
 
   val flowTabBack = FlowTab.Back(onClick = { onBack() })
   val flowTabContinue =
@@ -275,6 +279,8 @@ fun StandardEventCreationForm(
                                 state = OnboardingState.ENTER_EVENT_TITLE, true)
                           },
                           maxLines = 2,
+                          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                          keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                           validationState =
                               if (uiState.onboardingState[OnboardingState.ENTER_EVENT_TITLE] ==
                                   true) {

@@ -42,7 +42,7 @@ fun EventCard(
       modifier =
           Modifier.padding(Dimensions.PaddingMedium)
               .testTag("${EventCardTestTags.EVENT_CARD}_${event.index}")
-              .clickable { onCardClick(event.id, event.location) }) {
+              .clickable(enabled = !event.hasPassed) { onCardClick(event.id, event.location) }) {
         EventContentLayout(
             eventId = event.index.toString(),
             title = event.title,
@@ -60,6 +60,7 @@ fun EventCard(
             isUserParticipant = event.joined,
             isPrivate = event.isPrivate,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
+            showActions = event.hasPassed.not(),
             onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge),
             onEditClick = { onEditButtonClick(event.id, event.location) },
