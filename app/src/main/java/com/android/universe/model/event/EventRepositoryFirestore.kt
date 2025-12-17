@@ -316,6 +316,40 @@ class EventRepositoryFirestore(
   }
 
   /**
+   * Toggles a user's participation in an event.
+   *
+   * If the user is already a participant, they will be removed; if not, they will be added.
+   *
+   * @param eventId the ID of the event.
+   * @param userId the ID of the user.
+   * @throws NoSuchElementException if no event with the given [eventId] exists.
+   */
+  override suspend fun toggleEventParticipation(eventId: String, userId: String) {
+    val event =
+        withContext(ioDispatcher) {
+          db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+        }
+    if (event.exists()) {
+      val currentEvent = documentToEvent(event)
+      val updatedParticipants =
+          if (currentEvent.participants.contains(userId)) {
+            currentEvent.participants - userId
+          } else {
+            currentEvent.participants + userId
+          }
+      val updatedEvent = currentEvent.copy(participants = updatedParticipants)
+      withContext(ioDispatcher) {
+        db.collection(EVENTS_COLLECTION_PATH)
+            .document(eventId)
+            .set(eventToMap(updatedEvent))
+            .await()
+      }
+    } else {
+      throw NoSuchElementException("No event with ID $eventId found")
+    }
+  }
+
+  /**
    * Persists a list of newly generated AI events and returns the stored results.
    *
    * The method performs the following steps:

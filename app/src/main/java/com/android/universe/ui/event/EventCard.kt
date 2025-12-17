@@ -21,22 +21,24 @@ object EventCardTestTags {
  * Composable function that displays an event card with event details inside a styled LiquidBox.
  *
  * @param event The [EventUIState] object containing event details to be displayed.
- * @param viewModel The [EventViewModel] used to handle user interactions such as joining or leaving
- *   the event.
+ * @param onToggleEventParticipation Callback function invoked when the participation button is
+ *   clicked, with event ID as a parameter.
  * @param onChatNavigate Callback function invoked when the chat button is clicked, with event ID
  *   and title as parameters.
  * @param onCardClick Callback function invoked when the card is clicked, with event ID and location
  *   as parameters.
  * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
+ * @param isUserOwner Boolean indicating if the current user is the event owner.
  * @param showActions to determine if the action bar should be shown on some future events
  */
 @Composable
 fun EventCard(
     event: EventUIState,
-    viewModel: EventViewModel,
+    onToggleEventParticipation: (eventId: String) -> Unit,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
     onCardClick: (eventId: String, eventLocation: Location) -> Unit,
     onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
+    isUserOwner: Boolean,
     showActions: Boolean? = null
 ) {
   LiquidBox(
@@ -61,11 +63,11 @@ fun EventCard(
             },
             isUserParticipant = event.joined,
             isPrivate = event.isPrivate,
-            onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
+            onToggleEventParticipation = { onToggleEventParticipation(event.id) },
             showActions = event.hasPassed.not() && showActions != false,
             onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge),
             onEditClick = { onEditButtonClick(event.id, event.location) },
-            isUserOwner = event.creatorId == viewModel.storedUid)
+            isUserOwner = isUserOwner)
       }
 }
