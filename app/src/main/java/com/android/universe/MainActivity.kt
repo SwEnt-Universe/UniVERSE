@@ -430,6 +430,16 @@ fun UniverseApp(
                         onBackClick = {
                           navController.popBackStack(
                               route = NavigationScreens.SearchProfile.route, inclusive = false)
+                        },
+                        observerUid = authInstance.currentUser!!.uid,
+                        onCardClick = { eventId: String, eventLocation: Location ->
+                          navController.navigate(
+                              NavigationScreens.MapInstance.route
+                                  .replace("{eventId}", eventId)
+                                  .replace(
+                                      "{$LATITUDE}", eventLocation.latitude.toFloat().toString())
+                                  .replace(
+                                      "{$LONGITUDE}", eventLocation.longitude.toFloat().toString()))
                         })
                   }
             }

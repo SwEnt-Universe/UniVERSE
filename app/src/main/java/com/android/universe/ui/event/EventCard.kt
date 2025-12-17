@@ -28,6 +28,7 @@ object EventCardTestTags {
  * @param onCardClick Callback function invoked when the card is clicked, with event ID and location
  *   as parameters.
  * @param onEditButtonClick Callback invoked when the user presses the "Edit" button on an event.
+ * @param showActions to determine if the action bar should be shown on some future events
  */
 @Composable
 fun EventCard(
@@ -35,7 +36,8 @@ fun EventCard(
     viewModel: EventViewModel,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit,
     onCardClick: (eventId: String, eventLocation: Location) -> Unit,
-    onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> }
+    onEditButtonClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
+    showActions: Boolean? = null
 ) {
   LiquidBox(
       shape = CardShape,
@@ -60,7 +62,7 @@ fun EventCard(
             isUserParticipant = event.joined,
             isPrivate = event.isPrivate,
             onToggleEventParticipation = { viewModel.joinOrLeaveEvent(event.index) },
-            showActions = event.hasPassed.not(),
+            showActions = event.hasPassed.not() && showActions != false,
             onChatClick = { onChatNavigate(event.id, event.title) },
             modifier = Modifier.padding(Dimensions.PaddingLarge),
             onEditClick = { onEditButtonClick(event.id, event.location) },

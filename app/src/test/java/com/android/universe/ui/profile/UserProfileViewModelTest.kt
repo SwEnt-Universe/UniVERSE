@@ -49,7 +49,7 @@ class UserProfileViewModelTest {
 
     userRepository.addUser(profile)
     advanceUntilIdle()
-    viewModel = UserProfileViewModel(profile.uid, userRepository, eventRepository)
+    viewModel = UserProfileViewModel(profile.uid, "", userRepository, eventRepository)
 
     advanceUntilIdle()
     val state = viewModel.userState.value
@@ -64,6 +64,19 @@ class UserProfileViewModelTest {
     assertEquals(0, state.userProfile.tags.size)
     assertNull(state.userProfile.profilePicture)
     assertNull(state.errorMsg)
+  }
+
+  @Test
+  fun nonEmptyObserver_nonNullFollowerState() {
+    runTest {
+      userRepository.addUser(UserTestData.Bob)
+      userRepository.addUser(UserTestData.Alice)
+      val viewModel =
+          UserProfileViewModel(
+              UserTestData.Bob.uid, UserTestData.Alice.uid, userRepository, eventRepository)
+      advanceUntilIdle()
+      assertEquals(false, viewModel.userState.value.follower)
+    }
   }
 
   @Test
@@ -85,7 +98,7 @@ class UserProfileViewModelTest {
     eventRepository.addEvent(historyEvent)
     advanceUntilIdle()
 
-    viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
+    viewModel = UserProfileViewModel(user.uid, "", userRepository, eventRepository)
     advanceUntilIdle()
 
     val state = viewModel.userState.value
@@ -132,7 +145,7 @@ class UserProfileViewModelTest {
     eventRepository.addEvent(recentHistory)
     eventRepository.addEvent(oldHistory)
 
-    viewModel = UserProfileViewModel(user.uid, userRepository, eventRepository)
+    viewModel = UserProfileViewModel(user.uid, "", userRepository, eventRepository)
     advanceUntilIdle()
 
     val state = viewModel.userState.value

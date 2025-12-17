@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.event.FakeEventRepository
 import com.android.universe.model.user.FakeUserRepository
@@ -73,7 +74,7 @@ class UserProfileScreenTest {
       fakeEventRepository.addEvent(pastEvent)
       fakeEventRepository.addEvent(futureEvent)
       userProfileViewModel =
-          UserProfileViewModel(testUser.uid, fakeUserRepository, fakeEventRepository)
+          UserProfileViewModel(testUser.uid, "", fakeUserRepository, fakeEventRepository)
     }
   }
 
@@ -176,6 +177,32 @@ class UserProfileScreenTest {
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(FlowBottomMenuTestTags.BACK_BUTTON).performClick()
     assertEquals(true, callback)
+  }
+
+  @Test
+  fun userProfileScreen_otherProfileNonFollower() = runTest {
+    composeTestRule.setContentWithStubBackdrop {
+      UserProfileScreen(
+          uid = testUser.uid,
+          userProfileViewModel =
+              viewModel {
+                UserProfileViewModel(
+                    testUser.uid, UserTestData.Bob.uid, fakeUserRepository, fakeEventRepository)
+              },
+          eventViewModel = eventViewModel,
+          isCurrentUser = false,
+          onBackClick = {},
+          observerUid = UserTestData.Bob.uid)
+    }
+
+    advanceUntilIdle()
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Incoming").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag(UserProfileScreenTestTags.NON_FOLLOWER, useUnmergedTree = true)
+        .assertIsDisplayed()
   }
 
   private fun TestScope.setupScreen() {

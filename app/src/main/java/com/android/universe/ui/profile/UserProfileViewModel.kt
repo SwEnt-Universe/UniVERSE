@@ -26,6 +26,8 @@ import kotlinx.coroutines.launch
  * @property incomingEvents List of events the user has joined that are in the future.
  * @property historyEvents List of events the user has joined that are in the past.
  * @property errorMsg An error message to display, if any.
+ * @property follower if there is an observer of this profile and the observer follows the observed
+ *   user
  */
 data class UserProfileUIState(
     val userProfile: UserProfile =
@@ -41,18 +43,22 @@ data class UserProfileUIState(
     val age: Int = 0,
     val incomingEvents: List<EventUIState> = emptyList(),
     val historyEvents: List<EventUIState> = emptyList(),
-    val errorMsg: String? = null
+    val errorMsg: String? = null,
+    val follower: Boolean? = null
 )
 
 /**
  * ViewModel for managing user profiles. Notably loading a user's profile from the repository.
  *
  * @param uid The unique identifier of the user to load.
+ * @param observerUid The unique identifier of the user observing another's profile, empty if no
+ *   observer (default state).
  * @param userRepository The repository to fetch user profiles from.
  * @param eventRepository The repository to fetch user events from.
  */
 class UserProfileViewModel(
     private val uid: String,
+    private val observerUid: String = "",
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository
 ) : ViewModel() {
@@ -88,7 +94,15 @@ class UserProfileViewModel(
    */
   private suspend fun loadUserEvents() {
     try {
-      val rawEvents = eventRepository.getUserInvolvedEvents(uid)
+      val isFollower =
+          if (observerUid.isNotEmpty()) _userState.value.userProfile.followers.contains(observerUid)
+          else null
+      val rawEvents =
+          if (isFollower == null) eventRepository.getUserInvolvedEvents(uid)
+          else
+              eventRepository.getUserInvolvedEvents(uid).filter { e ->
+                e.isPrivate.not() || (e.isPrivate && isFollower)
+              }
       val now = LocalDateTime.now()
 
       val (incoming, history) = rawEvents.partition { event -> event.date.isAfter(now) }
@@ -120,7 +134,8 @@ class UserProfileViewModel(
       _userState.value =
           _userState.value.copy(
               incomingEvents = incoming.sortedBy { it.date }.map { mapToUIState(it) },
-              historyEvents = history.sortedByDescending { it.date }.map { mapToUIState(it) })
+              historyEvents = history.sortedByDescending { it.date }.map { mapToUIState(it) },
+              follower = isFollower)
     } catch (e: Exception) {
       Log.e("UserProfileViewModel", "Error loading events", e)
     }

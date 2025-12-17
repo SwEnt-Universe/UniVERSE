@@ -46,6 +46,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,7 @@ import kotlinx.coroutines.launch
 /** Define all the tags for the UserProfile screen. Tags will be used to test the screen. */
 object UserProfileScreenTestTags {
   const val PROFILE_EVENT_LIST = "profileEventList"
+  const val NON_FOLLOWER = "nonFollower"
 
   fun getTabTestTag(index: Int): String {
     return "profileTab$index"
@@ -92,6 +94,8 @@ object UserProfileScreenTestTags {
  * @param onEditProfileClick Callback invoked when the user clicks the "Edit Profile" button.
  * @param onChatNavigate Callback invoked when a chat button is clicked.
  * @param onCardClick Callback invoked when a card is clicked.
+ * @param observerUid The unique identifier of the user observing another's profile, empty if no
+ *   observer (default state).
  * @param userProfileViewModel The ViewModel managing the user profile state (fetched via [uid]).
  * @param eventViewModel The ViewModel managing event data (History/Incoming).
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
@@ -106,7 +110,10 @@ fun UserProfileScreen(
     onEditProfileClick: (String) -> Unit = {},
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    userProfileViewModel: UserProfileViewModel = viewModel { UserProfileViewModel(uid) },
+    observerUid: String = "",
+    userProfileViewModel: UserProfileViewModel = viewModel {
+      UserProfileViewModel(uid, observerUid)
+    },
     eventViewModel: EventViewModel = viewModel(),
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
     isCurrentUser: Boolean = true,
@@ -214,7 +221,8 @@ fun UserProfileScreen(
                     onChatNavigate = onChatNavigate,
                     onCardClick = onCardClick,
                     onEditButtonClick = onEditButtonClick,
-                    isCurrentUser = isCurrentUser)
+                    isCurrentUser = isCurrentUser,
+                    observerIsFollower = userUIState.follower)
 
                 ProfileHeaderOverlay(
                     headerOffsetPx = headerOffsetPx,
@@ -318,7 +326,8 @@ fun ProfileContentPager(
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
     onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
-    isCurrentUser: Boolean = true
+    isCurrentUser: Boolean,
+    observerIsFollower: Boolean?
 ) {
   HorizontalPager(
       state = pagerState, modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) {
@@ -327,7 +336,8 @@ fun ProfileContentPager(
         val listState = if (isHistoryPage) historyListState else incomingListState
         // TODO better handling of the incoming events instead of just empty
         val events =
-            if (isHistoryPage) historyEvents else (if (isCurrentUser) incomingEvents else listOf())
+            if (isHistoryPage) historyEvents
+            else (if (isCurrentUser || observerIsFollower == true) incomingEvents else listOf())
 
         ProfileEventList(
             listState = listState,
@@ -338,7 +348,9 @@ fun ProfileContentPager(
             bottomContentPadding = listBottomPadding,
             onChatNavigate = onChatNavigate,
             onCardClick = onCardClick,
-            onEditButtonClick = onEditButtonClick)
+            onEditButtonClick = onEditButtonClick,
+            isHistoryPage = isHistoryPage,
+            follower = observerIsFollower)
       }
 }
 
@@ -354,6 +366,8 @@ fun ProfileContentPager(
  * @param onChatNavigate Callback invoked when a chat button is clicked.
  * @param onCardClick Callback invoked when a card is clicked.
  * @param onEditButtonClick Callback invoked when the edit button on an event is clicked.
+ * @param isHistoryPage Flag indicating if this is the History list.
+ * @param follower if there is an observer and the observer follows the observed user
  */
 @Composable
 fun ProfileEventList(
@@ -365,7 +379,9 @@ fun ProfileEventList(
     bottomContentPadding: Dp,
     onChatNavigate: (eventId: String, eventTitle: String) -> Unit = { _, _ -> },
     onCardClick: (eventId: String, eventLocation: Location) -> Unit = { _, _ -> },
-    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> }
+    onEditButtonClick: (uid: String, location: Location) -> Unit = { _, _ -> },
+    isHistoryPage: Boolean,
+    follower: Boolean?
 ) {
   val density = LocalDensity.current
   val configuration = LocalConfiguration.current
@@ -420,21 +436,40 @@ fun ProfileEventList(
               modifier =
                   Modifier.fillMaxWidth().height(headerSpacerHeight).background(Color.Transparent))
         }
-        items(events, key = { it.id }) { eventUIState ->
-          Box(
-              modifier =
-                  Modifier.padding(
-                      horizontal = Dimensions.PaddingMedium, vertical = Dimensions.PaddingSmall)) {
-                EventCard(
-                    event = eventUIState,
-                    onChatNavigate = onChatNavigate,
-                    onCardClick = onCardClick,
-                    viewModel = eventViewModel,
-                    onEditButtonClick = onEditButtonClick)
-              }
+        if (!(isHistoryPage || follower == null || follower)) {
+          item {
+            Box(
+                modifier =
+                    Modifier.testTag(UserProfileScreenTestTags.NON_FOLLOWER)
+                        .fillMaxWidth()
+                        .padding(top = Dimensions.PaddingExtraLarge),
+                contentAlignment = Alignment.BottomCenter) {
+                  Text(
+                      text = "Only followers may see future events",
+                      style = MaterialTheme.typography.labelLarge,
+                      color = MaterialTheme.colorScheme.onSurface,
+                      overflow = TextOverflow.Clip)
+                }
+          }
+        } else {
+          items(events, key = { it.id }) { eventUIState ->
+            Box(
+                modifier =
+                    Modifier.padding(
+                        horizontal = Dimensions.PaddingMedium,
+                        vertical = Dimensions.PaddingSmall)) {
+                  EventCard(
+                      event = eventUIState,
+                      onChatNavigate = onChatNavigate,
+                      onCardClick = onCardClick,
+                      viewModel = eventViewModel,
+                      onEditButtonClick = onEditButtonClick,
+                      showActions = follower != true)
+                }
+          }
+          // Ensures the list is tall enough to scroll the header away.
+          item(key = "safety_spacer") { Spacer(modifier = Modifier.height(footerHeight)) }
         }
-        // Ensures the list is tall enough to scroll the header away.
-        item(key = "safety_spacer") { Spacer(modifier = Modifier.height(footerHeight)) }
       }
 }
 
