@@ -349,7 +349,7 @@ fun FieldModifier(
     leadingIcon: ImageVector?,
     title: String,
     endText: String,
-    trailingIcon: ImageVector,
+    trailingIcon: ImageVector?,
     onClick: () -> Unit = {}
 ) {
   Row(
@@ -382,10 +382,13 @@ fun FieldModifier(
                     textAlign = TextAlign.Start)
               }
             }
-        Icon(
-            imageVector = trailingIcon,
+        trailingIcon?.let {
+          Icon(
+            imageVector = it,
             contentDescription = "Edit $title",
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(Dimensions.IconSizeMedium))
+            modifier = Modifier.size(Dimensions.IconSizeMedium)
+          )
+        }
       }
 }
