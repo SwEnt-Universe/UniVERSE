@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material3.BottomSheetDefaults
@@ -173,8 +172,8 @@ fun SettingsScreen(
                           leadingIcon = Icons.Default.Mail,
                           title = FieldTitles.MAIL,
                           endText = uiState.email,
-                          trailingIcon = Icons.Default.Edit,
-                          onClick = { viewModel.setModalType(ModalType.EMAIL) })
+                          trailingIcon = null,
+                          onClick = { /* Email is now read only */ })
                       if (uiState.passwordEnabled == true) {
                         FieldModifier(
                             modifier = Modifier.testTag(SettingsTestTags.PASSWORD_TEXT),
@@ -384,11 +383,10 @@ fun FieldModifier(
             }
         trailingIcon?.let {
           Icon(
-            imageVector = it,
-            contentDescription = "Edit $title",
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(Dimensions.IconSizeMedium)
-          )
+              imageVector = it,
+              contentDescription = "Edit $title",
+              tint = MaterialTheme.colorScheme.onSurface,
+              modifier = Modifier.size(Dimensions.IconSizeMedium))
         }
       }
 }
