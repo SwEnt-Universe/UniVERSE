@@ -74,7 +74,6 @@ object FieldTitles {
   const val LASTNAME = "Last Name"
   const val DESCRIPTION = "Bio"
   const val DATE = "Date of Birth"
-  const val LOCATION = "Location"
   const val TAG = "Tags"
   const val AUTHENTICATION = "Authentication"
   const val PROFILE = "Profile"
