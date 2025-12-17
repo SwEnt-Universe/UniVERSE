@@ -225,7 +225,7 @@ class EventCreationViewModel(
    *
    * @param uid The unique identifier of the event to load. If null, nothing is loaded.
    */
-  private fun loadUid(uid: String?) {
+  fun loadUid(uid: String?) {
     viewModelScope.launch(DefaultDP.io) {
       if (uid != null) {
         val event = eventRepository.getEvent(uid)

@@ -133,7 +133,7 @@ class MapViewModelTest {
             eventRepository = eventRepository,
             userRepository = userRepository,
             userReactiveRepository = userReactiveRepository,
-            geminiAssistant = geminiAssistant)
+            geminiAssistant = geminiAssistant,
             eventTemporaryRepository = temporaryRepository)
     viewModel.javaClass.getDeclaredField("currentUserId").apply {
       isAccessible = true
