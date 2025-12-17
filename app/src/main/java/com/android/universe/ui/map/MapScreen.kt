@@ -225,25 +225,24 @@ fun MapScreen(
                             viewModel.switchMapMode(MapMode.NORMAL)
                           },
                           enabled = uiState.selectedLocation != null)))
-        } else if (uiState.mapMode == MapMode.CHANGE_LOCATION){
-            FlowBottomMenu(
-                flowTabs =
-                    listOf(
-                        FlowTab.Back(
-                            onClick = {
-                                onBackChangeLocation()
-                                viewModel.switchMapMode(MapMode.NORMAL)
-                            }),
-                        FlowTab.Confirm(
-                            onClick = {
-                                viewModel.resetFilter()
-                                viewModel.updateLocation()
-                                onBackChangeLocation()
-                                viewModel.switchMapMode(MapMode.NORMAL)
-                            },
-                            enabled = uiState.selectedLocation != null)))
-        }
-        else {
+        } else if (uiState.mapMode == MapMode.CHANGE_LOCATION) {
+          FlowBottomMenu(
+              flowTabs =
+                  listOf(
+                      FlowTab.Back(
+                          onClick = {
+                            onBackChangeLocation()
+                            viewModel.switchMapMode(MapMode.NORMAL)
+                          }),
+                      FlowTab.Confirm(
+                          onClick = {
+                            viewModel.resetFilter()
+                            viewModel.updateLocation()
+                            onBackChangeLocation()
+                            viewModel.switchMapMode(MapMode.NORMAL)
+                          },
+                          enabled = uiState.selectedLocation != null)))
+        } else {
           FlowBottomMenu(
               flowTabs =
                   listOf(
