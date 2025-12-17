@@ -44,6 +44,8 @@ class EventRepositoryProviderTest {
 
           override suspend fun deleteEvent(eventId: String) {}
 
+          override suspend fun toggleEventParticipation(eventId: String, userId: String) {}
+
           override suspend fun persistAIEvents(events: List<Event>): List<Event> = events
 
           override suspend fun getNewID(): String {

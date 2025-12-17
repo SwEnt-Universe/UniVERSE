@@ -284,24 +284,27 @@ class EventViewModel(
   /**
    * Makes the user join or leave an event based on the current user's join status.
    *
-   * @param index The index of the event in the list for quick finding
+   * @param eventId The unique identifier of the event to join or leave.
    */
-  fun joinOrLeaveEvent(index: Int) {
+  fun joinOrLeaveEvent(eventId: String) {
     viewModelScope.launch {
-      val currentState = _eventsState.value.getOrNull(index) ?: return@launch
-      val currentEvent = localList.getOrNull(index) ?: return@launch
+      val index = localList.indexOfFirst { it.id == eventId }
+      if (index == -1) return@launch
+
+      val currentEvent = localList[index]
+      val currentState = _eventsState.value[index]
 
       val isJoined = currentState.joined
       val updatedParticipants =
           if (isJoined) {
-            currentEvent.participants.filterNot { it == storedUid }.toSet()
+            currentEvent.participants - storedUid
           } else {
             currentEvent.participants + storedUid
           }
 
       val updatedEvent = currentEvent.copy(participants = updatedParticipants)
       try {
-        eventRepository.updateEvent(currentEvent.id, updatedEvent)
+        eventRepository.toggleEventParticipation(eventId, storedUid)
       } catch (_: NoSuchElementException) {
         setErrorMsg("No event ${currentEvent.title} found")
         return@launch
