@@ -76,7 +76,7 @@ object FieldTitles {
   const val DESCRIPTION = "Bio"
   const val DATE = "Date of Birth"
   const val LOCATION = "Location"
-  const val TAG = "Tag"
+  const val TAG = "Tags"
   const val AUTHENTICATION = "Authentication"
   const val PROFILE = "Profile"
 }
@@ -246,6 +246,7 @@ fun SettingsScreen(
                           title = FieldTitles.LOCATION,
                           endText = "TBD",
                           trailingIcon = Icons.Default.Edit) // TODO location
+
                       FieldModifier(
                           modifier = Modifier.testTag(SettingsTestTags.TAG_TEXT),
                           editModifier = Modifier.testTag(SettingsTestTags.TAG_BUTTON),
