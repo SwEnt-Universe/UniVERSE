@@ -130,7 +130,7 @@ class EventViewModelTest {
         "Join us for a casual 5km run around the lake followed by coffee.", firstEvent.description)
     assertEquals(futureDate, firstEvent.date)
     assertEquals(listOf(Tag.SCULPTURE, Tag.COUNTRY), firstEvent.tags)
-    assertEquals("Alice Smith", firstEvent.creator)
+    assertEquals(sampleUsers[0].username, firstEvent.creator)
     assertEquals(2, firstEvent.participants)
     assertArrayEquals(
         ByteArray(126 * 126) { index -> (index % 256).toByte() }, firstEvent.eventPicture)
@@ -154,7 +154,7 @@ class EventViewModelTest {
   @Test
   fun creatorIsFormattedCorrectly() = runTest {
     val runEvent = viewModel.eventsState.value.first { it.title == "Morning Run at the Lake" }
-    assertEquals("Alice Smith", runEvent.creator)
+    assertEquals(sampleUsers[0].username, runEvent.creator)
   }
 
   @Test
