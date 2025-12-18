@@ -9,11 +9,11 @@ import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import java.time.LocalDateTime
-import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
+import java.util.UUID
 
 // Firestore collection path for events.
 const val EVENTS_COLLECTION_PATH = "events"
@@ -84,6 +84,7 @@ class EventRepositoryFirestore(
         "participants" to event.participants.toList(),
         "creator" to event.creator,
         "location" to locationToMap(event.location),
+        "locationAsText" to event.locationAsText,
         "eventPicture" to
             (if (event.eventPicture != null) {
               Blob.fromBytes(event.eventPicture)
@@ -118,6 +119,7 @@ class EventRepositoryFirestore(
           creator = doc.getString("creator") ?: "",
           participants = participantsList.toSet(),
           location = mapToLocation(locationMap),
+          locationAsText = doc.getString("locationAsText") ?: "Unknown Address",
           eventPicture = doc.getBlob("eventPicture")?.toBytes())
     } catch (e: Exception) {
       Log.e("EventRepositoryFirestore", "Error converting document to Event", e)

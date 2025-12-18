@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Imports
 // ─────────────────────────────────────────────────────────────────────────────
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plugins
@@ -280,6 +280,10 @@ dependencies {
     exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
   }
   implementation(libs.tomtom.search) {
+    exclude(group = "com.google.protobuf", module = "protobuf-java")
+    exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+  }
+  implementation(libs.tomtom.reverse.geocoding) {
     exclude(group = "com.google.protobuf", module = "protobuf-java")
     exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
   }

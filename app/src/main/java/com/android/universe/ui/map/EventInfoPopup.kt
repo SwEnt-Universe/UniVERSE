@@ -67,6 +67,7 @@ fun EventInfoPopup(
             modifier = Modifier.padding(Dimensions.PaddingLarge).navigationBarsPadding(),
             eventId = event.id,
             title = event.title,
+            location = event.locationAsText,
             description = event.description,
             date = event.date,
             tags = event.tags.toList(),

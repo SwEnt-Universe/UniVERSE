@@ -24,14 +24,15 @@ import com.android.universe.ui.common.validateEventTitle
 import com.android.universe.ui.common.validateTime
 import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors.DESCRIPTION_TOO_LONG_FMT
 import com.android.universe.ui.eventCreation.EventCreationViewModel.Companion.AiErrors.TITLE_TOO_LONG_FMT
+import com.android.universe.ui.map.ReverseGeocoderSingleton
 import com.android.universe.ui.utils.viewModelFactory
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 enum class OnboardingState {
   ENTER_EVENT_TITLE,
@@ -389,7 +390,7 @@ class EventCreationViewModel(
               } else {
                 eventTemporaryRepository.getEvent().location
               }
-
+          val locationAsText = ReverseGeocoderSingleton.getSmartAddress(locationEvent.toGeoPoint())
           eventTemporaryRepository.updateEvent(
               id = id,
               title = eventCreationUiState.value.name,
@@ -398,6 +399,7 @@ class EventCreationViewModel(
               creator = uidUser,
               participants = setOf(uidUser),
               location = locationEvent,
+              locationAsText = locationAsText,
               isPrivate = eventCreationUiState.value.isPrivate,
               eventPicture = eventCreationUiState.value.eventPicture)
         } catch (e: Exception) {

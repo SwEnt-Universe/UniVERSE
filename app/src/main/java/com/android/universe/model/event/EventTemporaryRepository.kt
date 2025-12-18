@@ -25,6 +25,7 @@ interface EventTemporaryRepository {
       creator: String,
       participants: Set<String>,
       location: Location,
+      locationAsText: String = "Unknown Address",
       isPrivate: Boolean,
       eventPicture: ByteArray?
   )
