@@ -107,12 +107,12 @@ class UserProfileViewModel(
 
       val (incoming, history) = rawEvents.partition { event -> event.date.isAfter(now) }
 
-      fun mapToUIState(event: Event): EventUIState {
+      suspend fun mapToUIState(event: Event): EventUIState {
         val creatorName =
-            if (event.creator == _userState.value.userProfile.uid) {
-              _userState.value.userProfile.username
-            } else {
-              "Unknown"
+            try {
+              userRepository.getUser(event.creator).username
+            } catch (e: Exception) {
+              if (e is NoSuchElementException) "Deleted" else throw e
             }
 
         return EventUIState(
