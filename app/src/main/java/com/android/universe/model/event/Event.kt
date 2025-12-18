@@ -27,6 +27,7 @@ data class Event(
     val creator: String,
     val participants: Set<String> = emptySet(),
     val location: Location,
+    val locationAsText: String = "Unknown Address",
     val eventPicture: ByteArray? = null,
     val isPrivate: Boolean = false
 ) {
@@ -44,6 +45,7 @@ data class Event(
     if (creator != other.creator) return false
     if (participants != other.participants) return false
     if (location != other.location) return false
+    if (locationAsText != other.locationAsText) return false
     if (isPrivate != other.isPrivate) return false
     if ((eventPicture != null || other.eventPicture != null) &&
         (!eventPicture.contentEquals(other.eventPicture)))
@@ -60,6 +62,7 @@ data class Event(
     result = 31 * result + creator.hashCode()
     result = 31 * result + participants.hashCode()
     result = 31 * result + location.hashCode()
+    result = 31 * result + locationAsText.hashCode()
     result = 31 * result + (eventPicture?.contentHashCode() ?: 0)
     result = 31 * result + isPrivate.hashCode()
     return result

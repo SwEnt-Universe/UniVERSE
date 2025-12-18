@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.util.Log
 import android.view.ViewGroup
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
@@ -61,6 +62,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -464,8 +466,11 @@ class MapViewModel(
             try {
               userRepository.getUser(currentUserId).following.toSet()
             } catch (e: Exception) {
-              if (e is CancellationException) throw e
-              android.util.Log.e("MapViewModel", "Failed to fetch user following list", e)
+              if (e is CancellationException) {
+                ensureActive()
+                throw e
+              }
+              Log.e("MapViewModel", "Failed to fetch user following list", e)
               emptySet()
             }
 
@@ -499,7 +504,10 @@ class MapViewModel(
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
-        if (e is CancellationException) throw e
+        if (e is CancellationException) {
+          ensureActive()
+          throw e
+        }
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
@@ -619,7 +627,10 @@ class MapViewModel(
         val events = eventRepository.getSuggestedEventsForUser(user)
         _eventMarkers.value = events
       } catch (e: Exception) {
-        if (e is CancellationException) throw e
+        if (e is CancellationException) {
+          ensureActive()
+          throw e
+        }
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
     }
@@ -736,9 +747,7 @@ class MapViewModel(
                         .toSet(),
                 creator = currentUserId,
                 participants = setOf(currentUserId),
-                location =
-                    com.android.universe.model.location.Location(
-                        generatedData.latitude, generatedData.longitude),
+                location = Location(generatedData.latitude, generatedData.longitude),
                 eventPicture = null,
                 isPrivate = false)
 

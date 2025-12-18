@@ -34,6 +34,7 @@ object EventContentTestTags {
   const val EVENT_IMAGE_CONTAINER = "event_image_container"
   const val EVENT_IMAGE = "event_image"
   const val EVENT_TITLE = "event_title"
+  const val EVENT_LOCATION = "event_location"
   const val EVENT_DATE = "event_date"
   const val EVENT_TIME = "event_time"
   const val EVENT_DESCRIPTION = "event_description"
