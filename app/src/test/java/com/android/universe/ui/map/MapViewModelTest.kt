@@ -26,7 +26,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
-import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -48,6 +47,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -107,6 +107,8 @@ class MapViewModelTest {
   @Before
   fun setup() = runTest {
     appContext = ApplicationProvider.getApplicationContext()
+    mockkObject(ReverseGeocoderSingleton)
+    coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)

@@ -15,13 +15,12 @@ import com.android.universe.model.tag.Tag
 import com.android.universe.ui.common.ErrorMessages
 import com.android.universe.ui.common.InputLimits
 import com.android.universe.ui.common.ValidationState
+import com.android.universe.ui.map.ReverseGeocoderSingleton
 import com.android.universe.utils.EventTestData
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -37,6 +36,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 @RunWith(AndroidJUnit4::class)
 class EventCreationViewModelTest {
@@ -68,6 +70,8 @@ class EventCreationViewModelTest {
     Dispatchers.setMain(testDispatcher)
 
     val context = ApplicationProvider.getApplicationContext<Context>()
+    mockkObject(ReverseGeocoderSingleton)
+    coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
     val imageManager = ImageBitmapManager(context)
 
     mockkObject(DefaultDP)
