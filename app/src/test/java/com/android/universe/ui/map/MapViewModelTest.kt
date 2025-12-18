@@ -304,18 +304,20 @@ class MapViewModelTest {
     val mixedMarker = markers.find { it.event.id == mixedEvent.id }
     assertEquals(
         "Dominant category (Music) should determine icon",
-        R.drawable.violet_pin,
+        R.drawable.violet_pin_light_mode,
         mixedMarker?.iconResId)
 
     // Assert Empty Tags (Fallback)
     val emptyMarker = markers.find { it.event.id == emptyTagEvent.id }
     assertEquals(
-        "Events with no tags should use the base pin", R.drawable.black_pin, emptyMarker?.iconResId)
+        "Events with no tags should use the base pin",
+        R.drawable.base_pin_light_mode,
+        emptyMarker?.iconResId)
 
     val concurrentMarker = markers.find { it.event.id == concurrentEvent.id }
     assertEquals(
         "Events with concurrent tags should use the first dominant category in enum order",
-        R.drawable.sky_blue_pin,
+        R.drawable.sky_blue_pin_light_mode,
         concurrentMarker?.iconResId)
   }
 

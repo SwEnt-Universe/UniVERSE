@@ -189,6 +189,7 @@ class MapViewModel(
           Configuration.UI_MODE_NIGHT_YES)
           StyleMode.DARK
       else StyleMode.MAIN
+  private var previousMapTheme: StyleMode = mapTheme
 
   // Jobs
   private var locationTrackingJob: Job? = null
@@ -216,7 +217,9 @@ class MapViewModel(
   }
 
   fun setTheme(isDarkTheme: Boolean) {
+    previousMapTheme = this.mapTheme
     if (isDarkTheme) this.mapTheme = StyleMode.DARK else this.mapTheme = StyleMode.MAIN
+    if (previousMapTheme != mapTheme) syncEventMarkers(uiState.value.markers)
     tomTomMap?.setStyleMode(this.mapTheme)
   }
 
@@ -564,7 +567,7 @@ class MapViewModel(
               _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
             }
             count++
-            withContext(DefaultDP.io) { delay(intervalMinutes * 60 * 1000) }
+            delay(intervalMinutes * 60 * 1000)
           }
         }
   }
@@ -585,7 +588,9 @@ class MapViewModel(
     viewModelScope.launch {
       val map = tomTomMap ?: return@launch
       val (optionsToAdd, markersToRemove, eventForNewMarkers) =
-          withContext(DefaultDP.io) { markerLogic(markerToEvent, markers) }
+          withContext(DefaultDP.io) {
+            markerLogic(markerToEvent, markers, previousMapTheme != mapTheme, mapTheme)
+          }
 
       if (markersToRemove.isNotEmpty()) {
         markersToRemove.forEach {
@@ -612,7 +617,12 @@ class MapViewModel(
       val map = tomTomMap ?: return@launch
       map.removeMarkers("selected_location")
       location?.let { geoPoint ->
-        val image = withContext(DefaultDP.default) { MarkerImageCache.get(R.drawable.base_pin) }
+        val image =
+            withContext(DefaultDP.default) {
+              MarkerImageCache.get(
+                  if (mapTheme == StyleMode.DARK) R.drawable.base_pin_dark_mode
+                  else R.drawable.base_pin_light_mode)
+            }
         map.addMarker(
             MarkerOptions(tag = "selected_location", coordinate = geoPoint, pinImage = image))
       }
@@ -836,23 +846,9 @@ class MapViewModel(
 
   private fun mapEventToMarker(event: Event): MapMarkerUiModel {
     val category = event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
-    val drawable = getCategoryDrawable(category)
+    val drawable = getCategoryDrawable(category, mapTheme)
     return MapMarkerUiModel(
         event = event, position = event.location.toGeoPoint(), iconResId = drawable)
-  }
-
-  private fun getCategoryDrawable(category: Category?): Int {
-    return when (category) {
-      MUSIC -> R.drawable.violet_pin
-      SPORT -> R.drawable.sky_blue_pin
-      FOOD -> R.drawable.yellow_pin
-      ART -> R.drawable.red_pin
-      TRAVEL -> R.drawable.brown_pin
-      GAMES -> R.drawable.orange_pin
-      TECHNOLOGY -> R.drawable.grey_pin
-      TOPIC -> R.drawable.pink_pin
-      null -> R.drawable.black_pin
-    }
   }
 
   /**
@@ -881,17 +877,62 @@ class MapViewModel(
 @VisibleForTesting
 internal suspend fun markerLogic(
     markerMap: MutableMap<String, Event>,
-    markers: List<MapMarkerUiModel>
+    markers: List<MapMarkerUiModel>,
+    reset: Boolean = false,
+    mapTheme: StyleMode
 ): Triple<List<MarkerOptions>, Set<String>, List<Event>> {
+  var currentEvents = emptySet<Event>()
   val previousEvents = markerMap.values.toSet()
-  val currentEvents = markers.map { it.event }.toSet()
-  val toAdd = markers.filter { it.event !in previousEvents }
-  val toRemove = markerMap.filterValues { it !in currentEvents }.keys
-
+  val toRemove: Set<String>?
+  val toAdd: Set<MapMarkerUiModel>?
+  if (reset) {
+    toRemove = markerMap.filterValues { it !in currentEvents }.keys
+    toAdd = markers.filter { it.event in previousEvents }.toSet()
+  } else {
+    currentEvents = markers.map { it.event }.toSet()
+    toRemove = markerMap.filterValues { it !in currentEvents }.keys
+    toAdd = markers.filter { it.event !in previousEvents }.toSet()
+  }
   val optionsToAdd =
       toAdd.map {
-        val pin = MarkerImageCache.get(it.iconResId)
+        val category =
+            it.event.tags.groupingBy { it.category }.eachCount().maxByOrNull { it.value }?.key
+        val pin =
+            if (reset) MarkerImageCache.get(getCategoryDrawable(category, mapTheme))
+            else MarkerImageCache.get(it.iconResId)
         MarkerOptions(tag = it.event.id, coordinate = it.position, pinImage = pin)
       }
   return Triple(optionsToAdd, toRemove, toAdd.map { it.event })
+}
+
+internal fun getCategoryDrawable(category: Category?, mapTheme: StyleMode): Int {
+  return when (category) {
+    MUSIC ->
+        if (mapTheme == StyleMode.DARK) R.drawable.violet_pin_dark_mode
+        else R.drawable.violet_pin_light_mode
+    SPORT ->
+        if (mapTheme == StyleMode.DARK) R.drawable.sky_blue_pin_dark_mode
+        else R.drawable.sky_blue_pin_light_mode
+    FOOD ->
+        if (mapTheme == StyleMode.DARK) R.drawable.yellow_pin_dark_mode
+        else R.drawable.yellow_pin_light_mode
+    ART ->
+        if (mapTheme == StyleMode.DARK) R.drawable.red_pin_dark_mode
+        else R.drawable.red_pin_light_mode
+    TRAVEL ->
+        if (mapTheme == StyleMode.DARK) R.drawable.brown_pin_dark_mode
+        else R.drawable.brown_pin_light_mode
+    GAMES ->
+        if (mapTheme == StyleMode.DARK) R.drawable.orange_pin_dark_mode
+        else R.drawable.orange_pin_light_mode
+    TECHNOLOGY ->
+        if (mapTheme == StyleMode.DARK) R.drawable.green_pin_dark_mode
+        else R.drawable.green_pin_light_mode
+    TOPIC ->
+        if (mapTheme == StyleMode.DARK) R.drawable.pink_pin_dark_mode
+        else R.drawable.pink_pin_light_mode
+    null ->
+        if (mapTheme == StyleMode.DARK) R.drawable.base_pin_dark_mode
+        else R.drawable.base_pin_light_mode
+  }
 }

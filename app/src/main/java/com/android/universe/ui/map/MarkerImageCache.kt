@@ -42,14 +42,22 @@ object MarkerImageCache {
 
   private fun loadImages() =
       mapOf(
-          R.drawable.violet_pin to fromResourceWrapper(R.drawable.violet_pin),
-          R.drawable.sky_blue_pin to fromResourceWrapper(R.drawable.sky_blue_pin),
-          R.drawable.yellow_pin to fromResourceWrapper(R.drawable.yellow_pin),
-          R.drawable.red_pin to fromResourceWrapper(R.drawable.red_pin),
-          R.drawable.brown_pin to fromResourceWrapper(R.drawable.brown_pin),
-          R.drawable.orange_pin to fromResourceWrapper(R.drawable.orange_pin),
-          R.drawable.grey_pin to fromResourceWrapper(R.drawable.grey_pin),
-          R.drawable.pink_pin to fromResourceWrapper(R.drawable.pink_pin),
-          R.drawable.black_pin to fromResourceWrapper(R.drawable.black_pin),
-          R.drawable.base_pin to fromResourceWrapper(R.drawable.base_pin))
+          R.drawable.violet_pin_light_mode to fromResourceWrapper(R.drawable.violet_pin_light_mode),
+          R.drawable.violet_pin_dark_mode to fromResourceWrapper(R.drawable.violet_pin_dark_mode),
+          R.drawable.sky_blue_pin_dark_mode to
+              fromResourceWrapper(R.drawable.sky_blue_pin_dark_mode),
+          R.drawable.sky_blue_pin_light_mode to
+              fromResourceWrapper(R.drawable.sky_blue_pin_light_mode),
+          R.drawable.red_pin_dark_mode to fromResourceWrapper(R.drawable.red_pin_dark_mode),
+          R.drawable.red_pin_light_mode to fromResourceWrapper(R.drawable.red_pin_light_mode),
+          R.drawable.brown_pin_dark_mode to fromResourceWrapper(R.drawable.brown_pin_dark_mode),
+          R.drawable.brown_pin_light_mode to fromResourceWrapper(R.drawable.brown_pin_light_mode),
+          R.drawable.orange_pin_dark_mode to fromResourceWrapper(R.drawable.orange_pin_dark_mode),
+          R.drawable.orange_pin_dark_mode to fromResourceWrapper(R.drawable.orange_pin_dark_mode),
+          R.drawable.green_pin_dark_mode to fromResourceWrapper(R.drawable.green_pin_dark_mode),
+          R.drawable.green_pin_light_mode to fromResourceWrapper(R.drawable.green_pin_light_mode),
+          R.drawable.pink_pin_dark_mode to fromResourceWrapper(R.drawable.pink_pin_light_mode),
+          R.drawable.pink_pin_light_mode to fromResourceWrapper(R.drawable.pink_pin_light_mode),
+          R.drawable.base_pin_dark_mode to fromResourceWrapper(R.drawable.base_pin_light_mode),
+          R.drawable.base_pin_light_mode to fromResourceWrapper(R.drawable.base_pin_light_mode))
 }

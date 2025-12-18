@@ -55,14 +55,14 @@ class MarkerImageCacheTest {
           mockImage
         }
 
-    val result = MarkerImageCache.get(R.drawable.violet_pin)
+    val result = MarkerImageCache.get(R.drawable.violet_pin_dark_mode)
 
     assertSame(mockImage, result)
 
     // Verify that the wrapper was called.
     // Note: loadImages() calls this for every pin in the map during initialization.
     // + 1 because the EventData doesnt load the basepin
-    assertEquals(pins.size + 2, callCount)
+    assertEquals(pins.size + 8, callCount)
   }
 
   @Test
@@ -72,7 +72,7 @@ class MarkerImageCacheTest {
     // Stub the private wrapper
 
     every { MarkerImageCache["fromResourceWrapper"](any<Int>()) } returns mockImage
-    every { MarkerImageCache["fromResourceWrapper"](R.drawable.red_pin) } answers
+    every { MarkerImageCache["fromResourceWrapper"](R.drawable.red_pin_dark_mode) } answers
         {
           callCount++
           mockImage
@@ -80,10 +80,10 @@ class MarkerImageCacheTest {
 
     // Act 1: First call (Should hit"] }
 
-    val result1 = MarkerImageCache.get(R.drawable.red_pin)
+    val result1 = MarkerImageCache.get(R.drawable.red_pin_dark_mode)
 
     // Act 2: Second call (Should hit cache -> NO wrapper call)
-    val result2 = MarkerImageCache.get(R.drawable.red_pin)
+    val result2 = MarkerImageCache.get(R.drawable.red_pin_dark_mode)
 
     // Assert
     assertSame(mockImage, result1)
@@ -98,7 +98,7 @@ class MarkerImageCacheTest {
     val fallbackImage = mockk<Image>()
 
     every { MarkerImageCache["fromResourceWrapper"](any<Int>()) } returns fallbackImage
-    every { MarkerImageCache["fromResourceWrapper"](R.drawable.base_pin) } answers
+    every { MarkerImageCache["fromResourceWrapper"](R.drawable.base_pin_light_mode) } answers
         {
           callCount++
           fallbackImage
@@ -110,7 +110,7 @@ class MarkerImageCacheTest {
     assertSame(fallbackImage, result)
 
     // Verify it was called for the unknown ID
-    assertEquals(1, callCount)
+    assertEquals(2, callCount)
   }
 
   private fun resetSingleton() {
