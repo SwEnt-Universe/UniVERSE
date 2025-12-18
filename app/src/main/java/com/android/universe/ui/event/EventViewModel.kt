@@ -17,6 +17,7 @@ import com.android.universe.ui.search.SearchEngine
 import com.android.universe.ui.search.SearchEngine.categoryCoverageComparator
 import java.time.LocalDateTime
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,6 +56,7 @@ data class EventUIState(
     val creatorId: String = "",
     val participants: Int = 0,
     val location: Location = Location(0.0, 0.0),
+    val locationAsText: String = "Unknown",
     val isPrivate: Boolean = false,
     val index: Int = 0,
     val joined: Boolean = false,
@@ -183,7 +185,10 @@ class EventViewModel(
               emptySet()
             }
           } catch (e: Exception) {
-            if (e is CancellationException) throw e
+            if (e is CancellationException) {
+              ensureActive()
+              throw e
+            }
             Log.e("EventViewModel", "Failed to fetch user following list", e)
             emptySet()
           }
@@ -275,6 +280,7 @@ class EventViewModel(
         creatorId = creatorId,
         participants = participants.size,
         location = location,
+        locationAsText = locationAsText,
         isPrivate = isPrivate,
         index = index,
         joined = joined,

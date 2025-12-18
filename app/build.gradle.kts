@@ -283,6 +283,10 @@ dependencies {
     exclude(group = "com.google.protobuf", module = "protobuf-java")
     exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
   }
+  implementation(libs.tomtom.reverse.geocoding) {
+    exclude(group = "com.google.protobuf", module = "protobuf-java")
+    exclude(group = "com.google.protobuf", module = "protobuf-kotlin")
+  }
   implementation(libs.tomtom.orbis) {
     exclude(group = "com.google.protobuf", module = "protobuf-java")
     exclude(group = "com.google.protobuf", module = "protobuf-kotlin")

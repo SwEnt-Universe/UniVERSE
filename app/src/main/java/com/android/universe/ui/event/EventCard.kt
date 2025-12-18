@@ -51,6 +51,7 @@ fun EventCard(
             eventId = event.index.toString(),
             title = event.title,
             description = event.description,
+            location = event.locationAsText,
             date = event.date,
             tags = event.tags,
             participants = event.participants,

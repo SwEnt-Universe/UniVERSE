@@ -38,6 +38,7 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -432,7 +433,10 @@ class SettingsViewModel(
         _uiState.update {
           it.copy(errorMsg = "Failed to save profile: ${e.message}", isLoading = false)
         }
-        if (e is CancellationException) throw e
+        if (e is CancellationException) {
+          ensureActive()
+          throw e
+        }
       }
     }
   }
