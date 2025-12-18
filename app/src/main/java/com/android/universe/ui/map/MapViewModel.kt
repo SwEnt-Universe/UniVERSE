@@ -567,7 +567,7 @@ class MapViewModel(
               _uiState.update { it.copy(error = "Polling failed: ${e.message}") }
             }
             count++
-            withContext(DefaultDP.io) { delay(intervalMinutes * 60 * 1000) }
+            delay(intervalMinutes * 60 * 1000)
           }
         }
   }
