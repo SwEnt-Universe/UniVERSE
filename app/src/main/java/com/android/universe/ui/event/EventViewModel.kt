@@ -209,7 +209,7 @@ class EventViewModel(
                     val user = usersMap[event.creator]
                     event.toUIState(
                         user,
-                        creatorId = event.creator,
+                        creatorUsername = event.creator,
                         index = index,
                         joined = event.participants.contains(storedUid),
                         isPrivate = event.isPrivate)
@@ -221,7 +221,7 @@ class EventViewModel(
             events.mapIndexed { index, event ->
               event.toUIState(
                   userRepository.getUser(event.creator),
-                  creatorId = event.creator,
+                  creatorUsername = event.creator,
                   index = index,
                   joined = event.participants.contains(storedUid),
                   isPrivate = event.isPrivate)
@@ -253,14 +253,14 @@ class EventViewModel(
    * Converts an [Event] into an [EventUIState].
    *
    * @param user The creator of the event.
-   * @param creatorId The unique identifier of the event creator.
+   * @param creatorUsername The unique identifier of the event creator.
    * @param index The index of the event in the list.
    * @param joined Whether the current user has joined the event.
    * @param isPrivate Whether the event is private..
    */
   private fun Event.toUIState(
       user: UserProfile?,
-      creatorId: String,
+      creatorUsername: String,
       index: Int = 0,
       joined: Boolean = false,
       isPrivate: Boolean = false
@@ -271,8 +271,8 @@ class EventViewModel(
         description = description ?: "",
         date = date,
         tags = tags.toList(),
-        creator = user?.let { "${it.firstName} ${it.lastName}" } ?: "Unknown",
-        creatorId = creatorId,
+        creator = user?.let { it.username } ?: "Unknown",
+        creatorId = creatorUsername,
         participants = participants.size,
         location = location,
         isPrivate = isPrivate,

@@ -110,7 +110,7 @@ class UserProfileViewModel(
       fun mapToUIState(event: Event): EventUIState {
         val creatorName =
             if (event.creator == _userState.value.userProfile.uid) {
-              "${_userState.value.userProfile.firstName} ${_userState.value.userProfile.lastName}"
+              _userState.value.userProfile.username
             } else {
               "Unknown"
             }
