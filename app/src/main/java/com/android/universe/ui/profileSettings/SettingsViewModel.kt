@@ -34,16 +34,17 @@ import com.android.universe.ui.signIn.SignInMethod
 import com.android.universe.ui.utils.viewModelFactory
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
-import java.time.LocalDate
-import java.time.Period
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.Period
+import java.time.format.DateTimeFormatter
 
 /**
  * Represents all UI-related state for the user settings screen.
@@ -432,7 +433,10 @@ class SettingsViewModel(
         _uiState.update {
           it.copy(errorMsg = "Failed to save profile: ${e.message}", isLoading = false)
         }
-        if (e is CancellationException) throw e
+        if (e is CancellationException){
+            ensureActive()
+            throw e
+        }
       }
     }
   }
