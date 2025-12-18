@@ -12,7 +12,7 @@
 
 [versions]
 # ===== PLUGINS =====
-androidGradlePlugin = "8.13.1"
+androidGradlePlugin = "8.13.2"
 kotlin = "2.3.0"
 googleServices = "4.4.4"
 ktfmt = "0.25.0"
