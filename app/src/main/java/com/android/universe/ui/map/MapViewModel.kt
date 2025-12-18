@@ -15,8 +15,8 @@ import androidx.lifecycle.viewModelScope
 import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
-import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.ai.gemini.FakeGeminiEventAssistant
+import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
@@ -745,7 +745,15 @@ class MapViewModel(
 
         // Map GeneratedEventData to Domain Event
         val location = Location(generatedData.latitude, generatedData.longitude)
-        val imageUri = (ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + applicationContext.resources.getResourcePackageName(R.drawable.market) + '/' + applicationContext.resources.getResourceTypeName(R.drawable.market)  + '/' + applicationContext.resources.getResourceEntryName(R.drawable.market)).toUri()
+        val imageUri =
+            (ContentResolver.SCHEME_ANDROID_RESOURCE +
+                    "://" +
+                    applicationContext.resources.getResourcePackageName(R.drawable.market) +
+                    '/' +
+                    applicationContext.resources.getResourceTypeName(R.drawable.market) +
+                    '/' +
+                    applicationContext.resources.getResourceEntryName(R.drawable.market))
+                .toUri()
         val event =
             Event(
                 id = UUID.randomUUID().toString(),

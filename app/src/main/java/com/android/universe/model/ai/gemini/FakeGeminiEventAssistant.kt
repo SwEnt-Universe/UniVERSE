@@ -2,6 +2,7 @@ package com.android.universe.model.ai.gemini
 
 import com.android.universe.model.location.Location
 import com.android.universe.model.user.UserProfile
+import kotlinx.coroutines.delay
 
 /**
  * A fake implementation of [GeminiEventAssistant] designed for unit testing and UI previews.
@@ -25,8 +26,8 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
   var predefinedProposal: EventProposal? =
       EventProposal(
           title = "Beer Seminar at Satellite",
-          description = "Join us at Satellite for a Beer Seminar where you can expand your “professional network,” practice your small talk skills, and conduct hands-on research in social dynamics."
-      )
+          description =
+              "Join us at Satellite for a Beer Seminar where you can expand your “professional network,” practice your small talk skills, and conduct hands-on research in social dynamics.")
 
   /**
    * The event data object to be returned when [generateCreativeEvent] succeeds. Defaults to a valid
@@ -35,7 +36,8 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
   var predefinedEventData: GeneratedEventData? =
       GeneratedEventData(
           title = "Christmas Market Afterwork",
-          description = "Let’s meet at Place de l'Europe for some vin chaud and raclette to beat the December cold.\n",
+          description =
+              "Let’s meet at Place de l'Europe for some vin chaud and raclette to beat the December cold.\n",
           latitude = 46.5206415,
           longitude = 6.6291286,
           dateIso = "2025-12-21T15:00:00",
@@ -52,6 +54,7 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
       userProfile: UserProfile,
       location: Pair<Double, Double>
   ): GeneratedEventData? {
+    delay(300)
     return if (shouldFail) {
       null
     } else {
@@ -66,6 +69,7 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
    * @return [predefinedProposal] if [shouldFail] is false, otherwise `null`.
    */
   override suspend fun generateProposal(userPrompt: String, geoPoint: Location): EventProposal? {
+    delay(300)
     return if (shouldFail) {
       null
     } else {
