@@ -1,6 +1,7 @@
 package com.android.universe.ui.map
 
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
@@ -20,6 +21,7 @@ import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
 import com.android.universe.model.event.EventTemporaryRepositoryProvider
+import com.android.universe.model.image.ImageBitmapManager
 import com.android.universe.model.location.Location
 import com.android.universe.model.location.LocationRepository
 import com.android.universe.model.tag.Tag
@@ -733,6 +735,7 @@ class MapViewModel(
     viewModelScope.launch {
       try {
         val userProfile = userRepository.getUser(currentUserId)
+        val bitmapManager = ImageBitmapManager(applicationContext)
 
         // Call Gemini
         val generatedData =
@@ -741,6 +744,8 @@ class MapViewModel(
                 ?: throw IllegalStateException("AI failed to generate an event")
 
         // Map GeneratedEventData to Domain Event
+        val location = Location(generatedData.latitude, generatedData.longitude)
+        val imageUri = (ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + applicationContext.resources.getResourcePackageName(R.drawable.market) + '/' + applicationContext.resources.getResourceTypeName(R.drawable.market)  + '/' + applicationContext.resources.getResourceEntryName(R.drawable.market)).toUri()
         val event =
             Event(
                 id = UUID.randomUUID().toString(),
@@ -758,8 +763,9 @@ class MapViewModel(
                         .toSet(),
                 creator = currentUserId,
                 participants = setOf(currentUserId),
-                location = Location(generatedData.latitude, generatedData.longitude),
-                eventPicture = null,
+                location = location,
+                locationAsText = ReverseGeocoderSingleton.getSmartAddress(location.toGeoPoint()),
+                eventPicture = bitmapManager.resizeAndCompressImage(imageUri),
                 isPrivate = false)
 
         // Store temporarily for UI Preview

@@ -39,7 +39,7 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
           latitude = 46.5206415,
           longitude = 6.6291286,
           dateIso = "2025-12-21T15:00:00",
-          tags = listOf("Street food", "Festivals", "Wine Tasting"))
+          tags = listOf("STREET_FOOD", "FESTIVALS", "WINE_TASTING"))
 
   /**
    * Simulates the generation of a full creative event.
