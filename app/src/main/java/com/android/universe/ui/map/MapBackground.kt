@@ -1,5 +1,7 @@
 package com.android.universe.ui.map
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -13,7 +15,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 @Composable
 fun MapBackground(modifier: Modifier = Modifier, viewModel: MapViewModel) {
   val mapViewInstance by remember { mutableStateOf(viewModel.getMapInstance()) }
-
   val lifecycleOwner = LocalLifecycleOwner.current
 
   DisposableEffect(lifecycleOwner) {
@@ -22,10 +23,13 @@ fun MapBackground(modifier: Modifier = Modifier, viewModel: MapViewModel) {
 
     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
   }
-  AndroidView(
-      factory = {
-        viewModel.decoupleFromParent()
-        mapViewInstance
-      },
-      modifier = modifier.testTag(MapScreenTestTags.MAP_VIEW))
+
+  Surface(modifier.fillMaxSize()) {
+    AndroidView(
+        factory = {
+          viewModel.decoupleFromParent()
+          mapViewInstance
+        },
+        modifier = Modifier.testTag(MapScreenTestTags.MAP_VIEW))
+  }
 }
