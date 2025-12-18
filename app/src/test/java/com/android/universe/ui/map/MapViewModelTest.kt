@@ -107,6 +107,8 @@ class MapViewModelTest {
   @Before
   fun setup() = runTest {
     appContext = ApplicationProvider.getApplicationContext()
+    mockkObject(ReverseGeocoderSingleton)
+    coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
     userId = "new_id"
     locationRepository = mockk(relaxed = true)
     eventRepository = mockk(relaxed = true)

@@ -84,6 +84,7 @@ class EventRepositoryFirestore(
         "participants" to event.participants.toList(),
         "creator" to event.creator,
         "location" to locationToMap(event.location),
+        "locationAsText" to event.locationAsText,
         "eventPicture" to
             (if (event.eventPicture != null) {
               Blob.fromBytes(event.eventPicture)
@@ -118,6 +119,7 @@ class EventRepositoryFirestore(
           creator = doc.getString("creator") ?: "",
           participants = participantsList.toSet(),
           location = mapToLocation(locationMap),
+          locationAsText = doc.getString("locationAsText") ?: "Unknown Address",
           eventPicture = doc.getBlob("eventPicture")?.toBytes())
     } catch (e: Exception) {
       Log.e("EventRepositoryFirestore", "Error converting document to Event", e)

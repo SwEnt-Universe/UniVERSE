@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +28,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.universe.model.tag.Tag
+import com.android.universe.ui.components.CustomTextField
 import com.android.universe.ui.components.LiquidButton
 import com.android.universe.ui.theme.Dimensions
 import com.android.universe.ui.theme.UniverseTheme
@@ -61,6 +64,7 @@ fun EventContentLayout(
     eventId: String,
     title: String,
     description: String? = null,
+    location: String = "Unknown Address",
     date: LocalDateTime,
     tags: List<Tag>,
     participants: Int,
@@ -74,6 +78,10 @@ fun EventContentLayout(
     onChatClick: () -> Unit,
     onEditClick: () -> Unit = {}
 ) {
+  val locationSplit = location.split(";")
+  val address = locationSplit.getOrNull(0)
+  val poi = locationSplit.getOrNull(1)
+
   Column(modifier = modifier.fillMaxWidth()) {
     Row(modifier = Modifier.fillMaxWidth()) {
       Box(
@@ -155,7 +163,8 @@ fun EventContentLayout(
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
+        modifier =
+            Modifier.padding(start = 8.dp).testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
     Text(
@@ -163,7 +172,34 @@ fun EventContentLayout(
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurface,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
+        modifier =
+            Modifier.padding(start = 8.dp)
+                .testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
+    if (address != null)
+        CustomTextField(
+            value = address,
+            label = "",
+            leadingIcon = Icons.Default.LocationOn,
+            maxLines = 2,
+            underlineVisibility = false,
+            errorVisibility = false,
+            smallTextStyle = true,
+            placeholder = "",
+            onValueChange = {},
+            modifier = Modifier.testTag("${EventContentTestTags.EVENT_LOCATION}_$eventId"))
+    if (poi != null)
+        CustomTextField(
+            value = "Place nearby: $poi",
+            modifier = Modifier.testTag("${EventContentTestTags.EVENT_LOCATION}_$eventId"),
+            leadingIcon = Icons.Default.Star,
+            label = "",
+            underlineVisibility = false,
+            errorVisibility = false,
+            smallTextStyle = true,
+            placeholder = "",
+            onValueChange = {})
+
     Spacer(Modifier.height(Dimensions.SpacerLarge))
 
     if (showActions) {

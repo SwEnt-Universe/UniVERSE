@@ -2,6 +2,9 @@ package com.android.universe.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.universe.model.location.Location
+import com.android.universe.ui.map.ReverseGeocoderSingleton
+import io.mockk.coEvery
+import io.mockk.mockkObject
 import java.time.LocalDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -45,6 +48,8 @@ class EventLocalTemporaryRepositoryTest {
 
   @Before
   fun setUp() {
+    mockkObject(ReverseGeocoderSingleton)
+    coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
     repository = EventLocalTemporaryRepository()
   }
 

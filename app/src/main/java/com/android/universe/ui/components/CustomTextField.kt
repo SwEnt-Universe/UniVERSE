@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -83,6 +84,9 @@ fun CustomTextField(
     leadingIcon: ImageVector? = null,
     isPassword: Boolean = false,
     onToggleVisibility: (() -> Unit)? = null,
+    underlineVisibility: Boolean = true,
+    errorVisibility: Boolean = true,
+    smallTextStyle: Boolean = false,
     maxLines: Int = 1,
     validationState: ValidationState = ValidationState.Neutral,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -132,16 +136,16 @@ fun CustomTextField(
   // Main container for the label, input row, and underline
   Column(modifier = Modifier.fillMaxWidth()) {
     // 1. The label
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colorScheme.onBackground)
+    if (label != "")
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground)
 
     // 2. The input row (Icon, field, Lock (optional))
     Row(
         modifier =
             Modifier.fillMaxWidth()
-                .padding(top = 4.dp)
                 // Force the Row to a consistent height, matching the icon size.
                 // This prevents the underline from moving up/down if icons are absent.
                 .heightIn(min = IconBoxSize),
@@ -156,6 +160,12 @@ fun CustomTextField(
             }
           }
 
+          val textStyle: TextStyle =
+              if (smallTextStyle)
+                  LocalTextStyle.current.copy(
+                      color = MaterialTheme.colorScheme.onBackground,
+                      fontSize = MaterialTheme.typography.bodySmall.fontSize)
+              else LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground)
           // 4. The actual text field
           BasicTextField(
               value = value,
@@ -166,8 +176,7 @@ fun CustomTextField(
               maxLines = maxLines,
               keyboardOptions = finalKeyboardOptions,
               keyboardActions = keyboardActions,
-              textStyle =
-                  LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground),
+              textStyle = textStyle,
               cursorBrush =
                   SolidColor(MaterialTheme.colorScheme.primary), // Set the blinking cursor color
               modifier = modifier.weight(1f),
@@ -205,18 +214,19 @@ fun CustomTextField(
         }
 
     // 6. The underline
-    HorizontalDivider(color = dividerColor, thickness = 1.dp)
+    if (underlineVisibility) HorizontalDivider(color = dividerColor, thickness = 1.dp)
 
     // 7. The error message area
     // This Text is *always* rendered, even if there's no error.
     // When there's no error, it renders as " " with a Transparent color,
     // which invisibly reserves the space and prevents layout shifts.
-    Text(
-        text = errorText,
-        color = errorColor,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(top = 4.dp),
-        maxLines = 1)
+    if (errorVisibility)
+        Text(
+            text = errorText,
+            color = errorColor,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp),
+            maxLines = 1)
   }
 }
 
