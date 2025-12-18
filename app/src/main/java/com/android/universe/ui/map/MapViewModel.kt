@@ -56,6 +56,9 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.Margin
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import java.time.LocalDateTime
+import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -70,9 +73,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDateTime
-import java.util.UUID
-import kotlin.coroutines.cancellation.CancellationException
 
 // Constants for SharedPreference keys
 private const val KEY_CAMERA_LAT = "camera_latitude"
