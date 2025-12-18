@@ -79,9 +79,9 @@ val TagGamesSelected = Color(0xFFF5CBA7)
 val TagGamesSelectedDark = Color(0xFF8A4B14)
 
 // Technology
-val TagTechnology = Color(0xFF34495E)
-val TagTechnologySelected = Color(0xFFAEB6BF)
-val TagTechnologySelectedDark = Color(0xFF1F2B38)
+val TagTechnology = Color(0xFF098F2A)
+val TagTechnologySelected = Color(0xFF6FCF97)
+val TagTechnologySelectedDark = Color(0xFF0E3D1E)
 
 // Topic
 val TagTopic = Color(0xFFE91E63)

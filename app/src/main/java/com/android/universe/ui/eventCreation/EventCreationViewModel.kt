@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.gemini.EventProposal
+import com.android.universe.model.ai.gemini.FakeGeminiEventAssistant
 import com.android.universe.model.ai.gemini.GeminiEventAssistant
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
@@ -165,7 +166,7 @@ class EventCreationViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val eventTemporaryRepository: EventTemporaryRepository =
         EventTemporaryRepositoryProvider.repository,
-    private val gemini: GeminiEventAssistant = GeminiEventAssistant()
+    private val gemini: GeminiEventAssistant = FakeGeminiEventAssistant()
 ) : ViewModel() {
 
   private var isInitialized = false

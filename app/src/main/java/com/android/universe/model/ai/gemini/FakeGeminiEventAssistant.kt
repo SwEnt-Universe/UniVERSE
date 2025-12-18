@@ -23,7 +23,10 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
    * title and description.
    */
   var predefinedProposal: EventProposal? =
-      EventProposal(title = "Fake Event Title", description = "Fake Event Description")
+      EventProposal(
+          title = "Beer Seminar at Satellite",
+          description = "Join us at Satellite for a Beer Seminar where you can expand your “professional network,” practice your small talk skills, and conduct hands-on research in social dynamics."
+      )
 
   /**
    * The event data object to be returned when [generateCreativeEvent] succeeds. Defaults to a valid
@@ -31,12 +34,12 @@ class FakeGeminiEventAssistant : GeminiEventAssistant(providedModel = null) {
    */
   var predefinedEventData: GeneratedEventData? =
       GeneratedEventData(
-          title = "Fake Creative Event",
-          description = "This is a fake event generated for testing purposes.",
-          latitude = 46.5196535,
-          longitude = 6.6322734,
-          dateIso = "2025-12-25T18:00:00",
-          tags = listOf("TECHNOLOGY", "RUNNING", "PROGRAMMING"))
+          title = "Christmas Market Afterwork",
+          description = "Let’s meet at Place de l'Europe for some vin chaud and raclette to beat the December cold.\n",
+          latitude = 46.5206415,
+          longitude = 6.6291286,
+          dateIso = "2025-12-21T15:00:00",
+          tags = listOf("Street food", "Festivals", "Wine Tasting"))
 
   /**
    * Simulates the generation of a full creative event.

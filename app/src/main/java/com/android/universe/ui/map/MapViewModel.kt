@@ -15,6 +15,7 @@ import com.android.universe.BuildConfig
 import com.android.universe.R
 import com.android.universe.di.DefaultDP
 import com.android.universe.model.ai.gemini.GeminiEventAssistant
+import com.android.universe.model.ai.gemini.FakeGeminiEventAssistant
 import com.android.universe.model.event.Event
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventTemporaryRepository
@@ -139,7 +140,7 @@ class MapViewModel(
     private val userRepository: UserRepository,
     private val userReactiveRepository: UserReactiveRepository? =
         UserReactiveRepositoryProvider.repository,
-    private val geminiAssistant: GeminiEventAssistant = GeminiEventAssistant(),
+    private val geminiAssistant: GeminiEventAssistant = FakeGeminiEventAssistant(),
 ) : ViewModel() {
 
   private val _uiState =
