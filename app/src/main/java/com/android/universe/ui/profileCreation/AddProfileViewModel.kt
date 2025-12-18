@@ -171,7 +171,8 @@ open class AddProfileViewModel(
               description = state.description?.takeIf { it.isNotBlank() },
               dateOfBirth = dateOfBirth,
               country = "",
-              tags = emptySet())
+              tags = emptySet(),
+              profilePicture = state.profilePicture)
 
       repository.addUser(userProfile)
       onSuccess()
