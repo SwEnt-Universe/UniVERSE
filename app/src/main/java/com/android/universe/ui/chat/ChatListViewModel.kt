@@ -8,6 +8,7 @@ import com.android.universe.model.chat.Message
 import com.android.universe.model.event.EventRepository
 import com.android.universe.model.event.EventRepositoryProvider
 import com.google.firebase.firestore.FirebaseFirestoreException
+import java.time.LocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -79,20 +80,23 @@ class ChatListViewModel(
           it.copy(displayMessage = "Join some events to start chatting with others")
         }
       } else {
+        val yesterday = LocalDateTime.now().minusDays(1)
         events.forEach { event ->
-          try {
-            val chat = ChatManager.loadChat(chatID = event.id)
-            _uiState.update {
-              it.copy(
-                  chatPreviews =
-                      uiState.value.chatPreviews +
-                          ChatPreview(
-                              chatName = event.title,
-                              chatID = chat.chatID,
-                              lastMessage = chat.lastMessage))
+          if (event.date.isAfter(yesterday)) {
+            try {
+              val chat = ChatManager.loadChat(chatID = event.id)
+              _uiState.update {
+                it.copy(
+                    chatPreviews =
+                        uiState.value.chatPreviews +
+                            ChatPreview(
+                                chatName = event.title,
+                                chatID = chat.chatID,
+                                lastMessage = chat.lastMessage))
+              }
+            } catch (_: FirebaseFirestoreException) {
+              _uiState.update { it.copy(displayMessage = "Please check your internet connection") }
             }
-          } catch (_: FirebaseFirestoreException) {
-            _uiState.update { it.copy(displayMessage = "Please check your internet connection") }
           }
         }
       }
