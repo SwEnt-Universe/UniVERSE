@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import java.time.LocalDateTime
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -60,8 +60,12 @@ class ChatListViewModelTest {
   fun `loads only events where user participates and builds chat previews`() =
       testScope.runTest {
         // Setup test events
-        val e1 = EventTestData.dummyEvent1.copy(participants = setOf(userId, "x"), date = LocalDateTime.now())
-        val e2 = EventTestData.dummyEvent2.copy(participants = setOf("y", userId), date = LocalDateTime.now())
+        val e1 =
+            EventTestData.dummyEvent1.copy(
+                participants = setOf(userId, "x"), date = LocalDateTime.now())
+        val e2 =
+            EventTestData.dummyEvent2.copy(
+                participants = setOf("y", userId), date = LocalDateTime.now())
 
         // We mock the repo to return only e1 and e2.
         coEvery { mockEventRepository.getUserInvolvedEvents(userId) } returns listOf(e1, e2)
