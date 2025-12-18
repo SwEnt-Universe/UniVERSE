@@ -285,7 +285,8 @@ fun FlowBottomMenu(flowTabs: List<FlowTab>, defaultSelectedTabIndex: Int = -1) {
         flowTabs[index].onClick()
       },
       tabsCount = flowTabs.count(),
-      modifier = Modifier.testTag(FlowBottomMenuTestTags.MENU)) {
+      modifier = Modifier.testTag(FlowBottomMenuTestTags.MENU),
+      grayTint = false) {
         flowTabs.forEach { tab ->
           LiquidBottomTab(onClick = tab.onClick, modifier = Modifier.testTag(tab.testTag)) {
             Column(
