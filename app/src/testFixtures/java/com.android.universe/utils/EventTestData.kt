@@ -87,14 +87,14 @@ object EventTestData {
   val NoImage = BaseEvent.copy(eventPicture = null)
   val categoryEvents =
       listOf(
-          Pair(Tag.Category.MUSIC, R.drawable.violet_pin),
-          Pair(Tag.Category.SPORT, R.drawable.sky_blue_pin),
-          Pair(Tag.Category.FOOD, R.drawable.yellow_pin),
-          Pair(Tag.Category.ART, R.drawable.red_pin),
-          Pair(Tag.Category.TRAVEL, R.drawable.brown_pin),
-          Pair(Tag.Category.GAMES, R.drawable.orange_pin),
-          Pair(Tag.Category.TECHNOLOGY, R.drawable.grey_pin),
-          Pair(Tag.Category.TOPIC, R.drawable.pink_pin))
+          Pair(Tag.Category.MUSIC, R.drawable.violet_pin_light_mode),
+          Pair(Tag.Category.SPORT, R.drawable.sky_blue_pin_light_mode),
+          Pair(Tag.Category.FOOD, R.drawable.yellow_pin_light_mode),
+          Pair(Tag.Category.ART, R.drawable.red_pin_light_mode),
+          Pair(Tag.Category.TRAVEL, R.drawable.brown_pin_light_mode),
+          Pair(Tag.Category.GAMES, R.drawable.orange_pin_light_mode),
+          Pair(Tag.Category.TECHNOLOGY, R.drawable.green_pin_light_mode),
+          Pair(Tag.Category.TOPIC, R.drawable.pink_pin_light_mode))
 
   val futureEventNoTags =
       NoTagsEvent.copy(

@@ -5,7 +5,11 @@ import com.android.universe.model.location.Location
 import com.android.universe.utils.EventTestData
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.marker.Marker
-import io.mockk.*
+import com.tomtom.sdk.map.display.style.StyleMode
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -62,7 +66,7 @@ class MarkerLogicTest {
     val newMarkers = listOf(uiModelB)
 
     // WHEN
-    val result = markerLogic(currentMap, newMarkers)
+    val result = markerLogic(currentMap, newMarkers, false, StyleMode.MAIN)
 
     // THEN unpack the Triple
     val (optionsToAdd, markersToRemove, newEvents) = result
@@ -91,7 +95,7 @@ class MarkerLogicTest {
     val newMarkers = listOf(uiModelBBis)
 
     // WHEN
-    val result = markerLogic(currentMap, newMarkers)
+    val result = markerLogic(currentMap, newMarkers, false, StyleMode.MAIN)
 
     // THEN unpack the Triple
     val (optionsToAdd, markersToRemove, newEvents) = result
@@ -118,7 +122,7 @@ class MarkerLogicTest {
     val newMarkers = listOf(MapMarkerUiModel(event = eventA, iconResId = 111, position = mockk()))
 
     // WHEN
-    val result = markerLogic(currentMap, newMarkers)
+    val result = markerLogic(currentMap, newMarkers, false, StyleMode.MAIN)
 
     // THEN
     assertTrue(result.first.isEmpty()) // optionsToAdd
