@@ -85,10 +85,10 @@ class LoginAndCreateAnEvent : FirebaseAuthUserTest(isRobolectric = false) {
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns Dispatchers.Main
-      mockkObject(ReverseGeocoderSingleton)
-      coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
+    mockkObject(ReverseGeocoderSingleton)
+    coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
 
-      runTest {
+    runTest {
       createRandomTestUser(fakeUser).let {
         userEmail = it.first
         userUid = it.second

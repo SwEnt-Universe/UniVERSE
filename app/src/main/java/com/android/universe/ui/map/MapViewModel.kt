@@ -56,6 +56,9 @@ import com.tomtom.sdk.map.display.ui.MapView
 import com.tomtom.sdk.map.display.ui.Margin
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
 import com.tomtom.sdk.map.display.ui.logo.LogoView
+import java.time.LocalDateTime
+import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -70,9 +73,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDateTime
-import java.util.UUID
-import kotlin.coroutines.cancellation.CancellationException
 
 // Constants for SharedPreference keys
 private const val KEY_CAMERA_LAT = "camera_latitude"
@@ -467,8 +467,8 @@ class MapViewModel(
               userRepository.getUser(currentUserId).following.toSet()
             } catch (e: Exception) {
               if (e is CancellationException) {
-                  ensureActive()
-                  throw e
+                ensureActive()
+                throw e
               }
               Log.e("MapViewModel", "Failed to fetch user following list", e)
               emptySet()
@@ -504,9 +504,9 @@ class MapViewModel(
           _uiState.update { it.copy(markers = markers) }
         }
       } catch (e: Exception) {
-        if (e is CancellationException){
-            ensureActive()
-            throw e
+        if (e is CancellationException) {
+          ensureActive()
+          throw e
         }
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }
@@ -627,9 +627,9 @@ class MapViewModel(
         val events = eventRepository.getSuggestedEventsForUser(user)
         _eventMarkers.value = events
       } catch (e: Exception) {
-        if (e is CancellationException){
-            ensureActive()
-            throw e
+        if (e is CancellationException) {
+          ensureActive()
+          throw e
         }
         _uiState.update { it.copy(error = "Failed to load events: ${e.message}") }
       }

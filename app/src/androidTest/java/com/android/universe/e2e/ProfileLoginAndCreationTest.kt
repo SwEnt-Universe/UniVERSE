@@ -85,9 +85,9 @@ class ProfileLoginAndCreationTest : FirebaseAuthUserTest(isRobolectric = false) 
     every { DefaultDP.io } returns UnconfinedTestDispatcher()
     every { DefaultDP.default } returns UnconfinedTestDispatcher()
     every { DefaultDP.main } returns Dispatchers.Main
-      mockkObject(ReverseGeocoderSingleton)
-      coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
-      runTest {
+    mockkObject(ReverseGeocoderSingleton)
+    coEvery { ReverseGeocoderSingleton.getSmartAddress(any()) } returns "Example"
+    runTest {
       composeTestRule.setContentWithStubBackdrop {
         UniverseTheme {
           UniverseBackgroundContainer(mapViewModel = mapViewModel) {

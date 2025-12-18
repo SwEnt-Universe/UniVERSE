@@ -138,9 +138,9 @@ fun CustomTextField(
     // 1. The label
     if (label != "")
         Text(
-        text = label,
-        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colorScheme.onBackground)
+            text = label,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground)
 
     // 2. The input row (Icon, field, Lock (optional))
     Row(
@@ -160,7 +160,12 @@ fun CustomTextField(
             }
           }
 
-          val textStyle: TextStyle = if (smallTextStyle) LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground, fontSize = MaterialTheme.typography.bodySmall.fontSize) else LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground)
+          val textStyle: TextStyle =
+              if (smallTextStyle)
+                  LocalTextStyle.current.copy(
+                      color = MaterialTheme.colorScheme.onBackground,
+                      fontSize = MaterialTheme.typography.bodySmall.fontSize)
+              else LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground)
           // 4. The actual text field
           BasicTextField(
               value = value,
@@ -209,8 +214,7 @@ fun CustomTextField(
         }
 
     // 6. The underline
-    if (underlineVisibility)
-        HorizontalDivider(color = dividerColor, thickness = 1.dp)
+    if (underlineVisibility) HorizontalDivider(color = dividerColor, thickness = 1.dp)
 
     // 7. The error message area
     // This Text is *always* rendered, even if there's no error.
@@ -218,11 +222,11 @@ fun CustomTextField(
     // which invisibly reserves the space and prevents layout shifts.
     if (errorVisibility)
         Text(
-        text = errorText,
-        color = errorColor,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(top = 4.dp),
-        maxLines = 1)
+            text = errorText,
+            color = errorColor,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp),
+            maxLines = 1)
   }
 }
 

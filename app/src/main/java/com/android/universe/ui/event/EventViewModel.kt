@@ -15,6 +15,8 @@ import com.android.universe.model.user.UserRepository
 import com.android.universe.model.user.UserRepositoryProvider
 import com.android.universe.ui.search.SearchEngine
 import com.android.universe.ui.search.SearchEngine.categoryCoverageComparator
+import java.time.LocalDateTime
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +27,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * UI state for an event item.
@@ -185,9 +185,9 @@ class EventViewModel(
               emptySet()
             }
           } catch (e: Exception) {
-            if (e is CancellationException){
-                ensureActive()
-                throw e
+            if (e is CancellationException) {
+              ensureActive()
+              throw e
             }
             Log.e("EventViewModel", "Failed to fetch user following list", e)
             emptySet()

@@ -9,11 +9,11 @@ import com.android.universe.model.user.UserProfile
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.time.LocalDateTime
-import java.util.UUID
 
 // Firestore collection path for events.
 const val EVENTS_COLLECTION_PATH = "events"

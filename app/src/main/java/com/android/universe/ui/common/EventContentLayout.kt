@@ -163,7 +163,8 @@ fun EventContentLayout(
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(start = 8.dp).testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
+        modifier =
+            Modifier.padding(start = 8.dp).testTag("${EventContentTestTags.EVENT_TITLE}_$eventId"))
 
     Spacer(Modifier.height(Dimensions.SpacerMedium))
     Text(
@@ -171,32 +172,33 @@ fun EventContentLayout(
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurface,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(start = 8.dp).testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
-      Spacer(Modifier.height(Dimensions.SpacerMedium))
-      if(address != null)
-          CustomTextField(
-              value = address,
-              label = "",
-              leadingIcon = Icons.Default.LocationOn,
-              maxLines = 2,
-              underlineVisibility = false,
-              errorVisibility = false,
-              smallTextStyle = true,
-              placeholder = "",
-              onValueChange = {},
-              modifier = Modifier.testTag("${EventContentTestTags.EVENT_LOCATION}_$eventId"))
-      if (poi != null)
-          CustomTextField(
-              value = "Place nearby: $poi",
-              modifier = Modifier.testTag("${EventContentTestTags.EVENT_LOCATION}_$eventId"),
-              leadingIcon = Icons.Default.Star,
-              label = "",
-              underlineVisibility = false,
-              errorVisibility = false,
-              smallTextStyle = true,
-              placeholder = "",
-              onValueChange = {}
-          )
+        modifier =
+            Modifier.padding(start = 8.dp)
+                .testTag("${EventContentTestTags.EVENT_DESCRIPTION}_$eventId"))
+    Spacer(Modifier.height(Dimensions.SpacerMedium))
+    if (address != null)
+        CustomTextField(
+            value = address,
+            label = "",
+            leadingIcon = Icons.Default.LocationOn,
+            maxLines = 2,
+            underlineVisibility = false,
+            errorVisibility = false,
+            smallTextStyle = true,
+            placeholder = "",
+            onValueChange = {},
+            modifier = Modifier.testTag("${EventContentTestTags.EVENT_LOCATION}_$eventId"))
+    if (poi != null)
+        CustomTextField(
+            value = "Place nearby: $poi",
+            modifier = Modifier.testTag("${EventContentTestTags.EVENT_LOCATION}_$eventId"),
+            leadingIcon = Icons.Default.Star,
+            label = "",
+            underlineVisibility = false,
+            errorVisibility = false,
+            smallTextStyle = true,
+            placeholder = "",
+            onValueChange = {})
 
     Spacer(Modifier.height(Dimensions.SpacerLarge))
 
