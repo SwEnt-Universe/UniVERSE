@@ -465,7 +465,7 @@ fun ProfileEventList(
                       onChatNavigate = onChatNavigate,
                       onCardClick = onCardClick,
                       onEditButtonClick = onEditButtonClick,
-                      isUserOwner = eventUIState.creatorId == uid,
+                      isUserOwner = eventUIState.creator == uid,
                       showActions = follower != true)
                 }
           }

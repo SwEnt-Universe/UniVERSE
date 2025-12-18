@@ -57,7 +57,7 @@ class EventScreenTest {
       sampleUsers.forEach { fakeUserRepository.addUser(it) }
     }
 
-    viewModel = EventViewModel(fakeEventRepository, null, fakeUserRepository)
+    viewModel = EventViewModel(fakeEventRepository, fakeUserRepository)
 
     composeTestRule.setContentWithStubBackdrop { EventScreen(viewModel = viewModel) }
 
