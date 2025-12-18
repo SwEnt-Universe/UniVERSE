@@ -99,6 +99,7 @@ import kotlinx.coroutines.launch
  * @param tabsCount The total number of tabs in the bar. This is crucial for calculating the width
  *   of each tab and the animation bounds.
  * @param modifier The [Modifier] to be applied to the component's container.
+ * @param grayTint if the tabs should be gray tinted
  * @param content The composable content for the tabs, typically a series of `Tab` or `Icon`
  *   composables. This lambda is executed within a [RowScope].
  */
@@ -108,6 +109,7 @@ fun LiquidBottomTabs(
     onTabSelected: (index: Int) -> Unit,
     tabsCount: Int,
     modifier: Modifier = Modifier,
+    grayTint: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
   val backdrop = LocalLayerBackdrop.current
@@ -119,7 +121,12 @@ fun LiquidBottomTabs(
   val tabsBackdrop = rememberLayerBackdrop()
 
   BoxWithConstraints(
-      modifier = modifier.padding(Dimensions.PaddingExtraLarge),
+      modifier =
+          modifier.padding(
+              top = Dimensions.PaddingExtraLarge,
+              bottom = Dimensions.PaddingMedium,
+              end = Dimensions.PaddingExtraLarge,
+              start = Dimensions.PaddingExtraLarge),
       contentAlignment = Alignment.CenterStart) {
         val density = LocalDensity.current
         val tabWidth = with(density) { (constraints.maxWidth.toFloat() - 8f.dp.toPx()) / tabsCount }
@@ -207,7 +214,10 @@ fun LiquidBottomTabs(
                 .height(64f.dp)
                 .fillMaxWidth()
                 .padding(4f.dp)
-                .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),
+                .then(
+                    if (grayTint)
+                        Modifier.graphicsLayer(colorFilter = ColorFilter.tint(accentColor))
+                    else Modifier),
             verticalAlignment = Alignment.CenterVertically,
             content = content)
 
