@@ -151,7 +151,7 @@ fun EventScreen(
                           onChatNavigate = onChatNavigate,
                           onCardClick = onCardClick,
                           onEditButtonClick = onEditButtonClick,
-                          isUserOwner = event.creatorId == viewModel.storedUid)
+                          isUserOwner = event.creator == viewModel.storedUid)
                     }
                     item {
                       Spacer(Modifier.height(height = paddingValues.calculateBottomPadding()))

@@ -108,7 +108,7 @@ class EventViewModelTest {
       sampleUsers.forEach { userRepo.addUser(it) }
     }
 
-    viewModel = EventViewModel(repository, null, userRepo)
+    viewModel = EventViewModel(repository, userRepo)
     viewModel.storedUid = sampleUsers[0].uid
     runTest {
       viewModel.loadEvents()
@@ -130,7 +130,7 @@ class EventViewModelTest {
         "Join us for a casual 5km run around the lake followed by coffee.", firstEvent.description)
     assertEquals(futureDate, firstEvent.date)
     assertEquals(listOf(Tag.SCULPTURE, Tag.COUNTRY), firstEvent.tags)
-    assertEquals("Alice Smith", firstEvent.creator)
+    assertEquals(sampleUsers[0].uid, firstEvent.creator)
     assertEquals(2, firstEvent.participants)
     assertArrayEquals(
         ByteArray(126 * 126) { index -> (index % 256).toByte() }, firstEvent.eventPicture)
@@ -149,12 +149,6 @@ class EventViewModelTest {
 
     val hackathonEvent = viewModel.eventsState.value.first { it.title == "Tech Hackathon 2025" }
     assertEquals(0, hackathonEvent.participants)
-  }
-
-  @Test
-  fun creatorIsFormattedCorrectly() = runTest {
-    val runEvent = viewModel.eventsState.value.first { it.title == "Morning Run at the Lake" }
-    assertEquals("Alice Smith", runEvent.creator)
   }
 
   @Test

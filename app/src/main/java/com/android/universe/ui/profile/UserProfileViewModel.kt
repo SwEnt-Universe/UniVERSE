@@ -108,21 +108,13 @@ class UserProfileViewModel(
       val (incoming, history) = rawEvents.partition { event -> event.date.isAfter(now) }
 
       fun mapToUIState(event: Event): EventUIState {
-        val creatorName =
-            if (event.creator == _userState.value.userProfile.uid) {
-              "${_userState.value.userProfile.firstName} ${_userState.value.userProfile.lastName}"
-            } else {
-              "Unknown"
-            }
-
         return EventUIState(
             id = event.id,
             title = event.title,
             description = event.description ?: "",
             date = event.date,
             tags = event.tags.toList(),
-            creator = creatorName,
-            creatorId = event.creator,
+            creator = event.creator,
             participants = event.participants.size,
             location = event.location,
             isPrivate = event.isPrivate,
