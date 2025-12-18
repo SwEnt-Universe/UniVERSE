@@ -13,6 +13,8 @@ import com.android.universe.ui.event.EventUIState
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -81,6 +83,10 @@ class UserProfileViewModel(
 
         loadUserEvents()
       } catch (e: Exception) {
+        if (e is CancellationException) {
+          this.ensureActive()
+          throw e
+        }
         Log.e("UserProfileViewModel", "User $uid not found", e)
         setErrorMsg("Username not Found")
       }
@@ -125,6 +131,7 @@ class UserProfileViewModel(
             creatorId = event.creator,
             participants = event.participants.size,
             location = event.location,
+            locationAsText = event.locationAsText,
             isPrivate = event.isPrivate,
             index = event.id.hashCode(),
             joined = true,

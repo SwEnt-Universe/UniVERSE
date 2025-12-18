@@ -179,7 +179,7 @@ jobs:
       # ------------------  Unit Tests ------------------
       - name: Run unit tests
         if: env.skip != 'true'
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest
 
       # ------------------  Decide test target ------------------
       - name: Determine test suite
@@ -230,7 +230,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin 1080x2400
           disable-animations: true
-          script: ./gradlew ${{ env.mode }} --stacktrace
+          script: ./gradlew ${{ env.mode }} --scan
 
       # ------------------ 📈 Coverage + Sonar ------------------
       - name: Generate JaCoCo Coverage Report
