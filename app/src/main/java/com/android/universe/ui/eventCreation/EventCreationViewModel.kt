@@ -179,6 +179,7 @@ class EventCreationViewModel(
   fun init(uidEvent: String?) {
     if (isInitialized) return
     isInitialized = true
+    resetTemporaryRepository()
 
     if (uidEvent != null) {
       loadUid(uidEvent)
@@ -246,6 +247,11 @@ class EventCreationViewModel(
                         OnboardingState.ENTER_TIME to true))
       }
     }
+  }
+
+  /** Resets the temporary event repository by deleting any existing temporary event data. */
+  private fun resetTemporaryRepository() {
+    viewModelScope.launch(DefaultDP.io) { eventTemporaryRepository.deleteEvent() }
   }
 
   private val eventCreationUiState = MutableStateFlow(EventCreationUIState())
