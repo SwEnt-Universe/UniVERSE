@@ -26,7 +26,7 @@ class TomTomLocationRepository(private val context: Context) : LocationRepositor
   private val provider: LocationProvider by lazy {
     val config =
         LocationProviderConfig(
-            minTimeInterval = 250L.milliseconds, minDistance = Distance.meters(20.0))
+            minTimeInterval = 250L.milliseconds, minDistance = Distance.meters(5.0))
     DefaultLocationProviderFactory.create(context, DefaultDP.default, config)
   }
 

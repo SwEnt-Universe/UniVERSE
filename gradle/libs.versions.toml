@@ -12,8 +12,8 @@
 
 [versions]
 # ===== PLUGINS =====
-androidGradlePlugin = "8.13.1"
-kotlin = "2.2.21"
+androidGradlePlugin = "8.13.2"
+kotlin = "2.3.0"
 googleServices = "4.4.4"
 ktfmt = "0.25.0"
 sonarqube = "7.0.1.6134"
@@ -25,7 +25,7 @@ androidxNavigation = "2.9.6"
 
 # ===== UI & COMPOSE =====
 # The Compose BOM controls the versions of all core Compose libraries.
-composeBom = "2025.11.01"
+composeBom = "2025.12.00"
 
 # ===== LEGACY UI =====
 appcompat = "1.7.1"
@@ -34,7 +34,7 @@ constraintlayout = "2.2.1"
 
 # ===== FIREBASE =====
 # The Firebase BOM controls the versions of all Firebase libraries.
-firebaseBom = "34.6.0"
+firebaseBom = "34.7.0"
 
 # ===== GOOGLE & AUTHENTICATION =====
 googleCredentials = "1.5.0"
@@ -47,7 +47,7 @@ tomtom = "1.26.0"
 # ===== NETWORKING & JSON =====
 retrofit = "2.11.0"
 okhttp = "4.12.0"
-kotlinxSerializationJson = "1.7.3"
+kotlinxSerializationJson = "1.9.0"
 retrofitKotlinxSerializationConverter = "1.0.0"
 
 # ===== TESTING =====
@@ -57,7 +57,7 @@ androidxEspresso = "3.7.0"
 androidxTestCore = "1.7.0"
 mockk = "1.14.6"
 kakaocup = "1.0.0"
-backdrop = "1.0.0"
+backdrop = "1.0.2"
 kaspresso = "1.6.0"
 robolectric = "4.16"
 turbine = "1.2.1"
@@ -130,6 +130,7 @@ protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "p
 tomtom-maps = { group = "com.tomtom.sdk.maps", name = "map-display", version.ref = "tomtom" }
 tomtom-location = { group = "com.tomtom.sdk.location", name = "provider-default", version.ref = "tomtom" }
 tomtom-search = { group = "com.tomtom.sdk.search", name = "search-online", version.ref = "tomtom" }
+tomtom-reverse-geocoding = { group = "com.tomtom.sdk.search", name = "reverse-geocoder-online", version.ref = "tomtom"}
 tomtom-orbis = { group = "com.tomtom.sdk", name = "feature-toggle", version.ref = "tomtom"}
 
 # ==============================================================================

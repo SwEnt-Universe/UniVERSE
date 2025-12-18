@@ -1,6 +1,7 @@
 package com.android.universe.model.event
 
 import com.android.universe.model.location.Location
+import com.android.universe.ui.map.ReverseGeocoderSingleton
 import java.time.LocalDateTime
 
 class EventLocalTemporaryRepository : EventTemporaryRepository {
@@ -27,6 +28,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
       creator: String,
       participants: Set<String>,
       location: Location,
+      locationAsText: String,
       isPrivate: Boolean,
       eventPicture: ByteArray?
   ) {
@@ -41,6 +43,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
             participants = participants,
             location = location,
             isPrivate = isPrivate,
+            locationAsText = locationAsText,
             eventPicture = eventPicture)
   }
 
@@ -58,6 +61,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
         creator = event.creator,
         participants = event.participants,
         location = event.location,
+        locationAsText = event.locationAsText,
         isPrivate = event.isPrivate,
         eventPicture = event.eventPicture)
   }
@@ -79,6 +83,7 @@ class EventLocalTemporaryRepository : EventTemporaryRepository {
             participants = emptySet(),
             location = location,
             isPrivate = false,
+            locationAsText = ReverseGeocoderSingleton.getSmartAddress(location.toGeoPoint()),
             eventPicture = null)
   }
 

@@ -51,6 +51,7 @@ import com.android.universe.ui.map.MapMode
 import com.android.universe.ui.map.MapScreen
 import com.android.universe.ui.map.MapViewModel
 import com.android.universe.ui.map.MapViewModelFactory
+import com.android.universe.ui.map.ReverseGeocoderSingleton
 import com.android.universe.ui.navigation.NavigationActions
 import com.android.universe.ui.navigation.NavigationScreens
 import com.android.universe.ui.navigation.Tab
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
     FeatureToggleController.enable(TomTomOrbisMapFeature)
     // Enable automatic index creation for Firestore (makes offline queries faster)
     Firebase.firestore.persistentCacheIndexManager?.apply { enableIndexAutoCreation() }
+    ReverseGeocoderSingleton.init(this)
 
     setContent {
       // Enables a live dark/light-mode swap of the system bottom menu (if enabled)
