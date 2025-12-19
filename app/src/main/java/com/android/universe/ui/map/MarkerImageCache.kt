@@ -56,7 +56,7 @@ object MarkerImageCache {
           R.drawable.orange_pin_dark_mode to fromResourceWrapper(R.drawable.orange_pin_dark_mode),
           R.drawable.green_pin_dark_mode to fromResourceWrapper(R.drawable.green_pin_dark_mode),
           R.drawable.green_pin_light_mode to fromResourceWrapper(R.drawable.green_pin_light_mode),
-          R.drawable.pink_pin_dark_mode to fromResourceWrapper(R.drawable.pink_pin_light_mode),
+          R.drawable.pink_pin_dark_mode to fromResourceWrapper(R.drawable.pink_pin_dark_mode),
           R.drawable.pink_pin_light_mode to fromResourceWrapper(R.drawable.pink_pin_light_mode),
           R.drawable.base_pin_dark_mode to fromResourceWrapper(R.drawable.base_pin_light_mode),
           R.drawable.base_pin_light_mode to fromResourceWrapper(R.drawable.base_pin_light_mode))
