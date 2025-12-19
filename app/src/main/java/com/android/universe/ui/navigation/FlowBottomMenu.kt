@@ -77,7 +77,8 @@ sealed class FlowTab(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                modifier = Modifier.size(Dimensions.IconSizeLarge))
+                modifier = Modifier.size(Dimensions.IconSizeLarge),
+                tint = MaterialTheme.colorScheme.onSurface)
           },
           label = "Back",
           testTag = testTag,
